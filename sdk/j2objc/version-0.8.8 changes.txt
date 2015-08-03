@@ -1,0 +1,16 @@
+To summarize: 
+- I changed the definition of RELEASE_ to x=nil 
+- Removed java/net/URL.java from transpired src and then copied the header back to the build result and removed headers from the include directory
+-Removed DateFormat.java and related and add headers to build result and removed headers from the include directory
+- Modified Array.m to have newInstanceWithIOSClass autoreleasae the allocated arrays
+-Modified IOSLocaleData to autorelease number formatter and date formatter
+-Modified NativeDecimalFormatter close(Object nativeFormatter) method to add the following
+  #if ! __has_feature(objc_arc)
+      if(nativeFormatter) {
+        [nativeFormatter release];
+      }
+  #endif
+
+Changed J2ObjC.java,Options.java,util/NameTable.java
+
+

@@ -1,0 +1,218 @@
+Set {
+  {
+    name: "Studio.icon.toolbox.hsplitpane"
+    value: "SplitPane{splitOrientation:left_to_right; regions{ {}; {}; } }"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.vsplitpane"
+    value: "SplitPane{splitOrientation:top_to_bottom; regions{ {}; {}; } }"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.gridpane"
+    value: "GridPane { rows: 2; regions { { x: 0; y: 0 }; { x: 0; y: 1 } } }"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.form"
+    value: "Form{ layout: forms; columns: '14dlux,14dlux,14dlux,14dlux,14dlux'; rows:'14dluy,14dluy,14dluy,14dluy,14dluy'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.groupbox"
+    value: "GroupBox{ layout: forms; columns: '14dlux,14dlux,14dlux'; rows:'14dluy,14dluy,14dluy'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.collapsiblepane"
+    value: "CollapsiblePane{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.widgetpane"
+    value: "WidgetPane{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.canvas"
+    value: "Canvas{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.tabpane"
+    value: "TabPane{ tabs {{title: 'One'};{title: 'Two'};{title: 'Three'};{title: 'Four'}}}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.stackpane"
+    value: "StackPane{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.hline"
+    value: "Line{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.vline"
+    value: "Line{ horizontal: false}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.linechart"
+    value: "Chart{chartType: line}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.barchart"
+    value: "Chart{chartType: bar}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.stackedbarchart"
+    value: "Chart{chartType: stacked_bar}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.piechart"
+    value: "Chart{chartType: pie}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.areachart"
+    value: "Chart{chartType: area}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.imagepane"
+    value: "ImagePane{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.date_chooser"
+    value: "DateChooser{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.color_chooser"
+    value: "ColorChooser{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.pushbutton"
+    value: "PushButton{value:'Button'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.radiobutton"
+    value: "RadioButton{value: 'Radio Button'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.checkbox"
+    value: "CheckBox{value:'CheckBox'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.label"
+    value: "Label{value:'Label'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.textfield"
+    value: "TextField{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.passwordfield"
+    value: "PasswordField{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.fileuploadfield"
+    value: "FileUploadField{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.textarea"
+    value: "TextArea{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.documentpane"
+    value: "DocumentPane{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.number_spinner"
+    value: "NumberSpinner{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.list_spinner"
+    value: "Spinner{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.date_spinner"
+    value: "DateSpinner{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.date_time_spinner"
+    value: "DateTimeSpinner{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.time_spinner"
+    value: "TimeSpinner{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.listbox"
+    value: "ListBox{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.checkboxlist"
+    value: "CheckBoxList{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.tree"
+    value: "Tree{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.checkboxtree"
+    value: "CheckBoxTree{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.combobox"
+    value: "ComboBox{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.table"
+    value: "Table{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.treetable"
+    value: "TreeTable{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.propertytable"
+    value: "PropertyTable{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.hslider"
+    value: "Slider{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.vslider"
+    value: "Slider{horizontal: false}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.progressbar"
+    value: "ProgressBar{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.menubar"
+    value: "MenuBar { popupMenu { { value: '&File' } } }"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.statusbar"
+    value: "StatusBar{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.toolbar"
+    value: "ToolBar{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.navigator"
+    value: "Navigator{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.browser"
+    value: "Browser{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.separator"
+    value: "Bean{name:'Rare.bean.separator'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.expander"
+    value: "Bean{name:'Rare.bean.expander'}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.carousel"
+    value: "Carousel{}"
+  } [ converterClass="Configuration" ]
+  {
+    name: "Studio.icon.toolbox.bean"
+    value: "Bean{}"
+  } [ converterClass="Configuration" ]
+} [ type="NameValuePair" ]

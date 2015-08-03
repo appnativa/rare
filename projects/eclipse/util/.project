@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>appnativa.util</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>source</name>
+			<type>2</type>
+			<locationURI>APPNATIVA_SOURCE/util/src</locationURI>
+		</link>
+		<link>
+			<name>src-html</name>
+			<type>2</type>
+			<locationURI>APPNATIVA_SOURCE/util/src-html</locationURI>
+		</link>
+		<link>
+			<name>src-json</name>
+			<type>2</type>
+			<locationURI>APPNATIVA_SOURCE/util/src-json</locationURI>
+		</link>
+		<link>
+			<name>src-other</name>
+			<type>2</type>
+			<locationURI>APPNATIVA_SOURCE/util/src-other</locationURI>
+		</link>
+		<link>
+			<name>src-xml</name>
+			<type>2</type>
+			<locationURI>APPNATIVA_SOURCE/util/src-xml</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

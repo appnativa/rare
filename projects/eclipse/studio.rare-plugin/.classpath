@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry exported="true" kind="lib" path="jcommon.jar"/>
+	<classpathentry exported="true" kind="lib" path="jfreechart.jar"/>
+	<classpathentry exported="true" kind="lib" path="appnativa.rare.swing.jar" sourcepath="/appnativa.rare.swing"/>
+	<classpathentry exported="true" kind="lib" path="appnativa.spot.jar" sourcepath="/appnativa.spot"/>
+	<classpathentry exported="true" kind="lib" path="appnativa.util.jar" sourcepath="/appnativa.util"/>
+	<classpathentry exported="true" kind="lib" path="jlayer.jar"/>
+	<classpathentry exported="true" kind="lib" path="swingx-all-1.6.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="timingframework-swing-7.3.jar"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry exported="true" kind="lib" path="js.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

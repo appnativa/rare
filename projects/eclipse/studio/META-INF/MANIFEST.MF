@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: appNativa Studio
+Bundle-SymbolicName: com.appnativa.studio;singleton:=true
+Bundle-Version: 1.4
+Bundle-Activator: com.appnativa.studio.Activator
+Bundle-Vendor: appNativa Inc.
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jface.text,
+ org.eclipse.core.resources,
+ org.eclipse.ui.editors,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.console;bundle-version="3.5.100",
+ com.appnativa.rare;bundle-version="1.4",
+ org.eclipse.jdt.core,
+ org.eclipse.jdt.launching,
+ org.eclipse.core.filesystem
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Import-Package: org.eclipse.ui.views.contentoutline
+Bundle-ClassPath: .,
+ swing2swt.jar
+Export-Package: com.appnativa.studio

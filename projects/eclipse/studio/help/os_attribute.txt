@@ -1,0 +1,18 @@
+The valid list or os's area folows:
+  android
+  ios
+  linux
+  mac
+  touch
+  touchable
+  windows
+  swing
+  java
+  apple
+
+You can concatenate density/screen size qualifiers (-mdpi,  -xhdpi, -small)
+You can concatenate language qualifiers (-lang_en).
+You can a version number to target that version of greater (-v1.1).
+
+You can prepend 'not_' to an name to disqualify it.
+

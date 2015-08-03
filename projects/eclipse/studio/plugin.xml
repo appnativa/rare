@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+  <extension
+    point="org.eclipse.ui.editors">
+    <editor
+      name="RML Editor"
+      extensions="sdf,rml"
+      icon="icons/appnativa_rml_icon16.png"
+      contributorClass="com.appnativa.studio.editors.MultiPageEditorContributor"
+      class="com.appnativa.studio.editors.MultiPageEditor"
+      id="com.appnativa.studio.editors.MultiPageEditor">
+    </editor>
+  </extension>
+  <extension point="org.eclipse.core.filebuffers.documentSetup">
+    <participant
+      extensions="sdf,rml"
+      class="com.appnativa.studio.editors.DocumentSetup">
+    </participant>
+  </extension>
+  <extension
+    point="org.eclipse.ui.newWizards">
+    <category
+      id="com.appnativa.studio"
+      name="appNativa">
+    </category>
+    <wizard
+      name="RML Layout"
+      icon="icons/appnativa_rml_icon16.png"
+      category="com.appnativa.studio"
+      class="com.appnativa.studio.wizards.NewLayout"
+      id="com.appnativa.studio.wizards.NewLayout">
+    </wizard>
+    <wizard
+      category="com.appnativa.studio"
+      class="com.appnativa.studio.wizards.NewProject"
+      hasPages="true"
+      icon="icons/appnativa_rml_project_icon16.png"
+      id="com.appnativa.studio.wizards.NewProject"
+      name="RARE Project"
+      project="true">
+    </wizard>
+  </extension>
+  <extension
+    point="org.eclipse.help.contexts">
+    <contexts
+      file="contexts.xml">
+    </contexts>
+    <contexts
+      file="contexts.xml">
+    </contexts>
+  </extension>
+  <extension
+    point="org.eclipse.ui.views">
+    <view
+      allowMultiple="false"
+      category="com.appnativa.studio"
+      class="com.appnativa.studio.views.PropertiesView"
+      icon="icons/properties.png"
+      id="com.appnativa.studio.views.PropertiesView"
+      name="RML Properties">
+    </view>
+    <category
+      id="com.appnativa.studio"
+      name="appNativa Views">
+    </category>
+    <view
+      category="com.appnativa.studio"
+      class="com.appnativa.studio.views.ToolboxView"
+      icon="icons/toolbox.png"
+      id="com.appnativa.studio.views.ToolboxView"
+      name="Toolbox">
+    </view>
+  </extension>
+  <extension
+    point="org.eclipse.ui.perspectives">
+    <perspective
+      class="com.appnativa.studio.views.PerspectiveFactory"
+      icon="icons/appnativa_rml_project_icon16.png"
+      id="com.appnativa.studio.perspective"
+      name="appNativa">
+    </perspective>
+  </extension>
+  <extension
+    id="com.appnativa.studio.rareBuilder"
+    name="RARE Project Builder"
+    point="org.eclipse.core.resources.builders">
+    <builder
+      hasNature="true">
+      <run
+        class="com.appnativa.studio.builder.ProjectBuilder">
+      </run>
+    </builder>
+  </extension>
+  <extension
+    id="com.appnativa.studio.rareNature"
+    name="RARE Project Nature"
+    point="org.eclipse.core.resources.natures">
+    <runtime>
+      <run
+        class="com.appnativa.studio.builder.ProjectNature">
+      </run>
+    </runtime>
+    <builder
+      id="com.appnativa.studio.rareBuilder">
+    </builder>
+  </extension>
+  <extension
+    id="com.appnativa.studio.iosBuilder"
+    name="RARE iOS Builder"
+    point="org.eclipse.core.resources.builders">
+    <builder
+      hasNature="true">
+      <run
+        class="com.appnativa.studio.builder.ProjectBuilderIOS">
+      </run>
+    </builder>
+  </extension>
+  <extension
+    id="com.appnativa.studio.iosNature"
+    name="RARE iOS Nature"
+    point="org.eclipse.core.resources.natures">
+    <runtime>
+      <run
+        class="com.appnativa.studio.builder.ProjectNatureIOS">
+      </run>
+    </runtime>
+    <builder
+      id="com.appnativa.studio.iosBuilder">
+    </builder>
+  </extension>
+  <extension
+    id="rmlProblem"
+    name="RML Problem"
+    point="org.eclipse.core.resources.markers">
+    <super
+      type="org.eclipse.core.resources.problemmarker">
+    </super>
+    <persistent
+      value="true">
+    </persistent>
+  </extension>
+  <extension
+    point="org.eclipse.ui.propertyPages">
+    <page
+      class="com.appnativa.studio.properties.ProjectPropertyPage"
+      id="com.appnativa.studio.prefs.propertyPage"
+      name="appNativa">
+      <enabledWhen>
+        <adapt type="org.eclipse.core.resources.IProject">
+          <test property="org.eclipse.core.resources.projectNature" value="com.appnativa.studio.rareNature"/>
+        </adapt>
+      </enabledWhen>
+    </page>
+  </extension>
+  <extension
+    point="org.eclipse.ui.preferencePages">
+    <page
+      class="com.appnativa.studio.preferences.MainPreferencePage"
+      id="com.appnativa.studio.preferences.MainPreferencePage"
+      name="appNativa">
+    </page>
+  </extension>
+  <extension
+    point="org.eclipse.core.runtime.preferences">
+    <initializer
+      class="com.appnativa.studio.preferences.PreferenceInitializer">
+    </initializer>
+  </extension>
+  <extension
+    point="org.eclipse.ui.menus">
+    <menuContribution
+      allPopups="false"
+      locationURI="popup:#TextEditorContext?before=additions">
+      <menu
+        icon="icons/appnativa_rml_icon16.png"
+        id="com.appnativa.menu.reformat"
+        label="Reformat RML" 
+        tooltip="Reformat the RML Document">
+      </menu>
+      <command
+        commandId="com.appnativa.studio.reformat"
+        icon="icons/appnativa_rml_icon16.png">
+        <visibleWhen  checkEnabled="false">
+         <with variable="activeEditorInput">
+            <adapt type="org.eclipse.core.resources.IResource">
+              <or>
+              <test property="org.eclipse.core.resources.name" value="*.rml"/> 
+              <test property="org.eclipse.core.resources.name" value="*.sdf"/> 
+              </or>
+            </adapt>
+          </with>
+        </visibleWhen>
+      </command>
+    </menuContribution>
+  </extension>
+  <extension
+    point="org.eclipse.ui.commands">
+    <command
+      defaultHandler="com.appnativa.studio.editors.RMLFormatter"
+      description="Reformat RML"
+      id="com.appnativa.studio.reformat"
+      name="Reformat RML">
+
+    </command>
+  </extension>
+  <extension
+    point="org.eclipse.ui.menus">
+    <menuContribution
+      allPopups="false"
+       locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu">
+      <menu
+        id="com.appnativa.menu.openxcode"
+        label="Open Project with Xcode" 
+        tooltip="Open the project with Xcode">
+      </menu>
+      <command
+        commandId="com.appnativa.studio.openxcode">
+        <visibleWhen>
+          <iterate operator="and" ifEmpty="false">
+            <test property="org.eclipse.core.resources.projectNature"
+              value="com.appnativa.studio.iosNature">
+            </test>
+          </iterate>
+        </visibleWhen>        
+      </command>
+    </menuContribution>
+  </extension>
+  <extension
+    point="org.eclipse.ui.commands">
+    <command
+      defaultHandler="com.appnativa.studio.builder.XCodeLauncher"
+      description="Open project in Xcode"
+      id="com.appnativa.studio.openxcode"
+      name="Open Project with Xcode">
+    </command>
+  </extension>
+</plugin>

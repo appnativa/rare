@@ -1,0 +1,20 @@
+clear/cls - clears the screen
+    write - writes the contents of a variable. Use one asterisk
+            (i.e. write *) to write all engine scoped variables and two
+            to write all global scoped variables (i.e. write **)
+     load - loads a script into the environment
+ language - allows you to change to a different scripting language
+  scripts - lists all scripts that have been loaded
+  viewers - lists all viewers that are active
+  targets - lists all targets that are active
+quit/exit - disconnects the session
+ shutdown - shuts down the scripting telnet daemon
+     help - brings up this screen
+   ctrl-c - to interrupt a running script
+ ctrl-s/q - Controls screen output that is not paged
+   prefix - Forces shell commands to require a prefix so they don’t
+            conflict with similar named functions/commands used by
+            the current scripting language (e.g. prefix ! would require
+            all shell commands to start with !)
+   dump   - Dumps connection/session information
+ widgets  - Lists all widgets for the specified viewer (e.g. widgets someViewer)

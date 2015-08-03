@@ -1,0 +1,2 @@
+Fix single color pushbutton
+TEST: Fix disable mouse events during pinch zoom and rotate gestures

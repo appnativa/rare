@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="source"/>
+	<classpathentry kind="src" path="src-other"/>
+	<classpathentry kind="src" path="src-html"/>
+	<classpathentry kind="src" path="src-xml"/>
+	<classpathentry kind="src" path="src-json"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="../../../libs/j2objc_annotations.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

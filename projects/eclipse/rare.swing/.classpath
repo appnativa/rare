@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="swingx"/>
+	<classpathentry kind="src" path="core"/>
+	<classpathentry kind="src" path="core-canvas"/>
+	<classpathentry kind="src" path="core-carousel"/>
+	<classpathentry kind="src" path="core-charts"/>
+	<classpathentry kind="src" path="core-collapsible"/>
+	<classpathentry kind="src" path="core-colorchooser"/>
+	<classpathentry kind="src" path="core-combobox"/>
+	<classpathentry kind="src" path="core-datechooser"/>
+	<classpathentry kind="src" path="core-java"/>
+	<classpathentry kind="src" path="core-navigator"/>
+	<classpathentry kind="src" path="core-progressbar"/>
+	<classpathentry kind="src" path="core-slider"/>
+	<classpathentry kind="src" path="core-spinner"/>
+	<classpathentry kind="src" path="core-splitpane"/>
+	<classpathentry kind="src" path="core-statusbar"/>
+	<classpathentry kind="src" path="core-table_and_tree"/>
+	<classpathentry kind="src" path="core-tabpane"/>
+	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="src" path="resources-desktop"/>
+	<classpathentry kind="src" path="shell"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/appnativa.spot"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/appnativa.util"/>
+	<classpathentry kind="lib" path="../../../libs/j2objc_annotations.jar"/>
+	<classpathentry kind="lib" path="../../../libs/javaws.jar"/>
+	<classpathentry kind="lib" path="../../../libs/plugin.jar"/>
+	<classpathentry kind="lib" path="../../../libs/jlayer.jar"/>
+	<classpathentry kind="lib" path="../../../libs/js.jar"/>
+	<classpathentry kind="lib" path="../../../libs/jfxrt.jar"/>
+	<classpathentry kind="lib" path="../../../libs/AppleJavaExtensions.jar"/>
+	<classpathentry kind="lib" path="../../../libs/swingx-all-1.6.4.jar" sourcepath="/Code/Dev/swingx/source">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/Code/Dev/swingx/javadoc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="../../../libs/appnativa.rare.telnetd.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="../../../libs/jcommon.jar" sourcepath="D:/Dev/Java/jcommon-1.0.12/source"/>
+	<classpathentry kind="lib" path="../../../libs/jfreechart.jar" sourcepath="/Code/JavaTools/jfreechart-1.0.19/source">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/Code/Dev/Java/jfreechart-1.0.18/jfreechart-1.0.17-javadocs/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="../../../libs/timingframework-swing-7.3.jar" sourcepath="/Code/Dev/Projects/timingframework-swing-7/src"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

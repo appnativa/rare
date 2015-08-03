@@ -1,0 +1,14 @@
+-use 
+-protected
+-splitindex
+-windowtitle 'RARE v3.2 API Specification'
+-doctitle 'RARE<sup><font size="-2">TM</font></sup> v3.2 API Specification'
+-header '<b>Realtime Application Rendering Engine </b><br><font size="-1">3.2</font>'
+-bottom 'Copyright &copy; appNativa Inc. All rights reserved.'
+-group "Generic Utilities" "com.appnativa.util"
+-group "Object Syntax Notation Classes" "com.appnativa.spot"
+-group "Widget Classes" "com.appnativa.rare.widget"
+-group "Viewer Classes" "com.appnativa.rare.viewer"
+-sourcepath rare/apple;rare/apple-canvas;rare/apple-carousel;rare/apple-collapsible;rare/apple-colorchooser;rare/apple-combobox;rare/apple-coreplot;rare/apple-datechooser;rare/apple-navigator;rare/apple-progressbar;rare/apple-slider;rare/apple-spinner;rare/apple-splitpane;rare/apple-statusbar;rare/apple-tabpane;rare/apple-table_and_tree;rare/core;rare/core-canvas;rare/core-carousel;rare/core-charts;rare/core-collapsible;rare/core-colorchooser;rare/core-combobox;rare/core-datechooser;rare/core-navigator;rare/core-progressbar;rare/core-slider;rare/core-spinner;rare/core-splitpane;rare/core-statusbar;rare/core-tabpane;rare/core-table_and_tree;rare/ios;rare/ios-spinner;rare/ios-table_and_tree;util/src;util/src-json;util/src-other;spot/src
+
+

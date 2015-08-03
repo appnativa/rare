@@ -1,0 +1,2 @@
+Fix line editor
+Support configuring combo box/pushbutton popup widget

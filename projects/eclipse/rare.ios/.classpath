@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="apple"/>
+	<classpathentry kind="src" path="apple-coreplot"/>
+	<classpathentry kind="src" path="ios"/>
+	<classpathentry kind="src" path="core"/>
+	<classpathentry kind="src" path="core-canvas"/>
+	<classpathentry kind="src" path="core-carousel"/>
+	<classpathentry kind="src" path="core-charts"/>
+	<classpathentry kind="src" path="core-collapsible"/>
+	<classpathentry kind="src" path="core-colorchooser"/>
+	<classpathentry kind="src" path="core-combobox"/>
+	<classpathentry kind="src" path="core-datechooser"/>
+	<classpathentry kind="src" path="core-navigator"/>
+	<classpathentry kind="src" path="core-progressbar"/>
+	<classpathentry kind="src" path="core-slider"/>
+	<classpathentry kind="src" path="core-spinner"/>
+	<classpathentry kind="src" path="core-splitpane"/>
+	<classpathentry kind="src" path="core-statusbar"/>
+	<classpathentry kind="src" path="core-table_and_tree"/>
+	<classpathentry kind="src" path="core-tabpane"/>
+	<classpathentry kind="src" path="apple-canvas"/>
+	<classpathentry kind="src" path="apple-carousel"/>
+	<classpathentry kind="src" path="apple-collapsible"/>
+	<classpathentry kind="src" path="apple-colorchooser"/>
+	<classpathentry kind="src" path="apple-combobox"/>
+	<classpathentry kind="src" path="apple-datechooser"/>
+	<classpathentry kind="src" path="apple-navigator"/>
+	<classpathentry kind="src" path="apple-slider"/>
+	<classpathentry kind="src" path="apple-spinner"/>
+	<classpathentry kind="src" path="apple-splitpane"/>
+	<classpathentry kind="src" path="apple-statusbar"/>
+	<classpathentry kind="src" path="apple-tabpane"/>
+	<classpathentry kind="src" path="apple-table_and_tree"/>
+	<classpathentry kind="src" path="apple-progressbar"/>
+	<classpathentry kind="src" path="apple-android-htmllabel"/>
+	<classpathentry kind="src" path="ios-spinner"/>
+	<classpathentry kind="src" path="ios-table_and_tree"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="../../../libs/j2objc_annotations.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/appnativa.spot"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/appnativa.util"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

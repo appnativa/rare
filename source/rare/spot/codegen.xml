@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<codegen>
+	<access>public</access>
+	<author>Don DeCoteau</author>
+	<version>2.0</version>
+	<source>rare_objects.spot</source>
+	<destination>../core/com/appnativa/rare/spot/</destination>
+	<package>com.appnativa.rare.spot</package>
+  <readOnlySupport>false</readOnlySupport>
+	<copyright>
+ * Copyright (c) appNativa
+ *
+ * All rights reserved.
+</copyright>
+</codegen>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="src" path="android-aicharts"/>
+	<classpathentry kind="src" path="android"/>
+	<classpathentry kind="src" path="core"/>
+	<classpathentry kind="src" path="core-canvas"/>
+	<classpathentry kind="src" path="core-carousel"/>
+	<classpathentry kind="src" path="core-charts"/>
+	<classpathentry kind="src" path="core-collapsible"/>
+	<classpathentry kind="src" path="core-colorchooser"/>
+	<classpathentry kind="src" path="core-combobox"/>
+	<classpathentry kind="src" path="core-datechooser"/>
+	<classpathentry kind="src" path="core-java"/>
+	<classpathentry kind="src" path="core-navigator"/>
+	<classpathentry kind="src" path="core-progressbar"/>
+	<classpathentry kind="src" path="core-slider"/>
+	<classpathentry kind="src" path="core-spinner"/>
+	<classpathentry kind="src" path="core-splitpane"/>
+	<classpathentry kind="src" path="core-statusbar"/>
+	<classpathentry kind="src" path="core-table_and_tree"/>
+	<classpathentry kind="src" path="core-tabpane"/>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/appnativa.spot"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/appnativa.util"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry kind="output" path="bin/classes"/>
+</classpath>

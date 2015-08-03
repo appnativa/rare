@@ -1,0 +1,16 @@
+Form^Studio.icon.toolbox.form
+GroupBox^Studio.icon.toolbox.groupbox
+GridPane^Studio.icon.toolbox.gridpane
+Horizontal SplitPane^Studio.icon.toolbox.hsplitpane
+Vertical SplitPane^Studio.icon.toolbox.vsplitpane
+TabPane^Studio.icon.toolbox.tabpane
+StackPane^Studio.icon.toolbox.stackpane
+CollapsiblePane^Studio.icon.toolbox.collapsiblepane
+WidgetPane^Studio.icon.toolbox.widgetpane
+DocumentPane^Studio.icon.toolbox.documentpane
+ListBox^Studio.icon.toolbox.listbox
+CheckBoxList^Studio.icon.toolbox.checkboxlist
+Tree^Studio.icon.toolbox.tree
+CheckBoxTree^Studio.icon.toolbox.checkboxtree
+Table^Studio.icon.toolbox.table
+TreeTable^Studio.icon.toolbox.treetable

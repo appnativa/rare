@@ -1,0 +1,57 @@
+[Containers]
+Form^Studio.icon.toolbox.form
+GroupBox^Studio.icon.toolbox.groupbox
+GridPane^Studio.icon.toolbox.gridpane
+Horizontal SplitPane^Studio.icon.toolbox.hsplitpane
+Vertical SplitPane^Studio.icon.toolbox.vsplitpane
+TabPane^Studio.icon.toolbox.tabpane
+StackPane^Studio.icon.toolbox.stackpane
+CollapsiblePane^Studio.icon.toolbox.collapsiblepane
+WidgetPane^Studio.icon.toolbox.widgetpane
+[Common Controls]
+PushButton^Studio.icon.toolbox.pushbutton
+RadioButton^Studio.icon.toolbox.radiobutton
+CheckBox^Studio.icon.toolbox.checkbox
+Label^Studio.icon.toolbox.label
+TextField^Studio.icon.toolbox.textfield
+PasswordField^Studio.icon.toolbox.passwordfield
+FileUploadField^Studio.icon.toolbox.fileuploadfield
+TextArea^Studio.icon.toolbox.textarea
+DocumentPane^Studio.icon.toolbox.documentpane
+NumberSpinner^Studio.icon.toolbox.number_spinner
+ListSpinner^Studio.icon.toolbox.list_spinner
+DateSpinner^Studio.icon.toolbox.date_spinner
+DateTimeSpinner^Studio.icon.toolbox.date_time_spinner
+TimeSpinner^Studio.icon.toolbox.time_spinner
+ListBox^Studio.icon.toolbox.listbox
+CheckBoxList^Studio.icon.toolbox.checkboxlist
+Tree^Studio.icon.toolbox.tree
+CheckBoxTree^Studio.icon.toolbox.checkboxtree
+ComboBox^Studio.icon.toolbox.combobox
+Table^Studio.icon.toolbox.table
+TreeTable^Studio.icon.toolbox.treetable
+Horizontal Slider^Studio.icon.toolbox.hslider
+Vertical Slider^Studio.icon.toolbox.vslider
+ProgressBar^Studio.icon.toolbox.progressbar
+[Components]
+Carousel^Studio.icon.toolbox.carousel
+Canvas^Studio.icon.toolbox.canvas
+Horizontal Line^Studio.icon.toolbox.hline
+Vertical Line^Studio.icon.toolbox.vline
+Line Chart^Studio.icon.toolbox.linechart
+Bar Chart^Studio.icon.toolbox.barchart
+Stacked Bar Chart^Studio.icon.toolbox.stackedbarchart
+Pie Chart^Studio.icon.toolbox.piechart
+Area Chart^Studio.icon.toolbox.areachart
+ImagePane^Studio.icon.toolbox.imagepane
+DateChooser^Studio.icon.toolbox.date_chooser
+ColorChooser^Studio.icon.toolbox.color_chooser
+Navigator^Studio.icon.toolbox.navigator
+Bean^Studio.icon.toolbox.bean
+MenuBar^Studio.icon.toolbox.menubar
+StatusBar^Studio.icon.toolbox.statusbar
+ToolBar^Studio.icon.toolbox.toolbar
+Menu^Studio.icon.toolbox.menu
+Expander^Studio.icon.toolbox.expander
+Separator^Studio.icon.toolbox.separator
+Browser^Studio.icon.toolbox.browser
