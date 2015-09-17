@@ -1,27 +1,40 @@
 /*
- * @(#)UIImageIcon.java   2011-12-18
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.TexturePaint;
-import java.awt.geom.Rectangle2D;
-import java.net.URL;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.util.ImageHelper.DelayedImage;
 import com.appnativa.rare.platform.swing.ui.util.SwingPaint;
 import com.appnativa.rare.ui.painter.iPainter;
+
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.TexturePaint;
+import java.awt.geom.Rectangle2D;
+
+import java.net.URL;
+
+import javax.swing.JComponent;
 
 /**
  * A class representing and image icon
@@ -60,7 +73,7 @@ public class UIImageIcon extends aUIImageIcon {
   @Override
   public void cancel(boolean canInterrupt) {
     if (this.location != null) {
-      canceled = true;
+      canceled      = true;
       this.location = null;
 
       if (canInterrupt) {
@@ -104,8 +117,7 @@ public class UIImageIcon extends aUIImageIcon {
   @Override
   public void paint(Component c, Graphics2D g, int x, int y, int width, int height, boolean hasValue, int orientation) {
     iPlatformComponent pc = com.appnativa.rare.ui.Component.fromView((JComponent) c);
-
-    iPlatformGraphics pg = pc.graphicsWrap(g);
+    iPlatformGraphics  pg = pc.graphicsWrap(g);
 
     paint(pg, x, y, width, height);
     pc.graphicsUnwrap(pg);
@@ -114,7 +126,7 @@ public class UIImageIcon extends aUIImageIcon {
   @Override
   public void paintIcon(Component c, Graphics g, int x, int y) {
     iPlatformComponent pc = com.appnativa.rare.ui.Component.fromView((JComponent) c);
-    iPlatformGraphics pg = pc.graphicsWrap(g);
+    iPlatformGraphics  pg = pc.graphicsWrap(g);
 
     paint(pg, x, y, c.getWidth(), c.getHeight());
     pc.graphicsUnwrap(pg);
@@ -128,15 +140,19 @@ public class UIImageIcon extends aUIImageIcon {
 
     try {
       if (url != null) {
-        synchronized (url) {
+        synchronized(url) {
           canceled = false;
 
           if (this.location == null) {
-            return; // already loaded
+            return;    // already loaded
           }
 
-          int width = (delayedIcon == null) ? 0 : delayedIcon.getIconWidth();
-          int height = (delayedIcon == null) ? 0 : delayedIcon.getIconHeight();
+          int width  = (delayedIcon == null)
+                       ? 0
+                       : delayedIcon.getIconWidth();
+          int height = (delayedIcon == null)
+                       ? 0
+                       : delayedIcon.getIconHeight();
 
           try {
             UIImage img = PlatformHelper.createImage(url, false, 0);
@@ -150,11 +166,11 @@ public class UIImageIcon extends aUIImageIcon {
             }
 
             delayedIcon = null;
-          } catch (Exception e) {
+          } catch(Exception e) {
             Platform.ignoreException("failed to load image", e);
           } finally {
             location = null;
-            loaded = true;
+            loaded   = true;
 
             if (getImageObserver() != null) {
               getImageObserver().imageLoaded(getImage());
@@ -168,11 +184,10 @@ public class UIImageIcon extends aUIImageIcon {
       if (transientImageObserver != null) {
         try {
           transientImageObserver.imageLoaded(getImage());
-        } catch (Exception e) {
-        }
+        } catch(Exception e) {}
       }
 
-      notifieRunner = null;
+      notifieRunner          = null;
       transientImageObserver = null;
 
       if (r != null) {
@@ -206,7 +221,7 @@ public class UIImageIcon extends aUIImageIcon {
 
     UIImageIcon ic = new UIImageIcon(image, description, resourceName);
 
-    ic.location = this.location;
+    ic.location   = this.location;
     ic.linkedData = this.linkedData;
 
     return ic;

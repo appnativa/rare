@@ -201,7 +201,7 @@ public abstract class aUIImagePainter extends aUIPlatformPainter
   public int hashCode() {
     int hash = 7;
 
-    hash = 43 * hash + toString().hashCode();
+    hash = 43 * hash + (int)toString().hashCode();
 
     return hash;
   }

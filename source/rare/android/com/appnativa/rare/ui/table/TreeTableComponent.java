@@ -27,6 +27,7 @@ import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iExpansionListener;
@@ -62,6 +63,13 @@ public class TreeTableComponent extends TableComponent {
     tv.setToggleOnTwistyOnly(tt.parentItemsSelectable.booleanValue());
     treeModel.setExpandableColumn(tt.expandableColumn.intValue());
     treeModel.setExpandAll(tt.expandAll.booleanValue());
+  }
+  
+  public void setTreeIcons(iPlatformIcon expanded, iPlatformIcon collapsed) {
+    if (view instanceof TreeViewEx) {
+      TreeViewEx tv = (TreeViewEx) view;
+      tv.setTreeIcons(expanded, collapsed);
+    }
   }
 
   public void dispose() {

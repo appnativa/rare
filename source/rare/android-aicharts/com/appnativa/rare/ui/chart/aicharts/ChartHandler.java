@@ -20,18 +20,21 @@
 
 package com.appnativa.rare.ui.chart.aicharts;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.graphics.drawable.shapes.PathShape;
 import android.graphics.drawable.shapes.RectShape;
 import android.graphics.drawable.shapes.Shape;
-
 import android.view.Gravity;
 import android.view.ViewGroup.LayoutParams;
 
@@ -56,6 +59,7 @@ import com.appnativa.rare.ui.UIFontMetrics;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.border.UILineBorder;
 import com.appnativa.rare.ui.chart.ChartAxis.TimeUnit;
 import com.appnativa.rare.ui.chart.ChartDataItem;
@@ -63,13 +67,11 @@ import com.appnativa.rare.ui.chart.ChartDefinition;
 import com.appnativa.rare.ui.chart.PlotInformation;
 import com.appnativa.rare.ui.chart.PlotInformation.LabelType;
 import com.appnativa.rare.ui.chart.aChartHandler;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.util.NumberRange;
-
 import com.artfulbits.aiCharts.Base.ChartArea;
 import com.artfulbits.aiCharts.Base.ChartAxis;
 import com.artfulbits.aiCharts.Base.ChartAxis.Label;
@@ -90,11 +92,6 @@ import com.artfulbits.aiCharts.Base.ChartType;
 import com.artfulbits.aiCharts.Enums.Alignment;
 import com.artfulbits.aiCharts.Types.ChartPieType;
 import com.artfulbits.aiCharts.Types.ChartTypes;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  *

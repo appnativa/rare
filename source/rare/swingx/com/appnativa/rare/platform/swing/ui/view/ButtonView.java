@@ -1,12 +1,29 @@
 /*
- * @(#)ButtonView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.platform.swing.plaf.RareButtonUI;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.util.CharArray;
+import com.appnativa.util.xml.XMLUtils;
 
 import java.awt.Container;
 import java.awt.event.ActionEvent;
@@ -17,11 +34,6 @@ import javax.swing.JComponent;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import com.appnativa.rare.platform.swing.plaf.RareButtonUI;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.util.CharArray;
-import com.appnativa.util.xml.XMLUtils;
 
 public class ButtonView extends JButtonEx implements ChangeListener {
   ActionEvent     autoRepeatAction;
@@ -54,26 +66,33 @@ public class ButtonView extends JButtonEx implements ChangeListener {
   @Override
   public Icon getDisabledIcon() {
     Icon icon = super.getDisabledIcon();
+
     if (icon == null) {
       icon = getIcon();
+
       if (icon instanceof iPlatformIcon) {
         return ((iPlatformIcon) icon).getDisabledVersion();
       }
     }
+
     return icon;
   }
 
   public Icon getDisabledSelectedIcon() {
     Icon icon = super.getDisabledSelectedIcon();
+
     if (icon == null) {
       icon = getSelectedIcon();
+
       if (icon == null) {
         icon = getIcon();
       }
+
       if (icon instanceof iPlatformIcon) {
         return ((iPlatformIcon) icon).getDisabledVersion();
       }
     }
+
     return icon;
   }
 
@@ -81,6 +100,7 @@ public class ButtonView extends JButtonEx implements ChangeListener {
   public void revalidate() {
     if (invalidateParent) {
       Container p = getParent();
+
       if (p != null) {
         ((JComponent) p).revalidate();
       }
@@ -153,7 +173,7 @@ public class ButtonView extends JButtonEx implements ChangeListener {
 
     int len = text.length();
 
-    if (wordWrap && (len > 0) && !text.startsWith("<html>")) {
+    if (wordWrap && (len > 0) &&!text.startsWith("<html>")) {
       CharArray ca = new CharArray(text.length() + 20);
 
       ca.append("<html>");
@@ -166,9 +186,10 @@ public class ButtonView extends JButtonEx implements ChangeListener {
   }
 
   public void setUnderlined(boolean underline, boolean always) {
-    underlined = underline;
+    underlined      = underline;
     alwaysUnderline = always;
-    if (underline && !always) {
+
+    if (underline &&!always) {
       setRolloverEnabled(true);
     }
   }
@@ -208,7 +229,9 @@ public class ButtonView extends JButtonEx implements ChangeListener {
       return false;
     }
 
-    return alwaysUnderline ? true : model.isRollover();
+    return alwaysUnderline
+           ? true
+           : model.isRollover();
   }
 
   public boolean isInvalidateParent() {
@@ -226,5 +249,4 @@ public class ButtonView extends JButtonEx implements ChangeListener {
   public boolean isWordWrap() {
     return wordWrap;
   }
-
 }

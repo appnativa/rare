@@ -24,6 +24,7 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
 import com.appnativa.rare.ui.CheckListManager;
 import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIDimension;
@@ -79,8 +80,6 @@ public class TreeView extends TableView implements iTree {
   public TreeView(Object proxy) {
     super(proxy);
     twistyMarginOfError = INDICATOR_SLOP;
-    setTreeIcons(Platform.getResourceAsIcon("Rare.Tree.expandedIcon"),
-                 Platform.getResourceAsIcon("Rare.Tree.collapsedIcon"));
   }
 
   @Override
@@ -621,11 +620,11 @@ public class TreeView extends TableView implements iTree {
 
   protected void loadIcons() {
     if (collapsedIcon == null) {
-      collapsedIcon = Platform.getUIDefaults().getIcon("Rare.Tree.collapsedIcon");
+      collapsedIcon = new PainterUtils.TwistyIcon(getComponent(),true);
     }
 
     if (expandedIcon == null) {
-      expandedIcon = Platform.getUIDefaults().getIcon("Rare.Tree.expandedIcon");
+      expandedIcon = new PainterUtils.TwistyIcon(getComponent(),false);
     }
 
     setTreeIcons(expandedIcon, collapsedIcon);

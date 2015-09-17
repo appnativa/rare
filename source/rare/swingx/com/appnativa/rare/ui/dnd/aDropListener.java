@@ -1,12 +1,30 @@
 /*
- * @(#)aDropListener.java   2009-09-01
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.dnd;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.widget.iWidget;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -16,6 +34,7 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
+
 import java.util.EventObject;
 
 import javax.swing.JComponent;
@@ -28,12 +47,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreePath;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.widget.iWidget;
 
 /**
  * @autho Don DeCoteau
@@ -82,7 +95,7 @@ public abstract class aDropListener implements DropTargetListener {
   public void dragEnter(DropTargetDragEvent dtde) {
     Component comp     = dtde.getDropTargetContext().getComponent();
     Point     location = dtde.getLocation();
-    int action=DefaultTransferHandler.fromSwingAction(dtde.getDropAction());
+    int       action   = DefaultTransferHandler.fromSwingAction(dtde.getDropAction());
 
     glassPane = null;
 
@@ -118,7 +131,7 @@ public abstract class aDropListener implements DropTargetListener {
     drop.setDropAction(action);
     drop.setTransferable(new TransferableWrapper(dtde.getTransferable()));
 
-    if (!canAcceptDrop(comp, location, drop) || scriptRejected(comp, dtde, drop,iConstants.EVENT_DRAGENTER)) {
+    if (!canAcceptDrop(comp, location, drop) || scriptRejected(comp, dtde, drop, iConstants.EVENT_DRAGENTER)) {
       dtde.rejectDrag();
     } else {
       dtde.acceptDrag(action);
@@ -129,11 +142,12 @@ public abstract class aDropListener implements DropTargetListener {
   public void dragExit(DropTargetEvent dte) {
     lastPoint = null;
     resetGlassPane();
-    Component comp     = dte.getDropTargetContext().getComponent();
+
+    Component       comp = dte.getDropTargetContext().getComponent();
     DropInformation drop = transferHandler.getDropInformation(comp);
 
     drop.clear();
-    scriptRejected(dte.getDropTargetContext().getComponent(), dte, drop,iConstants.EVENT_DRAGEXIT);
+    scriptRejected(dte.getDropTargetContext().getComponent(), dte, drop, iConstants.EVENT_DRAGEXIT);
   }
 
   @Override
@@ -142,7 +156,8 @@ public abstract class aDropListener implements DropTargetListener {
     DropInformation drop    = transferHandler.getDropInformation(comp);
     Point           p       = dtde.getLocation();
     boolean         canDrop = lastCanDrop;
-    int action=DefaultTransferHandler.fromSwingAction(dtde.getDropAction());
+    int             action  = DefaultTransferHandler.fromSwingAction(dtde.getDropAction());
+
     if ((lastPoint == null) ||!p.equals(lastPoint)) {
       lastPoint = p;
       drop.clear();
@@ -153,7 +168,7 @@ public abstract class aDropListener implements DropTargetListener {
       lastCanDrop = canDrop = canAcceptDrop(comp, p, drop);
     }
 
-    if (!canDrop || scriptRejected(comp, dtde, drop,iConstants.EVENT_DRAGOVER)) {
+    if (!canDrop || scriptRejected(comp, dtde, drop, iConstants.EVENT_DRAGOVER)) {
       itemBounds = null;
       startPoint = null;
       endPoint   = null;
@@ -172,9 +187,9 @@ public abstract class aDropListener implements DropTargetListener {
 
       return;
     }
-    int action=DefaultTransferHandler.fromSwingAction(dtde.getDropAction());
 
-    Component c = dtde.getDropTargetContext().getComponent();
+    int       action = DefaultTransferHandler.fromSwingAction(dtde.getDropAction());
+    Component c      = dtde.getDropTargetContext().getComponent();
 
     if (c instanceof RootPaneContainer) {
       c = ((RootPaneContainer) c).getRootPane();
@@ -266,11 +281,12 @@ public abstract class aDropListener implements DropTargetListener {
     return true;
   }
 
-  private boolean scriptRejected(Component comp,EventObject e, DropInformation drop, String event) {
-    iWidget w =Platform.getWidgetForComponent(Platform.getPlatformComponent(comp));
+  private boolean scriptRejected(Component comp, EventObject e, DropInformation drop, String event) {
+    iWidget w = Platform.getWidgetForComponent(Platform.getPlatformComponent(comp));
 
-    if (w!=null && w.isEventEnabled(event)) {
+    if ((w != null) && w.isEventEnabled(event)) {
       DataEvent d = new DataEvent(comp, drop);
+
       d.setTriggerEvent(e);
 
       try {
@@ -341,7 +357,7 @@ public abstract class aDropListener implements DropTargetListener {
                      : rect;
 
         if (isValidDropPoint(list, pt)) {
-          drop.setDropPoint(new UIPoint(pt.x,pt.y));
+          drop.setDropPoint(new UIPoint(pt.x, pt.y));
           drop.setDropIndex(rowIndex);
           drop.setInsertAtEnd(isBottomHotspot() && (rowIndex == list.getModel().getSize() - 1));
           drop.setInsertMode(startPoint != null);
@@ -420,7 +436,7 @@ public abstract class aDropListener implements DropTargetListener {
         itemBounds.width = table.getWidth();
 
         if (isValidDropPoint(table, pt)) {
-          drop.setDropPoint(new UIPoint(pt.x,pt.y));
+          drop.setDropPoint(new UIPoint(pt.x, pt.y));
           drop.setDropIndex(rowIndex);
           drop.setInsertAtEnd(false);
           drop.setInsertMode(startPoint != null);
@@ -540,7 +556,7 @@ public abstract class aDropListener implements DropTargetListener {
         itemBounds = tree.getPathBounds(treePath);
 
         if (isValidDropPoint(tree, pt)) {
-          drop.setDropPoint(new UIPoint(pt.x,pt.y));
+          drop.setDropPoint(new UIPoint(pt.x, pt.y));
           rowIndex = tree.getRowForPath(treePath);
           drop.setDropIndex(rowIndex);
           drop.setInsertMode(startPoint != null);
@@ -610,7 +626,7 @@ public abstract class aDropListener implements DropTargetListener {
       boolean dropOk = false;
 
       if (comp instanceof JComponent) {
-        drop.setDropPoint(new UIPoint(pt.x,pt.y));
+        drop.setDropPoint(new UIPoint(pt.x, pt.y));
         dropOk = transferHandler.canImport((JComponent) comp, drop);
       }
 
@@ -646,7 +662,7 @@ public abstract class aDropListener implements DropTargetListener {
       boolean dropOk = false;
 
       if (comp instanceof RootPaneContainer) {
-        drop.setDropPoint(new UIPoint(pt.x,pt.y));
+        drop.setDropPoint(new UIPoint(pt.x, pt.y));
         dropOk = transferHandler.canImport(((RootPaneContainer) comp).getRootPane(), drop);
       } else if (comp instanceof JComponent) {
         dropOk = transferHandler.canImport((JComponent) comp, drop);

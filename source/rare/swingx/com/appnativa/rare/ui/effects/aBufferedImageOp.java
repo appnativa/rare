@@ -1,13 +1,26 @@
 /*
- * @(#)aBufferedImageOp.java   2008-10-01
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.effects;
 
+import com.appnativa.rare.ui.UIImage;
 
 /*
 Copyright 2006 Jerry Huxtable
@@ -24,7 +37,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
@@ -32,8 +44,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.ColorModel;
-
-import com.appnativa.rare.ui.UIImage;
 
 /**
  * A convenience class which implements those methods of BufferedImageOp which are rarely changed.
@@ -121,10 +131,13 @@ public abstract class aBufferedImageOp implements BufferedImageOp, Cloneable, iI
   public RenderingHints getRenderingHints() {
     return null;
   }
-  
+
   @Override
   public UIImage filter(UIImage image) {
-  	BufferedImage img=filter(image.getBufferedImage(),null);
-  	return img==null ? null : new UIImage(img);
+    BufferedImage img = filter(image.getBufferedImage(), null);
+
+    return (img == null)
+           ? null
+           : new UIImage(img);
   }
 }

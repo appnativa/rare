@@ -1,12 +1,41 @@
 /*
- * @(#)TableHeader.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.table;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
+import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.aUIComponentPainter;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.ui.renderer.ListItemRenderer;
+import com.appnativa.rare.ui.renderer.UILabelRenderer;
+import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -22,25 +51,9 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
-import com.appnativa.rare.ui.Column;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.aUIComponentPainter;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.ui.renderer.ListItemRenderer;
-import com.appnativa.rare.ui.renderer.UILabelRenderer;
-import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
-
 public class TableHeader extends aTableHeader implements TableCellRenderer {
   public static final String USE_TEXTAREA_PROPERTY = "__RARE_TABLEHEADER_USE_TEXTAREA__";
+
   static {
     columnSizePad = ScreenUtils.PLATFORM_PIXELS_4;
   }
@@ -56,7 +69,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   public TableHeader(TableView table) {
     super();
-    tableview = table;
+    tableview  = table;
     headerView = (TableHeaderView) table.getTableHeader();
     setView(headerView);
     renderingComponent = new UILabelRenderer(new ColumnLabelRenderer());
@@ -130,16 +143,16 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
   }
 
   public void updateColumnModel() {
-    TableColumnModel cm = headerView.getColumnModel();
-    int len = cm.getColumnCount();
+    TableColumnModel cm  = headerView.getColumnModel();
+    int              len = cm.getColumnCount();
 
     for (int i = 0; i < len; i++) {
-      TableColumn tc = cm.getColumn(i);
-      int n = tc.getModelIndex();
-      Column col = getColumnAt(n);
+      TableColumn tc  = cm.getColumn(i);
+      int         n   = tc.getModelIndex();
+      Column      col = getColumnAt(n);
 
       if (col.isVisible()) {
-        if (col.sizeFixed || gridViewMode != null) {
+        if (col.sizeFixed || (gridViewMode != null)) {
           tc.setMaxWidth(col.getWidth());
           tc.setMinWidth(col.getWidth());
           tc.setResizable(false);
@@ -182,10 +195,10 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
    *          the data index of the column to update
    */
   public void updateColumnModel(int column) {
-    Column col = getColumnAt(column);
-    TableColumnModel cm = headerView.getColumnModel();
-    int n = tableview.getJTable().convertColumnIndexToView(column);
-    TableColumn tc = cm.getColumn(n);
+    Column           col = getColumnAt(column);
+    TableColumnModel cm  = headerView.getColumnModel();
+    int              n   = tableview.getJTable().convertColumnIndexToView(column);
+    TableColumn      tc  = cm.getColumn(n);
 
     if (col.isVisible()) {
       if (col.sizeFixed) {
@@ -276,9 +289,9 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   @Override
   public int getSpanWidth(int start, int span) {
-    int width = 0;
-    TableColumnModel cm = headerView.getColumnModel();
-    int len = cm.getColumnCount(); // columns.length;
+    int              width = 0;
+    TableColumnModel cm    = headerView.getColumnModel();
+    int              len   = cm.getColumnCount();    // columns.length;
 
     if (span == -1) {
       span = len;
@@ -292,9 +305,9 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
     int d = ScreenUtils.PLATFORM_PIXELS_1;
 
-    while (start < span) {
+    while(start < span) {
       TableColumn col = cm.getColumn(start++);
-      Column c = columns[col.getModelIndex()];
+      Column      c   = columns[col.getModelIndex()];
 
       if (c.isVisible()) {
         width += col.getPreferredWidth() + d;
@@ -305,10 +318,10 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
   }
 
   @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row,
-      int column) {
-    TableColumn tc = headerView.getColumnModel().getColumn(column);
-    Column col = getColumnAt(tc.getModelIndex());
+  public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+          int row, int column) {
+    TableColumn tc  = headerView.getColumnModel().getColumn(column);
+    Column      col = getColumnAt(tc.getModelIndex());
 
     if (col.isVisible()) {
       colItem.setValue(col.getColumnTitle());
@@ -336,9 +349,11 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
       colCol.setItemSelectionPainter(null);
       colItem.setBorder(null);
     }
-    iPlatformRenderingComponent rc=col.getHeaderCellRenderer();
-    if(rc==null) {
-      rc = renderingComponent;
+
+    iPlatformRenderingComponent rc = col.getHeaderCellRenderer();
+
+    if (rc == null) {
+      rc                                                            = renderingComponent;
       ((ColumnLabelRenderer) rc.getComponent().getView()).dataIndex = tc.getModelIndex();
     }
 
@@ -390,7 +405,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
   @Override
   protected void setColumnsEx() {
     if (gridViewMode == null) {
-      if ((componentPainter == null) && !headerBgSet && headerCellPainter == null) {
+      if ((componentPainter == null) &&!headerBgSet && (headerCellPainter == null)) {
         headerBgSet = true;
 
         PaintBucket pb = TableHelper.getDefaultPainter(getBackgroundEx());
@@ -411,10 +426,13 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
       } else {
         itemRenderer.setInsets(null);
       }
-      int len=columns.length;
-      for(int i=0;i<len;i++) {
-        Boolean b=(Boolean)columns[i].getCustomProperty(TableHeader.USE_TEXTAREA_PROPERTY);
-        if(b!=null && b.booleanValue()) {
+
+      int len = columns.length;
+
+      for (int i = 0; i < len; i++) {
+        Boolean b = (Boolean) columns[i].getCustomProperty(TableHeader.USE_TEXTAREA_PROPERTY);
+
+        if ((b != null) && b.booleanValue()) {
           columns[i].setHeaderCellRenderer(new ColumnTextAreaRenderer(i));
         }
       }
@@ -442,8 +460,9 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
     @Override
     protected void paintComponent(Graphics g) {
-      PaintBucket pb = null;
-      Column column = columns[dataIndex];
+      PaintBucket pb     = null;
+      Column      column = columns[dataIndex];
+
       if (isPressed()) {
         pb = column.getHeaderSelectionPainter();
 
@@ -462,21 +481,25 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
       if (pb != null) {
         aUIComponentPainter.paint(graphics, 0, 0, getWidth(), getHeight(), pb);
-
       }
+
       if (sortColumn == dataIndex) {
         drawSortIcon(g, getSortIcon(descending));
       }
+
       super.paintComponent(g);
     }
   }
 
+
   public class ColumnTextAreaRenderer extends UITextAreaRenderer {
     int dataIndex;
+
     public ColumnTextAreaRenderer(int index) {
-      dataIndex=index;
+      dataIndex = index;
       setVerticalAlignment(SwingConstants.CENTER);
     }
+
     protected void drawSortIcon(Graphics g, iPlatformIcon icon) {
       int w = icon.getIconWidth();
       int x = (getWidth() - w) / 2;
@@ -491,8 +514,9 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
     @Override
     protected void paintComponent(Graphics g) {
-      PaintBucket pb = null;
-      Column column = columns[dataIndex];
+      PaintBucket pb     = null;
+      Column      column = columns[dataIndex];
+
       if (isPressed()) {
         pb = column.getHeaderSelectionPainter();
 
@@ -511,14 +535,17 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
       if (pb != null) {
         aUIComponentPainter.paint(graphics, 0, 0, getWidth(), getHeight(), pb);
-
       }
+
       if (sortColumn == dataIndex) {
         drawSortIcon(g, getSortIcon(descending));
       }
+
       super.paintComponent(g);
     }
   }
+
+
   class CornerRenderer extends JPanelEx {
     boolean top;
 
@@ -532,6 +559,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
       if (top) {
         if (componentPainter == null) {
           componentPainter = headerView.getComponentPainter();
+
           if (componentPainter != null) {
             componentPainter = (iPlatformComponentPainter) ((aUIComponentPainter) componentPainter).clone();
           }
@@ -544,14 +572,16 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
     @Override
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
+
       if (!top) {
         g.setColor(headerView.getBackground());
         g.fillRect(0, 0, getWidth(), getHeight());
       }
+
       if (top && (bottomMarginColor != null)) {
         Graphics2D g2 = (Graphics2D) g;
-        Color oc = g2.getColor();
-        Stroke s = g2.getStroke();
+        Color      oc = g2.getColor();
+        Stroke     s  = g2.getStroke();
 
         g2.setStroke(SwingHelper.SOLID_STROKE);
 
@@ -565,5 +595,4 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
       }
     }
   }
-
 }

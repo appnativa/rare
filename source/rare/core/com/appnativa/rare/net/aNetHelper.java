@@ -57,7 +57,7 @@ public class aNetHelper {
       }
     }
 
-    return new URL("http", iConstants.COLLECTION_PROTOCOL_HOSTSTRING, app.hashCode(),
+    return new URL("http", iConstants.COLLECTION_PROTOCOL_HOSTSTRING, (int)app.hashCode(),
                    collection + "?" + context.getPathName());
   }
 

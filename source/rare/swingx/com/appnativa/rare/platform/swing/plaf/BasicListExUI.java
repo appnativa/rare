@@ -1,12 +1,27 @@
 /*
- * @(#)BasicListUI.java   2011-02-13
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.plaf;
+
+import com.appnativa.rare.platform.swing.ui.view.JListEx;
+import com.appnativa.rare.ui.UIColor;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -22,9 +37,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.plaf.ComponentUI;
-
-import com.appnativa.rare.platform.swing.ui.view.JListEx;
-import com.appnativa.rare.ui.UIColor;
 
 /**
  * Fixes issue where cell don't respect non-rectangular clip shape
@@ -71,15 +83,21 @@ public class BasicListExUI extends javax.swing.plaf.basic.BasicListUI {
   @Override
   public void updateLayoutState() {
     super.updateLayoutState();
-    if(cellHeights!=null ) {
-      JListEx jlist=(JListEx)list;
-      int pad=jlist.getDividerLineColor()!=null ? 2 : 0;
-      int min=jlist.getMinRowHeight();
-      if(pad>0 || min>0) {
-        int len=cellHeights.length;
-        for(int i=0;i<len;i++) {
-          int n=Math.max(min, cellHeights[i]);
-          cellHeights[i]=n+pad;
+
+    if (cellHeights != null) {
+      JListEx jlist = (JListEx) list;
+      int     pad   = (jlist.getDividerLineColor() != null)
+                      ? 2
+                      : 0;
+      int     min   = jlist.getMinRowHeight();
+
+      if ((pad > 0) || (min > 0)) {
+        int len = cellHeights.length;
+
+        for (int i = 0; i < len; i++) {
+          int n = Math.max(min, cellHeights[i]);
+
+          cellHeights[i] = n + pad;
         }
       }
     }

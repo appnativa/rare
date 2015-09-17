@@ -1,22 +1,24 @@
 /*
- * @(#)FormsView.java   2009-05-07
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
-
-import java.awt.Graphics;
-import java.awt.Shape;
-import java.io.StringReader;
-
-import javax.swing.text.AttributeSet;
-import javax.swing.text.Element;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.html.BlockView;
-import javax.swing.text.html.HTML;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
@@ -31,6 +33,17 @@ import com.appnativa.rare.viewer.FormViewer;
 import com.appnativa.rare.viewer.GroupBoxViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.widget.iWidget;
+
+import java.awt.Graphics;
+import java.awt.Shape;
+
+import java.io.StringReader;
+
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.html.BlockView;
+import javax.swing.text.html.HTML;
 
 /**
  * A custom view that encapsulates HTML FORM and DIV elements
@@ -47,40 +60,39 @@ public class FormsView extends BlockView implements iGroupView {
 
   public FormsView(iWidget context, Element elem, int axis) {
     super(elem, axis);
-    this.context=context;
+    this.context = context;
+
     iContainer fv = context.getContainerViewer();
-    theViewer    = createViewer(this, fv, elem);
 
-
+    theViewer = createViewer(this, fv, elem);
     theViewer.setParent(fv);
 
     if ((context instanceof DocumentPaneViewer) && (context.getAttribute("hasForm") != Boolean.TRUE)) {
       context.setAttribute("hasForm", Boolean.TRUE);
       context.setLinkedData(theViewer);
     }
+
     if (!isVisible()) {
       Platform.invokeLater(new Runnable() {
-
         @Override
         public void run() {
           setContainerVisible(false);
         }
-        
       });
     }
   }
+
   @Override
   public iContainer getViewer() {
     return theViewer;
   }
 
-
   public static GroupBoxViewer createViewer(final iGroupView view, iContainer parent, Element elem) {
     AttributeSet   attr   = elem.getAttributes();
-    String         name   = (String) WidgetView.getAttribute(attr,HTML.Attribute.NAME);
-    String         target = (String) WidgetView.getAttribute(attr,HTML.Attribute.TARGET);
-    Object         action = WidgetView.getAttribute(attr,HTML.Attribute.ACTION);
-    String         cls    = (String) WidgetView.getAttribute(attr,HTML.Attribute.CLASS);
+    String         name   = (String) WidgetView.getAttribute(attr, HTML.Attribute.NAME);
+    String         target = (String) WidgetView.getAttribute(attr, HTML.Attribute.TARGET);
+    Object         action = WidgetView.getAttribute(attr, HTML.Attribute.ACTION);
+    String         cls    = (String) WidgetView.getAttribute(attr, HTML.Attribute.CLASS);
     boolean        gb     = (cls != null) && cls.startsWith("GroupBox{");
     GroupBoxViewer fv     = null;
 
@@ -132,7 +144,8 @@ public class FormsView extends BlockView implements iGroupView {
       }
 
       fv.configure(cfg);
-      if(!cfg.visible.booleanValue()) {
+
+      if (!cfg.visible.booleanValue()) {
         view.setContainerVisible(false);
       }
     } catch(Exception e) {
@@ -160,7 +173,8 @@ public class FormsView extends BlockView implements iGroupView {
   @Override
   public void setContainerVisible(boolean visible) {
     this.visible = visible;
-    if(theViewer!=null) {
+
+    if (theViewer != null) {
       int        len = theViewer.getWidgetCount();
       iContainer gb  = theViewer;
 
@@ -171,7 +185,6 @@ public class FormsView extends BlockView implements iGroupView {
       update();
     }
   }
-
 
   /**
    * @return the fontFamily
@@ -227,7 +240,7 @@ public class FormsView extends BlockView implements iGroupView {
   private static GroupBox createGroupBox(iWidget context, GroupBox cfg, String cls) {
     if (cls != null) {
       try {
-        DataParser.loadSPOTObjectSDF(context, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(context, new StringReader(cls), cfg, "text/x-sdf", null);
 
         String tname = cfg.templateName.getValue();
 

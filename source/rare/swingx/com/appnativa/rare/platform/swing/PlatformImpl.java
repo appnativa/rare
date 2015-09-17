@@ -1,19 +1,58 @@
 /*
- * @(#)PlatformImpl.java   2012-04-27
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iFunctionHandler;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.iTimer;
+import com.appnativa.rare.net.URLEncoder;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.aPlatform;
+import com.appnativa.rare.platform.swing.ui.view.LabelView;
+import com.appnativa.rare.ui.ActionComponent;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Frame;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.chart.aChartHandler.NoChartHandler;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.dnd.iFlavorCreator;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.SNumber;
+import com.appnativa.util.iCancelable;
+
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URL;
@@ -31,33 +70,8 @@ import javax.swing.JRootPane;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iFunctionHandler;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.iTimer;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.net.URLEncoder;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.aPlatform;
-import com.appnativa.rare.platform.swing.ui.view.LabelView;
-import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.Frame;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.chart.aChartHandler.NoChartHandler;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.dnd.iFlavorCreator;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.SNumber;
-import com.appnativa.util.iCancelable;
-
 public class PlatformImpl extends aPlatform {
-  static ClassLoader     urlClassLoader;
+  static ClassLoader urlClassLoader;
 
   /**
    * Variable for whether or not we're on Windows.
@@ -72,12 +86,13 @@ public class PlatformImpl extends aPlatform {
   /**
    * Variable for whether or not we're on MacOSX.
    */
-  private static boolean isMac     = false;
+  private static boolean isMac = false;
 
   /**
    * Variable for whether or not we're on Linux.
    */
-  private static boolean isLinux   = false;
+  private static boolean isLinux = false;
+  private static File    cacheDir;
 
   /**
    * Initialize the settings statically.
@@ -88,8 +103,7 @@ public class PlatformImpl extends aPlatform {
 
     try {
       os = System.getProperty("os.name", "Windows");
-    } catch (Exception ignore) {
-    }
+    } catch(Exception ignore) {}
 
     isWindows = os.contains("Windows");
 
@@ -114,7 +128,7 @@ public class PlatformImpl extends aPlatform {
           }
         });
         Thread.currentThread().setContextClassLoader(cl);
-      } catch (Throwable e) {
+      } catch(Throwable e) {
         Logger.getAnonymousLogger().log(Level.FINE, "", e);
       }
     }
@@ -122,8 +136,8 @@ public class PlatformImpl extends aPlatform {
     urlClassLoader = cl;
   }
 
-  protected AppContext   appContext;
-  private float          osVersion;
+  protected AppContext appContext;
+  private float        osVersion;
 
   public PlatformImpl(AppContext context) {
     appContext = context;
@@ -148,7 +162,7 @@ public class PlatformImpl extends aPlatform {
       Desktop.getDesktop().browse(url.toURI());
 
       return true;
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       return false;
     }
   }
@@ -162,7 +176,7 @@ public class PlatformImpl extends aPlatform {
   public Object createChartHandler() {
     try {
       return Class.forName("com.appnativa.rare.ui.chart.jfreechart.ChartHandler").newInstance();
-    } catch (Exception ignore) {
+    } catch(Exception ignore) {
       return new NoChartHandler();
     }
   }
@@ -187,7 +201,7 @@ public class PlatformImpl extends aPlatform {
   public Object createObject(String className) {
     try {
       return Class.forName(className, true, urlClassLoader).newInstance();
-    } catch (Throwable ignore) {
+    } catch(Throwable ignore) {
       Platform.ignoreException("createObject:" + className, ignore);
 
       return null;
@@ -209,11 +223,6 @@ public class PlatformImpl extends aPlatform {
   }
 
   @Override
-  public void debugLog(String msg) {
-    AppContext.debugLog(msg);
-  }
-
-  @Override
   public iPlatformComponent findPlatformComponent(Object o) {
     if (o instanceof Component) {
       return (Component) o;
@@ -225,11 +234,11 @@ public class PlatformImpl extends aPlatform {
 
     java.awt.Component c = (java.awt.Component) o;
 
-    while ((c != null) && !(c instanceof JComponent)) {
+    while((c != null) &&!(c instanceof JComponent)) {
       c = c.getParent();
     }
 
-    while (c instanceof JComponent) {
+    while(c instanceof JComponent) {
       Component cc = (Component) ((JComponent) c).getClientProperty(Component.RARE_COMPONENT_PROXY_PROPERTY);
 
       if (cc != null) {
@@ -260,12 +269,13 @@ public class PlatformImpl extends aPlatform {
 
     java.awt.Component c = (java.awt.Component) o;
 
-    while (!(c instanceof JComponent)) {
+    while(!(c instanceof JComponent)) {
       c = c.getParent();
     }
 
-    while (c instanceof JComponent) {
-      Component cc = (Component) ((javax.swing.JComponent) c).getClientProperty(Component.RARE_COMPONENT_PROXY_PROPERTY);
+    while(c instanceof JComponent) {
+      Component cc =
+        (Component) ((javax.swing.JComponent) c).getClientProperty(Component.RARE_COMPONENT_PROXY_PROPERTY);
 
       if ((cc != null) && (cc.getWidget() != null)) {
         return cc.getWidget();
@@ -298,8 +308,15 @@ public class PlatformImpl extends aPlatform {
 
   @Override
   public File getCacheDir() {
-    // TODO Auto-generated method stub
-    return null;
+    if (cacheDir == null) {
+      try {
+        File f = File.createTempFile("don", "juan");
+
+        cacheDir = f.getParentFile();
+      } catch(IOException ignore) {}
+    }
+
+    return cacheDir;
   }
 
   @Override
@@ -345,13 +362,12 @@ public class PlatformImpl extends aPlatform {
 
       try {
         s = System.getProperty("os.version", ".01");
-      } catch (Exception ignore) {
-      }
+      } catch(Exception ignore) {}
 
       final int len = s.length();
-      int i = 0;
+      int       i   = 0;
 
-      while (i < len) {
+      while(i < len) {
         if (Character.isDigit(s.charAt(i))) {
           break;
         }
@@ -376,15 +392,16 @@ public class PlatformImpl extends aPlatform {
     if (o instanceof Component) {
       return (Component) o;
     }
-    if(o instanceof java.util.EventObject) {
-      o=((java.util.EventObject)o).getSource();
+
+    if (o instanceof java.util.EventObject) {
+      o = ((java.util.EventObject) o).getSource();
     }
 
     if (!(o instanceof javax.swing.JComponent)) {
       return null;
     }
 
-    while (o instanceof javax.swing.JComponent) {
+    while(o instanceof javax.swing.JComponent) {
       Object c = ((javax.swing.JComponent) o).getClientProperty(Component.RARE_COMPONENT_PROXY_PROPERTY);
 
       if (c instanceof Component) {
@@ -437,12 +454,15 @@ public class PlatformImpl extends aPlatform {
         p = ((JDialog) w).getRootPane();
       }
 
-      Frame f = (p == null) ? null : (Frame) p.getClientProperty(Component.RARE_COMPONENT_PROXY_PROPERTY);
+      Frame f = (p == null)
+                ? null
+                : (Frame) p.getClientProperty(Component.RARE_COMPONENT_PROXY_PROPERTY);
 
       if (f != null) {
         return f.getWindowViewer();
       }
     }
+
     return appContext.getWindowViewer();
   }
 
@@ -454,13 +474,12 @@ public class PlatformImpl extends aPlatform {
   @Override
   public void invokeLater(final Runnable r, int delay) {
     javax.swing.Timer t = new javax.swing.Timer(delay, new ActionListener() {
-
       @Override
       public void actionPerformed(ActionEvent e) {
         r.run();
-
       }
     });
+
     t.setRepeats(false);
     t.start();
   }
@@ -526,7 +545,9 @@ public class PlatformImpl extends aPlatform {
   }
 
   public boolean isShuttingDown() {
-    return (appContext == null) ? true : appContext.isShuttingDown();
+    return (appContext == null)
+           ? true
+           : appContext.isShuttingDown();
   }
 
   @Override
@@ -556,19 +577,21 @@ public class PlatformImpl extends aPlatform {
 
   @Override
   public boolean mailTo(String uri) {
-    if(uri==null) {
+    if (uri == null) {
       return false;
     }
-    if ( !uri.startsWith("mailto:")) {
+
+    if (!uri.startsWith("mailto:")) {
       uri = "mailto:" + uri;
     }
 
     try {
-      URI u =new URI(uri);
+      URI u = new URI(uri);
+
       Desktop.getDesktop().mail(u);
 
       return true;
-    } catch (Exception e) {
+    } catch(Exception e) {
       return false;
     }
   }
@@ -577,7 +600,7 @@ public class PlatformImpl extends aPlatform {
   public boolean mailTo(String address, String subject, String body) {
     StringBuilder sb = new StringBuilder();
 
-    if ((address == null) || !address.startsWith("mailto:")) {
+    if ((address == null) ||!address.startsWith("mailto:")) {
       sb.append("mailto:");
 
       if (address != null) {
@@ -607,7 +630,7 @@ public class PlatformImpl extends aPlatform {
       Desktop.getDesktop().mail(u);
 
       return true;
-    } catch (Exception e) {
+    } catch(Exception e) {
       return false;
     }
   }
@@ -620,28 +643,28 @@ public class PlatformImpl extends aPlatform {
   @SuppressWarnings({ "unchecked", "rawtypes" })
   void requestToggleFullScreen(Window window) {
     try {
-      Class appClass = Class.forName("com.apple.eawt.Application");
-      Class params[] = new Class[] {};
-
-      Method getApplication = appClass.getMethod("getApplication", params);
-      Object application = getApplication.invoke(appClass);
+      Class  appClass                = Class.forName("com.apple.eawt.Application");
+      Class  params[]                = new Class[] {};
+      Method getApplication          = appClass.getMethod("getApplication", params);
+      Object application             = getApplication.invoke(appClass);
       Method requestToggleFulLScreen = application.getClass().getMethod("requestToggleFullScreen", Window.class);
 
       requestToggleFulLScreen.invoke(application, window);
-    } catch (Exception e) {
-
-    }
+    } catch(Exception e) {}
   }
 
   @Override
   public void setUseFullScreen(boolean use) {
     Window w = (Window) Platform.getAppContext().getWindowManager().getUIWindow();
+
     if (!(w instanceof JFrame)) {
       return;
     }
+
     if (Platform.isMac()) {
       UIDimension sd = ScreenUtils.getScreenSize();
       UIDimension wd = Platform.getWindowViewer().getSize();
+
       if (use) {
         if (!wd.equals(sd)) {
           requestToggleFullScreen(w);
@@ -652,7 +675,9 @@ public class PlatformImpl extends aPlatform {
         }
       }
     } else {
-      ((JFrame) w).setExtendedState(use ? JFrame.MAXIMIZED_BOTH : JFrame.NORMAL);
+      ((JFrame) w).setExtendedState(use
+                                    ? JFrame.MAXIMIZED_BOTH
+                                    : JFrame.NORMAL);
     }
   }
 
@@ -710,6 +735,7 @@ public class PlatformImpl extends aPlatform {
     }
   }
 
+
   private static class CancelableTimerTask implements iCancelable {
     boolean         canceled;
     final TimerTask task;
@@ -735,6 +761,7 @@ public class PlatformImpl extends aPlatform {
     }
   }
 
+
   static class FlavorCreator implements iFlavorCreator {
     public TransferFlavor createFlavor(DataFlavor df) {
       return new TransferFlavor(df.getHumanPresentableName(), df, df.getMimeType());
@@ -750,7 +777,7 @@ public class PlatformImpl extends aPlatform {
         DataFlavor df = new DataFlavor(mimeType);
 
         return new TransferFlavor(df.getHumanPresentableName(), df, mimeType);
-      } catch (ClassNotFoundException e) {
+      } catch(ClassNotFoundException e) {
         return new TransferFlavor(mimeType, null, mimeType);
       }
     }
@@ -783,7 +810,7 @@ public class PlatformImpl extends aPlatform {
         }
 
         return new TransferFlavor("Unicode HTML", a, s);
-      } catch (ClassNotFoundException e) {
+      } catch(ClassNotFoundException e) {
         return new TransferFlavor("Unicode String", null, "text/plain;class=java.lang.String");
       }
     }
@@ -811,7 +838,7 @@ public class PlatformImpl extends aPlatform {
         }
 
         return new TransferFlavor("Unicode String", a, s);
-      } catch (ClassNotFoundException e) {
+      } catch(ClassNotFoundException e) {
         return new TransferFlavor("Unicode String", null, "text/plain;class=java.lang.String");
       }
     }
@@ -825,5 +852,18 @@ public class PlatformImpl extends aPlatform {
     public TransferFlavor getURLListFlavor() {
       return createFlavor("text/uri-list; class=java.lang.String");
     }
+  }
+
+
+  @Override
+  public boolean isUseFullScreen() {
+    Window w = (Window) Platform.getAppContext().getWindowManager().getUIWindow();
+
+    if (!(w instanceof JFrame)) {
+      return false;
+    }
+    Dimension d=w.getSize();
+    UIDimension ud=PlatformHelper.getScreenSize();
+    return Math.abs(d.width-ud.width)<5 && Math.abs(d.height-ud.height)<5;
   }
 }

@@ -1,26 +1,24 @@
 /*
- * @(#)CheckBoxView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.AWTEvent;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.geom.AffineTransform;
-
-import javax.swing.DefaultButtonModel;
-import javax.swing.Icon;
-import javax.swing.JCheckBox;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
@@ -35,6 +33,20 @@ import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.widget.aCheckBoxWidget.State;
 import com.appnativa.util.CharArray;
 import com.appnativa.util.xml.XMLUtils;
+
+import java.awt.AWTEvent;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.geom.AffineTransform;
+
+import javax.swing.DefaultButtonModel;
+import javax.swing.Icon;
+import javax.swing.JCheckBox;
 
 public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   protected static iPlatformIcon    deselectedIconDisabled_;
@@ -84,7 +96,9 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   @Override
   public void setSelected(boolean selected) {
     super.setSelected(selected);
-    buttonState = selected ? State.SELECTED : State.DESELECTED;
+    buttonState = selected
+                  ? State.SELECTED
+                  : State.DESELECTED;
   }
 
   @Override
@@ -93,7 +107,9 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   }
 
   public void setState(State state) {
-    buttonState = (state == null) ? State.DESELECTED : state;
+    buttonState = (state == null)
+                  ? State.DESELECTED
+                  : state;
     setSelected(buttonState != State.DESELECTED);
   }
 
@@ -102,7 +118,9 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
 
   @Override
   public boolean isOpaque() {
-    return ((componentPainter != null) && componentPainter.isBackgroundPaintEnabled()) ? false : super.isOpaque();
+    return ((componentPainter != null) && componentPainter.isBackgroundPaintEnabled())
+           ? false
+           : super.isOpaque();
   }
 
   @Override
@@ -117,7 +135,7 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
 
   @Override
   public void paint(Graphics g) {
-    Graphics2D g2 = (Graphics2D) g;
+    Graphics2D      g2 = (Graphics2D) g;
     AffineTransform tx = g2.getTransform();
 
     if (transform != null) {
@@ -149,7 +167,7 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
 
     if (cp != null) {
       float height = getHeight();
-      float width = getWidth();
+      float width  = getWidth();
 
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, true);
     }
@@ -158,11 +176,12 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   @Override
   protected void paintComponent(Graphics g) {
     graphics = SwingGraphics.fromGraphics(g, this, graphics);
+
     iPlatformComponentPainter cp = getComponentPainter();
 
     if (cp != null) {
       float height = getHeight();
-      float width = getWidth();
+      float width  = getWidth();
 
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);
     }
@@ -184,7 +203,7 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   public void getMinimumSize(UIDimension size) {
     Dimension d = getMinimumSize();
 
-    size.width = d.width;
+    size.width  = d.width;
     size.height = d.height;
   }
 
@@ -192,7 +211,7 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   public void getPreferredSize(UIDimension size, int maxWidth) {
     Dimension d = getPreferredSize();
 
-    size.width = d.width;
+    size.width  = d.width;
     size.height = d.height;
   }
 
@@ -206,7 +225,7 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
 
     int len = text.length();
 
-    if (wordWrap && (len > 0) && !text.startsWith("<html>")) {
+    if (wordWrap && (len > 0) &&!text.startsWith("<html>")) {
       CharArray ca = new CharArray(text.length() + 20);
 
       ca.append("<html>");
@@ -229,31 +248,40 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   @Override
   public Icon getDisabledIcon() {
     Icon icon = super.getDisabledIcon();
+
     if (icon == null) {
       icon = getIcon();
+
       if (icon instanceof iPlatformIcon) {
         return ((iPlatformIcon) icon).getDisabledVersion();
       }
     }
+
     return icon;
   }
 
   public Icon getDisabledSelectedIcon() {
-    if(buttonState==State.INDETERMINATE) {
+    if (buttonState == State.INDETERMINATE) {
       return indeterminateDisabledIcon_;
     }
+
     Icon icon = super.getDisabledSelectedIcon();
+
     if (icon == null) {
       icon = getSelectedIcon();
+
       if (icon == null) {
         icon = getIcon();
       }
+
       if (icon instanceof iPlatformIcon) {
         return ((iPlatformIcon) icon).getDisabledVersion();
       }
     }
+
     return icon;
   }
+
   @Override
   public Icon getPressedIcon() {
     Icon icon = super.getPressedIcon();
@@ -262,14 +290,14 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
       return icon;
     }
 
-    switch (buttonState) {
-      case DESELECTED:
+    switch(buttonState) {
+      case DESELECTED :
         return deselectedPressedIcon_;
 
-      case INDETERMINATE:
+      case INDETERMINATE :
         return indeterminatePressedIcon_;
 
-      default:
+      default :
         return selectedPressedIcon_;
     }
   }
@@ -282,11 +310,11 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
       return icon;
     }
 
-    switch (buttonState) {
-      case INDETERMINATE:
+    switch(buttonState) {
+      case INDETERMINATE :
         return indeterminateIcon_;
 
-      default:
+      default :
         return selectedIcon_;
     }
   }
@@ -318,22 +346,22 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
       iPlatformAppContext app = Platform.getAppContext();
 
       if (ColorUtils.getForeground().isDarkColor()) {
-        selectedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.on.light");
-        deselectedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.off.light");
-        selectedPressedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.on.pressed.light");
-        deselectedPressedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.off.pressed.light");
-        selectedIconDisabled_ = app.getResourceAsIcon("Rare.icon.checkbox.on.disabled.light");
-        deselectedIconDisabled_ = app.getResourceAsIcon("Rare.icon.checkbox.off.disabled.light");
-        indeterminateIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.indeterminate.light");
+        selectedIcon_             = app.getResourceAsIcon("Rare.icon.checkbox.on.light");
+        deselectedIcon_           = app.getResourceAsIcon("Rare.icon.checkbox.off.light");
+        selectedPressedIcon_      = app.getResourceAsIcon("Rare.icon.checkbox.on.pressed.light");
+        deselectedPressedIcon_    = app.getResourceAsIcon("Rare.icon.checkbox.off.pressed.light");
+        selectedIconDisabled_     = app.getResourceAsIcon("Rare.icon.checkbox.on.disabled.light");
+        deselectedIconDisabled_   = app.getResourceAsIcon("Rare.icon.checkbox.off.disabled.light");
+        indeterminateIcon_        = app.getResourceAsIcon("Rare.icon.checkbox.indeterminate.light");
         indeterminatePressedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.indeterminate.pressed.light");
       } else {
-        selectedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.on.dark");
-        deselectedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.off.dark");
-        selectedPressedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.on.pressed.dark");
-        deselectedPressedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.off.pressed.dark");
-        selectedIconDisabled_ = app.getResourceAsIcon("Rare.icon.checkbox.on.disabled.dark");
-        deselectedIconDisabled_ = app.getResourceAsIcon("Rare.icon.checkbox.off.disabled.dark");
-        indeterminateIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.indeterminate.dark");
+        selectedIcon_             = app.getResourceAsIcon("Rare.icon.checkbox.on.dark");
+        deselectedIcon_           = app.getResourceAsIcon("Rare.icon.checkbox.off.dark");
+        selectedPressedIcon_      = app.getResourceAsIcon("Rare.icon.checkbox.on.pressed.dark");
+        deselectedPressedIcon_    = app.getResourceAsIcon("Rare.icon.checkbox.off.pressed.dark");
+        selectedIconDisabled_     = app.getResourceAsIcon("Rare.icon.checkbox.on.disabled.dark");
+        deselectedIconDisabled_   = app.getResourceAsIcon("Rare.icon.checkbox.off.disabled.dark");
+        indeterminateIcon_        = app.getResourceAsIcon("Rare.icon.checkbox.indeterminate.dark");
         indeterminatePressedIcon_ = app.getResourceAsIcon("Rare.icon.checkbox.indeterminate.pressed.dark");
       }
 
@@ -352,34 +380,33 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
     /**
      * Creates a new ToggleButton Model
      */
-    public TriStateButtonModel() {
-    }
+    public TriStateButtonModel() {}
 
     /**
      * Sets the pressed state of the toggle button.
      */
     @Override
     public void setPressed(boolean b) {
-      if ((isPressed() == b) || !isEnabled()) {
+      if ((isPressed() == b) ||!isEnabled()) {
         return;
       }
 
       if ((b == false) && isArmed()) {
         if (isTriState) {
-          switch (buttonState) {
-            case DESELECTED:
+          switch(buttonState) {
+            case DESELECTED :
               buttonState = State.SELECTED;
               setSelectedEx(true);
 
               break;
 
-            case INDETERMINATE:
+            case INDETERMINATE :
               buttonState = State.DESELECTED;
               setSelectedEx(false);
 
               break;
 
-            default:
+            default :
               buttonState = State.INDETERMINATE;
               setSelectedEx(true);
 
@@ -399,7 +426,7 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
       fireStateChanged();
 
       if (!isPressed() && isArmed()) {
-        int modifiers = 0;
+        int      modifiers    = 0;
         AWTEvent currentEvent = EventQueue.getCurrentEvent();
 
         if (currentEvent instanceof InputEvent) {
@@ -409,13 +436,13 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
         }
 
         fireActionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, getActionCommand(),
-            EventQueue.getMostRecentEventTime(), modifiers));
+                EventQueue.getMostRecentEventTime(), modifiers));
       }
     }
 
     /**
      * Sets the selected state of the button.
-     * 
+     *
      * @param b
      *          true selects the toggle button, false deselects the toggle
      *          button.
@@ -439,8 +466,9 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
       // Send ChangeEvent
       fireStateChanged();
       // Send ItemEvent
-      fireItemStateChanged(new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, this, this.isSelected() ? ItemEvent.SELECTED
-          : ItemEvent.DESELECTED));
+      fireItemStateChanged(new ItemEvent(this, ItemEvent.ITEM_STATE_CHANGED, this, this.isSelected()
+              ? ItemEvent.SELECTED
+              : ItemEvent.DESELECTED));
     }
 
     /**

@@ -21,7 +21,8 @@ import android.util.ArrayUtils;
 
 /*
  * package
- */ abstract class SpannableStringInternal {
+ */ 
+abstract class SpannableStringInternal implements CharSequence{
   /*
    * package
    */ SpannableStringInternal(CharSequence source,

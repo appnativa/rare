@@ -286,6 +286,13 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   ]-*/
   ;
 
+  public native void repaintVisibleRows()
+  /*-[
+    RAREAPListView* table=(RAREAPListView*)proxy_;
+    [table repaintVisibleRows];
+  ]-*/
+  ;
+
   public native void repaintRows(int row0, int row1)
   /*-[
     RAREAPListView* table=(RAREAPListView*)proxy_;
@@ -835,12 +842,6 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     w.removeData(new RenderableDataItemTransferable(list));
   }
 
-  protected native void repaintVisibleRows()
-  /*-[
-    RAREAPListView* table=(RAREAPListView*)proxy_;
-    [table repaintVisibleRows];
-  ]-*/
-  ;
 
   @Override
   protected void setupNewRenderingCell(Object nativeView) {

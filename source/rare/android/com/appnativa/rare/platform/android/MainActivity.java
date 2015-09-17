@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android;
@@ -169,6 +169,26 @@ public class MainActivity extends Activity implements iActivity {
     WaitCursorHandler.hide();
     closeContextMenu();
     closeOptionsMenu();
+  }
+
+  public void setUseFullScreen(boolean use) {
+    View decorView = getWindow().getDecorView();
+
+    if (use) {
+      decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                      | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION    // hide nav bar
+                                      | View.SYSTEM_UI_FLAG_FULLSCREEN    // hide status bar
+                                      | View.SYSTEM_UI_FLAG_IMMERSIVE);
+    } else {
+      decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                      | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+    }
+  }
+
+  public boolean isUseFullScreen() {
+    View decorView = getWindow().getDecorView();
+
+    return (decorView.getSystemUiVisibility() & View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) != 0;
   }
 
   public TextToSpeech createTextToSpeech(final iFunctionCallback cb) {
@@ -602,18 +622,6 @@ public class MainActivity extends Activity implements iActivity {
 
   public void setRareInstance(Rare rare) {
     this.rare = rare;
-  }
-
-  public void setUseFullScreen(boolean use) {
-    if (use) {
-      getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-      getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-      getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-    } else {
-      getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-      getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-      getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-    }
   }
 
   public void showToast(Toast t) {

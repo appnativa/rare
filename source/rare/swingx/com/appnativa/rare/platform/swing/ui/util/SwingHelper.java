@@ -1,12 +1,78 @@
 /*
- * @(#)SwingHelper.java   2012-01-09
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.util;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.platform.ActionHelper;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.swing.AppContext;
+import com.appnativa.rare.platform.swing.Rare;
+import com.appnativa.rare.platform.swing.ui.view.JButtonEx;
+import com.appnativa.rare.platform.swing.ui.view.JViewportEx;
+import com.appnativa.rare.platform.swing.ui.view.LabelView;
+import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
+import com.appnativa.rare.scripting.iScriptHandler;
+import com.appnativa.rare.spot.Label;
+import com.appnativa.rare.spot.ScrollPane;
+import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.ActionComponent;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.GraphicsComposite;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
+import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
+import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.ui.iComposite.CompositeType;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformGraphics;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iRenderingComponent;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
+import com.appnativa.rare.ui.painter.iBackgroundPainter;
+import com.appnativa.rare.ui.painter.iPlatformPainter;
+import com.appnativa.rare.viewer.FormViewer;
+import com.appnativa.rare.viewer.iViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.spot.SPOTEnumerated;
+import com.appnativa.util.CharScanner;
+import com.appnativa.util.Helper;
+import com.appnativa.util.ISO88591Helper;
+import com.appnativa.util.UTF8Helper;
+
+import org.jdesktop.swingx.graphics.BlendComposite;
+import org.jdesktop.swingx.graphics.BlendComposite.BlendingMode;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
@@ -41,17 +107,24 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
 import java.io.File;
 import java.io.FilenameFilter;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+
 import java.net.MalformedURLException;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
 import java.text.ParseException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -88,128 +161,78 @@ import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.View;
 
-import org.jdesktop.swingx.graphics.BlendComposite;
-import org.jdesktop.swingx.graphics.BlendComposite.BlendingMode;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.ActionHelper;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.swing.AppContext;
-import com.appnativa.rare.platform.swing.Rare;
-import com.appnativa.rare.platform.swing.ui.view.JButtonEx;
-import com.appnativa.rare.platform.swing.ui.view.JViewportEx;
-import com.appnativa.rare.platform.swing.ui.view.LabelView;
-import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
-import com.appnativa.rare.scripting.iScriptHandler;
-import com.appnativa.rare.spot.Label;
-import com.appnativa.rare.spot.ScrollPane;
-import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.GraphicsComposite;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
-import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
-import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.UIRectangle;
-import com.appnativa.rare.ui.UIStroke;
-import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.iComposite.CompositeType;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformGraphics;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iRenderingComponent;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-import com.appnativa.rare.ui.painter.iBackgroundPainter;
-import com.appnativa.rare.ui.painter.iPlatformPainter;
-import com.appnativa.rare.viewer.FormViewer;
-import com.appnativa.rare.viewer.iViewer;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.spot.SPOTEnumerated;
-import com.appnativa.util.CharScanner;
-import com.appnativa.util.Helper;
-import com.appnativa.util.ISO88591Helper;
-import com.appnativa.util.UTF8Helper;
-
 /**
  *
  * @author Don DeCoteau
  */
 public class SwingHelper {
-  public final static String            RARE_DATAFLAVOR_MIME_TYPE = DataFlavor.javaJVMLocalObjectMimeType + ";class="
-                                                                      + Rare.class.getName();
+  public final static String RARE_DATAFLAVOR_MIME_TYPE = DataFlavor.javaJVMLocalObjectMimeType + ";class="
+                                                         + Rare.class.getName();
 
   /** solid stroke */
-  public static final Stroke            SOLID_STROKE              = new BasicStroke(1);
-  public static final Stroke            FOCUS_STROKE              = new BasicStroke(1f, BasicStroke.CAP_BUTT,
-                                                                      BasicStroke.JOIN_MITER, 1f, new float[] { 1.25f,1.25f }, 0f);
+  public static final Stroke SOLID_STROKE = new BasicStroke(1);
+  public static final Stroke FOCUS_STROKE = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1f,
+                                              new float[] { 1.25f,
+          1.25f }, 0f);
 
   /** dotted stroke */
-  public static final Stroke            DOTTED_STROKE             = new BasicStroke(1f, BasicStroke.CAP_BUTT,
-                                                                      BasicStroke.JOIN_MITER, 1f, new float[] { 1.25f,1.25f  }, 0f);
+  public static final Stroke DOTTED_STROKE = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1f,
+                                               new float[] { 1.25f,
+          1.25f }, 0f);
 
   /** dashed stroke */
-  public static final Stroke            DASHED_STROKE             = new BasicStroke(1f, BasicStroke.CAP_BUTT,
-                                                                      BasicStroke.JOIN_MITER, 1f, new float[] { 2f,2f }, 0f);
-
-  public static final Stroke            HALF_SOLID_STROKE              = new BasicStroke(.5f);
+  public static final Stroke DASHED_STROKE = new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1f,
+                                               new float[] { 2f,
+          2f }, 0f);
+  public static final Stroke HALF_SOLID_STROKE = new BasicStroke(.5f);
 
   /** dotted stroke */
-  public static final Stroke            HALF_DOTTED_STROKE             = new BasicStroke(.5f, BasicStroke.CAP_BUTT,
-                                                                      BasicStroke.JOIN_MITER, 1f, new float[] { 1.25f,1.25f }, 0f);
+  public static final Stroke HALF_DOTTED_STROKE = new BasicStroke(.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                                                    1f, new float[] { 1.25f,
+          1.25f }, 0f);
 
   /** dashed stroke */
-  public static final Stroke            HALF_DASHED_STROKE             = new BasicStroke(.5f, BasicStroke.CAP_BUTT,
-                                                                      BasicStroke.JOIN_MITER, 1f, new float[] { 2f,2f }, 0f);
-  final static int                      AUTOSCROLL_INSET_SIZE     = 20;
-  final static int                      SCROLL_AMOUNT             = 10;
-  static RenderingHints                 renderingHints            = null;
+  public static final Stroke HALF_DASHED_STROKE = new BasicStroke(.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+                                                    1f, new float[] { 2f,
+          2f }, 0f);
+  final static int                      AUTOSCROLL_INSET_SIZE = 20;
+  final static int                      SCROLL_AMOUNT         = 10;
+  static RenderingHints                 renderingHints        = null;
   static ColorUIResource                backgroundColorResource;
-  protected static final String         ACTION_NAME_DECREMENT     = "decrement";
-  protected static final String         ACTION_NAME_INCREMENT     = "increment";
-  private static JToolTip               toolTip                   = new JToolTip();
-  private static ThreadLocal<Rectangle> perThreadViewRect         = new ThreadLocal<Rectangle>() {
-                                                                    @Override
-                                                                    protected synchronized Rectangle initialValue() {
-                                                                      return new Rectangle();
-                                                                    }
-                                                                  };
-  private static ThreadLocal<Rectangle> perThreadTextRect         = new ThreadLocal<Rectangle>() {
-                                                                    @Override
-                                                                    protected synchronized Rectangle initialValue() {
-                                                                      return new Rectangle();
-                                                                    }
-                                                                  };
-  private static ThreadLocal<Insets>    perThreadInsets           = new ThreadLocal<Insets>() {
-                                                                    @Override
-                                                                    protected synchronized Insets initialValue() {
-                                                                      return new Insets(0, 0, 0, 0);
-                                                                    }
-                                                                  };
-  private static ThreadLocal<Rectangle> perThreadIconRect         = new ThreadLocal<Rectangle>() {
-                                                                    @Override
-                                                                    protected synchronized Rectangle initialValue() {
-                                                                      return new Rectangle();
-                                                                    }
-                                                                  };
+  protected static final String         ACTION_NAME_DECREMENT = "decrement";
+  protected static final String         ACTION_NAME_INCREMENT = "increment";
+  private static JToolTip               toolTip               = new JToolTip();
+  private static ThreadLocal<Rectangle> perThreadViewRect     = new ThreadLocal<Rectangle>() {
+    @Override
+    protected synchronized Rectangle initialValue() {
+      return new Rectangle();
+    }
+  };
+  private static ThreadLocal<Rectangle> perThreadTextRect = new ThreadLocal<Rectangle>() {
+    @Override
+    protected synchronized Rectangle initialValue() {
+      return new Rectangle();
+    }
+  };
+  private static ThreadLocal<Insets> perThreadInsets = new ThreadLocal<Insets>() {
+    @Override
+    protected synchronized Insets initialValue() {
+      return new Insets(0, 0, 0, 0);
+    }
+  };
+  private static ThreadLocal<Rectangle> perThreadIconRect = new ThreadLocal<Rectangle>() {
+    @Override
+    protected synchronized Rectangle initialValue() {
+      return new Rectangle();
+    }
+  };
 
   /**
    * Used to tell a text component, being used as an editor for table or tree,
    * how many clicks it took to start editing.
    */
-  private static final StringBuilder    SKIP_CLICK_COUNT          = new StringBuilder("skipClickCount");
-  private static FontMetrics            toolTipFontMetrics;
+  private static final StringBuilder SKIP_CLICK_COUNT = new StringBuilder("skipClickCount");
+  private static FontMetrics         toolTipFontMetrics;
 
   static {
     try {
@@ -224,12 +247,10 @@ public class SwingHelper {
           }
         }
       });
-    } catch (Throwable ignore) {
-    }
+    } catch(Throwable ignore) {}
   }
 
-  private SwingHelper() {
-  }
+  private SwingHelper() {}
 
   @SuppressWarnings("resource")
   public static void addFileNameExtensionFilters(JFileChooser chooser, String filters) {
@@ -239,12 +260,12 @@ public class SwingHelper {
       return;
     }
 
-    CharScanner sc = new CharScanner(filters);
-    List<String> a = sc.getTokens(';');
+    CharScanner  sc = new CharScanner(filters);
+    List<String> a  = sc.getTokens(';');
     List<String> b;
-    int len = a.size();
-    String s;
-    int n;
+    int          len = a.size();
+    String       s;
+    int          n;
 
     for (int i = 0; i < len; i++) {
       s = a.get(i).trim();
@@ -258,7 +279,7 @@ public class SwingHelper {
 
       try {
         s = CharScanner.cleanQuoted(s.toCharArray(), 0, n);
-      } catch (ParseException ex) {
+      } catch(ParseException ex) {
         s = s.substring(0, n);
       }
 
@@ -273,7 +294,7 @@ public class SwingHelper {
   }
 
   public static Map<iViewer, Object> addViewerReference(iViewer v, String viewerKey) {
-    iPlatformAppContext app = v.getAppContext();
+    iPlatformAppContext  app = v.getAppContext();
     Map<iViewer, Object> map = (Map<iViewer, Object>) app.getData(viewerKey);
 
     if (map == null) {
@@ -281,29 +302,35 @@ public class SwingHelper {
       app.putData(viewerKey, map);
     }
 
-    synchronized (map) {
+    synchronized(map) {
       map.put(v, null);
     }
 
     return map;
   }
 
-  public static void calculateLabelRects(JLabel label, Rectangle viewR, Rectangle iconR, Rectangle textR, Insets insets,
-      int viewWidth, int viewHeight) {
-    String text = label.getText();
-    int width = (viewWidth == -1) ? label.getWidth() : viewWidth;
-    int height = (viewHeight == -1) ? label.getHeight() : viewHeight;
+  public static void calculateLabelRects(JLabel label, Rectangle viewR, Rectangle iconR, Rectangle textR,
+          Insets insets, int viewWidth, int viewHeight) {
+    String text   = label.getText();
+    int    width  = (viewWidth == -1)
+                    ? label.getWidth()
+                    : viewWidth;
+    int    height = (viewHeight == -1)
+                    ? label.getHeight()
+                    : viewHeight;
 
-    insets = label.getInsets(insets);
-    viewR.x = insets.left;
-    viewR.y = insets.top;
-    viewR.width = width - (insets.left + insets.right);
+    insets       = label.getInsets(insets);
+    viewR.x      = insets.left;
+    viewR.y      = insets.top;
+    viewR.width  = width - (insets.left + insets.right);
     viewR.height = height - (insets.top + insets.bottom);
 
-    final int igap = label.getIconTextGap();
-    final int htp = label.getHorizontalTextPosition();
-    final int vtp = label.getVerticalTextPosition();
-    final Icon icon = label.isEnabled() ? label.getIcon() : label.getDisabledIcon();
+    final int  igap = label.getIconTextGap();
+    final int  htp  = label.getHorizontalTextPosition();
+    final int  vtp  = label.getVerticalTextPosition();
+    final Icon icon = label.isEnabled()
+                      ? label.getIcon()
+                      : label.getDisabledIcon();
 
     if ((viewWidth != -1) && (viewHeight != -1)) {
       View view = (View) label.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
@@ -331,7 +358,7 @@ public class SwingHelper {
     }
 
     SwingUtilities.layoutCompoundLabel(label, label.getFontMetrics(f), text, icon, label.getVerticalAlignment(),
-        label.getHorizontalAlignment(), vtp, htp, viewR, iconR, textR, igap);
+                                       label.getHorizontalAlignment(), vtp, htp, viewR, iconR, textR, igap);
     textR.x -= insets.left;
   }
 
@@ -340,11 +367,13 @@ public class SwingHelper {
   }
 
   public static void centerOnScreen(Component win) {
-    int n = getMonitor(win);
-    UIRectangle screenSize = PlatformHelper.getUsableScreenBounds((n < 0) ? 0 : n);
-    Dimension winSize = win.getSize();
-    float x = screenSize.width / 2 - (winSize.width / 2) + screenSize.x;
-    float y = screenSize.height / 2 - (winSize.height / 2) + screenSize.y;
+    int         n          = getMonitor(win);
+    UIRectangle screenSize = PlatformHelper.getUsableScreenBounds((n < 0)
+            ? 0
+            : n);
+    Dimension   winSize    = win.getSize();
+    float       x          = screenSize.width / 2 - (winSize.width / 2) + screenSize.x;
+    float       y          = screenSize.height / 2 - (winSize.height / 2) + screenSize.y;
 
     if (x < screenSize.x) {
       x = screenSize.x;
@@ -354,12 +383,12 @@ public class SwingHelper {
       y = screenSize.y;
     }
 
-    win.setLocation((int)x, (int)y);
+    win.setLocation((int) x, (int) y);
   }
 
   /**
    * Closes all open browser windows
-   * 
+   *
    * @param app
    *          the application context
    */
@@ -376,11 +405,11 @@ public class SwingHelper {
 
     app.putData(viewerKey, null);
 
-    synchronized (map) {
-      iViewer v;
+    synchronized(map) {
+      iViewer           v;
       Iterator<iViewer> it = map.keySet().iterator();
 
-      while (it.hasNext()) {
+      while(it.hasNext()) {
         v = it.next();
 
         if (v != null) {
@@ -411,15 +440,15 @@ public class SwingHelper {
 
     comp.putClientProperty(iConstants.RARE_KEYSTROKES_PROPERTY, set);
 
-    Map<String, String> map = CharScanner.parseOptionStringEx(set, ',');
-    Iterator<Entry<String, String>> it = map.entrySet().iterator();
-    Entry<String, String> e;
-    String name, code;
-    iPlatformAppContext app = AppContext.getContext();
-    String err = app.getResourceAsString("Rare.runtime.text.noSuchKeystroke");
+    Map<String, String>             map = CharScanner.parseOptionStringEx(set, ',');
+    Iterator<Entry<String, String>> it  = map.entrySet().iterator();
+    Entry<String, String>           e;
+    String                          name, code;
+    iPlatformAppContext             app = AppContext.getContext();
+    String                          err = app.getResourceAsString("Rare.runtime.text.noSuchKeystroke");
 
-    while (it.hasNext()) {
-      e = it.next();
+    while(it.hasNext()) {
+      e    = it.next();
       name = e.getKey();
       code = e.getValue();
 
@@ -445,8 +474,7 @@ public class SwingHelper {
     if ((s != null) && (s.length() > 0)) {
       try {
         b.setMinimum(Integer.parseInt(s));
-      } catch (NumberFormatException ignore) {
-      }
+      } catch(NumberFormatException ignore) {}
     }
 
     s = cfg.spot_getAttribute("maximum");
@@ -454,8 +482,7 @@ public class SwingHelper {
     if ((s != null) && (s.length() > 0)) {
       try {
         b.setMaximum(Integer.parseInt(s));
-      } catch (NumberFormatException ignore) {
-      }
+      } catch(NumberFormatException ignore) {}
     }
 
     s = cfg.spot_getAttribute("extent");
@@ -463,8 +490,7 @@ public class SwingHelper {
     if ((s != null) && (s.length() > 0)) {
       try {
         b.setVisibleAmount(Integer.parseInt(s));
-      } catch (NumberFormatException ignore) {
-      }
+      } catch(NumberFormatException ignore) {}
     }
 
     s = cfg.spot_getAttribute("ui");
@@ -554,13 +580,13 @@ public class SwingHelper {
    *          the configuration
    */
   public static void configureScrollPaneCorners(iWidget context, JScrollPane pane, ScrollPane cfg) {
-    Widget wc = null;
+    Widget  wc = null;
     iWidget w;
 
     wc = (Widget) cfg.urCorner.getValue();
 
     if (wc != null) {
-      w = FormViewer.createWidget( context.getContainerViewer(), wc);
+      w = FormViewer.createWidget(context.getContainerViewer(), wc);
 
       if (w != null) {
         w.setFocusable(false);
@@ -572,7 +598,7 @@ public class SwingHelper {
     wc = (Widget) cfg.lrCorner.getValue();
 
     if (wc != null) {
-      w = FormViewer.createWidget( context.getContainerViewer(), wc);
+      w = FormViewer.createWidget(context.getContainerViewer(), wc);
 
       if (w != null) {
         w.setFocusable(false);
@@ -583,7 +609,7 @@ public class SwingHelper {
   }
 
   public static void configureScrollPaneHeaderFooter(iWidget context, JScrollPane pane, ScrollPane cfg) {
-    Widget wc = null;
+    Widget  wc = null;
     iWidget w;
 
     wc = (Widget) cfg.columnHeader.getValue();
@@ -600,7 +626,7 @@ public class SwingHelper {
     wc = (Widget) cfg.rowHeader.getValue();
 
     if (wc != null) {
-      w = FormViewer.createWidget( context.getContainerViewer(), wc);
+      w = FormViewer.createWidget(context.getContainerViewer(), wc);
 
       if (w != null) {
         context.getFormViewer().registerNamedItem(w.getName(), w);
@@ -623,7 +649,7 @@ public class SwingHelper {
       wc = (Widget) cfg.rowFooter.getValue();
 
       if (wc != null) {
-        w = FormViewer.createWidget( context.getContainerViewer(), wc);
+        w = FormViewer.createWidget(context.getContainerViewer(), wc);
 
         if (w != null) {
           context.getFormViewer().registerNamedItem(w.getName(), w);
@@ -662,35 +688,35 @@ public class SwingHelper {
 
     pane.setWheelScrollingEnabled(cfg.wheelScrollingAllowed.booleanValue());
 
-    switch (cfg.horizontalScrollbar.intValue()) {
-      case ScrollPane.CHorizontalScrollbar.hidden:
+    switch(cfg.horizontalScrollbar.intValue()) {
+      case ScrollPane.CHorizontalScrollbar.hidden :
         pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         break;
 
-      case ScrollPane.CHorizontalScrollbar.show_always:
+      case ScrollPane.CHorizontalScrollbar.show_always :
         pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 
         break;
 
-      default:
+      default :
         pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         break;
     }
 
-    switch (cfg.verticalScrollbar.intValue()) {
-      case ScrollPane.CVerticalScrollbar.hidden:
+    switch(cfg.verticalScrollbar.intValue()) {
+      case ScrollPane.CVerticalScrollbar.hidden :
         pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
         break;
 
-      case ScrollPane.CVerticalScrollbar.show_always:
+      case ScrollPane.CVerticalScrollbar.show_always :
         pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
         break;
 
-      default:
+      default :
         pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
         break;
@@ -741,25 +767,28 @@ public class SwingHelper {
    */
   public static void defaultAutoScroll(JComponent comp, Point cursorLocn) {
     Rectangle visible = comp.getVisibleRect();
-    int x = 0, y = 0, width = 0, height = 0;
+    int       x       = 0,
+              y       = 0,
+              width   = 0,
+              height  = 0;
 
     // Scroll left.
     if (cursorLocn.x < visible.x + AUTOSCROLL_INSET_SIZE) {
-      x = -SCROLL_AMOUNT;
+      x     = -SCROLL_AMOUNT;
       width = SCROLL_AMOUNT;
-    } // Scroll right.
-    else if (cursorLocn.x > visible.x + visible.width - AUTOSCROLL_INSET_SIZE) {
-      x = visible.width + SCROLL_AMOUNT;
+    }    // Scroll right.
+            else if (cursorLocn.x > visible.x + visible.width - AUTOSCROLL_INSET_SIZE) {
+      x     = visible.width + SCROLL_AMOUNT;
       width = SCROLL_AMOUNT;
     }
 
     // Scroll up.
     if (cursorLocn.y < visible.y + AUTOSCROLL_INSET_SIZE) {
-      y = -SCROLL_AMOUNT;
+      y      = -SCROLL_AMOUNT;
       height = SCROLL_AMOUNT;
-    } // Scroll down.
-    else if (cursorLocn.y > visible.y + visible.height - AUTOSCROLL_INSET_SIZE) {
-      y = visible.height + SCROLL_AMOUNT;
+    }    // Scroll down.
+            else if (cursorLocn.y > visible.y + visible.height - AUTOSCROLL_INSET_SIZE) {
+      y      = visible.height + SCROLL_AMOUNT;
       height = SCROLL_AMOUNT;
     }
 
@@ -768,8 +797,11 @@ public class SwingHelper {
 
   public static Insets defaultGetAutoscrollInsets(JComponent comp) {
     Rectangle visible = comp.getVisibleRect();
-    Dimension size = comp.getSize();
-    int top = 0, left = 0, bottom = 0, right = 0;
+    Dimension size    = comp.getSize();
+    int       top     = 0,
+              left    = 0,
+              bottom  = 0,
+              right   = 0;
 
     if (visible.y > 0) {
       top = visible.y + AUTOSCROLL_INSET_SIZE;
@@ -800,15 +832,14 @@ public class SwingHelper {
         } else {
           try {
             files[i].delete();
-          } catch (Exception ignore) {
-          }
+          } catch(Exception ignore) {}
         }
       }
     }
 
     try {
       return (path.delete());
-    } catch (Exception ignore) {
+    } catch(Exception ignore) {
       return false;
     }
   }
@@ -826,20 +857,20 @@ public class SwingHelper {
       f = c.getFont();
     }
 
-    Insets in = c.getInsets();
-    int height = c.getHeight();
-    FontMetrics fm = c.getFontMetrics(f);
-    int fh = fm.getHeight();
-    int dy = (height - fh) / 2;
+    Insets      in     = c.getInsets();
+    int         height = c.getHeight();
+    FontMetrics fm     = c.getFontMetrics(f);
+    int         fh     = fm.getHeight();
+    int         dy     = (height - fh) / 2;
 
     drawString(g, s, in.left, height - dy - fm.getDescent(), f, fg);
   }
 
   public static void drawString(Graphics g, String text, int x, int y, Font font, Color color) {
-    Graphics2D g2d = (Graphics2D) g;
+    Graphics2D     g2d      = (Graphics2D) g;
     RenderingHints oldHints = null;
-    Color oc = g2d.getColor();
-    Font of = g2d.getFont();
+    Color          oc       = g2d.getColor();
+    Font           of       = g2d.getFont();
 
     if (renderingHints != null) {
       oldHints = g2d.getRenderingHints();
@@ -879,9 +910,13 @@ public class SwingHelper {
    *          true for a vertical gradient; false for horizontal
    */
   public static void fillGradient(Graphics2D g, Shape s, Color start, Color end, boolean vertical) {
-    Rectangle r = s.getBounds();
-    Paint gp = new GradientPaint(0, 0, start, vertical ? 0 : r.width, vertical ? r.height : 0, end);
-    Object o = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    Rectangle r  = s.getBounds();
+    Paint     gp = new GradientPaint(0, 0, start, vertical
+            ? 0
+            : r.width, vertical
+                       ? r.height
+                       : 0, end);
+    Object    o  = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g.setPaint(gp);
@@ -890,7 +925,7 @@ public class SwingHelper {
   }
 
   public static JScrollPane findScrollPane(Component c) {
-    while (c != null) {
+    while(c != null) {
       if (c instanceof JScrollPane) {
         JScrollPane sp = (JScrollPane) c;
 
@@ -912,11 +947,11 @@ public class SwingHelper {
     if (map != null) {
       url = app.rewriteURL(app.getRootViewer(), app.getRootViewer().getURL(url), null);
 
-      synchronized (map) {
-        iViewer v;
+      synchronized(map) {
+        iViewer           v;
         Iterator<iViewer> it = map.keySet().iterator();
 
-        while (it.hasNext()) {
+        while(it.hasNext()) {
           v = it.next();
 
           if ((v != null) && url.equals(v.getSelection())) {
@@ -991,7 +1026,7 @@ public class SwingHelper {
   public static void makeComponentVisibleToUser(Component c) {
     if (c.isVisible()) {
       JScrollPane sp = null;
-      Component cc = c.getParent();
+      Component   cc = c.getParent();
 
       if (cc instanceof JViewport) {
         cc = cc.getParent();
@@ -1005,11 +1040,12 @@ public class SwingHelper {
         sp = findScrollPane(cc);
       }
 
-      if ((sp != null) && sp.isShowing() && (sp.getHorizontalScrollBar().isVisible() || sp.getVerticalScrollBar().isVisible())) {
+      if ((sp != null) && sp.isShowing()
+          && (sp.getHorizontalScrollBar().isVisible() || sp.getVerticalScrollBar().isVisible())) {
         JViewport vp = sp.getViewport();
-        Point p = c.getLocation();
+        Point     p  = c.getLocation();
 
-        p = SwingUtilities.convertPoint(c.getParent(), p, vp);
+        p   = SwingUtilities.convertPoint(c.getParent(), p, vp);
         p.x -= 2;
         p.y -= 2;
 
@@ -1034,23 +1070,23 @@ public class SwingHelper {
 
     try {
       md = MessageDigest.getInstance("SHA-1");
-    } catch (NoSuchAlgorithmException ex) {
+    } catch(NoSuchAlgorithmException ex) {
       return null;
     }
 
-    int len = passc.length;
-    byte[] b = UTF8Helper.getInstance().getBytes(passc, 0, len);
+    int    len = passc.length;
+    byte[] b   = UTF8Helper.getInstance().getBytes(passc, 0, len);
     byte[] dig = md.digest(b);
-    int i = 0;
+    int    i   = 0;
 
-    while (i < len) {
+    while(i < len) {
       passc[i++] = 0;
     }
 
     len = b.length;
-    i = 0;
+    i   = 0;
 
-    while (i < len) {
+    while(i < len) {
       b[i++] = 0;
     }
 
@@ -1058,11 +1094,12 @@ public class SwingHelper {
   }
 
   public static MouseEvent newMouseEvent(Component comp, int id, MouseEvent e) {
-    return new MouseEvent(comp, id, e.getWhen(), e.getModifiers() | e.getModifiersEx(), e.getX(), e.getY(), e.getClickCount(),
-        e.isPopupTrigger());
+    return new MouseEvent(comp, id, e.getWhen(), e.getModifiers() | e.getModifiersEx(), e.getX(), e.getY(),
+                          e.getClickCount(), e.isPopupTrigger());
   }
 
-  public static void paintCenteredIcon(iPlatformGraphics g, iPlatformIcon icon, float x, float y, float width, float height) {
+  public static void paintCenteredIcon(iPlatformGraphics g, iPlatformIcon icon, float x, float y, float width,
+          float height) {
     float iw = icon.getIconWidth();
     float ih = icon.getIconHeight();
 
@@ -1071,11 +1108,13 @@ public class SwingHelper {
 
   public static String readRegistryValue(boolean user, String path, String key) throws Exception {
     final Class clz = Class.forName("java.util.prefs.WindowsPreferences");
-    final Field f = clz.getDeclaredField(user ? "userRoot" : "systemRoot");
+    final Field f   = clz.getDeclaredField(user
+            ? "userRoot"
+            : "systemRoot");
 
     f.setAccessible(true);
 
-    final Object root = f.get(null);
+    final Object root    = f.get(null);
     final Method openKey = clz.getDeclaredMethod("openKey", byte[].class, int.class, int.class);
 
     openKey.setAccessible(true);
@@ -1088,24 +1127,26 @@ public class SwingHelper {
 
     winRegQueryValue.setAccessible(true);
 
-    byte[] valb = null;
-    String vals = null;
+    byte[]  valb   = null;
+    String  vals   = null;
     Integer handle = -1;
 
     handle = (Integer) openKey.invoke(root, toCSTR(path), 0x20019, 0x20019);
-    valb = (byte[]) winRegQueryValue.invoke(root, handle, toCSTR(key));
-    vals = ((valb != null) ? new String(valb).trim() : null);
+    valb   = (byte[]) winRegQueryValue.invoke(root, handle, toCSTR(key));
+    vals   = ((valb != null)
+              ? new String(valb).trim()
+              : null);
     closeKey.invoke(root, handle);
 
     return vals;
   }
 
   public static void removeViewerReference(iViewer v, String viewerKey) {
-    iPlatformAppContext app = v.getAppContext();
+    iPlatformAppContext  app = v.getAppContext();
     Map<iViewer, Object> map = (Map<iViewer, Object>) app.getData(viewerKey);
 
     if (map != null) {
-      synchronized (map) {
+      synchronized(map) {
         map.remove(v);
       }
     }
@@ -1162,7 +1203,7 @@ public class SwingHelper {
 
   /**
    * Runs the specified runnable, stopping the execution of the
-   * 
+   *
    * @param r
    *          the runnable
    * @param timeout
@@ -1177,16 +1218,14 @@ public class SwingHelper {
 
     try {
       t.join(timeout);
-    } catch (InterruptedException ignore) {
-    }
+    } catch(InterruptedException ignore) {}
 
     boolean ok = !t.isAlive();
 
     if (!ok) {
       try {
         t.stop();
-      } catch (Throwable ignore) {
-      }
+      } catch(Throwable ignore) {}
     }
 
     return ok;
@@ -1231,7 +1270,7 @@ public class SwingHelper {
       if (a != null) {
         a.setEnabled(true);
       }
-    } catch (Exception e) {
+    } catch(Exception e) {
       Platform.ignoreException(null, e);
     }
   }
@@ -1268,28 +1307,28 @@ public class SwingHelper {
   public static void setHorizontalAlignment(Object c, HorizontalAlign align) {
     int alignment;
 
-    switch (align) {
-      case CENTER:
+    switch(align) {
+      case CENTER :
         alignment = SwingConstants.CENTER;
 
         break;
 
-      case RIGHT:
+      case RIGHT :
         alignment = SwingConstants.RIGHT;
 
         break;
 
-      case LEFT:
+      case LEFT :
         alignment = SwingConstants.LEFT;
 
         break;
 
-      case TRAILING:
+      case TRAILING :
         alignment = SwingConstants.TRAILING;
 
         break;
 
-      default:
+      default :
         alignment = SwingConstants.LEADING;
 
         break;
@@ -1317,65 +1356,66 @@ public class SwingHelper {
   public static void setIconPosition(Object c, IconPosition ip) {
     int vposition = -1;
     int position;
+
     if (c instanceof LabelView) {
       ((LabelView) c).setIconRightJustified(false);
     } else if (c instanceof JButtonEx) {
       ((JButtonEx) c).setIconRightJustified(false);
     }
 
-    switch (ip) {
-      case LEFT:
+    switch(ip) {
+      case LEFT :
         position = SwingConstants.RIGHT;
 
         break;
 
-      case RIGHT:
+      case RIGHT :
         position = SwingConstants.LEFT;
 
         break;
 
-      case TRAILING:
+      case TRAILING :
         position = SwingConstants.LEADING;
 
         break;
 
-      case TOP_CENTER:
-        position = SwingConstants.CENTER;
+      case TOP_CENTER :
+        position  = SwingConstants.CENTER;
         vposition = SwingConstants.BOTTOM;
 
         break;
 
-      case BOTTOM_CENTER:
-        position = SwingConstants.CENTER;
+      case BOTTOM_CENTER :
+        position  = SwingConstants.CENTER;
         vposition = SwingConstants.TOP;
 
         break;
 
-      case BOTTOM_LEFT:
-        position = SwingConstants.TRAILING;
+      case BOTTOM_LEFT :
+        position  = SwingConstants.TRAILING;
         vposition = SwingConstants.BOTTOM;
 
         break;
 
-      case BOTTOM_RIGHT:
-        position = SwingConstants.LEADING;
+      case BOTTOM_RIGHT :
+        position  = SwingConstants.LEADING;
         vposition = SwingConstants.BOTTOM;
 
         break;
 
-      case TOP_LEFT:
-        position = SwingConstants.TRAILING;
+      case TOP_LEFT :
+        position  = SwingConstants.TRAILING;
         vposition = SwingConstants.TOP;
 
         break;
 
-      case TOP_RIGHT:
-        position = SwingConstants.LEFT;
+      case TOP_RIGHT :
+        position  = SwingConstants.LEFT;
         vposition = SwingConstants.TOP;
 
         break;
 
-      case RIGHT_JUSTIFIED:
+      case RIGHT_JUSTIFIED :
         position = SwingConstants.LEADING;
 
         if (c instanceof LabelView) {
@@ -1386,7 +1426,7 @@ public class SwingHelper {
 
         break;
 
-      default:
+      default :
         position = SwingConstants.TRAILING;
 
         break;
@@ -1427,7 +1467,7 @@ public class SwingHelper {
    * property, used for text components acting as editors in a table or tree,
    * tells {@code DefaultCaret} how many clicks to skip before starting
    * selection.
-   * 
+   *
    * @param comp
    * @param count
    */
@@ -1467,7 +1507,7 @@ public class SwingHelper {
     return up;
   }
 
-   public static UIRectangle setUIRectangle(UIRectangle ur, Rectangle r) {
+  public static UIRectangle setUIRectangle(UIRectangle ur, Rectangle r) {
     if (ur == null) {
       ur = new UIRectangle();
     }
@@ -1488,23 +1528,23 @@ public class SwingHelper {
   public static void setVerticalAlignment(Object c, VerticalAlign align) {
     int alignment;
 
-    switch (align) {
-      case CENTER:
+    switch(align) {
+      case CENTER :
         alignment = SwingConstants.CENTER;
 
         break;
 
-      case TOP:
+      case TOP :
         alignment = SwingConstants.TOP;
 
         break;
 
-      case BOTTOM:
+      case BOTTOM :
         alignment = SwingConstants.BOTTOM;
 
         break;
 
-      default:
+      default :
         alignment = SwingConstants.CENTER;
 
         break;
@@ -1532,7 +1572,7 @@ public class SwingHelper {
   public static Point getCenterPoint(Component parent, Component comp) {
     Dimension cSize = comp.getSize();
     Dimension pSize = parent.getSize();
-    Point loc = parent.getLocationOnScreen();
+    Point     loc   = parent.getLocationOnScreen();
 
     loc.x = ((pSize.width - cSize.width) / 2) + loc.x;
     loc.y = ((pSize.height - cSize.height) / 2) + loc.y;
@@ -1578,19 +1618,20 @@ public class SwingHelper {
     return getFile(parent, title, open, dironly, dir, null, null);
   }
 
-  public static File getFile(Component parent, String title, boolean open, boolean dironly, File dir, String extfilters) {
+  public static File getFile(Component parent, String title, boolean open, boolean dironly, File dir,
+                             String extfilters) {
     return getFile(parent, title, open, dironly, dir, extfilters, null);
   }
 
-  public static File getFile(Component parent, String title, boolean open, boolean dironly, File dir, String extfilters,
-      FileFilter filter) {
-    boolean fdok = Platform.isMac() || !dironly;
+  public static File getFile(Component parent, String title, boolean open, boolean dironly, File dir,
+                             String extfilters, FileFilter filter) {
+    boolean fdok = Platform.isMac() ||!dironly;
 
-    if (fdok && !Platform.getUIDefaults().getBoolean("Rare.FileChooser.useSwingAlways", false)) {
+    if (fdok &&!Platform.getUIDefaults().getBoolean("Rare.FileChooser.useSwingAlways", false)) {
       return getFileWithNativeDialog(parent, title, open, dironly, dir, extfilters);
     }
 
-    File file = null;
+    File                  file        = null;
     ConfirmingFileChooser fileChooser = new ConfirmingFileChooser(dir);
 
     if (extfilters != null) {
@@ -1623,9 +1664,9 @@ public class SwingHelper {
   }
 
   public static File getFileWithNativeDialog(Component parent, String title, boolean open, boolean dironly, File dir,
-      String extfilters) {
-    File file = null;
-    Window win = SwingUtilities.getWindowAncestor(parent);
+          String extfilters) {
+    File       file = null;
+    Window     win  = SwingUtilities.getWindowAncestor(parent);
     FileDialog fileChooser;
 
     if (win instanceof Dialog) {
@@ -1642,9 +1683,11 @@ public class SwingHelper {
       fileChooser.setDirectory(dir.getAbsolutePath());
     }
 
-    fileChooser.setMode(open ? FileDialog.LOAD : FileDialog.SAVE);
+    fileChooser.setMode(open
+                        ? FileDialog.LOAD
+                        : FileDialog.SAVE);
 
-    if (dironly && !Platform.isMac()) {
+    if (dironly &&!Platform.isMac()) {
       fileChooser.setFilenameFilter(new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
@@ -1681,121 +1724,126 @@ public class SwingHelper {
   }
 
   public static RenderableDataItem.HorizontalAlign getHorizontalAlignment(int alignment) {
-    switch (alignment) {
-      case Label.CTextHAlignment.left:
+    switch(alignment) {
+      case Label.CTextHAlignment.left :
         return RenderableDataItem.HorizontalAlign.LEFT;
 
-      case Label.CTextHAlignment.center:
+      case Label.CTextHAlignment.center :
         return RenderableDataItem.HorizontalAlign.CENTER;
 
-      case Label.CTextHAlignment.right:
+      case Label.CTextHAlignment.right :
         return RenderableDataItem.HorizontalAlign.RIGHT;
 
-      case Label.CTextHAlignment.leading:
+      case Label.CTextHAlignment.leading :
         return RenderableDataItem.HorizontalAlign.LEADING;
 
-      case Label.CTextHAlignment.trailing:
+      case Label.CTextHAlignment.trailing :
         return RenderableDataItem.HorizontalAlign.TRAILING;
 
-      default:
+      default :
         return RenderableDataItem.HorizontalAlign.AUTO;
     }
   }
 
   public static RenderableDataItem.IconPosition getIconPosition(int position) {
-    switch (position) {
-      case Label.CIconPosition.left:
+    switch(position) {
+      case Label.CIconPosition.left :
         return RenderableDataItem.IconPosition.LEFT;
 
-      case Label.CIconPosition.right:
+      case Label.CIconPosition.right :
         return RenderableDataItem.IconPosition.RIGHT;
 
-      case Label.CIconPosition.top_left:
+      case Label.CIconPosition.top_left :
         return RenderableDataItem.IconPosition.TOP_LEFT;
 
-      case Label.CIconPosition.top_right:
+      case Label.CIconPosition.top_right :
         return RenderableDataItem.IconPosition.TOP_RIGHT;
 
-      case Label.CIconPosition.top_center:
+      case Label.CIconPosition.top_center :
         return RenderableDataItem.IconPosition.TOP_CENTER;
 
-      case Label.CIconPosition.bottom_left:
+      case Label.CIconPosition.bottom_left :
         return RenderableDataItem.IconPosition.BOTTOM_LEFT;
 
-      case Label.CIconPosition.bottom_right:
+      case Label.CIconPosition.bottom_right :
         return RenderableDataItem.IconPosition.BOTTOM_RIGHT;
 
-      case Label.CIconPosition.bottom_center:
+      case Label.CIconPosition.bottom_center :
         return RenderableDataItem.IconPosition.BOTTOM_CENTER;
 
-      case Label.CIconPosition.trailing:
+      case Label.CIconPosition.trailing :
         return RenderableDataItem.IconPosition.TRAILING;
 
-      case Label.CIconPosition.leading:
+      case Label.CIconPosition.leading :
         return RenderableDataItem.IconPosition.LEADING;
 
-      case Label.CIconPosition.right_justified:
+      case Label.CIconPosition.right_justified :
         return RenderableDataItem.IconPosition.RIGHT_JUSTIFIED;
 
-      default:
+      default :
         return RenderableDataItem.IconPosition.AUTO;
     }
   }
 
   public static Composite resolveInstance(GraphicsComposite composite) {
     Composite ac = SwingHelper.getInstance(composite.getCompositeType(), composite.getAlpha());
-    composite.setPlatformComposite(ac);
-    return ac;
 
+    composite.setPlatformComposite(ac);
+
+    return ac;
   }
 
   public static Composite getInstance(CompositeType type, float alpha) {
     int rule = AlphaComposite.SRC_OVER;
 
-    switch (type) {
-      case DST_IN:
+    switch(type) {
+      case DST_IN :
         rule = AlphaComposite.DST_IN;
 
         break;
 
-      case DST_OUT:
+      case DST_OUT :
         rule = AlphaComposite.DST_OUT;
 
         break;
 
-      case DST_ATOP:
+      case DST_ATOP :
         rule = AlphaComposite.DST_ATOP;
 
         break;
 
-      case DST_OVER:
+      case DST_OVER :
         rule = AlphaComposite.DST_OVER;
 
         break;
 
-      case SRC_IN:
+      case SRC_IN :
         rule = AlphaComposite.SRC_IN;
 
         break;
 
-      case SRC_OUT:
+      case SRC_OUT :
         rule = AlphaComposite.SRC_OUT;
 
         break;
 
-      case SRC_ATOP:
+      case SRC_ATOP :
         rule = AlphaComposite.SRC_ATOP;
 
         break;
-      case XOR:
+
+      case XOR :
         rule = AlphaComposite.XOR;
 
         break;
-      case LIGHTEN:
+
+      case LIGHTEN :
         return BlendComposite.getInstance(BlendingMode.LIGHTEN, alpha);
-      case DARKEN:
+
+      case DARKEN :
         return BlendComposite.getInstance(BlendingMode.DARKEN, alpha);
-      default:
+
+      default :
         break;
     }
 
@@ -1817,11 +1865,17 @@ public class SwingHelper {
   }
 
   public static int getMonitor(Component c) {
-    Window w = (c instanceof Window) ? (Window) c : SwingUtilities.windowForComponent(c);
-    GraphicsConfiguration gc = (w == null) ? null : w.getGraphicsConfiguration();
-    GraphicsDevice gd = (gc == null) ? null : gc.getDevice();
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
+    Window                w  = (c instanceof Window)
+                               ? (Window) c
+                               : SwingUtilities.windowForComponent(c);
+    GraphicsConfiguration gc = (w == null)
+                               ? null
+                               : w.getGraphicsConfiguration();
+    GraphicsDevice        gd = (gc == null)
+                               ? null
+                               : gc.getDevice();
+    GraphicsEnvironment   ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice[]      gs = ge.getScreenDevices();
 
     for (int i = 0; i < gs.length; i++) {
       if (gs[i].equals(gd)) {
@@ -1834,7 +1888,7 @@ public class SwingHelper {
 
   public static Point getPopupPoint(Component parent, Component comp) {
     Dimension pSize = parent.getSize();
-    Point loc = parent.getLocationOnScreen();
+    Point     loc   = parent.getLocationOnScreen();
 
     loc.y += pSize.height;
 
@@ -1842,53 +1896,60 @@ public class SwingHelper {
   }
 
   public static Stroke getStroke(UIStroke stroke) {
-    return getStroke(stroke,false);
+    return getStroke(stroke, false);
   }
-  public static Stroke getStroke(UIStroke stroke,boolean half) {
+
+  public static Stroke getStroke(UIStroke stroke, boolean half) {
     if (stroke == UIStroke.SOLID_STROKE) {
-      return half ? HALF_SOLID_STROKE : SOLID_STROKE;
+      return half
+             ? HALF_SOLID_STROKE
+             : SOLID_STROKE;
     }
 
     if (stroke == UIStroke.DOTTED_STROKE) {
-      return half ? HALF_DOTTED_STROKE: DOTTED_STROKE;
+      return half
+             ? HALF_DOTTED_STROKE
+             : DOTTED_STROKE;
     }
 
     if (stroke == UIStroke.DASHED_STROKE) {
-      return half ? HALF_DASHED_STROKE: DASHED_STROKE;
+      return half
+             ? HALF_DASHED_STROKE
+             : DASHED_STROKE;
     }
 
     int cap;
     int join;
 
-    switch (stroke.cap) {
-      case BUTT:
+    switch(stroke.cap) {
+      case BUTT :
         cap = BasicStroke.CAP_BUTT;
 
         break;
 
-      case ROUND:
+      case ROUND :
         cap = BasicStroke.CAP_ROUND;
 
         break;
 
-      default:
+      default :
         cap = BasicStroke.CAP_SQUARE;
 
         break;
     }
 
-    switch (stroke.join) {
-      case BEVEL:
+    switch(stroke.join) {
+      case BEVEL :
         join = BasicStroke.JOIN_BEVEL;
 
         break;
 
-      case MITER:
+      case MITER :
         join = BasicStroke.JOIN_MITER;
 
         break;
 
-      default:
+      default :
         join = BasicStroke.JOIN_ROUND;
 
         break;
@@ -1902,17 +1963,17 @@ public class SwingHelper {
   }
 
   public static Rectangle getToolTipRect(JLabel label, String text, int width, int height, boolean overlapping) {
-    Rectangle viewR = perThreadViewRect.get();
-    Rectangle iconR = perThreadIconRect.get();
-    Rectangle textR = perThreadTextRect.get();
-    Insets insets = label.getInsets(perThreadInsets.get());
+    Rectangle viewR  = perThreadViewRect.get();
+    Rectangle iconR  = perThreadIconRect.get();
+    Rectangle textR  = perThreadTextRect.get();
+    Insets    insets = label.getInsets(perThreadInsets.get());
 
-    viewR.x = insets.left;
-    viewR.y = insets.top;
-    viewR.width = width - (insets.left + insets.right);
+    viewR.x      = insets.left;
+    viewR.y      = insets.top;
+    viewR.width  = width - (insets.left + insets.right);
     viewR.height = height - (insets.top + insets.bottom);
-    iconR.x = iconR.y = iconR.width = iconR.height = 0;
-    textR.x = textR.y = textR.width = textR.height = 0;
+    iconR.x      = iconR.y = iconR.width = iconR.height = 0;
+    textR.x      = textR.y = textR.width = textR.height = 0;
 
     Font f = null;
 
@@ -1932,13 +1993,15 @@ public class SwingHelper {
       }
     }
 
-    Icon icon = label.isEnabled() ? label.getIcon() : label.getDisabledIcon();
+    Icon icon = label.isEnabled()
+                ? label.getIcon()
+                : label.getDisabledIcon();
 
     SwingUtilities.layoutCompoundLabel(label, toolTipFontMetrics, text, icon, label.getVerticalAlignment(),
-        label.getHorizontalAlignment(), label.getVerticalTextPosition(), label.getHorizontalTextPosition(), viewR, iconR, textR,
-        label.getIconTextGap());
+                                       label.getHorizontalAlignment(), label.getVerticalTextPosition(),
+                                       label.getHorizontalTextPosition(), viewR, iconR, textR, label.getIconTextGap());
     textR.x -= insets.left;
-    insets = toolTip.getInsets(insets);
+    insets  = toolTip.getInsets(insets);
     textR.x -= insets.left;
     textR.y -= insets.top;
 
@@ -1946,17 +2009,17 @@ public class SwingHelper {
   }
 
   public static RenderableDataItem.VerticalAlign getVerticalAlignment(int alignment) {
-    switch (alignment) {
-      case Label.CTextVAlignment.top:
+    switch(alignment) {
+      case Label.CTextVAlignment.top :
         return RenderableDataItem.VerticalAlign.TOP;
 
-      case Label.CTextVAlignment.center:
+      case Label.CTextVAlignment.center :
         return RenderableDataItem.VerticalAlign.CENTER;
 
-      case Label.CTextVAlignment.bottom:
+      case Label.CTextVAlignment.bottom :
         return RenderableDataItem.VerticalAlign.BOTTOM;
 
-      default:
+      default :
         return RenderableDataItem.VerticalAlign.AUTO;
     }
   }
@@ -2019,7 +2082,7 @@ public class SwingHelper {
       return true;
     }
 
-    while (b instanceof CompoundBorder) {
+    while(b instanceof CompoundBorder) {
       b = ((CompoundBorder) b).getInsideBorder();
     }
 
@@ -2036,12 +2099,12 @@ public class SwingHelper {
       return;
     }
 
-    CharScanner sc = new CharScanner(filters);
-    List<String> a = sc.getTokens(';');
+    CharScanner  sc = new CharScanner(filters);
+    List<String> a  = sc.getTokens(';');
     List<String> b;
-    int len = a.size();
-    String s;
-    int n;
+    int          len = a.size();
+    String       s;
+    int          n;
     List<String> exts = new ArrayList<String>();
 
     for (int i = 0; i < len; i++) {
@@ -2056,7 +2119,7 @@ public class SwingHelper {
 
       try {
         s = CharScanner.cleanQuoted(s.toCharArray(), 0, n);
-      } catch (ParseException ex) {
+      } catch(ParseException ex) {
         s = s.substring(0, n);
       }
 
@@ -2112,7 +2175,9 @@ public class SwingHelper {
      *          the default directory
      */
     public ConfirmingFileChooser(File dir) {
-      super((dir == null) ? new File(".") : dir);
+      super((dir == null)
+            ? new File(".")
+            : dir);
     }
 
     @Override
@@ -2139,6 +2204,7 @@ public class SwingHelper {
     }
   }
 
+
   public static class DefaultBoundedRangeModelEx extends DefaultBoundedRangeModel {
     int             direction = 1;
     boolean         blockRecursion;
@@ -2147,7 +2213,7 @@ public class SwingHelper {
     private boolean blockEvents;
 
     public DefaultBoundedRangeModelEx(JComponent comp, Object changeCode) {
-      reference = new WeakReference(comp);
+      reference       = new WeakReference(comp);
       this.changeCode = changeCode;
     }
 
@@ -2163,8 +2229,9 @@ public class SwingHelper {
 
     @Override
     public String toString() {
-      String modelString = "dir=" + getDirection() + ", " + "value=" + getValue() + ", " + "extent=" + getExtent() + ", " + "min="
-          + getMinimum() + ", " + "max=" + getMaximum() + ", " + "adj=" + getValueIsAdjusting();
+      String modelString = "dir=" + getDirection() + ", " + "value=" + getValue() + ", " + "extent=" + getExtent()
+                           + ", " + "min=" + getMinimum() + ", " + "max=" + getMaximum() + ", " + "adj="
+                           + getValueIsAdjusting();
 
       return "DefaultBoundedRangeModelEx[" + modelString + "]";
     }
@@ -2179,7 +2246,9 @@ public class SwingHelper {
 
     @Override
     public void setValue(int n) {
-      direction = (n < getValue()) ? -1 : 1;
+      direction = (n < getValue())
+                  ? -1
+                  : 1;
       super.setValue(n);
     }
 
@@ -2205,13 +2274,14 @@ public class SwingHelper {
       }
 
       JComponent c = (JComponent) reference.get();
-      iWidget w = Platform.findWidgetForComponent(c);
+      iWidget    w = Platform.findWidgetForComponent(c);
 
       if (w != null) {
         iScriptHandler sh = w.getScriptHandler();
 
         if (changeCode instanceof String) {
-          changeCode = sh.compile(w.getScriptingContext(), w.getPathName() + ".scrollbar.onChange", (String) changeCode);
+          changeCode = sh.compile(w.getScriptingContext(), w.getPathName() + ".scrollbar.onChange",
+                                  (String) changeCode);
         }
 
         if (changeEvent == null) {
@@ -2222,6 +2292,7 @@ public class SwingHelper {
       }
     }
   }
+
 
   public static class DragHandler extends MouseAdapter implements MouseMotionListener {
     private Point     _startPoint = new Point(0, 0);
@@ -2234,7 +2305,7 @@ public class SwingHelper {
     @Override
     public void mouseDragged(MouseEvent e) {
       Component source = e.getComponent();
-      Point pt = e.getLocationOnScreen();
+      Point     pt     = e.getLocationOnScreen();
 
       if (pt == null) {
         pt = new Point(e.getX() + source.getLocationOnScreen().x, e.getY() + source.getLocationOnScreen().y);
@@ -2253,8 +2324,7 @@ public class SwingHelper {
     }
 
     @Override
-    public void mouseMoved(MouseEvent e) {
-    }
+    public void mouseMoved(MouseEvent e) {}
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -2266,13 +2336,14 @@ public class SwingHelper {
     }
   }
 
+
   private static class FileNameExtensionFilter extends FileFilter implements FilenameFilter {
 
     /**  */
-    boolean      allFiles;
+    boolean allFiles;
 
     /**  */
-    String       description;
+    String description;
 
     /**  */
     List<String> extensions;
@@ -2280,8 +2351,8 @@ public class SwingHelper {
     public FileNameExtensionFilter(String desc, List<String> exts) {
       extensions = exts;
 
-      int len = extensions.size();
-      String s;
+      int           len = extensions.size();
+      String        s;
       StringBuilder sb = new StringBuilder(desc).append(" (");
 
       for (int i = 0; i < len; i++) {
@@ -2318,7 +2389,7 @@ public class SwingHelper {
       }
 
       String s = f.getName();
-      int n = s.indexOf('.');
+      int    n = s.indexOf('.');
 
       if (n == -1) {
         return false;

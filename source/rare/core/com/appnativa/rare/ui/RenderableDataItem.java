@@ -3868,6 +3868,9 @@ public class RenderableDataItem
 
     if (value instanceof String) {
       converted = theType == TYPE_STRING;
+      if(converted) {
+        _toString=(String)value;
+      }
     } else {
       converted = true;
     }
@@ -3895,7 +3898,12 @@ public class RenderableDataItem
     _toString = null;
 
     if (value instanceof String) {
-      converted = false;
+      converted = theType == TYPE_STRING;
+      if(converted) {
+        _toString=(String)value;
+      }
+    } else {
+      converted = true;
     }
 
     theValue     = value;

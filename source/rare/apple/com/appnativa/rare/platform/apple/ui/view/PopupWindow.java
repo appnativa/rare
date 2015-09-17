@@ -282,7 +282,7 @@ public class PopupWindow extends Window implements iPopup {
 
   @Override
   protected void createTarget() {
-    String name = "_popup_window_" + Integer.toHexString(hashCode());
+    String name = "_popup_window_" + Integer.toHexString((int)hashCode());
 
     target = new WindowTarget(Platform.getAppContext(), name, rootPane);
   }

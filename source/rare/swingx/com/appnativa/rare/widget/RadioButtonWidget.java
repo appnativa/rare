@@ -1,7 +1,24 @@
-package com.appnativa.rare.widget;
+/*
+ * Copyright appNativa Inc. All Rights Reserved.
+ *
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
 
-import javax.swing.AbstractButton;
-import javax.swing.JToggleButton.ToggleButtonModel;
+package com.appnativa.rare.widget;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.spot.Button;
@@ -11,10 +28,13 @@ import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.viewer.iContainer;
 
+import javax.swing.AbstractButton;
+import javax.swing.JToggleButton.ToggleButtonModel;
+
 /**
  * A widget that allows a user to select one, and only one option from a set of
  * alternatives.
- * 
+ *
  * @author Don DeCoteau
  */
 public class RadioButtonWidget extends aGroupableButton {
@@ -42,7 +62,9 @@ public class RadioButtonWidget extends aGroupableButton {
 
   @Override
   public Object getHTTPFormValue() {
-    return isSelected() ? super.getHTTPFormValue() : null;
+    return isSelected()
+           ? super.getHTTPFormValue()
+           : null;
   }
 
   @Override
@@ -53,21 +75,24 @@ public class RadioButtonWidget extends aGroupableButton {
   class ToggleButtonModelEx extends ToggleButtonModel {
     @Override
     public void setSelected(boolean b) {
-      if (!b && buttonGroup != null) {
-        if (buttonGroup.getSelectedButton() == RadioButtonWidget.this && !allowDeselection) {
+      if (!b && (buttonGroup != null)) {
+        if ((buttonGroup.getSelectedButton() == RadioButtonWidget.this) &&!allowDeselection) {
           return;
         }
         ;
       }
+
       super.setSelected(b);
     }
   }
 
+
   @Override
   protected iActionComponent createButton(Button cfg) {
     AbstractButton b = getAppContext().getComponentCreator().getRadioButton(getViewer(), (RadioButton) cfg);
-    b.setModel(new ToggleButtonModelEx());
-    return new ActionComponent(b);
 
+    b.setModel(new ToggleButtonModelEx());
+
+    return new ActionComponent(b);
   }
 }

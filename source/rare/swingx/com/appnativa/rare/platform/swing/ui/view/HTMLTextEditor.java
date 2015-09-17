@@ -1,29 +1,24 @@
 /*
- * @(#)HTMLViewer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.scene.web.HTMLEditor;
-
-import javax.swing.text.StyledDocument;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.exception.ApplicationException;
@@ -31,10 +26,29 @@ import com.appnativa.rare.platform.swing.ui.text.HTMLEditorKitEx;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.listener.iTextChangeListener;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
+
+import javafx.embed.swing.JFXPanel;
+
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.web.HTMLEditor;
+
+import org.w3c.dom.Document;
+
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import javax.swing.text.StyledDocument;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class HTMLTextEditor extends Component implements iPlatformTextEditor {
   HTMLEditor      htmlEditor;
@@ -51,28 +65,22 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
   }
 
   @Override
-  public void addActionListener(iActionListener listener) {
-  }
+  public void addActionListener(iActionListener listener) {}
 
   @Override
-  public void addTextChangeListener(iTextChangeListener changeListener) {
-  }
+  public void addTextChangeListener(iTextChangeListener changeListener) {}
 
   @Override
-  public void appendText(String text) {
-  }
+  public void appendText(String text) {}
 
   @Override
-  public void boldText() {
-  }
+  public void boldText() {}
 
   @Override
-  public void decreaseIndent() {
-  }
+  public void decreaseIndent() {}
 
   @Override
-  public void deleteSelection() {
-  }
+  public void deleteSelection() {}
 
   @Override
   public void dispose() {
@@ -80,60 +88,46 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
   }
 
   @Override
-  public void enlargeFont() {
-  }
+  public void enlargeFont() {}
 
   @Override
-  public void increaseIndent() {
-  }
+  public void increaseIndent() {}
 
   @Override
-  public void insertHTML(int pos, String html) {
-  }
+  public void insertHTML(int pos, String html) {}
 
   @Override
-  public void insertText(int pos, String text) {
-  }
+  public void insertText(int pos, String text) {}
 
   @Override
-  public void italicText() {
-  }
+  public void italicText() {}
 
   @Override
-  public void pasteText(String text) {
-  }
+  public void pasteText(String text) {}
 
   @Override
-  public void removeActionListener(iActionListener listener) {
-  }
+  public void removeActionListener(iActionListener listener) {}
 
   @Override
-  public void removeTextChangeListener(iTextChangeListener changeListener) {
-  }
+  public void removeTextChangeListener(iTextChangeListener changeListener) {}
 
   @Override
-  public void selectAll() {
-  }
+  public void selectAll() {}
 
   @Override
-  public void shrinkFont() {
-  }
+  public void shrinkFont() {}
 
   @Override
-  public void strikeThroughText() {
-  }
+  public void strikeThroughText() {}
 
   @Override
-  public void subscriptText() {
-  }
+  public void subscriptText() {}
 
   @Override
-  public void superscriptText() {
-  }
+  public void superscriptText() {}
 
   @Override
-  public void underlineText() {
-  }
+  public void underlineText() {}
 
   @Override
   public void setBounds(int x, int y, int width, int height) {
@@ -145,40 +139,35 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
   }
 
   @Override
-  public void setCaretPosition(int position) {
-  }
+  public void setCaretPosition(int position) {}
 
   @Override
-  public void setEditable(boolean editable) {
-  }
+  public void setEditable(boolean editable) {}
 
   @Override
-  public void setEmptyFieldColor(UIColor color) {
-  }
+  public void setEmptyFieldColor(UIColor color) {}
 
   @Override
-  public void setEmptyFieldFont(UIFont font) {
-  }
+  public void setEmptyFieldFont(UIFont font) {}
 
   @Override
-  public void setEmptyFieldText(String text) {
-  }
+  public void setEmptyFieldText(String text) {}
 
   @Override
-  public void setFollowHyperlinks(boolean follow) {
-  }
+  public void setFollowHyperlinks(boolean follow) {}
 
   public void setHandleWaitCursor(boolean handleWaitCursor) {
     this.handleWaitCursor = handleWaitCursor;
   }
 
   @Override
-  public void setSelection(int beginIndex, int endIndex) {
-  }
+  public void setSelection(int beginIndex, int endIndex) {}
 
   @Override
   public void setText(CharSequence text) {
-    String s = (text == null) ? "" : text.toString();
+    String s = (text == null)
+               ? ""
+               : text.toString();
 
     if (s.startsWith("<html>") || s.startsWith("<HTML>") || s.startsWith("<!DOCTYPE")) {
       setText(s, true);
@@ -197,16 +186,13 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
   }
 
   @Override
-  public void setTextFontFamily(String family) {
-  }
+  public void setTextFontFamily(String family) {}
 
   @Override
-  public void setTextFontSize(int size) {
-  }
+  public void setTextFontSize(int size) {}
 
   @Override
-  public void setTextForeground(UIColor fg) {
-  }
+  public void setTextForeground(UIColor fg) {}
 
   @Override
   public int getCaretPosition() {
@@ -244,7 +230,7 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
       transformer.transform(new DOMSource(doc), sr);
 
       return w.toString();
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       throw new ApplicationException(ex);
     }
   }
@@ -260,13 +246,13 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
 
     if (s.length() > 0) {
       HTMLEditorKitEx kit = new HTMLEditorKitEx();
-      StyledDocument doc = (StyledDocument) kit.createDefaultDocument();
+      StyledDocument  doc = (StyledDocument) kit.createDefaultDocument();
 
       try {
         kit.read(new StringReader(s), doc, 0);
 
         return doc.getText(0, doc.getLength());
-      } catch (Exception ex) {
+      } catch(Exception ex) {
         Platform.ignoreException(null, ex);
       }
     }
@@ -294,7 +280,9 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
     String s = getPlainText();
 
     if (end >= s.length()) {
-      return (start == 0) ? s : s.substring(start);
+      return (start == 0)
+             ? s
+             : s.substring(start);
     }
 
     return s.substring(start, end + 1);
@@ -327,6 +315,7 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
   private void initFX() {
     Group group = new Group();
     Scene scene = new Scene(group);
+
     ((JFXPanel) view).setScene(scene);
     htmlEditor = new HTMLEditor();
     group.getChildren().add(htmlEditor);

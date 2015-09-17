@@ -2910,7 +2910,7 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public void setParent(iContainer parent) {
-    if (parent != this) {
+    if ((iWidget)parent != this) { //cast for jave->objc
       parentContainer = parent;
     }
   }

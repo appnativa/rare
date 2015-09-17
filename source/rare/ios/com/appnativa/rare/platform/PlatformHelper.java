@@ -143,7 +143,7 @@ public class PlatformHelper extends aPlatformHelper {
     }
   }
 
-  public static void initialize() {
+  public static void setup() {
     initializeUIDefaults();
     FontUtils.setSystemFont(systemFont);
     ScreenUtils.initilize(density, 1, 72, 72, 72, 1);

@@ -1,24 +1,24 @@
 /*
- * @(#)AppContext.java   2011-12-27
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing;
-
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.net.URL;
-import java.util.logging.Logger;
-
-import javax.swing.JDialog;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -35,14 +35,30 @@ import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIMenu;
 import com.appnativa.rare.ui.UIProperties;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformComponentFactory;
 import com.appnativa.rare.ui.iPlatformWindowManager;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.IdentityArrayList;
+
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import java.io.File;
+
+import java.net.URL;
+
+import java.util.logging.Logger;
+
+import javax.swing.JDialog;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 
 /**
  * This class represents an instance of a running application. It acts as a
@@ -68,9 +84,9 @@ public class AppContext extends aAppContext {
 
   public AppContext(Rare instance, boolean embedded) {
     super(instance, new UIProperties());
-    embeddedInstance = embedded;
+    embeddedInstance      = embedded;
     rareIconResourcePaths = new String[] { Rare.resourcePath };
-    landscapeMode = true;
+    landscapeMode         = true;
 
     if (!embeddedInstance) {
       PlatformHelper.initialize();
@@ -89,8 +105,7 @@ public class AppContext extends aAppContext {
   }
 
   @Override
-  public void clearStatusBar() {
-  }
+  public void clearStatusBar() {}
 
   @Override
   public void closePopupWindows(boolean all) {
@@ -103,6 +118,7 @@ public class AppContext extends aAppContext {
         ((JDialog) o).dispose();
       }
     }
+
     UIMenu.closeVisibleMenus();
   }
 
@@ -115,6 +131,7 @@ public class AppContext extends aAppContext {
         return true;
       }
     }
+
     return false;
   }
 
@@ -127,6 +144,7 @@ public class AppContext extends aAppContext {
         return true;
       }
     }
+
     return false;
   }
 
@@ -152,8 +170,7 @@ public class AppContext extends aAppContext {
   }
 
   @Override
-  public void lockOrientation(Boolean landscape) {
-  }
+  public void lockOrientation(Boolean landscape) {}
 
   protected boolean isLowIconDensity() {
     return "ldpi".equals(ImageHelper.defaultIconDensity);
@@ -172,10 +189,11 @@ public class AppContext extends aAppContext {
         if (u.getProtocol().equals("file")) {
           File f = PlatformHelper.toFile(u);
 
-          return f.exists() ? u : null;
+          return f.exists()
+                 ? u
+                 : null;
         }
-      } catch (Exception e) {
-      }
+      } catch(Exception e) {}
     }
 
     return AppContext.this.getResourceURL(name);
@@ -227,8 +245,7 @@ public class AppContext extends aAppContext {
   //
   // }
   @Override
-  public void unlockOrientation() {
-  }
+  public void unlockOrientation() {}
 
   public void setLogger(Logger l) {
     logger = l;
@@ -304,13 +321,13 @@ public class AppContext extends aAppContext {
 
     try {
       return RARE.getResourceBundle().getString(name);
-    } catch (Exception e) {
+    } catch(Exception e) {
       Platform.debugLog("Missing resource string:" + name);
 
       if (name.startsWith("Rare.text.")) {
         try {
           return RARE.getResourceBundle().getString("Rare.runtime." + name.substring(5));
-        } catch (Exception ignore) {
+        } catch(Exception ignore) {
           ignore.printStackTrace();
         }
       }
@@ -323,7 +340,7 @@ public class AppContext extends aAppContext {
   public URL getResourceURL(String path) {
     if (path.startsWith("file://")) {
       try {
-        URL u = new URL(path);
+        URL  u = new URL(path);
         File f = PlatformHelper.toFile(u);
 
         if (!f.exists()) {
@@ -331,8 +348,7 @@ public class AppContext extends aAppContext {
         }
 
         return u;
-      } catch (Exception e) {
-      }
+      } catch(Exception e) {}
     }
 
     if (resourceFinder != null) {
@@ -359,8 +375,8 @@ public class AppContext extends aAppContext {
 
   @Override
   public WindowViewer getWindowViewer() {
-    WindowViewer w = null;
-    final int len = activeWindows.size();
+    WindowViewer w   = null;
+    final int    len = activeWindows.size();
 
     for (int i = len - 1; i > -1; i--) {
       Object o = activeWindows.get(i);
@@ -402,8 +418,6 @@ public class AppContext extends aAppContext {
     uiDefaults.put("TableHeader.marginColor", uiDefaults.get("Rare.backgroundShadow"));
     uiDefaults.put("Button.background", uiDefaults.get("Rare.background"));
     uiDefaults.put("Button.foreground", uiDefaults.get("Rare.Button.foreground"));
-    uiDefaults.put("Rare.Tree.expandedIcon", getResourceAsIcon("Rare.icon.expanded"));
-    uiDefaults.put("Rare.Tree.collapsedIcon", getResourceAsIcon("Rare.icon.collapsed"));
 
     String s = System.getProperty("Rare.Resources.path");
 
@@ -476,10 +490,11 @@ public class AppContext extends aAppContext {
       if (Platform.isShuttingDown()) {
         return;
       }
+
       if (e.getPropertyName() == "permanentFocusOwner") {
         Component c = (Component) e.getNewValue();
 
-        if ((c != null) && !c.isDisplayable()) {
+        if ((c != null) &&!c.isDisplayable()) {
           if ((permanentFocusOwner != null) && permanentFocusOwner.isDisplayable()) {
             permanentFocusOwner.requestFocus();
 
@@ -490,24 +505,26 @@ public class AppContext extends aAppContext {
         }
 
         if ((c != null) && (c != permanentFocusOwner)) {
-          if (permanentFocusOwner != null && !permanentFocusOwner.isDisposed()) {
+          if ((permanentFocusOwner != null) &&!permanentFocusOwner.isDisposed()) {
             iWidget w = permanentFocusOwner.getWidget();
-            if (w != null && !w.isDisposed()) {
+
+            if ((w != null) &&!w.isDisposed()) {
               w.repaint();
             } else {
               permanentFocusOwner.repaint();
             }
           }
+
           permanentFocusOwner = Platform.findPlatformComponent(c);
 
           if ((permanentFocusOwner == null) || permanentFocusOwner.isDisposed()) {
             return;
           }
 
-          AppContext app = (AppContext) Platform.getAppContext();
-          Rare rare = (Rare) app.RARE;
+          AppContext app  = (AppContext) Platform.getAppContext();
+          Rare       rare = (Rare) app.RARE;
 
-          if ((rare == null) || !app.isInitialized() || app.isShuttingDown()) {
+          if ((rare == null) ||!app.isInitialized() || app.isShuttingDown()) {
             return;
           }
 
@@ -516,12 +533,15 @@ public class AppContext extends aAppContext {
           if ((wm == null) || wm.isDisposed()) {
             return;
           }
+
           iWidget w = permanentFocusOwner.getWidget();
+
           if (w != null) {
             w.repaint();
           } else {
             permanentFocusOwner.repaint();
           }
+
           app.updateActions(permanentFocusOwner);
 
           aWidgetListener l = rare.getWindowManager().getWidgetListener();
@@ -540,10 +560,10 @@ public class AppContext extends aAppContext {
             return;
           }
 
-          AppContext app = (AppContext) Platform.getAppContext();
-          Rare rare = (Rare) app.RARE;
+          AppContext app  = (AppContext) Platform.getAppContext();
+          Rare       rare = (Rare) app.RARE;
 
-          if ((rare == null) || !app.isInitialized() || !app.isShuttingDown()) {
+          if ((rare == null) ||!app.isInitialized() ||!app.isShuttingDown()) {
             return;
           }
 
@@ -564,24 +584,24 @@ public class AppContext extends aAppContext {
           if ((l != null) && l.isEnabled(iConstants.EVENT_FOCUS_CHANGE)) {
             l.execute(iConstants.EVENT_FOCUS_CHANGE, e);
           }
-        } else if (focusOwner != null && !focusOwner.isDisposed()) {
+        } else if ((focusOwner != null) &&!focusOwner.isDisposed()) {
           iWidget w = focusOwner.getWidget();
+
           if (w != null) {
             w.repaint();
           } else {
             focusOwner.repaint();
           }
         }
-      } else if (permanentFocusOwner != null && !permanentFocusOwner.isDisposed()) {
+      } else if ((permanentFocusOwner != null) &&!permanentFocusOwner.isDisposed()) {
         iWidget w = permanentFocusOwner.getWidget();
-        if (w != null && !w.isDisposed()) {
+
+        if ((w != null) &&!w.isDisposed()) {
           w.repaint();
         } else {
           permanentFocusOwner.repaint();
         }
       }
-
     }
   }
-
 }

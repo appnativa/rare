@@ -1,28 +1,24 @@
 /*
- * @(#)PlotGraphics.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) Sotera Wireless Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.util;
-
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.GraphicsComposite;
@@ -44,6 +40,22 @@ import com.appnativa.rare.ui.iPlatformShape;
 import com.appnativa.rare.ui.iTransform;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.util.IdentityArrayList;
+
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Paint;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 
 /**
  *
@@ -105,7 +117,7 @@ public class SwingGraphics implements iPlatformGraphics {
     Graphics2D g = graphics;
 
     if (bg == null) {
-      Composite       oc = g.getComposite();
+      Composite oc = g.getComposite();
 
       g.setComposite(AlphaComposite.getInstance(AlphaComposite.CLEAR));
       g.fillRect(sp(x), sp(y), ss(width), ss(height));
@@ -224,9 +236,11 @@ public class SwingGraphics implements iPlatformGraphics {
   @Override
   public void drawImage(iPlatformImage img, float x, float y) {
     Image iimg = img.getImage();
-    if(iimg==null) {
+
+    if (iimg == null) {
       return;
     }
+
     graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
     graphics.drawImage(iimg, sp(x), sp(y), null);
   }
@@ -234,10 +248,15 @@ public class SwingGraphics implements iPlatformGraphics {
   @Override
   public void drawImage(iPlatformImage img, float x, float y, iComposite composite) {
     Image iimg = img.getImage();
-    if(iimg==null) {
+
+    if (iimg == null) {
       return;
     }
-    Composite c = composite==null ? null : setCompositeEx(composite);
+
+    Composite c = (composite == null)
+                  ? null
+                  : setCompositeEx(composite);
+
     graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
     graphics.drawImage(iimg, sp(x), sp(y), null);
 
@@ -249,9 +268,11 @@ public class SwingGraphics implements iPlatformGraphics {
   @Override
   public void drawImage(iPlatformImage img, float x, float y, float width, float height) {
     Image iimg = img.getImage();
-    if(iimg==null) {
+
+    if (iimg == null) {
       return;
     }
+
     graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
     graphics.drawImage(iimg, sp(x), sp(y), ss(width), ss(height), null);
   }
@@ -262,16 +283,23 @@ public class SwingGraphics implements iPlatformGraphics {
   }
 
   @Override
-  public void drawImage(iPlatformImage img, UIRectangle src, UIRectangle dst, ScalingType scalingType,iComposite composite) {
+  public void drawImage(iPlatformImage img, UIRectangle src, UIRectangle dst, ScalingType scalingType,
+                        iComposite composite) {
     Image iimg = img.getImage();
-    if(iimg==null) {
+
+    if (iimg == null) {
       return;
     }
-    Composite c = composite==null ? null : setCompositeEx(composite);
+
+    Composite      c  = (composite == null)
+                        ? null
+                        : setCompositeEx(composite);
     RenderingHints rh = graphics.getRenderingHints();
-    if(scalingType==null) {
-      scalingType=ScalingType.BILINEAR;
+
+    if (scalingType == null) {
+      scalingType = ScalingType.BILINEAR;
     }
+
     if (scalingType != null) {
       Object o;
 
@@ -481,15 +509,16 @@ public class SwingGraphics implements iPlatformGraphics {
 
   @Override
   public void setComposite(iComposite composite) {
-
     if (composite == null) {
       composite = GraphicsComposite.DEFAULT_COMPOSITE;
     }
+
     setCompositeEx(composite);
     this.composite = composite;
   }
+
   private Composite setCompositeEx(iComposite composite) {
-    Composite ac=null;
+    Composite ac = null;
 
     if (composite != null) {
       GraphicsComposite c = (GraphicsComposite) composite;
@@ -497,28 +526,33 @@ public class SwingGraphics implements iPlatformGraphics {
       ac = (Composite) c.getPlatformComposite();
 
       if (ac == null) {
-        if(c.getCompositeType()==CompositeType.COPY) {
-          Rectangle r=graphics.getClipBounds();
+        if (c.getCompositeType() == CompositeType.COPY) {
+          Rectangle r = graphics.getClipBounds();
+
           clearRect(r.x, r.y, r.width, r.height);
           ac = SwingHelper.getInstance(CompositeType.SRC_OVER, c.getAlpha());
-        }
-        else {
+        } else {
           ac = SwingHelper.getInstance(c.getCompositeType(), c.getAlpha());
           c.setPlatformComposite(ac);
         }
       }
     }
-    if(ac!=null) {
-      Composite c=graphics.getComposite();
-      if(c==null) {
-        c=AlphaComposite.SrcOver;
+
+    if (ac != null) {
+      Composite c = graphics.getComposite();
+
+      if (c == null) {
+        c = AlphaComposite.SrcOver;
       }
+
       graphics.setComposite(ac);
+
       return c;
     }
+
     return null;
-    
   }
+
   @Override
   public void setFont(UIFont f) {
     graphics.setFont(f);
@@ -544,8 +578,7 @@ public class SwingGraphics implements iPlatformGraphics {
   public void setRenderingOptions(boolean anti_aliasing, boolean speed) {
     if (anti_aliasing) {
       graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    }
-    else {
+    } else {
       graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
     }
 

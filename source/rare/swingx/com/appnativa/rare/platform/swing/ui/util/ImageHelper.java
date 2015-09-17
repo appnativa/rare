@@ -1,12 +1,40 @@
 /*
- * @(#)ImageHelper.java   2011-11-29
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.util;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iCancelableFuture;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.net.ActionLink;
+import com.appnativa.rare.net.iURLConnection;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.UIBorderIcon;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIImage;
+import com.appnativa.rare.ui.UIImageIcon;
+import com.appnativa.rare.ui.effects.iImageFilter;
+import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.ObjectCache;
+import com.appnativa.util.iCancelable;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -27,34 +55,22 @@ import java.awt.image.ImageObserver;
 import java.awt.image.Kernel;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
 import java.net.URL;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.imageio.ImageIO;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iCancelableFuture;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.net.ActionLink;
-import com.appnativa.rare.net.iURLConnection;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.UIBorderIcon;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIImage;
-import com.appnativa.rare.ui.UIImageIcon;
-import com.appnativa.rare.ui.effects.iImageFilter;
-import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.ObjectCache;
-import com.appnativa.util.iCancelable;
 
 /**
  * A class containing a set of methods for dealing with images
@@ -62,15 +78,16 @@ import com.appnativa.util.iCancelable;
  * @author Don DeCoteau
  */
 public class ImageHelper {
-  private final static Map<String, Integer>     systemCursorMap  = new HashMap<String, Integer>();
-  private static final RenderingHints biliniar_hint = new RenderingHints(RenderingHints.KEY_INTERPOLATION,
-                                                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+  private final static Map<String, Integer> systemCursorMap = new HashMap<String, Integer>();
+  private static final RenderingHints       biliniar_hint   = new RenderingHints(RenderingHints.KEY_INTERPOLATION,
+                                                                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
   private static ImageIcon       IMAGE_LOADER;
   private static BufferedImageOp _disabledImageBufferedImageOp;
   private static ColorConvertOp  _disabledImageColorConvertOp;
   private static iImageFilter    disabledImageFilter;
-  private static ObjectCache imageCache;
-  public static String defaultIconDensity="ldpi";
+  private static ObjectCache     imageCache;
+  public static String           defaultIconDensity = "ldpi";
+
   static {
     systemCursorMap.put("default", Cursor.DEFAULT_CURSOR);
     systemCursorMap.put("crosshair", Cursor.CROSSHAIR_CURSOR);
@@ -102,10 +119,12 @@ public class ImageHelper {
   private ImageHelper() {}
 
   public static void cachedImage(ObjectCache cache, URL url, UIImage image) {
-    String s=null;
+    String s = null;
+
     if (url.getProtocol().equals("file")) {
-      s  = url.getFile();
+      s = url.getFile();
     }
+
     CachedImage ci = new CachedImage(s, image);
 
     cache.put(url, ci);
@@ -440,12 +459,12 @@ public class ImageHelper {
     if (url == null) {
       return null;
     }
-    
-    if(url.getProtocol().equals("file")) {
-      defer=false;
+
+    if (url.getProtocol().equals("file")) {
+      defer = false;
     }
 
-    if (imageCache!=null) {
+    if (imageCache != null) {
       UIImage image = getCachedImage(url, imageCache);
 
       if (image != null) {
@@ -476,31 +495,34 @@ public class ImageHelper {
       }
 
       BufferedImage img = ImageIO.read(stream);
-      String s=url.getFile();
-      if(!s.endsWith(".9.png")) {
-        if(s.contains("drawable-mdpi") && "ldpi".equals(defaultIconDensity)) {
-          int nw=(int)Math.ceil(img.getWidth()*2f/3f);
-          int nh=(int)Math.ceil(img.getHeight()*2f/3f);
-          img=Java2DUtils.getScaledInstance(img, nw,nh, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
-        }
-        else if(s.contains("drawable-xhdpi") && "ldpi".equals(defaultIconDensity)) {
-          int nw=(int)Math.ceil(img.getWidth()*2f/6f);
-          int nh=(int)Math.ceil(img.getHeight()*2f/6f);
-          img=Java2DUtils.getScaledInstance(img, nw,nh, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
-        }
-        else if(s.contains("/drawable/") && "mdpi".equals(defaultIconDensity)) {
-          int nw=(int)Math.ceil(img.getWidth()*3f/2f);
-          int nh=(int)Math.ceil(img.getHeight()*3f/2f);
-          img=Java2DUtils.getScaledInstance(img, nw,nh, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
+      String        s   = url.getFile();
+
+      if (!s.endsWith(".9.png")) {
+        if (s.contains("drawable-mdpi") && "ldpi".equals(defaultIconDensity)) {
+          int nw = (int) Math.ceil(img.getWidth() * 2f / 3f);
+          int nh = (int) Math.ceil(img.getHeight() * 2f / 3f);
+
+          img = Java2DUtils.getScaledInstance(img, nw, nh, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
+        } else if (s.contains("drawable-xhdpi") && "ldpi".equals(defaultIconDensity)) {
+          int nw = (int) Math.ceil(img.getWidth() * 2f / 6f);
+          int nh = (int) Math.ceil(img.getHeight() * 2f / 6f);
+
+          img = Java2DUtils.getScaledInstance(img, nw, nh, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
+        } else if (s.contains("/drawable/") && "mdpi".equals(defaultIconDensity)) {
+          int nw = (int) Math.ceil(img.getWidth() * 3f / 2f);
+          int nh = (int) Math.ceil(img.getHeight() * 3f / 2f);
+
+          img = Java2DUtils.getScaledInstance(img, nw, nh, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
         }
       }
 
       if ((constraints > 0) && (size > 0)) {
         img = (BufferedImage) constrain(img, size, size, constraints, bg, st);
       }
+
       UIImage image = new UIImage(img);
 
-      if (imageCache!=null) {
+      if (imageCache != null) {
         cachedImage(imageCache, url, image);
       }
 
@@ -545,6 +567,7 @@ public class ImageHelper {
     if (image == null) {
       return null;
     }
+
     BufferedImage bi;
 
     if (image instanceof BufferedImage) {
@@ -665,16 +688,15 @@ public class ImageHelper {
     return new UIImage(img);
   }
 
-  public static void setCacheImages(boolean cache,int cacheSize) {
-    if(cache) {
-      imageCache=new ObjectCache();
+  public static void setCacheImages(boolean cache, int cacheSize) {
+    if (cache) {
+      imageCache = new ObjectCache();
       imageCache.setBufferSize(cacheSize);
       imageCache.setStrongReferences(true);
-    }
-    else {
-      if(imageCache!=null ) {
+    } else {
+      if (imageCache != null) {
         imageCache.clear();
-        imageCache=null;
+        imageCache = null;
       }
     }
   }
@@ -841,8 +863,6 @@ public class ImageHelper {
     }
   }
 
-  
-
   /**
    * An images that defers the creation on another image until the underlying
    * image is accessed
@@ -882,7 +902,7 @@ public class ImageHelper {
 
       if (!Platform.isShuttingDown()) {
         try {
-          img = ImageHelper.createImage(url, false, size, constraints, scalingType, background, density);
+          img   = ImageHelper.createImage(url, false, size, constraints, scalingType, background, density);
           image = img;
         } catch(Exception ex) {
           img = image = UIImageIcon.getBrokenImage();
@@ -898,7 +918,9 @@ public class ImageHelper {
           notifyObservers(DelayedImage.this);
         }
       });
-      awtImage = img==null ? null : img.getImage();
+      awtImage = (img == null)
+                 ? null
+                 : img.getImage();
 
       return img;
     }
@@ -1001,7 +1023,9 @@ public class ImageHelper {
     public CachedImage(String filename, UIImage image) {
       this.image = image;
       fileName   = filename;
-      timestamp  = filename==null ? 0 : new File(filename).lastModified();
+      timestamp  = (filename == null)
+                   ? 0
+                   : new File(filename).lastModified();
     }
 
     public boolean isValid() {
@@ -1018,5 +1042,4 @@ public class ImageHelper {
       return true;
     }
   }
-
 }

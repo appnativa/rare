@@ -26,6 +26,7 @@ import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.iPlatformListHandler;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
@@ -143,6 +144,8 @@ public class TableViewer extends aTableViewer {
       treeHandler  = ((TreeTableComponent) tableHandler).getTreeHandler();
       treeHandler.setIndentBy(tcfg.indentBy.intValue());
       ((TreeTableComponent) tableHandler).setExpandAll(tcfg.expandAll.booleanValue());
+      ((TreeTableComponent) tableHandler).setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
+          new PainterUtils.TwistyIcon(dataComponent,true));
       ((TreeTableComponent) tableHandler).setExpandableColumn(tcfg.expandableColumn.intValue());
       listComponent = new TreeTableListHandler((TreeTableComponent) tableHandler, tableModel,
               ((TreeTableComponent) tableHandler).getTreeModel());
@@ -244,8 +247,14 @@ public class TableViewer extends aTableViewer {
     formComponent = tableHandler.getPlatformComponent();
     formComponent = AppleHelper.configureScrollPane(this, formComponent, list, cfg.getScrollPane());
   }
-
+  
   @Override
+  protected void handleViewerConfigurationWillChange(Object newConfig) {
+    super.handleViewerConfigurationWillChange(newConfig);
+    if(treeHandler!=null || Platform.getUIDefaults().getBoolean("Rare.Table.repaintOnRotation", true)){
+      ((TableComponent) tableHandler).repaintVisibleRows();
+    }
+  }
   protected void handleCustomProperties(Widget cfg, Map<String, Object> properties) {
     super.handleCustomProperties(cfg, properties);
     ListBoxViewer.handleCustomProperties(getTableView(), cfg, properties);

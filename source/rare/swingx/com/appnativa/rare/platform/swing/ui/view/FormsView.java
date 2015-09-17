@@ -1,16 +1,24 @@
 /*
- * @(#)FormsView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.util.Arrays;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
@@ -23,17 +31,23 @@ import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.painter.UICellPainter;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
+
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormLayout.LayoutInfo;
 
+import java.awt.Dimension;
+import java.awt.Graphics;
+
+import java.util.Arrays;
+
 public class FormsView extends UtilityPanel {
-  protected FormLayout.LayoutInfo        layoutInfo;
-  protected iPlatformPainter[] painters;
-  private UIDimension          size   = new UIDimension();
-  private UIInsets             insets = new UIInsets();
-  private FormLayout           layout;
-  protected boolean cacheLayoutInfo;
+  protected FormLayout.LayoutInfo layoutInfo;
+  protected iPlatformPainter[]    painters;
+  private UIDimension             size   = new UIDimension();
+  private UIInsets                insets = new UIInsets();
+  private FormLayout              layout;
+  protected boolean               cacheLayoutInfo;
 
   public FormsView() {
     this(new FormLayout());
@@ -124,9 +138,11 @@ public class FormsView extends UtilityPanel {
       iPlatformComponent c = container.getComponentAt(i);
 
       cc = (CellConstraints) c.getClientProperty(iConstants.RARE_CONSTRAINTS_PROPERTY);
-      if(cc==null) {
+
+      if (cc == null) {
         continue;
       }
+
       if ((cc.gridX == col) && (cc.gridY == row)) {
         return c;
       }
@@ -138,9 +154,9 @@ public class FormsView extends UtilityPanel {
   public FormLayout getFormLayout() {
     return layout;
   }
-  
+
   public void setFormLayout(FormLayout layout) {
-    this.layout=layout;
+    this.layout = layout;
   }
 
   @Override
@@ -207,7 +223,7 @@ public class FormsView extends UtilityPanel {
   protected void layoutContainerEx(int width, int height) {
     Container container = (Container) Component.fromView(this);
 
-    if (layout == null || container==null || container.isDisposed()) {
+    if ((layout == null) || (container == null) || container.isDisposed()) {
       return;
     }
 
@@ -220,7 +236,7 @@ public class FormsView extends UtilityPanel {
       size.setSize(width, height);
       insets = container.getInsets(insets);
       layout.initializeColAndRowComponentLists(container);
-      
+
       LayoutInfo layoutInfo = layout.computeLayout(container, size, insets);
 
       x = layoutInfo.columnOrigins;

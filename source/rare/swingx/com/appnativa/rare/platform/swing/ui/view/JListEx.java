@@ -1,12 +1,42 @@
 /*
- * @(#)JListEx.java   2010-03-08
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.ui.DataItemListModel;
+import com.appnativa.rare.platform.swing.ui.SelectiveListSelectionModel;
+import com.appnativa.rare.platform.swing.ui.iTooltipHandler;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.ComponentFactory;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformListDataModel;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
 
 import java.awt.BasicStroke;
 import java.awt.Component;
@@ -33,24 +63,6 @@ import javax.swing.event.EventListenerList;
 import javax.swing.event.MouseInputListener;
 import javax.swing.text.Position;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.DataItemListModel;
-import com.appnativa.rare.platform.swing.ui.SelectiveListSelectionModel;
-import com.appnativa.rare.platform.swing.ui.iTooltipHandler;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.Column;
-import com.appnativa.rare.ui.ComponentFactory;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformListDataModel;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-
 /**
  *
  *
@@ -72,8 +84,8 @@ public class JListEx extends JList implements Autoscroll {
   private Column             itemDescription;
   private MouseInputListener mouseOverideListener;
   private boolean            popupList;
-  private int minRowHeight;
-  private ListView listView;
+  private int                minRowHeight;
+  private ListView           listView;
 
   public JListEx() {
     this(new DataItemListModel());
@@ -84,7 +96,6 @@ public class JListEx extends JList implements Autoscroll {
     overlappingTooltip = Platform.getAppContext().isOverlapAutoToolTips();
     super.setBorder(BorderUtils.EMPTY_BORDER);
     setOpaque(false);
-    
   }
 
   @Override
@@ -107,8 +118,9 @@ public class JListEx extends JList implements Autoscroll {
 
   public void setAsPopupList(boolean popupList) {
     this.popupList = popupList;
-    if(popupList) {
-      showLastDivider=false;
+
+    if (popupList) {
+      showLastDivider = false;
     }
   }
 
@@ -230,7 +242,7 @@ public class JListEx extends JList implements Autoscroll {
     if (minimumVisibleRowCount > 0) {
       int fixedCellHeight = getFixedCellHeight();
 
-      if (fixedCellHeight <1) {
+      if (fixedCellHeight < 1) {
         fixedCellHeight = FontUtils.getDefaultLineHeight();
       }
 
@@ -260,17 +272,19 @@ public class JListEx extends JList implements Autoscroll {
     if (getLayoutOrientation() != VERTICAL) {
       return getPreferredSize();
     }
+
     Dimension d;
-    
-    Insets insets          = getInsets();
-    int    dx              = insets.left + insets.right;
-    int    dy              = insets.top + insets.bottom;
-    int    visibleRowCount = Math.max(getVisibleRowCount(),minimumVisibleRowCount);
-    int    fixedCellWidth  = getFixedCellWidth();
-    int    fixedCellHeight = getFixedCellHeight();
-    if(fixedCellHeight==-1) {
-      fixedCellHeight=getLisView().getRowHeight();
+    Insets    insets          = getInsets();
+    int       dx              = insets.left + insets.right;
+    int       dy              = insets.top + insets.bottom;
+    int       visibleRowCount = Math.max(getVisibleRowCount(), minimumVisibleRowCount);
+    int       fixedCellWidth  = getFixedCellWidth();
+    int       fixedCellHeight = getFixedCellHeight();
+
+    if (fixedCellHeight == -1) {
+      fixedCellHeight = getLisView().getRowHeight();
     }
+
     if ((fixedCellWidth > 0) && (fixedCellHeight > 0)) {
       int width  = fixedCellWidth + dx;
       int height = (visibleRowCount * fixedCellHeight) + dy;
@@ -299,7 +313,7 @@ public class JListEx extends JList implements Autoscroll {
         }
       }
 
-      d=new Dimension(width, height);
+      d = new Dimension(width, height);
     } else {
       fixedCellWidth  = (fixedCellWidth > 0)
                         ? fixedCellWidth
@@ -307,18 +321,20 @@ public class JListEx extends JList implements Autoscroll {
       fixedCellHeight = (fixedCellHeight > 0)
                         ? fixedCellHeight
                         : FontUtils.getDefaultLineHeight();
-
-      d=new Dimension(fixedCellWidth, fixedCellHeight * visibleRowCount);
+      d               = new Dimension(fixedCellWidth, fixedCellHeight * visibleRowCount);
     }
+
     Integer w = (Integer) getClientProperty(iPlatformComponent.RARE_SWING_WIDTH_FIXED_VALUE);
     Integer h = (Integer) getClientProperty(iPlatformComponent.RARE_SWING_HEIGHT_FIXED_VALUE);
 
     if ((w != null) && (w.intValue() > 0)) {
-      d.width  = w;
+      d.width = w;
     }
+
     if ((h != null) && (h.intValue() > 0)) {
       d.height = h;
     }
+
     return d;
   }
 
@@ -404,7 +420,7 @@ public class JListEx extends JList implements Autoscroll {
   static boolean isMenuShortcutKeyDown(InputEvent event) {
     return (event.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0;
   }
-  
+
   @Override
   protected void paintComponent(Graphics g) {
     int       start = getFirstVisibleIndex();
@@ -412,13 +428,17 @@ public class JListEx extends JList implements Autoscroll {
     Rectangle r     = null;
     int       i     = start;
     int       width = getWidth();
-    int       rh    = listView==null ? getFixedCellHeight() : listView.getRowHeight();
+    int       rh    = (listView == null)
+                      ? getFixedCellHeight()
+                      : listView.getRowHeight();
     int       y;
     int       vheight = getHeight();
     int       count   = getModel().getSize();
-    if(rh<1) {
-      rh=FontUtils.getDefaultLineHeight();
+
+    if (rh < 1) {
+      rh = FontUtils.getDefaultLineHeight();
     }
+
     if (alternatingRowColor != null) {
       g.setColor(alternatingRowColor);
 
@@ -650,8 +670,7 @@ public class JListEx extends JList implements Autoscroll {
   }
 
   public void setListView(ListView listView) {
-    this.listView=listView;
-    
+    this.listView = listView;
   }
 
   public ListView getLisView() {

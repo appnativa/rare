@@ -994,7 +994,7 @@ static NSMutableDictionary* typeEncodings = nil;
 		return	nil;
 	}
 	id xmlDocument = [[NSXMLDocument alloc] initWithXMLString:xml options:0 error:nil];
-	if (!xmlDocument)	return	NO;
+	if (!xmlDocument)	return	nil;
 	id rootElement = [xmlDocument rootElement];
 #if __LP64__	
 	id type = [[rootElement attributeForName:@"type64"] stringValue];

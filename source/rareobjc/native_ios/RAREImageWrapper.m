@@ -67,7 +67,7 @@
         failueString=[AppleHelper toErrorString:error];
       }
     }
-    landscape=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+    landscape=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
     hasOrientatedVersion=YES;
   }
 
@@ -97,7 +97,7 @@
   if (self = [super init]) {
     image = [UIImage imageWithData: data scale: scale];
     imageSize = image ? image.size : CGSizeZero;
-    landscape=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+    landscape=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
     hasOrientatedVersion=YES;
   }
   
@@ -114,7 +114,7 @@
     image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     imageSize = image ? image.size : CGSizeZero;
-    landscape=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+    landscape=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
     hasOrientatedVersion=YES;
   }
   return self;
@@ -124,7 +124,7 @@
   if (self = [super init]) {
     image = img;
     imageSize = image ? image.size : CGSizeZero;
-    landscape=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+    landscape=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
     hasOrientatedVersion=YES;
   }
   return self;
@@ -163,7 +163,7 @@
   if(!resourceName_ || !hasOrientatedVersion) {
     return NO;
   }
-  BOOL l=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+  BOOL l=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
   if(l!=landscape) {
     landscape=l;
     RAREUIImage *img=[((RAREAppContext *) [RAREPlatform getAppContext]) getManagedResourceWithNSString:resourceName_];
@@ -191,8 +191,8 @@
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     void *rawData = imageData.mutableBytes;
 
-    int bytesPerPixel = 4;
-    int bytesPerRow = bytesPerPixel * width;
+    size_t bytesPerPixel = 4;
+    size_t bytesPerRow = bytesPerPixel * width;
 
     NSUInteger bitsPerComponent = 8;
     CGContextRef context = CGBitmapContextCreate(
@@ -223,8 +223,8 @@
     imageData = [NSMutableData dataWithLength:width * height * 4];
     if (image) {
       void *rawData = imageData.mutableBytes;
-      int bytesPerPixel = 4;
-      int bytesPerRow = bytesPerPixel * width;
+      size_t bytesPerPixel = 4;
+      size_t bytesPerRow = bytesPerPixel * width;
 
       NSUInteger bitsPerComponent = 8;
       CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -249,8 +249,8 @@
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     void *rawData = [self getPixelData];
 
-    int bytesPerPixel = 4;
-    int bytesPerRow = bytesPerPixel * width;
+    size_t bytesPerPixel = 4;
+    size_t bytesPerRow = bytesPerPixel * width;
 
     NSUInteger bitsPerComponent = 8;
     CGContextRef context = CGBitmapContextCreate(

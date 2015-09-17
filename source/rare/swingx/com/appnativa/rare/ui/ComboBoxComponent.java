@@ -1,14 +1,24 @@
 /*
- * @(#)ComboBoxComponent.java   2014-01-19
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Graphics;
 
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.PopupListBoxHandler;
@@ -24,6 +34,8 @@ import com.appnativa.rare.widget.aComboBoxWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 
+import java.awt.Graphics;
+
 public class ComboBoxComponent extends aComboBoxComponent {
   protected int   visibleCharacters;
   private UIColor alternatingRowColor;
@@ -37,15 +49,17 @@ public class ComboBoxComponent extends aComboBoxComponent {
   }
 
   @Override
-  public void configurationCompleted(aWidget w,Widget cfg) {
-    super.configurationCompleted(w,cfg);
+  public void configurationCompleted(aWidget w, Widget cfg) {
+    super.configurationCompleted(w, cfg);
     w.getDataComponent().getView().repaint();
 
     if (w instanceof aComboBoxWidget) {
       aComboBoxWidget cw = (aComboBoxWidget) w;
+
       if (listHandler instanceof ComboBoxListHandler) {
         ((ComboBoxListHandler) listHandler).getItemRenderer().setItemDescription(cw.getItemDescription());
       }
+
       if ((popupPainter != null) && popupPainter.isBackgroundPaintEnabled()) {
         listHandler.getContainerComponent().setOpaque(false);
       }
@@ -142,6 +156,7 @@ public class ComboBoxComponent extends aComboBoxComponent {
     }
   }
 
+
   static class ComboBoxView extends JPanelEx {
     PainterHolder buttonPainterHolder;
     iPlatformPath downArrow;
@@ -168,9 +183,9 @@ public class ComboBoxComponent extends aComboBoxComponent {
       iPlatformPath p = downArrow;
 
       if (p == null) {
-        p = PlatformHelper.createPath();
+        p         = PlatformHelper.createPath();
         downArrow = p;
-        downSize = new UIDimension();
+        downSize  = new UIDimension();
       }
 
       UIDimension d = downSize;
@@ -179,7 +194,7 @@ public class ComboBoxComponent extends aComboBoxComponent {
         p = PainterUtils.drawArrow(p, width, height, true);
       }
 
-      d.width = width;
+      d.width  = width;
       d.height = height;
 
       return p;

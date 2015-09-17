@@ -113,7 +113,7 @@ public class GenericInterfaceProxy extends aInterfaceProxy
   public native Action handleError(ActionLink link, Exception ex, iURLConnection conn)
   /*-[
    if(!ex) {
-     ex=[NSNull null];
+     ex=(JavaLangException *)[NSNull null];
    }
     NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
     return (RAREActionLink_iErrorHandler_ActionEnum*)[self spar_callFunctionExWithId:fn withId: @[link, ex,conn] ];

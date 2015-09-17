@@ -1,12 +1,32 @@
 /*
- * @(#)UIColorShade.java   2011-01-20
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.converters.Conversions;
+import com.appnativa.rare.ui.ColorUtils.Shade;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.PainterHolder;
+import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
+import com.appnativa.rare.ui.painter.iBackgroundPainter;
 
 import java.awt.Paint;
 import java.awt.PaintContext;
@@ -17,14 +37,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.converters.Conversions;
-import com.appnativa.rare.ui.ColorUtils.Shade;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.PainterHolder;
-import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
-import com.appnativa.rare.ui.painter.iBackgroundPainter;
-
 /**
  * A class representing dynamic color shades
  *
@@ -33,10 +45,11 @@ import com.appnativa.rare.ui.painter.iBackgroundPainter;
 public class UIColorShade extends UIColor implements Cloneable {
 
   /** a colorshade with a transparent bg color and a no-op gradient painter */
-  public static UIColorShade NULL_SHADE = new UIColorShade(ColorUtils.TRANSPARENT_COLOR, UISimpleBackgroundPainter.NULL_BGPAINTER);
+  public static UIColorShade NULL_SHADE = new UIColorShade(ColorUtils.TRANSPARENT_COLOR,
+                                            UISimpleBackgroundPainter.NULL_BGPAINTER);
   String                     colorKey;
   SimpleColorStateList       colorStateList;
-  private int                alpha      = 255;
+  private int                alpha = 255;
   private iBackgroundPainter backgroundPainter;
   private UIColor            cachedColor;
   private int                cachedRGB;
@@ -90,17 +103,19 @@ public class UIColorShade extends UIColor implements Cloneable {
   public Paint getPaint() {
     if (backgroundPainter != null) {
       iPlatformPaint p = backgroundPainter.getPaint(50, 50);
+
       if (p != null) {
         return p.getPaint();
       }
     }
+
     return this;
   }
 
   public UIColorShade(UIColor c, int lumAdjustment) {
     super(c);
-    sourceColor = c;
-    shade = Shade.LUM_ADJUSTMENT;
+    sourceColor        = c;
+    shade              = Shade.LUM_ADJUSTMENT;
     this.lumAdjustment = lumAdjustment;
   }
 
@@ -117,7 +132,7 @@ public class UIColorShade extends UIColor implements Cloneable {
   public UIColorShade(UIColor c, Shade shade) {
     super(c);
     sourceColor = c;
-    this.shade = shade;
+    this.shade  = shade;
   }
 
   public UIColorShade(UIColor c, String key) {
@@ -131,13 +146,13 @@ public class UIColorShade extends UIColor implements Cloneable {
   }
 
   public void copyShade(UIColorShade cs) {
-    this.sourceColor = cs.sourceColor;
-    this.shade = cs.shade;
+    this.sourceColor       = cs.sourceColor;
+    this.shade             = cs.shade;
     this.backgroundPainter = cs.backgroundPainter;
-    this.lumAdjustment = cs.lumAdjustment;
-    this.alpha = cs.alpha;
-    this.cachedRGB = cs.cachedRGB;
-    this.cachedColor = cs.cachedColor;
+    this.lumAdjustment     = cs.lumAdjustment;
+    this.alpha             = cs.alpha;
+    this.cachedRGB         = cs.cachedRGB;
+    this.cachedColor       = cs.cachedColor;
   }
 
   public void setPaintBucket(PaintBucket pb) {
@@ -150,7 +165,7 @@ public class UIColorShade extends UIColor implements Cloneable {
 
   @Override
   public synchronized PaintContext createContext(ColorModel cm, Rectangle r, Rectangle2D r2d, AffineTransform xform,
-      RenderingHints hints) {
+          RenderingHints hints) {
     return getColor().createContext(cm, r, r2d, xform, hints);
   }
 
@@ -159,15 +174,16 @@ public class UIColorShade extends UIColor implements Cloneable {
     return getColor().darker();
   }
 
-
   @Override
   public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof UIColorShade)) {
+    if ((obj == null) ||!(obj instanceof UIColorShade)) {
       return false;
     }
-    if(obj==this) {
+
+    if (obj == this) {
       return true;
     }
+
     final UIColorShade cs = (UIColorShade) obj;
 
     if (cs.shade != shade) {
@@ -231,11 +247,13 @@ public class UIColorShade extends UIColor implements Cloneable {
     if (colorKey != null) {
       return colorKey;
     }
+
     if (backgroundPainter != null) {
       return backgroundPainter.toString();
     }
 
-    String s=Conversions.colorToHEXString(getColor());
+    String s = Conversions.colorToHEXString(getColor());
+
     return ColorUtils.shadeKeyToString(shade, s, lumAdjustment, alpha);
   }
 
@@ -254,13 +272,13 @@ public class UIColorShade extends UIColor implements Cloneable {
   public void setLumAdjustment(int lumAdjustment) {
     if (this.lumAdjustment != lumAdjustment) {
       this.lumAdjustment = lumAdjustment;
-      cachedColor = null;
+      cachedColor        = null;
     }
   }
 
   public void setShade(Shade shade) {
     if (shade != this.shade) {
-      this.shade = shade;
+      this.shade  = shade;
       cachedColor = null;
     }
   }
@@ -268,17 +286,17 @@ public class UIColorShade extends UIColor implements Cloneable {
   public void setSourceColor(UIColor color) {
     if (!color.equals(sourceColor)) {
       this.sourceColor = color;
-      cachedColor = null;
+      cachedColor      = null;
     }
   }
 
   public void setToColor(UIColor c) {
-    this.sourceColor = c;
-    this.shade = Shade.UIMANAGER;
+    this.sourceColor       = c;
+    this.shade             = Shade.UIMANAGER;
     this.backgroundPainter = null;
-    this.lumAdjustment = 0;
-    this.alpha = 255;
-    this.cachedColor = null;
+    this.lumAdjustment     = 0;
+    this.alpha             = 255;
+    this.cachedColor       = null;
   }
 
   @Override
@@ -376,9 +394,13 @@ public class UIColorShade extends UIColor implements Cloneable {
 
   private UIColor getColor() {
     if (shade == Shade.UIMANAGER) {
-      UIColor c = (colorKey == null) ? null : Platform.getUIDefaults().getColor(colorKey);
+      UIColor c = (colorKey == null)
+                  ? null
+                  : Platform.getUIDefaults().getColor(colorKey);
 
-      c = (c == null) ? sourceColor : c;
+      c = (c == null)
+          ? sourceColor
+          : c;
 
       if (c instanceof UIColorShade) {
         if (c == this) {
@@ -387,7 +409,7 @@ public class UIColorShade extends UIColor implements Cloneable {
           c = ((UIColorShade) c).getColor();
         }
       } else {
-        sourceColor = c; // reset the source to the new color
+        sourceColor = c;    // reset the source to the new color
       }
 
       return c;
@@ -402,48 +424,47 @@ public class UIColorShade extends UIColor implements Cloneable {
     if (cachedColor == null) {
       cachedRGB = sourceColor.getRGB();
 
-      switch (getShade()) {
-        case DARKER:
+      switch(getShade()) {
+        case DARKER :
           cachedColor = sourceColor.darker();
 
           break;
 
-        case DARKER_DARKER:
+        case DARKER_DARKER :
           cachedColor = sourceColor.darker().darker();
 
           break;
 
-        case BRIGHTER:
+        case BRIGHTER :
           cachedColor = sourceColor.brighter();
 
           break;
 
-        case BRIGHTER_BRIGHTER:
+        case BRIGHTER_BRIGHTER :
           cachedColor = sourceColor.brighter().brighter();
 
           break;
 
-        case LUM_ADJUSTMENT:
+        case LUM_ADJUSTMENT :
           cachedColor = new UIColor(ColorUtils.adjustLuminance(sourceColor.getARGB(), getLumAdjustment()));
 
           break;
 
-        case DYN_LUM_ADJUSTMENT:
-          if(sourceColor.isDarkColor()) {
+        case DYN_LUM_ADJUSTMENT :
+          if (sourceColor.isDarkColor()) {
             cachedColor = new UIColor(ColorUtils.adjustLuminance(sourceColor.getARGB(), getLumAdjustment()));
-          }
-          else {
+          } else {
             cachedColor = new UIColor(ColorUtils.adjustLuminance(sourceColor.getARGB(), -getLumAdjustment()));
           }
 
           break;
 
-        case ALPHA:
+        case ALPHA :
           cachedColor = new UIColor(sourceColor.getRed(), sourceColor.getGreen(), sourceColor.getBlue(), alpha);
-          
+
           break;
 
-        default:
+        default :
           cachedColor = sourceColor;
       }
     }

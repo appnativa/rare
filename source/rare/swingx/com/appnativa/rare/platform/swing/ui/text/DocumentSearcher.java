@@ -1,16 +1,32 @@
 /*
- * @(#)DocumentSearcher.java   2007-07-10
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.util.aTextSearcher;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Shape;
+
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -26,9 +42,6 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.Position;
 import javax.swing.text.Segment;
 import javax.swing.text.View;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.util.aTextSearcher;
 
 /**
  * A text searcher for JTextComponent documents
@@ -278,7 +291,7 @@ public class DocumentSearcher extends aTextSearcher implements DocumentListener 
           elementPos     = doc.getDefaultRootElement().getElementIndex(selectionStart.getOffset()) - 1;
           selectionEnd   = doc.createPosition(component.getSelectionEnd());
         } catch(BadLocationException e) {
-        	Platform.ignoreException(null, e);
+          Platform.ignoreException(null, e);
         }
       }
     }
@@ -722,7 +735,7 @@ public class DocumentSearcher extends aTextSearcher implements DocumentListener 
       try {
         loc.highlight = hiliter.addHighlight(start, end, highlightAllPainter);
       } catch(BadLocationException e) {
-      	Platform.ignoreException(null, e);
+        Platform.ignoreException(null, e);
       }
     }
   }
@@ -801,14 +814,14 @@ public class DocumentSearcher extends aTextSearcher implements DocumentListener 
     int getOffset() {
       return position.getOffset();
     }
+
     public boolean equals(Location loc) {
-      return loc!=null && loc.getOffset()==getOffset();
+      return (loc != null) && (loc.getOffset() == getOffset());
     }
   }
 
 
   private class SegmentSequence extends Segment implements CharSequence {
-
     @Override
     public char charAt(int index) {
       if ((index < 0) || (index >= count)) {

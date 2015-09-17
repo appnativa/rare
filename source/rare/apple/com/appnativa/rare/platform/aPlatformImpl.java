@@ -495,7 +495,7 @@ return error==nil;
    platformVersionString_= [[UIDevice currentDevice] systemVersion];
    platformVersion_= [[[UIDevice currentDevice] systemVersion] doubleValue];
 
-   appContext_->landscapeMode_=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+   appContext_->landscapeMode_=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
 
    #ifdef UI_USER_INTERFACE_IDIOM
    platformIsIPad_= (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);

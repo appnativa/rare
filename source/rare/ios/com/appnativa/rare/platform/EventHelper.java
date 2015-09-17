@@ -69,7 +69,7 @@ public class EventHelper {
     t->sx_=p.x;
     t->sy_=p.y;
 
-    t->clickCount_=touch.tapCount;
+    t->clickCount_=(int)touch.tapCount;
     t->time_=((UIEvent*)motionEvent).timestamp*1000;
     return t;
   ]-*/

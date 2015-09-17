@@ -20,14 +20,11 @@
 
 package com.appnativa.rare.ui.tree;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-
 import android.view.MotionEvent;
 import android.view.View;
-
 import android.widget.Adapter;
-
-import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.ui.CheckListManager;
 import com.appnativa.rare.ui.RenderableDataItem;
@@ -64,10 +61,9 @@ public class TreeViewEx extends ListViewEx implements iTree {
     super(context);
     twistyMarginOfError = INDICATOR_SLOP;
     indentBy            = ScreenUtils.platformPixels(16);
-    setTreeIcons(Platform.getResourceAsIcon("Rare.Tree.expandedIcon"),
-                 Platform.getResourceAsIcon("Rare.Tree.collapsedIcon"));
   }
 
+  @SuppressLint("ClickableViewAccessibility")
   public boolean onTouchEvent(MotionEvent ev) {
     if (toggleOnTwistyOnly) {
       if ((ev.getAction() == MotionEvent.ACTION_UP) || (ev.getAction() == MotionEvent.ACTION_DOWN)) {

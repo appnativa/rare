@@ -42,10 +42,18 @@ public class PlatformImpl extends aPlatformImpl {
   }
 
   @Override
+  public native boolean isUseFullScreen()
+  /*-[
+    RAREAPApplication* app=(RAREAPApplication*) [UIApplication sharedApplication];
+    return [[app getMainWindow].rootViewController prefersStatusBarHidden];
+  ]-*/
+  ;
+  
+  @Override
   public native void setUseFullScreen(boolean use)
   /*-[
-  RAREAPApplication* app=(RAREAPApplication*) [UIApplication sharedApplication];
-  [(RAREUIViewController*)[app getMainWindow].rootViewController setStatusBarVisibleEx: !use];
+    RAREAPApplication* app=(RAREAPApplication*) [UIApplication sharedApplication];
+    [(RAREUIViewController*)[app getMainWindow].rootViewController setStatusBarVisibleEx: !use];
   ]-*/
   ;
 }

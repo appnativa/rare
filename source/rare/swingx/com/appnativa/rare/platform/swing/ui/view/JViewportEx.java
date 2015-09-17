@@ -1,12 +1,31 @@
 /*
- * @(#)JViewportEx.java   2009-01-17
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -22,20 +41,13 @@ import javax.swing.ViewportLayout;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 /**
  *
  * @author Don DeCoteau
  */
-public class JViewportEx extends JViewport implements iPainterSupport,ChangeListener {
-  int                               viewportHeight;
-  int                               viewportWidth;
+public class JViewportEx extends JViewport implements iPainterSupport, ChangeListener {
+  int viewportHeight;
+  int viewportWidth;
 
   /**
    * whether the viewport should force the view to match it's size if the view
@@ -82,6 +94,7 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
 
   public void setViewPositionEx(Point p) {
     Component v = getView();
+
     if (v instanceof ScrollPaneEx) {
       ((ScrollPaneEx) v).getViewport().setViewPosition(p);
     } else {
@@ -91,6 +104,7 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
 
   public Point getViewPositionEx() {
     Component v = getView();
+
     if (v instanceof ScrollPaneEx) {
       return ((ScrollPaneEx) v).getViewport().getViewPosition();
     } else {
@@ -116,8 +130,8 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
     Component view = getView();
 
     if (view != null) {
-      iPlatformComponent pc = com.appnativa.rare.ui.Component.fromView((JComponent) view);
-      Dimension oldSize = view.getSize();
+      iPlatformComponent pc      = com.appnativa.rare.ui.Component.fromView((JComponent) view);
+      Dimension          oldSize = view.getSize();
 
       if (!d.equals(oldSize)) {
         // scrollUnderway will be true if this is invoked as the
@@ -142,42 +156,53 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
   @Override
   public void setBounds(int x, int y, int width, int height) {
     Component p = getParent();
+
     if (p instanceof ScrollPaneEx) {
       ScrollPaneEx pane = (ScrollPaneEx) p;
-      if (pane.hasScrollPaneRowHeader() && pane.getRowHeader() == this) {
+
+      if (pane.hasScrollPaneRowHeader() && (pane.getRowHeader() == this)) {
         viewportWidth = width;
+
         return;
       }
     }
+
     super.setBounds(x, y, width, height);
   }
 
   @Override
   public Dimension getPreferredSize() {
     Dimension d = super.getPreferredSize();
+
     if (preferredHeight > 0) {
       d.height = preferredHeight;
     }
+
     if (preferredWidth > 0) {
       d.width = preferredWidth;
     }
+
     return d;
   }
 
   protected void setScrollPaneRowHeaderBounds() {
     ScrollPaneEx pane = (ScrollPaneEx) getParent();
-    JViewport vp = pane.getViewport();
-    JViewport ch = pane.getColumnHeader();
+    JViewport    vp   = pane.getViewport();
+    JViewport    ch   = pane.getColumnHeader();
+
     pane = (ScrollPaneEx) getView();
+
     JViewport ch2 = pane.getColumnHeader();
-    int y;
-    int h = vp.getHeight();
-    if (ch != null && ch.isVisible() && ch2 != null && ch2.isVisible() && viewportWidth > 0) {
+    int       y;
+    int       h = vp.getHeight();
+
+    if ((ch != null) && ch.isVisible() && (ch2 != null) && ch2.isVisible() && (viewportWidth > 0)) {
       y = ch.getY();
       h += ch.getHeight();
     } else {
       y = vp.getY();
     }
+
     super.setBounds(vp.getX() - viewportWidth, y, viewportWidth, h);
   }
 
@@ -203,8 +228,8 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
     if (isViewSizeSet) {
       d = view.getSize();
     } else {
-      iPlatformComponent pc = com.appnativa.rare.ui.Component.fromView((JComponent) view);
-      UIDimension size = pc.getPreferredSize(null, getWidth());
+      iPlatformComponent pc   = com.appnativa.rare.ui.Component.fromView((JComponent) view);
+      UIDimension        size = pc.getPreferredSize(null, getWidth());
 
       d = new Dimension(size.intWidth(), size.intHeight());
     }
@@ -236,7 +261,7 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
 
     if (cp != null) {
       float height = getHeight();
-      float width = getWidth();
+      float width  = getWidth();
 
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, true);
     }
@@ -248,7 +273,7 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
 
     if (cp != null) {
       float height = getHeight();
-      float width = getWidth();
+      float width  = getWidth();
 
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);
     }
@@ -277,12 +302,12 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
   }
 
   public void setFixedViewPosition(boolean fixedViewPosition) {
-
     this.fixedViewPosition = fixedViewPosition;
   }
 
   public void linkToViewPort(JViewport vp, boolean horizontal) {
     ViewportLayoutEx l = new ViewportLayoutEx();
+
     l.horizontalLink = horizontal;
     l.linkedViewPort = vp;
     setLayout(l);
@@ -315,27 +340,31 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
       if (linkedViewPort == null) {
         super.layoutContainer(parent);
       } else {
-        JViewport vp = (JViewport) parent;
+        JViewport vp   = (JViewport) parent;
         Component view = vp.getView();
+
         if (view != null) {
-          Point p = linkedViewPort.getViewPosition();
+          Point     p    = linkedViewPort.getViewPosition();
           Dimension size = linkedViewPort.getViewSize();
+
           if (horizontalLink) {
-            p.y = 0;
+            p.y         = 0;
             size.height = vp.getExtentSize().height;
           } else {
-            p.x = 0;
+            p.x        = 0;
             size.width = vp.getExtentSize().width;
           }
+
           vp.setViewPosition(p);
           vp.setViewSize(size);
           size = linkedViewPort.getSize();
+
           if (horizontalLink) {
-            size.height=vp.getHeight();
+            size.height = vp.getHeight();
+          } else {
+            size.width = vp.getWidth();
           }
-          else {
-            size.width=vp.getWidth();
-          }
+
           vp.setSize(size);
         }
       }
@@ -344,7 +373,7 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
     /**
      * Returns the preferred dimensions for this layout given the components in
      * the specified target container.
-     * 
+     *
      * @param parent
      *          the component which needs to be laid out
      * @return a <code>Dimension</code> object containing the preferred
@@ -354,15 +383,19 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
     @Override
     public Dimension preferredLayoutSize(Container parent) {
       Component view = ((JViewport) parent).getView();
-      int max = 0;
+      int       max  = 0;
+
       if (parent.getParent() instanceof ScrollPaneEx) {
         max = ((ScrollPaneEx) parent.getParent()).preferredSizemaxWidth;
       }
+
       if (view == null) {
         return new Dimension(0, 0);
       } else if (view instanceof iView) {
         UIDimension size = new UIDimension();
+
         ((iView) view).getPreferredSize(size, max);
+
         return new Dimension(size.intWidth(), size.intHeight());
       } else if (view instanceof Scrollable) {
         return ((Scrollable) view).getPreferredScrollableViewportSize();
@@ -370,13 +403,12 @@ public class JViewportEx extends JViewport implements iPainterSupport,ChangeList
         return view.getPreferredSize();
       }
     }
-
   }
+
 
   @Override
   public void stateChanged(ChangeEvent e) {
     revalidate();
     repaint();
-    
   }
 }

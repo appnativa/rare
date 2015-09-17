@@ -1,21 +1,33 @@
 /*
- * @(#)CanvasComponent.java
- * 
- * Copyright (c) SparseWare. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.canvas;
-
-import java.awt.Dimension;
-import java.awt.Graphics;
 
 import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.widget.iWidget;
+
+import java.awt.Dimension;
+import java.awt.Graphics;
 
 public class CanvasComponent extends Component implements iCanvasComponent {
   iContext context;
@@ -39,7 +51,7 @@ public class CanvasComponent extends Component implements iCanvasComponent {
   public iPlatformComponent getPlatformComponent() {
     return this;
   }
-  
+
   protected void paintComponent(Graphics g) {}
 
   static class CanvasView extends JPanelEx {
@@ -48,20 +60,20 @@ public class CanvasComponent extends Component implements iCanvasComponent {
     public CanvasView() {
       super();
     }
+
     @Override
     public void getPreferredSize(UIDimension size, int maxWidth) {
-      if(!isPreferredSizeSet()) {
-        size.width=50;
-        size.height=50;
+      if (!isPreferredSizeSet()) {
+        size.width  = 50;
+        size.height = 50;
+      } else {
+        Dimension d = super.getPreferredSize();
+
+        size.width  = d.width;
+        size.height = d.height;
       }
-      else {
-        Dimension d=super.getPreferredSize();
-        size.width=d.width;
-        size.height=d.height;
-      }
-      
     }
-    
+
     public void setContext(iContext context) {
       this.context = context;
     }

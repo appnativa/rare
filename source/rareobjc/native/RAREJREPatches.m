@@ -13,6 +13,8 @@
 @implementation IOSObjectArray (Patches)
 
 @end
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
 @implementation JavaNioCharsetCharset (Patches)
 -(NSStringEncoding) getEncoding {
   return [AppleHelper encodingFromString:[self name]];
@@ -23,6 +25,7 @@
 }
 + (void)initReferent:(JavaLangRefReference *)reference {
 }
+#pragma clang diagnostic pop
 
 @end
 

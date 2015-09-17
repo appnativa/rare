@@ -1,17 +1,29 @@
 /*
- * @(#)SelectiveListSelectionModel.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui;
 
-import javax.swing.DefaultListSelectionModel;
-
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.iPlatformListDataModel;
+
+import javax.swing.DefaultListSelectionModel;
 
 public class SelectiveListSelectionModel extends DefaultListSelectionModel {
   boolean                        checked;
@@ -58,10 +70,9 @@ public class SelectiveListSelectionModel extends DefaultListSelectionModel {
 
   protected void setSelections(int index0, int index1, boolean add) {
     if (listModel == null) {
-      if(index0==-1 || index1==-1) {
+      if ((index0 == -1) || (index1 == -1)) {
         super.clearSelection();
-      }
-      else if (add) {
+      } else if (add) {
         super.addSelectionInterval(index0, index1);
       } else {
         super.setSelectionInterval(index0, index1);
@@ -72,27 +83,29 @@ public class SelectiveListSelectionModel extends DefaultListSelectionModel {
 
     if ((index0 == -1) || (index1 == -1)) {
       super.clearSelection();
+
       return;
     }
 
     checked = true;
 
     try {
-      int start = index0;
-      int end = index1;
-      iPlatformListDataModel lm = listModel;
-      int len = lm.size();
+      int                    start = index0;
+      int                    end   = index1;
+      iPlatformListDataModel lm    = listModel;
+      int                    len   = lm.size();
 
       if (end >= len) {
         end = len - 1;
       }
 
       boolean allSelectable = true;
+
       if (selectionChecker != null) {
         for (int i = start; i <= end; i++) {
           RenderableDataItem item = lm.get(i);
 
-          if ((!selectionChecker.isSelectable(i, item)) || !item.isSelectable()) {
+          if ((!selectionChecker.isSelectable(i, item)) ||!item.isSelectable()) {
             allSelectable = false;
 
             if (i != start) {
@@ -106,10 +119,10 @@ public class SelectiveListSelectionModel extends DefaultListSelectionModel {
             start = i + 1;
           }
         }
+      } else {
+        allSelectable = false;
       }
-      else {
-        allSelectable=false;
-      }
+
       if (allSelectable) {
         if (add) {
           super.addSelectionInterval(start, end);

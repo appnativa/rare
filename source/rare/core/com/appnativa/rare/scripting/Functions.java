@@ -328,6 +328,21 @@ public class Functions implements iFunctionHandler {
 
     return Base64.encode(ISO88591Helper.getInstance().getBytes(val));
   }
+  /**
+   * Base64 encodes the specified string
+   *
+   * @param val
+   *          the value to be encoded
+   *
+   * @return the base64 encoding of the specified string
+   */
+  public static String base64NOLF(String val) {
+    if (val == null) {
+      return "";
+    }
+
+    return Base64.encodeBytes(ISO88591Helper.getInstance().getBytes(val),Base64.DONT_BREAK_LINES);
+  }
 
   /**
    * Returns the boolean representation of the specified object.
@@ -1636,16 +1651,6 @@ public class Functions implements iFunctionHandler {
            ? null
            : JavaURLConnection.baseToExternalForm(u);
   }
-
-  /**
-   * Enables debug logging When enabled, all output from the dprintln() method
-   * will be written to standard err (or the specified stream). By default this
-   * only happens when the engine is running in debug mode
-   *
-   * @param out
-   *          and optional stream to send the output to
-   */
-  public static void enableDebugLogging(OutputStream out) {}
 
   /**
    * Encodes the specified string for use as part of a url
@@ -3441,13 +3446,24 @@ public class Functions implements iFunctionHandler {
    * Returns the string representation for an integer
    *
    * @param number
-   *          the integer
+   *          the number
    * @return the string representation
    */
   public static String stringValue(long number) {
     return StringCache.valueOf(number);
   }
 
+  /**
+   * Returns the string representation for the specified double
+   *
+   * @param number
+   *          the number
+   * @return the string representation
+   */
+  public static String stringValue(double number) {
+    return SNumber.toString(number);
+  }
+  
   /**
    * Returns the string representation for the specified object
    *

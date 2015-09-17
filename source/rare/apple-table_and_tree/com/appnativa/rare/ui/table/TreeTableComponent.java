@@ -24,6 +24,7 @@ import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.tree.DataItemTreeModel;
@@ -32,7 +33,6 @@ import com.appnativa.rare.util.SubItemComparator;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.FilterableList;
 import com.appnativa.util.iFilterableList;
-
 import com.google.j2objc.annotations.WeakOuter;
 
 import java.util.Comparator;
@@ -63,6 +63,11 @@ public class TreeTableComponent extends TableComponent {
     tv.setToggleOnTwistyOnly(tt.parentItemsSelectable.booleanValue());
     treeModel.setExpandableColumn(tt.expandableColumn.intValue());
     treeModel.setExpandAll(tt.expandAll.booleanValue());
+  }
+  
+  public void setTreeIcons(iPlatformIcon expanded, iPlatformIcon collapsed) {
+    TreeTableView tv = (TreeTableView) tableView;
+    tv.setTreeIcons(expanded, collapsed);
   }
 
   @Override

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android;
@@ -33,7 +33,6 @@ import android.os.Handler;
 import android.os.Looper;
 
 import android.view.View;
-import android.view.WindowManager;
 
 import android.widget.TextView;
 
@@ -102,21 +101,21 @@ public class PlatformImpl extends aPlatform {
 
   @Override
   public void setUseFullScreen(boolean use) {
-    Activity a = appContext.getActivity();
+    Activity a = Platform.getAppContext().getActivity();
 
     if (a instanceof MainActivity) {
       ((MainActivity) a).setUseFullScreen(use);
-    } else {
-      if (use) {
-        a.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-        a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //a.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-      } else {
-        a.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        a.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-        a.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-      }
     }
+  }
+
+  public boolean isUseFullScreen() {
+    Activity a = Platform.getAppContext().getActivity();
+
+    if (a instanceof MainActivity) {
+      return ((MainActivity) a).isUseFullScreen();
+    }
+
+    return (a.getWindow().getDecorView().getSystemUiVisibility() & View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN) != 0;
   }
 
   @Override

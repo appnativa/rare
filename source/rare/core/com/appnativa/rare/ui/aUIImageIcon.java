@@ -225,10 +225,12 @@ public abstract class aUIImageIcon extends aPlatformIcon
 
       if ((c != null) && c.isScaleIcon()) {
         f = c.getIconScaleFactor();
-
+        if(iw>60) {
+          f=1;
+        }
         float size = Math.min(width, height) * f;
 
-        f  = size / Math.min(iw, ih);
+        f  = size / Math.max(iw, ih);
         iw *= f;
         ih *= f;
       }
@@ -291,8 +293,9 @@ public abstract class aUIImageIcon extends aPlatformIcon
    */
   public void scale(int width, int height) {
     UIImage img = getImage();
-
-    this.image = UIImageHelper.scaleImage(img, width, height);
+    if(img.getHeight()!=height && img.getWidth()!=width) {
+      this.image = UIImageHelper.scaleImage(img, width, height);
+    }
   }
 
   /**

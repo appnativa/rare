@@ -33,7 +33,7 @@
   RAREUIRectangle *const r = self.sparBounds;
   CGContextRef ctx = UIGraphicsGetCurrentContext();
   RAREAppleGraphics *g = [[RAREAppleGraphics alloc] initWithId:(__bridge id) ctx withRAREView:header];
-  int index=[self.superview.subviews indexOfObject: self];
+  int index=(int)[self.superview.subviews indexOfObject: self];
   if(index==-1) {
     index=modelIndex;
   }

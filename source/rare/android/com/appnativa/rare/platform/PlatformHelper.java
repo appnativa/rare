@@ -20,12 +20,23 @@
 
 package com.appnativa.rare.platform;
 
-import android.app.Activity;
+import java.io.File;
+import java.io.IOException;
+import java.net.CookieHandler;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
@@ -34,15 +45,10 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
-
 import android.media.MediaPlayer;
-
 import android.net.Uri;
-
 import android.text.Html.ImageGetter;
-
 import android.util.DisplayMetrics;
-
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.Surface;
@@ -50,9 +56,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
-
 import android.webkit.CookieManager;
-
 import android.widget.AbsListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -111,7 +115,6 @@ import com.appnativa.rare.ui.UISound;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.WindowDeviceConfiguration;
 import com.appnativa.rare.ui.aFocusedAction;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iParentComponent;
@@ -125,6 +128,7 @@ import com.appnativa.rare.ui.iPlatformMenuBar;
 import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iPlatformShape;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.renderer.Renderers;
 import com.appnativa.rare.viewer.FormViewer;
@@ -139,21 +143,6 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharScanner;
 import com.appnativa.util.FilePreferences;
 import com.appnativa.util.FilterableList;
-
-import java.io.File;
-import java.io.IOException;
-
-import java.net.CookieHandler;
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.util.ArrayList;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class PlatformHelper extends aPlatformHelper {
   public static final HashMap<String, Integer>  colorStates         = new HashMap<String, Integer>();
@@ -1287,8 +1276,9 @@ public class PlatformHelper extends aPlatformHelper {
     Rect rect = new Rect();
 
     Platform.getWindowViewer().getContainerView().getWindowVisibleDisplayFrame(rect);
+    UIRectangle r=new UIRectangle(rect.left, rect.top, rect.width(), rect.height());
+    return r;
 
-    return new UIRectangle(rect.left, rect.top, rect.width(), rect.height());
   }
 
   public static UIRectangle getUsableScreenBounds(iPlatformComponent c) {

@@ -1,21 +1,33 @@
 /*
- * @(#)iPlatformComponent.java   2010-07-21
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.ui.painter.RenderSpace;
 
 import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
-
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.ui.painter.RenderSpace;
 
 /**
  *
@@ -50,9 +62,10 @@ public class Container extends Component implements iParentComponent {
 
   @Override
   public void add(iPlatformComponent c, Object constraints, int position) {
-    if(c!=null) {
-      ((Component)c).parent=this;
+    if (c != null) {
+      ((Component) c).parent = this;
     }
+
     if (view instanceof iLayoutManager) {
       ((iLayoutManager) view).add(c, constraints, position);
     } else {
@@ -90,10 +103,11 @@ public class Container extends Component implements iParentComponent {
 
   @Override
   public void remove(iPlatformComponent c) {
-    if(view!=null) {
-      if(c!=null) {
-        ((Component)c).parent=null;
+    if (view != null) {
+      if (c != null) {
+        ((Component) c).parent = null;
       }
+
       if (view instanceof iLayoutManager) {
         ((iLayoutManager) view).remove(c);
       } else if (c != null) {
@@ -104,17 +118,20 @@ public class Container extends Component implements iParentComponent {
 
   @Override
   public void removeAll() {
-    if(view!=null) {
-      int len=view.getComponentCount();
-      for(int i=0;i<len;i++) {
-        java.awt.Component c =  view.getComponent(i);
-        Component pc = c instanceof JComponent ? 
-            (Component) ((JComponent)c).getClientProperty(RARE_COMPONENT_PROXY_PROPERTY)
-            : null;
-        if(pc!=null) {
-          pc.parent=null;
+    if (view != null) {
+      int len = view.getComponentCount();
+
+      for (int i = 0; i < len; i++) {
+        java.awt.Component c  = view.getComponent(i);
+        Component          pc = (c instanceof JComponent)
+                                ? (Component) ((JComponent) c).getClientProperty(RARE_COMPONENT_PROXY_PROPERTY)
+                                : null;
+
+        if (pc != null) {
+          pc.parent = null;
         }
       }
+
       if (view instanceof iLayoutManager) {
         ((iLayoutManager) view).removeAll();
       } else {
@@ -180,7 +197,9 @@ public class Container extends Component implements iParentComponent {
 
   @Override
   public int getComponentCount() {
-    return view==null ? 0 : ((java.awt.Container) view).getComponentCount();
+    return (view == null)
+           ? 0
+           : ((java.awt.Container) view).getComponentCount();
   }
 
   @Override
@@ -238,18 +257,19 @@ public class Container extends Component implements iParentComponent {
 
     return size;
   }
-  
+
   protected boolean isEmpty() {
-    return getComponentCount()==0;
+    return getComponentCount() == 0;
   }
-  
+
   protected void addEx(iPlatformComponent c) {
     view.add(c.getView());
   }
-  
+
   public void layoutContainer() {
     view.doLayout();
   }
+
   @Override
   protected void disposeEx() {
     removeAll();

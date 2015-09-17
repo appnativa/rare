@@ -1,9 +1,21 @@
 /*
- * @(#)BorderLayoutView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -14,21 +26,22 @@ import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.layout.BorderLayout;
+
 import com.jgoodies.forms.layout.CellConstraints;
 
 public class BorderLayoutView extends FormsView {
-  protected static String[]        specs             = { "f:d,f:d:g,f:d", "f:d,f:d:g,f:d" };
-  static CellConstraints           tbTopCell         = new CellConstraints(1, 1, 3, 1);
-  static CellConstraints           tbRightCell       = new CellConstraints(3, 2, 1, 1);
-  static CellConstraints           tbLeftCell        = new CellConstraints(1, 2, 1, 1);
-  static CellConstraints           tbBottomCell      = new CellConstraints(1, 3, 3, 1);
-  static CellConstraints           lrTopCell         = new CellConstraints(2, 1, 1, 1);
-  static CellConstraints           lrRightCell       = new CellConstraints(3, 1, 1, 3);
-  static CellConstraints           lrLeftCell        = new CellConstraints(1, 1, 1, 3);
-  static CellConstraints           lrBottomCell      = new CellConstraints(2, 3, 1, 1);
-  static CellConstraints           centerCell        = new CellConstraints(2, 2, 1, 1);
-  boolean                          topBottomPriority = true;
-  UIInsets                         padding;           
+  protected static String[] specs             = { "f:d,f:d:g,f:d", "f:d,f:d:g,f:d" };
+  static CellConstraints    tbTopCell         = new CellConstraints(1, 1, 3, 1);
+  static CellConstraints    tbRightCell       = new CellConstraints(3, 2, 1, 1);
+  static CellConstraints    tbLeftCell        = new CellConstraints(1, 2, 1, 1);
+  static CellConstraints    tbBottomCell      = new CellConstraints(1, 3, 3, 1);
+  static CellConstraints    lrTopCell         = new CellConstraints(2, 1, 1, 1);
+  static CellConstraints    lrRightCell       = new CellConstraints(3, 1, 1, 3);
+  static CellConstraints    lrLeftCell        = new CellConstraints(1, 1, 1, 3);
+  static CellConstraints    lrBottomCell      = new CellConstraints(2, 3, 1, 1);
+  static CellConstraints    centerCell        = new CellConstraints(2, 2, 1, 1);
+  boolean                   topBottomPriority = true;
+  UIInsets                  padding;
 
   public BorderLayoutView() {
     super(new BorderLayout(specs[0], specs[1]));
@@ -48,7 +61,7 @@ public class BorderLayoutView extends FormsView {
       super.add(c, constraints, position);
     }
   }
-	
+
   public void add(iPlatformComponent c, Location constraints) {
     CellConstraints cc;
 
@@ -83,23 +96,31 @@ public class BorderLayoutView extends FormsView {
 
       default :
         cc = new CellConstraints(2, 2, 1, 1);
-        if(padding!=null) {
-        	cc.insets=padding;
+
+        if (padding != null) {
+          cc.insets = padding;
         }
     }
-    cc.hAlign=CellConstraints.FILL;
-    cc.vAlign=CellConstraints.FILL;
-    CellConstraints occ = (CellConstraints) getConstraints(c);
-    iParentComponent pc=(iParentComponent)Component.fromView(this);
-    if (occ!=null && occ.gridX==cc.gridX && occ.gridY==cc.gridY && (c.getParent()!=null && c.getParent()==pc)) {
+
+    cc.hAlign = CellConstraints.FILL;
+    cc.vAlign = CellConstraints.FILL;
+
+    CellConstraints  occ = (CellConstraints) getConstraints(c);
+    iParentComponent pc  = (iParentComponent) Component.fromView(this);
+
+    if ((occ != null) && (occ.gridX == cc.gridX) && (occ.gridY == cc.gridY)
+        && ((c.getParent() != null) && (c.getParent() == pc))) {
       return;
     }
+
     iPlatformComponent oldc = getFormComponentAt(cc.gridX, cc.gridY);
-    if(oldc!=null) {
-    	occ=null;
+
+    if (oldc != null) {
+      occ = null;
     }
+
     if ((oldc != null) && (oldc != c)) {
-    	pc.remove(oldc);
+      pc.remove(oldc);
     }
 
     if (oldc != c) {
@@ -108,60 +129,55 @@ public class BorderLayoutView extends FormsView {
   }
 
   public void setBottomView(iPlatformComponent c) {
-  	if(c==null) {
-  		removeAtLocation(Location.BOTTOM);
-  	}
-  	else {
-  		add(c, Location.BOTTOM);
-  	}
+    if (c == null) {
+      removeAtLocation(Location.BOTTOM);
+    } else {
+      add(c, Location.BOTTOM);
+    }
   }
-  
+
   public void setCenterView(iPlatformComponent c) {
-  	if(c==null) {
-  		removeAtLocation(Location.CENTER);
-  	}
-  	else {
-  		add(c, Location.CENTER);
-  	}
+    if (c == null) {
+      removeAtLocation(Location.CENTER);
+    } else {
+      add(c, Location.CENTER);
+    }
   }
 
   public void removeAtLocation(Location loc) {
-  	iPlatformComponent c=getComponentAt(loc);
-  	if(c!=null) {
-  		remove(c);
-  	}
-	}
+    iPlatformComponent c = getComponentAt(loc);
 
-	public void setHorizontal(boolean horizontal) {}
+    if (c != null) {
+      remove(c);
+    }
+  }
+
+  public void setHorizontal(boolean horizontal) {}
 
   public void setLeftView(iPlatformComponent c) {
-  	if(c==null) {
-  		removeAtLocation(Location.LEFT);
-  	}
-  	else {
-  		add(c, Location.LEFT);
-  	}
+    if (c == null) {
+      removeAtLocation(Location.LEFT);
+    } else {
+      add(c, Location.LEFT);
+    }
   }
 
   public void setRightView(iPlatformComponent c) {
-  	if(c==null) {
-  		removeAtLocation(Location.RIGHT);
-  	}
-  	else {
-  		add(c, Location.RIGHT);
-  	}
+    if (c == null) {
+      removeAtLocation(Location.RIGHT);
+    } else {
+      add(c, Location.RIGHT);
+    }
   }
 
-  public void setTopBottomPriority(boolean topBottomPriority) {
-  }
+  public void setTopBottomPriority(boolean topBottomPriority) {}
 
   public void setTopView(iPlatformComponent c) {
-  	if(c==null) {
-  		removeAtLocation(Location.TOP);
-  	}
-  	else {
-  		add(c, Location.TOP);
-  	}
+    if (c == null) {
+      removeAtLocation(Location.TOP);
+    } else {
+      add(c, Location.TOP);
+    }
   }
 
   public iPlatformComponent getBottomView() {
@@ -210,7 +226,6 @@ public class BorderLayoutView extends FormsView {
 
     return cc;
   }
-  
 
   public iPlatformComponent getLeftView() {
     return getComponentAt(Location.LEFT);
@@ -234,15 +249,15 @@ public class BorderLayoutView extends FormsView {
     return getFormComponentAt(cc.gridX, cc.gridY);
   }
 
-	public void setPadding(UIInsets in) {
-		if(in==null) {
-			padding=null;
-		}
-		else {
-			if(padding==null) {
-				padding=new UIInsets();
-			}
-			padding.set(in);
-		}
-	}
+  public void setPadding(UIInsets in) {
+    if (in == null) {
+      padding = null;
+    } else {
+      if (padding == null) {
+        padding = new UIInsets();
+      }
+
+      padding.set(in);
+    }
+  }
 }

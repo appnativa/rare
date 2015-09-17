@@ -33,7 +33,7 @@ static	bool		jsCocoaObject_deleteProperty(JSContextRef, JSObjectRef, JSStringRef
 static	void		jsCocoaObject_getPropertyNames(JSContextRef, JSObjectRef, JSPropertyNameAccumulatorRef);
 static	JSObjectRef jsCocoaObject_callAsConstructor(JSContextRef, JSObjectRef, size_t, const JSValueRef [], JSValueRef*);
 static	JSValueRef	jsCocoaObject_convertToType(JSContextRef ctx, JSObjectRef object, JSType type, JSValueRef* exception);
-static	bool		jsCocoaObject_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception);
+//static	bool		jsCocoaObject_hasInstance(JSContextRef ctx, JSObjectRef constructor, JSValueRef possibleInstance, JSValueRef* exception);
 
 static	JSValueRef	jsCocoaInfo_getProperty(JSContextRef, JSObjectRef, JSStringRef, JSValueRef*);
 static	void		jsCocoaInfo_getPropertyNames(JSContextRef, JSObjectRef, JSPropertyNameAccumulatorRef);
@@ -738,7 +738,7 @@ static id JSCocoaSingleton = NULL;
 	{
 //		return	NSLog(@"%@", [self formatJSException:exception]), NO;
         [self callDelegateForException:exception];
-		return	NO;
+		return	NULL;
 	}
 	
 	return	JSValueToObject(ctx, jsFunctionValue, NULL);	
@@ -1408,7 +1408,7 @@ static id JSCocoaSingleton = NULL;
 	id	returnValue		= NULL;
 	for (i=0; i<numChildren; i++)
 	{
-		id child = [rootElement childAtIndex:i];
+		id child = [rootElement childAtIndex:(unsigned)i];
 		if ([(GDataXMLNode*)child kind] != NSXMLElementKind)	continue;
 		
 		BOOL	isReturnValue = [[child name] isEqualToString:@"retval"];
@@ -4183,7 +4183,7 @@ static bool jsCocoaObject_setProperty(JSContextRef ctx, JSObjectRef object, JSSt
 				id property = NULL;
 				if ([JSCocoaFFIArgument unboxJSValueRef:jsValue toObject:&property inContext:ctx])
 				{
-					[array replaceObjectAtIndex:propertyIndex withObject:property];
+					[(NSMutableArray*)array replaceObjectAtIndex:propertyIndex withObject:property];
 					return	true;
 				}
 				else	return false;
@@ -4729,7 +4729,7 @@ static JSValueRef jsCocoaObject_callAsFunction_ffi(JSContextRef ctx, JSObjectRef
 		// Bail if not variadic
 		if (!isVariadic)
 		{
-			return	throwException(ctx, exception, [NSString stringWithFormat:@"Bad argument count in %@ : expected %d, got %zu", functionName ? functionName : methodName,	callAddressArgumentCount, argumentCount]), NULL;
+			return	throwException(ctx, exception, [NSString stringWithFormat:@"Bad argument count in %@ : expected %lu, got %zu", functionName ? functionName : methodName,	(unsigned long)callAddressArgumentCount, argumentCount]), NULL;
 		}
 		// Sugar check : if last object is not NULL, account for it
 		if (isVariadic && callingObjC && argumentCount && !JSValueIsNull(ctx, arguments[argumentCount-1]))
@@ -4743,7 +4743,7 @@ static JSValueRef jsCocoaObject_callAsFunction_ffi(JSContextRef ctx, JSObjectRef
 	{
 		if (callAddressArgumentCount != argumentCount)
 		{
-			return	throwException(ctx, exception, [NSString stringWithFormat:@"Bad argument count in %@ : expected %d, got %zu", functionName ? functionName : methodName,	callAddressArgumentCount, argumentCount]), NULL;
+			return	throwException(ctx, exception, [NSString stringWithFormat:@"Bad argument count in %@ : expected %lu, got %zu", functionName ? functionName : methodName,	(unsigned long)callAddressArgumentCount, argumentCount]), NULL;
 		}
 	}
 
@@ -5244,7 +5244,7 @@ static JSObjectRef jsCocoaObject_callAsConstructor(JSContextRef ctx, JSObjectRef
 	{
 		if (convertedValueCount != argumentCount)
 		{
-			return throwException(ctx, exception, [NSString stringWithFormat:@"Bad argument count when calling constructor on a struct : expected %d, got %zu", convertedValueCount, argumentCount]), NULL;
+			return throwException(ctx, exception, [NSString stringWithFormat:@"Bad argument count when calling constructor on a struct : expected %ld, got %zu", (long)convertedValueCount, argumentCount]), NULL;
 		}
 	}
 	
@@ -5462,7 +5462,7 @@ void* malloc_autorelease(size_t size)
 
 - (id)description {
 	id boxedObject = [(JSCocoaPrivateObject*)JSObjectGetPrivate(jsObject) object];
-	id retainCount = [NSString stringWithFormat:@"%d", [boxedObject retainCount]];
+	id retainCount = [NSString stringWithFormat:@"%lu", (unsigned long)[boxedObject retainCount]];
 #if !TARGET_OS_IPHONE
 	retainCount = [NSGarbageCollector defaultCollector] ? @"Running GC" : [NSString stringWithFormat:@"%d", [boxedObject retainCount]];
 #endif

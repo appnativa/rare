@@ -1,12 +1,27 @@
 /*
- * @(#)LabelExUI.java   2010-04-08
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.plaf;
+
+import com.appnativa.rare.platform.swing.ui.text.BasicHTMLEx;
+import com.appnativa.rare.platform.swing.ui.view.LabelView;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -14,6 +29,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
+
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.Icon;
@@ -24,9 +40,6 @@ import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.LabelUI;
 import javax.swing.plaf.basic.BasicLabelUI;
 import javax.swing.text.View;
-
-import com.appnativa.rare.platform.swing.ui.text.BasicHTMLEx;
-import com.appnativa.rare.platform.swing.ui.view.LabelView;
 
 /**
  *
@@ -60,8 +73,9 @@ public class LabelExUI extends BasicLabelUI {
       // remove the old html view client property if one
       // existed, and install a new one if the text installed
       // into the JLabel is html source.
-      JLabel lbl = ((JLabel) e.getSource());
+      JLabel lbl  = ((JLabel) e.getSource());
       String text = lbl.getText();
+
       BasicHTMLEx.updateRenderer(lbl, text, wordWrap);
     } else if ((name == "labelFor") || (name == "displayedMnemonic")) {
       installKeyboardActions((JLabel) e.getSource());
@@ -83,40 +97,45 @@ public class LabelExUI extends BasicLabelUI {
 
   @Override
   public Dimension getPreferredSize(JComponent c) {
-    JLabel label = (JLabel) c;
-    String text = label.getText();
-    Icon icon = (label.isEnabled()) ? label.getIcon() : label.getDisabledIcon();
-    Insets insets = label.getInsets(null);
-    Font font = label.getFont();
+    JLabel    label  = (JLabel) c;
+    String    text   = label.getText();
+    Icon      icon   = (label.isEnabled())
+                       ? label.getIcon()
+                       : label.getDisabledIcon();
+    Insets    insets = label.getInsets(null);
+    Font      font   = label.getFont();
+    int       dx     = insets.left + insets.right;
+    int       dy     = insets.top + insets.bottom;
+    final int tlen   = (text == null)
+                       ? 0
+                       : text.length();
 
-    int dx = insets.left + insets.right;
-    int dy = insets.top + insets.bottom;
-    final int tlen = text == null ? 0 : text.length();
     if ((icon == null) && ((tlen == 0) || ((text != null) && (font == null)))) {
       return new Dimension(dx, dy);
     } else if ((tlen == 0) || ((icon != null) && (font == null))) {
       return new Dimension(icon.getIconWidth() + dx, icon.getIconHeight() + dy);
     } else {
-      FontMetrics fm = label.getFontMetrics(font);
-      Rectangle iconR = new Rectangle();
-      Rectangle textR = new Rectangle();
-      Rectangle viewR = new Rectangle();
+      FontMetrics fm    = label.getFontMetrics(font);
+      Rectangle   iconR = new Rectangle();
+      Rectangle   textR = new Rectangle();
+      Rectangle   viewR = new Rectangle();
 
-      iconR.x = iconR.y = iconR.width = iconR.height = 0;
-      textR.x = textR.y = textR.width = textR.height = 0;
-      viewR.x = dx;
-      viewR.y = dy;
+      iconR.x     = iconR.y = iconR.width = iconR.height = 0;
+      textR.x     = textR.y = textR.width = textR.height = 0;
+      viewR.x     = dx;
+      viewR.y     = dy;
       viewR.width = viewR.height = Short.MAX_VALUE;
-
       layoutCL(label, fm, text, icon, viewR, iconR, textR);
-      int x1 = Math.min(iconR.x, textR.x);
-      int x2 = Math.max(iconR.x + iconR.width, textR.x + textR.width);
-      int y1 = Math.min(iconR.y, textR.y);
-      int y2 = Math.max(iconR.y + iconR.height, textR.y + textR.height);
+
+      int       x1 = Math.min(iconR.x, textR.x);
+      int       x2 = Math.max(iconR.x + iconR.width, textR.x + textR.width);
+      int       y1 = Math.min(iconR.y, textR.y);
+      int       y2 = Math.max(iconR.y + iconR.height, textR.y + textR.height);
       Dimension rv = new Dimension(x2 - x1, y2 - y1);
 
-      rv.width += dx;
+      rv.width  += dx;
       rv.height += dy;
+
       return rv;
     }
   }
@@ -128,8 +147,8 @@ public class LabelExUI extends BasicLabelUI {
   }
 
   @Override
-  protected String layoutCL(JLabel label, FontMetrics fontMetrics, String text, Icon icon, Rectangle viewR, Rectangle iconR,
-      Rectangle textR) {
+  protected String layoutCL(JLabel label, FontMetrics fontMetrics, String text, Icon icon, Rectangle viewR,
+                            Rectangle iconR, Rectangle textR) {
     if (painting) {
       View view = (View) label.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
 
@@ -151,10 +170,10 @@ public class LabelExUI extends BasicLabelUI {
     }
 
     final String s = super.layoutCL(label, fontMetrics, text, icon, viewR, iconR, textR);
-    if (painting && icon != null) {
-      if (s == null || s.length() == 0) {
-        iconR.x = (viewR.width - iconR.width) / 2;
 
+    if (painting && (icon != null)) {
+      if ((s == null) || (s.length() == 0)) {
+        iconR.x = (viewR.width - iconR.width) / 2;
       } else if ((label instanceof LabelView) && ((LabelView) label).isIconRightJustified()) {
         iconR.x = viewR.width - iconR.width;
       }

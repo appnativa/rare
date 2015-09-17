@@ -1,18 +1,28 @@
 /*
- * @(#)XYPlotEx.java
- * 
- * Copyright (c) SparseWare. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.chart.jfreechart;
 
-import java.awt.AlphaComposite;
-import java.awt.Composite;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.geom.Rectangle2D;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.UIScreen;
+import com.appnativa.rare.ui.painter.iPainter;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
@@ -20,9 +30,11 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYDataset;
 
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.UIScreen;
-import com.appnativa.rare.ui.painter.iPainter;
+import java.awt.AlphaComposite;
+import java.awt.Composite;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.geom.Rectangle2D;
 
 public class XYPlotEx extends XYPlot {
   private SwingGraphics graphics;

@@ -229,12 +229,12 @@ public final class BoundedSize implements Size {
      */
     @Override
     public int hashCode() {
-        int hashValue = basis.hashCode();
+        int hashValue = (int)basis.hashCode();
         if (lowerBound != null) {
-            hashValue = hashValue * 37 + lowerBound.hashCode();
+            hashValue = hashValue * 37 + (int)lowerBound.hashCode();
         }
         if (upperBound != null) {
-            hashValue = hashValue * 37 + upperBound.hashCode();
+            hashValue = hashValue * 37 + (int)upperBound.hashCode();
         }
         return hashValue;
     }

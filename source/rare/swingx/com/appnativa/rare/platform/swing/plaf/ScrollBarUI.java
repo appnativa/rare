@@ -1,12 +1,46 @@
 /*
- * @(#)ScrollBarUI.java   2012-01-17
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.plaf;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIColorShade;
+import com.appnativa.rare.ui.UIProperties;
+import com.appnativa.rare.ui.border.UICompoundBorder;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
+import com.appnativa.rare.ui.border.UILineBorder;
+import com.appnativa.rare.ui.border.UIMatteBorder;
+import com.appnativa.rare.ui.iPlatformPaint;
+import com.appnativa.rare.ui.iPlatformPath;
+import com.appnativa.rare.ui.iPlatformShape;
+import com.appnativa.rare.ui.painter.UIBackgroundPainter;
+import com.appnativa.rare.ui.painter.iBackgroundPainter;
+import com.appnativa.rare.ui.painter.iGradientPainter;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPlatformPainter;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -21,6 +55,7 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.MouseEvent;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -42,28 +77,6 @@ import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.UIResource;
 import javax.swing.plaf.basic.BasicScrollBarUI;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorShade;
-import com.appnativa.rare.ui.UIProperties;
-import com.appnativa.rare.ui.iPlatformPaint;
-import com.appnativa.rare.ui.iPlatformPath;
-import com.appnativa.rare.ui.iPlatformShape;
-import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
-import com.appnativa.rare.ui.border.UILineBorder;
-import com.appnativa.rare.ui.border.UIMatteBorder;
-import com.appnativa.rare.ui.painter.UIBackgroundPainter;
-import com.appnativa.rare.ui.painter.iBackgroundPainter;
-import com.appnativa.rare.ui.painter.iGradientPainter;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPlatformPainter;
 
 /**
  *
@@ -93,7 +106,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
   protected ImageIcon          vertThumbIcon;
   protected iPlatformPainter   vertThumbPainter;
   protected iBackgroundPainter vertTrackPainter;
-  private boolean              mac              = false; // Platform.isMac();
+  private boolean              mac              = false;    // Platform.isMac();
   private boolean              buttonsVisible   = true;
   private boolean              showThumbBorder  = true;
   private boolean              paintArrows      = true;
@@ -106,13 +119,13 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
   SwingGraphics                graphics;
   private boolean              overThumb;
 
-  public ScrollBarUI() {
-  }
+  public ScrollBarUI() {}
 
   public void configure(UIProperties defaults) {
     setNeedsConfiguring(false);
 
     UIColor color = UIColor.fromColor(defaults.getColor("Rare.ScrollBar.background"));
+
     if (color == null) {
       color = ColorUtils.getBackground();
     }
@@ -127,9 +140,11 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       }
 
       color = UIColor.fromColor(defaults.getColor("Rare.ScrollBar.foreground"));
+
       if (color == null) {
         color = ColorUtils.getForeground();
       }
+
       if ((color != null) && (scrollbar.getForeground() instanceof ColorUIResource)) {
         scrollbar.setForeground(color);
       }
@@ -142,37 +157,37 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     color = ColorUtils.getBackground();
 
     iBackgroundPainter trp = defaults.getBackgroundPainter("Rare.ScrollBar.trackPainter");
-    iPlatformPainter tbp = defaults.getPainter("Rare.ScrollBar.thumbPainter");
+    iPlatformPainter   tbp = defaults.getPainter("Rare.ScrollBar.thumbPainter");
 
     if (trp == null) {
-      trp = new UIBackgroundPainter(Platform.getUIDefaults().getColor("Rare.backgroundDkGradient"), new UIColorShade(color,
-          (255 * 10) / 100));
+      trp = new UIBackgroundPainter(Platform.getUIDefaults().getColor("Rare.backgroundDkGradient"),
+                                    new UIColorShade(color, (255 * 10) / 100));
     }
 
     if (tbp == null) {
-      tbp = new UIBackgroundPainter(Platform.getUIDefaults().getColor("Rare.backgroundLtGradient"), Platform.getUIDefaults()
-          .getColor("Rare.backgroundDkGradient"));
+      tbp = new UIBackgroundPainter(Platform.getUIDefaults().getColor("Rare.backgroundLtGradient"),
+                                    Platform.getUIDefaults().getColor("Rare.backgroundDkGradient"));
     }
 
-    vertThumbPainter = defaults.getPainter("Rare.ScrollBar.vertThumbPainter");
-    horizTrackPainter = defaults.getBackgroundPainter("Rare.ScrollBar.vertTrackPainter");
-    horizThumbPainter = defaults.getPainter("Rare.ScrollBar.horizThumbPainter");
-    vertTrackPainter = defaults.getBackgroundPainter("Rare.ScrollBar.vertTrackPainter");
-    thumbColor = (Color) defaults.get("Rare.ScrollBar.thumbColor");
-    thumbBorderColor = UIColor.fromColor((Color) defaults.get("Rare.ScrollBar.thumbBorderColor"));
-    arrowColor = (Color) defaults.get("Rare.ScrollBar.arrow");
-    trackBorderColor = UIColor.fromColor((Color) defaults.get("Rare.ScrollBar.trackBorder"));
-    arrowShadow = (Color) defaults.get("Rare.ScrollBar.arrowShadow");
-    arrowHighlight = (Color) defaults.get("Rare.ScrollBar.arrowHighlight");
-    trackBorderColor = UIColor.fromColor((Color) defaults.get("Rare.ScrollBar.trackBorderColor"));
-    trackComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
-    leftButtonPainter = defaults.getPainter("Rare.ScrollBar.leftButtonPainter");
-    rightButtonPainter = defaults.getPainter("Rare.ScrollBar.rightButtonPainter");
-    topButtonPainter = defaults.getPainter("Rare.ScrollBar.topButtonPainter");
+    vertThumbPainter    = defaults.getPainter("Rare.ScrollBar.vertThumbPainter");
+    horizTrackPainter   = defaults.getBackgroundPainter("Rare.ScrollBar.vertTrackPainter");
+    horizThumbPainter   = defaults.getPainter("Rare.ScrollBar.horizThumbPainter");
+    vertTrackPainter    = defaults.getBackgroundPainter("Rare.ScrollBar.vertTrackPainter");
+    thumbColor          = (Color) defaults.get("Rare.ScrollBar.thumbColor");
+    thumbBorderColor    = UIColor.fromColor((Color) defaults.get("Rare.ScrollBar.thumbBorderColor"));
+    arrowColor          = (Color) defaults.get("Rare.ScrollBar.arrow");
+    trackBorderColor    = UIColor.fromColor((Color) defaults.get("Rare.ScrollBar.trackBorder"));
+    arrowShadow         = (Color) defaults.get("Rare.ScrollBar.arrowShadow");
+    arrowHighlight      = (Color) defaults.get("Rare.ScrollBar.arrowHighlight");
+    trackBorderColor    = UIColor.fromColor((Color) defaults.get("Rare.ScrollBar.trackBorderColor"));
+    trackComposite      = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+    leftButtonPainter   = defaults.getPainter("Rare.ScrollBar.leftButtonPainter");
+    rightButtonPainter  = defaults.getPainter("Rare.ScrollBar.rightButtonPainter");
+    topButtonPainter    = defaults.getPainter("Rare.ScrollBar.topButtonPainter");
     bottomButtonPainter = defaults.getPainter("Rare.ScrollBar.bottomButtonPainter");
-    horizThumbIcon = (ImageIcon) defaults.get("Rare.ScrollBar.horizThumbIcon");
-    vertThumbIcon = (ImageIcon) defaults.get("Rare.ScrollBar.horizThumbIcon");
-    isOverlayIcon = defaults.get("Rare.ScrollBar.isOverlayIcon") == Boolean.TRUE;
+    horizThumbIcon      = (ImageIcon) defaults.get("Rare.ScrollBar.horizThumbIcon");
+    vertThumbIcon       = (ImageIcon) defaults.get("Rare.ScrollBar.horizThumbIcon");
+    isOverlayIcon       = defaults.get("Rare.ScrollBar.isOverlayIcon") == Boolean.TRUE;
 
     if (thumbColor == null) {
       thumbColor = color;
@@ -185,6 +200,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     if (trackBorderColor == null) {
       trackBorderColor = color;
     }
+
     if (thumbBorderColor == null) {
       thumbBorderColor = Platform.getUIDefaults().getColor("Rare.backgroundShadow");
     }
@@ -230,7 +246,6 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     if (defaults.get("Rare.ScrollBar.paintArrows") instanceof Boolean) {
       setPaintArrows((Boolean) defaults.get("Rare.ScrollBar.paintArrows"));
     }
-
   }
 
   /**
@@ -249,7 +264,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     super.installUI(c);
     needsConfiguring = true;
 
-    if ((c.getBorder() == null) || !(c.getBorder() instanceof UIResource)) {
+    if ((c.getBorder() == null) ||!(c.getBorder() instanceof UIResource)) {
       c.setBorder(getScrollbarBorder());
     }
 
@@ -263,15 +278,14 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       configure(c);
     }
 
-    Color bg;
-    Color dk = null;
-    Color lt = null;
-    boolean horiz = scrollbar.getOrientation() == JScrollBar.HORIZONTAL;
-    Rectangle r = c.getBounds();
-    int w = r.width;
-    int h = r.height;
-    int d;
-
+    Color     bg;
+    Color     dk    = null;
+    Color     lt    = null;
+    boolean   horiz = scrollbar.getOrientation() == JScrollBar.HORIZONTAL;
+    Rectangle r     = c.getBounds();
+    int       w     = r.width;
+    int       h     = r.height;
+    int       d;
     Dimension size = incrButton.getSize();
 
     if (horiz) {
@@ -282,15 +296,18 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
     r.x = 0;
     r.y = 0;
-    bg = c.getBackground();
-    dk = new Color(ColorUtils.adjustLuminance(bg.getRGB(), -50));
-    lt = new Color(ColorUtils.adjustLuminance(bg.getRGB(), -20));
-    if(showTrack) {
-      Color oc=g.getColor();
+    bg  = c.getBackground();
+    dk  = new Color(ColorUtils.adjustLuminance(bg.getRGB(), -50));
+    lt  = new Color(ColorUtils.adjustLuminance(bg.getRGB(), -20));
+
+    if (showTrack) {
+      Color oc = g.getColor();
+
       g.setColor(bg);
-      g.fillRect(0, 0,w,h);
+      g.fillRect(0, 0, w, h);
       g.setColor(oc);
     }
+
     AbstractButton lb = decrButton;
     AbstractButton rb = incrButton;
 
@@ -303,7 +320,9 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
     if (horiz) {
       r.width = d;
-      r.x = mac ? rb.getX() - d : 0;
+      r.x     = mac
+                ? rb.getX() - d
+                : 0;
 
       if (lb.getModel().isArmed()) {
         SwingHelper.fillGradient((Graphics2D) g, r, bg, dk, horiz);
@@ -311,7 +330,9 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
         SwingHelper.fillGradient((Graphics2D) g, r, bg, lt, horiz);
       }
 
-      r.x = mac ? rb.getX() : w - d;
+      r.x = mac
+            ? rb.getX()
+            : w - d;
 
       if (rb.getModel().isArmed()) {
         SwingHelper.fillGradient((Graphics2D) g, r, bg, dk, horiz);
@@ -319,7 +340,9 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
         SwingHelper.fillGradient((Graphics2D) g, r, bg, lt, horiz);
       }
     } else {
-      r.y = mac ? rb.getY() - d : 0;
+      r.y      = mac
+                 ? rb.getY() - d
+                 : 0;
       r.height = d;
 
       if (lb.getModel().isArmed()) {
@@ -328,7 +351,9 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
         SwingHelper.fillGradient((Graphics2D) g, r, bg, lt, horiz);
       }
 
-      r.y = mac ? rb.getY() : h - d;
+      r.y = mac
+            ? rb.getY()
+            : h - d;
 
       if (rb.getModel().isArmed()) {
         SwingHelper.fillGradient((Graphics2D) g, r, bg, dk, horiz);
@@ -387,11 +412,11 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
   public void setDecButtonPainter(iPlatformPainter bp) {
     this.leftButtonPainter = bp;
-    this.topButtonPainter = bp;
+    this.topButtonPainter  = bp;
   }
 
   public void setIncButtonPainter(iPlatformPainter bp) {
-    this.rightButtonPainter = bp;
+    this.rightButtonPainter  = bp;
     this.bottomButtonPainter = bp;
   }
 
@@ -441,12 +466,12 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
   public void setThumbIcon(ImageIcon icon) {
     horizThumbIcon = icon;
-    vertThumbIcon = icon;
+    vertThumbIcon  = icon;
   }
 
   public void setThumbPainter(iPlatformPainter thumbPainter) {
     this.horizThumbPainter = thumbPainter;
-    this.vertThumbPainter = thumbPainter;
+    this.vertThumbPainter  = thumbPainter;
   }
 
   public void setTrackComposite(AlphaComposite composite) {
@@ -455,7 +480,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
   public void setTrackPainter(iBackgroundPainter trackPainter) {
     this.horizTrackPainter = trackPainter;
-    this.vertTrackPainter = trackPainter;
+    this.vertTrackPainter  = trackPainter;
   }
 
   public Color getArrowHighlight() {
@@ -467,15 +492,21 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
   }
 
   public ImageIcon getThumbIcon() {
-    return isHorizontal() ? horizThumbIcon : vertThumbIcon;
+    return isHorizontal()
+           ? horizThumbIcon
+           : vertThumbIcon;
   }
 
   public iPlatformPainter getThumbPainter() {
-    return isHorizontal() ? horizThumbPainter : vertThumbPainter;
+    return isHorizontal()
+           ? horizThumbPainter
+           : vertThumbPainter;
   }
 
   public iBackgroundPainter getTrackPainter() {
-    return isHorizontal() ? horizTrackPainter : vertTrackPainter;
+    return isHorizontal()
+           ? horizTrackPainter
+           : vertTrackPainter;
   }
 
   /**
@@ -535,9 +566,13 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       bg = Color.black;
     }
 
-    Color sh = (arrowShadow == null) ? arrowColor.darker() : arrowShadow;
-    Color hi = (arrowHighlight == null) ? arrowColor.brighter() : arrowHighlight;
-    ArrowButton b = new ArrowButton(orientation, bg, sh, arrowColor, hi, bp) {
+    Color       sh = (arrowShadow == null)
+                     ? arrowColor.darker()
+                     : arrowShadow;
+    Color       hi = (arrowHighlight == null)
+                     ? arrowColor.brighter()
+                     : arrowHighlight;
+    ArrowButton b  = new ArrowButton(orientation, bg, sh, arrowColor, hi, bp) {
       @Override
       public Dimension getPreferredSize() {
         if (!isButtonsVisible()) {
@@ -546,7 +581,6 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
         return super.getPreferredSize();
       }
-
       @Override
       public Dimension getMinimumSize() {
         if (!isButtonsVisible()) {
@@ -569,26 +603,34 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
   @Override
   protected JButton createDecreaseButton(int orientation) {
-    return createButton(orientation, (orientation == JScrollBar.HORIZONTAL) ? leftButtonPainter : rightButtonPainter);
+    return createButton(orientation, (orientation == JScrollBar.HORIZONTAL)
+                                     ? leftButtonPainter
+                                     : rightButtonPainter);
   }
 
   @Override
   protected JButton createIncreaseButton(int orientation) {
-    return createButton(orientation, (orientation == JScrollBar.HORIZONTAL) ? leftButtonPainter : rightButtonPainter);
+    return createButton(orientation, (orientation == JScrollBar.HORIZONTAL)
+                                     ? leftButtonPainter
+                                     : rightButtonPainter);
   }
 
   @Override
   protected TrackListener createTrackListener() {
-    return mac ? new MacTrackListener() : super.createTrackListener();
+    return mac
+           ? new MacTrackListener()
+           : super.createTrackListener();
   }
 
   protected void handleOrientation() {
     if (scrollbar.getOrientation() == JScrollBar.HORIZONTAL) {
       minimumThumbSize.height = 10;
-      minimumThumbSize.width = 16;
+      minimumThumbSize.width  = 16;
 
       if (mac) {
-        AbstractButton fb = scrollbar.getComponentOrientation().isLeftToRight() ? decrButton : incrButton;
+        AbstractButton fb = scrollbar.getComponentOrientation().isLeftToRight()
+                            ? decrButton
+                            : incrButton;
 
         if (fb != null) {
           if (hButtonBorder == null) {
@@ -606,10 +648,12 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       }
     } else {
       minimumThumbSize.height = 16;
-      minimumThumbSize.width = 10;
+      minimumThumbSize.width  = 10;
 
       if (mac) {
-        AbstractButton fb = scrollbar.getComponentOrientation().isLeftToRight() ? decrButton : incrButton;
+        AbstractButton fb = scrollbar.getComponentOrientation().isLeftToRight()
+                            ? decrButton
+                            : incrButton;
 
         if (fb != null) {
           if (vButtonBorder == null) {
@@ -627,7 +671,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       }
     }
   }
- 
+
   @Override
   protected void layoutHScrollbar(JScrollBar sb) {
     super.layoutHScrollbar(sb);
@@ -685,19 +729,19 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       setNeedsConfiguring(false);
     }
 
-    Graphics2D g2 = (Graphics2D) g;
-    Color ocolor = g2.getColor();
-    Stroke ostroke = g2.getStroke();
-    Object renderingHinta = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-    int x = thumbBounds.x;
-    int y = thumbBounds.y;
-    int width = thumbBounds.width;
-    int height = thumbBounds.height;
-    Color color = thumbColor;
+    Graphics2D g2             = (Graphics2D) g;
+    Color      ocolor         = g2.getColor();
+    Stroke     ostroke        = g2.getStroke();
+    Object     renderingHinta = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    int        x              = thumbBounds.x;
+    int        y              = thumbBounds.y;
+    int        width          = thumbBounds.width;
+    int        height         = thumbBounds.height;
+    Color      color          = thumbColor;
 
     x++;
     y++;
-    width -= 2;
+    width  -= 2;
     height -= 2;
 
     Color dk = thumbLightShadowColor;
@@ -717,12 +761,15 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     g2.setColor(color);
 
-    Shape clip = null;
+    Shape   clip  = null;
     boolean showb = isShowThumbBorder();
-    graphics = SwingGraphics.fromGraphics(g, c, graphics);
-    iPlatformShape shape = showb ? roundedBorder.getShape(graphics, x, y, width, height) : null;
 
-    boolean horiz = scrollbar.getOrientation() == JScrollBar.HORIZONTAL;
+    graphics = SwingGraphics.fromGraphics(g, c, graphics);
+
+    iPlatformShape shape = showb
+                           ? roundedBorder.getShape(graphics, x, y, width, height)
+                           : null;
+    boolean        horiz = scrollbar.getOrientation() == JScrollBar.HORIZONTAL;
 
     if (tp != null) {
       if ((tp instanceof iGradientPainter) && ((iGradientPainter) tp).isGradientPaintEnabled()) {
@@ -732,7 +779,11 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
           ((iGradientPainter) tp).setGradientDirection(iGradientPainter.Direction.HORIZONTAL_LEFT);
         }
       }
-      iPlatformPaint p = shape == null ? null : tp.getPaint(width, height);
+
+      iPlatformPaint p = (shape == null)
+                         ? null
+                         : tp.getPaint(width, height);
+
       if (p != null) {
         g2.setPaint(p.getPaint());
         g2.fill(shape.getShape());
@@ -742,7 +793,9 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
         tp.paint(c, g2, x, y, width, height, true, iPainter.UNKNOWN);
       }
     } else {
-      SwingHelper.fillGradient((Graphics2D) g, shape == null ? thumbBounds : shape.getShape(), color, dk, horiz);
+      SwingHelper.fillGradient((Graphics2D) g, (shape == null)
+              ? thumbBounds
+              : shape.getShape(), color, dk, horiz);
     }
 
     ImageIcon ic = getThumbIcon();
@@ -755,9 +808,11 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
         g2.drawImage(ic.getImage(), x, y, width, height, c);
       }
     }
+
     if (clip != null) {
       g2.setClip(clip);
     }
+
     if (showb) {
       roundedBorder.setLineColor(thumbBorderColor);
       roundedBorder.paintBorder(c, g, x, y, width, height);
@@ -778,19 +833,25 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       configure(c);
     }
 
-    Graphics2D g2 = (Graphics2D) g;
-    Color ocolor = g2.getColor();
-    Stroke ostroke = g2.getStroke();
-    Object orenderingHint = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
-    int x = trackBounds.x;
-    int y = trackBounds.y;
-    int width = trackBounds.width;
-    int height = trackBounds.height;
+    Graphics2D g2             = (Graphics2D) g;
+    Color      ocolor         = g2.getColor();
+    Stroke     ostroke        = g2.getStroke();
+    Object     orenderingHint = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    int        x              = trackBounds.x;
+    int        y              = trackBounds.y;
+    int        width          = trackBounds.width;
+    int        height         = trackBounds.height;
+
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    Shape clip = null;
-    iBackgroundPainter bp = getTrackPainter();
+
+    Shape              clip = null;
+    iBackgroundPainter bp   = getTrackPainter();
+
     graphics = SwingGraphics.fromGraphics(g, c, graphics);
-    iPlatformShape shape = showTrackBorder ? roundedBorder.getShape(graphics, x, y, width, height) : null;
+
+    iPlatformShape shape = showTrackBorder
+                           ? roundedBorder.getShape(graphics, x, y, width, height)
+                           : null;
 
     if (bp instanceof iGradientPainter) {
       if (scrollbar.getOrientation() == JScrollBar.HORIZONTAL) {
@@ -803,7 +864,11 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     Composite oc = g2.getComposite();
 
     g2.setComposite(trackComposite);
-    iPlatformPaint p = shape == null ? null : bp.getPaint(width, height);
+
+    iPlatformPaint p = (shape == null)
+                       ? null
+                       : bp.getPaint(width, height);
+
     if (p != null) {
       g2.setPaint(p.getPaint());
       g2.fill(shape.getShape());
@@ -841,13 +906,13 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
   protected void setThumbBoundsEx(int x, int y, int width, int height, boolean adjust) {
     if (adjust && mac) {
-      switch (scrollbar.getOrientation()) {
-        case JScrollBar.VERTICAL:
+      switch(scrollbar.getOrientation()) {
+        case JScrollBar.VERTICAL :
           y -= decrButton.getHeight();
 
           break;
 
-        case JScrollBar.HORIZONTAL:
+        case JScrollBar.HORIZONTAL :
           x -= decrButton.getWidth();
 
           break;
@@ -863,7 +928,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     }
 
     UIProperties defaults = Platform.getUIDefaults();
-    Border b = defaults.getBorder("Rare.ScrollBar.border");
+    Border       b        = defaults.getBorder("Rare.ScrollBar.border");
 
     if (b == null) {
       b = defaults.getBorder("ScrollBar.border");
@@ -916,7 +981,8 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
      */
     @Override
     public void mouseDragged(MouseEvent e) {
-      if (SwingUtilities.isRightMouseButton(e) || (!getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e))) {
+      if (SwingUtilities.isRightMouseButton(e)
+          || (!getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e))) {
         return;
       }
 
@@ -963,7 +1029,8 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
      */
     @Override
     public void mousePressed(MouseEvent e) {
-      if (SwingUtilities.isRightMouseButton(e) || (!getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e))) {
+      if (SwingUtilities.isRightMouseButton(e)
+          || (!getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e))) {
         return;
       }
 
@@ -981,13 +1048,13 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
       // Clicked in the Thumb area?
       if (getThumbBounds().contains(currentMouseX, currentMouseY)) {
-        switch (scrollbar.getOrientation()) {
-          case JScrollBar.VERTICAL:
+        switch(scrollbar.getOrientation()) {
+          case JScrollBar.VERTICAL :
             offset = currentMouseY - getThumbBounds().y;
 
             break;
 
-          case JScrollBar.HORIZONTAL:
+          case JScrollBar.HORIZONTAL :
             offset = currentMouseX - getThumbBounds().x;
 
             break;
@@ -997,13 +1064,13 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
         return;
       } else if (getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e)) {
-        switch (scrollbar.getOrientation()) {
-          case JScrollBar.VERTICAL:
+        switch(scrollbar.getOrientation()) {
+          case JScrollBar.VERTICAL :
             offset = getThumbBounds().height / 2;
 
             break;
 
-          case JScrollBar.HORIZONTAL:
+          case JScrollBar.HORIZONTAL :
             offset = getThumbBounds().width / 2;
 
             break;
@@ -1021,29 +1088,37 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
       direction = +1;
 
-      switch (scrollbar.getOrientation()) {
-        case JScrollBar.VERTICAL:
+      switch(scrollbar.getOrientation()) {
+        case JScrollBar.VERTICAL :
           if (getThumbBounds().isEmpty()) {
             int scrollbarCenter = sbSize.height / 2;
 
-            direction = (currentMouseY < scrollbarCenter) ? -1 : +1;
+            direction = (currentMouseY < scrollbarCenter)
+                        ? -1
+                        : +1;
           } else {
             int thumbY = getThumbBounds().y;
 
-            direction = (currentMouseY < thumbY) ? -1 : +1;
+            direction = (currentMouseY < thumbY)
+                        ? -1
+                        : +1;
           }
 
           break;
 
-        case JScrollBar.HORIZONTAL:
+        case JScrollBar.HORIZONTAL :
           if (getThumbBounds().isEmpty()) {
             int scrollbarCenter = sbSize.width / 2;
 
-            direction = (currentMouseX < scrollbarCenter) ? -1 : +1;
+            direction = (currentMouseX < scrollbarCenter)
+                        ? -1
+                        : +1;
           } else {
             int thumbX = getThumbBounds().x;
 
-            direction = (currentMouseX < thumbX) ? -1 : +1;
+            direction = (currentMouseX < thumbX)
+                        ? -1
+                        : +1;
           }
 
           if (!scrollbar.getComponentOrientation().isLeftToRight()) {
@@ -1066,7 +1141,8 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
         updateThumbState(e.getX(), e.getY());
       }
 
-      if (SwingUtilities.isRightMouseButton(e) || (!getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e))) {
+      if (SwingUtilities.isRightMouseButton(e)
+          || (!getSupportsAbsolutePositioning() && SwingUtilities.isMiddleMouseButton(e))) {
         return;
       }
 
@@ -1078,8 +1154,8 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
       scrollbar.repaint(r.x, r.y, r.width, r.height);
       trackHighlight = NO_HIGHLIGHT;
-      isDragging = false;
-      offset = 0;
+      isDragging     = false;
+      offset         = 0;
       scrollTimer.stop();
       scrollbar.setValueIsAdjusting(false);
     }
@@ -1087,42 +1163,43 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     private int adjustValueIfNecessary(int value) {
       if (scrollbar.getParent() instanceof JScrollPane) {
         JScrollPane scrollpane = (JScrollPane) scrollbar.getParent();
-        JViewport viewport = scrollpane.getViewport();
-        Component view = viewport.getView();
+        JViewport   viewport   = scrollpane.getViewport();
+        Component   view       = viewport.getView();
 
         if (view instanceof JList) {
           JList list = (JList) view;
 
           if (Platform.getUIDefaults().get("List.lockToPositionOnScroll") == Boolean.TRUE) {
             int adjustedValue = value;
-            int mode = list.getLayoutOrientation();
-            int orientation = scrollbar.getOrientation();
+            int mode          = list.getLayoutOrientation();
+            int orientation   = scrollbar.getOrientation();
 
             if ((orientation == JScrollBar.VERTICAL) && (mode == JList.VERTICAL)) {
-              int index = list.locationToIndex(new Point(0, value));
-              Rectangle rect = list.getCellBounds(index, index);
+              int       index = list.locationToIndex(new Point(0, value));
+              Rectangle rect  = list.getCellBounds(index, index);
 
               if (rect != null) {
                 adjustedValue = rect.y;
               }
             }
 
-            if ((orientation == JScrollBar.HORIZONTAL) && ((mode == JList.VERTICAL_WRAP) || (mode == JList.HORIZONTAL_WRAP))) {
+            if ((orientation == JScrollBar.HORIZONTAL)
+                && ((mode == JList.VERTICAL_WRAP) || (mode == JList.HORIZONTAL_WRAP))) {
               if (scrollpane.getComponentOrientation().isLeftToRight()) {
-                int index = list.locationToIndex(new Point(value, 0));
-                Rectangle rect = list.getCellBounds(index, index);
+                int       index = list.locationToIndex(new Point(value, 0));
+                Rectangle rect  = list.getCellBounds(index, index);
 
                 if (rect != null) {
                   adjustedValue = rect.x;
                 }
               } else {
-                Point loc = new Point(value, 0);
-                int extent = viewport.getExtentSize().width;
+                Point loc    = new Point(value, 0);
+                int   extent = viewport.getExtentSize().width;
 
                 loc.x += extent - 1;
 
-                int index = list.locationToIndex(loc);
-                Rectangle rect = list.getCellBounds(index, index);
+                int       index = list.locationToIndex(loc);
+                Rectangle rect  = list.getCellBounds(index, index);
 
                 if (rect != null) {
                   adjustedValue = rect.x + rect.width - extent;
@@ -1145,8 +1222,8 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
       Rectangle tb = getThumbBounds();
 
-      switch (scrollbar.getOrientation()) {
-        case JScrollBar.VERTICAL:
+      switch(scrollbar.getOrientation()) {
+        case JScrollBar.VERTICAL :
           if (direction > 0) {
             if (tb.y + tb.height < currentMouseY) {
               scrollTimer.start();
@@ -1157,7 +1234,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
 
           break;
 
-        case JScrollBar.HORIZONTAL:
+        case JScrollBar.HORIZONTAL :
           if (((direction > 0) && isMouseAfterThumb()) || ((direction < 0) && isMouseBeforeThumb())) {
             scrollTimer.start();
           }
@@ -1167,10 +1244,10 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     }
 
     private void setValueFrom(MouseEvent e) {
-      boolean active = isThumbRollover();
-      BoundedRangeModel model = scrollbar.getModel();
-      Rectangle thumbR = getThumbBounds();
-      int thumbMin, thumbMax, thumbPos;
+      boolean           active = isThumbRollover();
+      BoundedRangeModel model  = scrollbar.getModel();
+      Rectangle         thumbR = getThumbBounds();
+      int               thumbMin, thumbMax, thumbPos;
 
       if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
         thumbMin = trackRect.y;
@@ -1190,19 +1267,21 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
        * the value as accurately as possible.
        */
       if (thumbPos == thumbMax) {
-        if ((scrollbar.getOrientation() == JScrollBar.VERTICAL) || scrollbar.getComponentOrientation().isLeftToRight()) {
+        if ((scrollbar.getOrientation() == JScrollBar.VERTICAL)
+            || scrollbar.getComponentOrientation().isLeftToRight()) {
           scrollbar.setValue(model.getMaximum() - model.getExtent());
         } else {
           scrollbar.setValue(model.getMinimum());
         }
       } else {
-        float valueMax = model.getMaximum() - model.getExtent();
+        float valueMax   = model.getMaximum() - model.getExtent();
         float valueRange = valueMax - model.getMinimum();
         float thumbValue = thumbPos - thumbMin;
         float thumbRange = thumbMax - thumbMin;
-        int value;
+        int   value;
 
-        if ((scrollbar.getOrientation() == JScrollBar.VERTICAL) || scrollbar.getComponentOrientation().isLeftToRight()) {
+        if ((scrollbar.getOrientation() == JScrollBar.VERTICAL)
+            || scrollbar.getComponentOrientation().isLeftToRight()) {
           value = (int) (0.5 + ((thumbValue / thumbRange) * valueRange));
         } else {
           value = (int) (0.5 + (((thumbMax - thumbPos) / thumbRange) * valueRange));
@@ -1215,11 +1294,15 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     }
 
     private boolean isMouseAfterThumb() {
-      return scrollbar.getComponentOrientation().isLeftToRight() ? isMouseRightOfThumb() : isMouseLeftOfThumb();
+      return scrollbar.getComponentOrientation().isLeftToRight()
+             ? isMouseRightOfThumb()
+             : isMouseLeftOfThumb();
     }
 
     private boolean isMouseBeforeThumb() {
-      return scrollbar.getComponentOrientation().isLeftToRight() ? isMouseLeftOfThumb() : isMouseRightOfThumb();
+      return scrollbar.getComponentOrientation().isLeftToRight()
+             ? isMouseLeftOfThumb()
+             : isMouseRightOfThumb();
     }
 
     private boolean isMouseLeftOfThumb() {
@@ -1232,6 +1315,7 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
       return currentMouseX > tb.x + tb.width;
     }
   }
+
 
   private static class SBCompoundBorderEx extends UICompoundBorder {
     public SBCompoundBorderEx(Border b1, Border b2) {

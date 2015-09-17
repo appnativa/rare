@@ -573,7 +573,7 @@ public abstract class aWindow extends ParentView {
   }
 
   protected void createTarget() {
-    String name = "_new_window_" + Integer.toHexString(hashCode());
+    String name = "_new_window_" + Integer.toHexString((int)hashCode());// int cast for java->objc
 
     target = new WindowTarget(Platform.getAppContext(), name, rootPane);
   }

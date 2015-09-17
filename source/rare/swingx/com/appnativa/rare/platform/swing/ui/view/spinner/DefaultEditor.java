@@ -1,14 +1,24 @@
 /*
- * @(#)DefaultEditor.java   2011-03-16
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view.spinner;
-
-import javax.swing.JTextField;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -20,6 +30,8 @@ import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.listener.iTextChangeListener;
 import com.appnativa.rare.ui.spinner.iSpinnerModel;
+
+import javax.swing.JTextField;
 
 /**
  *
@@ -105,6 +117,7 @@ public class DefaultEditor extends aSpinnerEditor {
 
   protected void customizeEditor() {
     ActionComponent v = editorView;
+
     v.putClientProperty(iConstants.RARE_MIN_WIDTH_PROPERTY, "2ch");
     v.setBorder(BorderUtils.EMPTY_BORDER);
     v.setOpaque(false);
@@ -120,8 +133,12 @@ public class DefaultEditor extends aSpinnerEditor {
 
   @Override
   public Object removeSelectedData(boolean returnData) {
-    Object o=returnData ? getTextField().getSelectedText() : null;
+    Object o = returnData
+               ? getTextField().getSelectedText()
+               : null;
+
     TextEditorComponent.deleteSelection(getTextField());
+
     return o;
   }
 }

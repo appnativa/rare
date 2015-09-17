@@ -1,22 +1,24 @@
 /*
- * @(#)TextEditorWrapper.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
-
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.exception.ApplicationException;
@@ -27,9 +29,19 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UISoundHelper;
 import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
+
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 
 public class TextEditorComponent extends Container implements iPlatformTextEditor, ActionListener {
   JTextComponent textComponent;
@@ -57,7 +69,7 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
 
   @Override
   public boolean isFocusOwner() {
-    return textComponent != null && textComponent.isFocusOwner();
+    return (textComponent != null) && textComponent.isFocusOwner();
   }
 
   @Override
@@ -75,18 +87,16 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
 
     try {
       doc.insertString(doc.getLength(), text, null);
-    } catch (BadLocationException e) {
+    } catch(BadLocationException e) {
       throw new ApplicationException(e);
     }
   }
 
   @Override
-  public void boldText() {
-  }
+  public void boldText() {}
 
   @Override
-  public void decreaseIndent() {
-  }
+  public void decreaseIndent() {}
 
   @Override
   public void deleteSelection() {
@@ -95,19 +105,19 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
 
   public static void deleteSelection(JTextComponent textComponent) {
     int start = textComponent.getSelectionStart();
-    int end = textComponent.getSelectionEnd();
+    int end   = textComponent.getSelectionEnd();
 
     if (start != end) {
       if (start > end) {
         int n = start;
 
         start = end;
-        end = n;
+        end   = n;
       }
 
       try {
         textComponent.getDocument().remove(start, end - start);
-      } catch (BadLocationException e) {
+      } catch(BadLocationException e) {
         UISoundHelper.beep();
         Platform.ignoreException(null, e);
       }
@@ -115,12 +125,10 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   }
 
   @Override
-  public void enlargeFont() {
-  }
+  public void enlargeFont() {}
 
   @Override
-  public void increaseIndent() {
-  }
+  public void increaseIndent() {}
 
   @Override
   public void insertHTML(int pos, String html) {
@@ -131,25 +139,24 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   public void insertText(int pos, String text) {
     try {
       textComponent.getDocument().insertString(pos, text, null);
-    } catch (BadLocationException e) {
+    } catch(BadLocationException e) {
       throw new ApplicationException(e);
     }
   }
 
   @Override
-  public void italicText() {
-  }
+  public void italicText() {}
 
   @Override
   public void pasteText(String text) {
     int start = textComponent.getSelectionStart();
-    int end = textComponent.getSelectionEnd();
+    int end   = textComponent.getSelectionEnd();
 
     if (start > end) {
       int n = start;
 
       start = end;
-      end = n;
+      end   = n;
     }
 
     try {
@@ -158,7 +165,7 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
       }
 
       textComponent.getDocument().insertString(start, text, null);
-    } catch (BadLocationException e) {
+    } catch(BadLocationException e) {
       UISoundHelper.beep();
       Platform.ignoreException(null, e);
     }
@@ -177,24 +184,19 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   }
 
   @Override
-  public void shrinkFont() {
-  }
+  public void shrinkFont() {}
 
   @Override
-  public void strikeThroughText() {
-  }
+  public void strikeThroughText() {}
 
   @Override
-  public void subscriptText() {
-  }
+  public void subscriptText() {}
 
   @Override
-  public void superscriptText() {
-  }
+  public void superscriptText() {}
 
   @Override
-  public void underlineText() {
-  }
+  public void underlineText() {}
 
   @Override
   public void setCaretPosition(int position) {
@@ -228,8 +230,7 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   }
 
   @Override
-  public void setFollowHyperlinks(boolean follow) {
-  }
+  public void setFollowHyperlinks(boolean follow) {}
 
   @Override
   public void setSelection(int beginIndex, int endIndex) {
@@ -238,7 +239,9 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
 
   @Override
   public void setText(CharSequence text) {
-    textComponent.setText((text == null) ? "" : text.toString());
+    textComponent.setText((text == null)
+                          ? ""
+                          : text.toString());
   }
 
   @Override
@@ -313,7 +316,7 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   public String getText(int start, int end) {
     try {
       return textComponent.getText(start, end - start);
-    } catch (BadLocationException e) {
+    } catch(BadLocationException e) {
       throw new ApplicationException(e);
     }
   }

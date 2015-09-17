@@ -1,12 +1,32 @@
 /*
- * @(#)TableHeaderEx.java   2010-07-03
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.table;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -20,14 +40,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -68,6 +80,7 @@ public class TableHeaderView extends JTableHeader implements iPainterSupport {
   public void paint(Graphics g) {
     graphics = SwingGraphics.fromGraphics(g, this, graphics);
     super.paint(g);
+
     int w = getWidth();
     int h = getHeight();
 
@@ -77,8 +90,6 @@ public class TableHeaderView extends JTableHeader implements iPainterSupport {
       Stroke     s  = g2.getStroke();
 
       g2.setStroke(SwingHelper.SOLID_STROKE);
-
-
       g2.setColor(bottomMarginColor);
       g2.drawLine(0, h - 1, w - 1, h - 1);
       g2.setStroke(s);
@@ -86,28 +97,31 @@ public class TableHeaderView extends JTableHeader implements iPainterSupport {
     }
 
     if (marginColor != null) {
-      TableColumnModel cm  = getColumnModel();
-      int              len = cm.getColumnCount();
-      boolean first=true;
+      TableColumnModel cm    = getColumnModel();
+      int              len   = cm.getColumnCount();
+      boolean          first = true;
+
       g.setColor(marginColor);
 
       for (int i = 0; i < len; i++) {
         Rectangle r = getHeaderRect(i);
 
         if (r.width > 0) {
-          if(first) {
-            first=false;
-          }
-          else {
-            g.drawLine(r.x-1, 0, r.x-1, h-2);
+          if (first) {
+            first = false;
+          } else {
+            g.drawLine(r.x - 1, 0, r.x - 1, h - 2);
           }
         }
       }
-      TableView table=(TableView) getTable();
-      if(table.header.paintRightMargin) {
-        g.drawLine(w-1, 0, w - 1, h - 2);
+
+      TableView table = (TableView) getTable();
+
+      if (table.header.paintRightMargin) {
+        g.drawLine(w - 1, 0, w - 1, h - 2);
       }
-      if(table.header.paintLeftMargin) {
+
+      if (table.header.paintLeftMargin) {
         g.drawLine(0, 0, 0, h - 2);
       }
     }

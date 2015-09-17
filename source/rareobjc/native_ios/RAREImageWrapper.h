@@ -29,10 +29,10 @@
 
 + (RAREImageWrapper *)createImageFromView:(UIView *)view;
 
-- (id)initWithContentsOfURL:(NSURL *)nsurl scale:(CGFloat)scale;
-- (id)initWithNSData:(NSData *)data scale:(CGFloat)scale;
--(id) initWithSize: (CGSize)size;
--(id) initWithImage: (UIImage*)img;
+-(id)initWithContentsOfURL:(NSURL *)nsurl scale:(CGFloat)scale;
+-(id)initWithNSData:(NSData *)data scale:(CGFloat)scale;
+-(id)initWithSize: (CGSize)size;
+-(id)initWithImage: (UIImage*)img;
 -(void) blur;
 -(RAREImageWrapper*) createReflectionVersionFromY: (int) y height: (int) height opacity: (int) opacity gap: (int) gap;
 -(NSString*) getFailureString;

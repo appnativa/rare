@@ -1,23 +1,35 @@
 /*
- * @(#)NavigatorPanel.java   2012-03-18
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.ButtonView;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.widget.iWidget;
 
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.Icon;
-
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.ButtonView;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.widget.iWidget;
 
 /**
  * A panel that manages a set of buttons
@@ -104,10 +116,10 @@ public class NavigatorPanel extends aNavigatorPanel {
 
 
   class ButtonViewEx extends ButtonView implements MouseListener {
-    boolean       isBack;
-    boolean       isPressed;
+    boolean     isBack;
+    boolean     isPressed;
     UIRectangle rect;
-    boolean       wasPressed;
+    boolean     wasPressed;
 
     public ButtonViewEx() {
       super();
@@ -125,9 +137,10 @@ public class NavigatorPanel extends aNavigatorPanel {
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
-      if(!isEnabled()) {
+      if (!isEnabled()) {
         return;
       }
+
       if (isToggle() && (selectedButton != null) && (selectedButton.getView() == this) &&!alwaysFireAction) {
         return;
       }
@@ -144,9 +157,10 @@ public class NavigatorPanel extends aNavigatorPanel {
 
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
-      if(!isEnabled()) {
+      if (!isEnabled()) {
         return;
       }
+
       isPressed  = false;
       wasPressed = false;
 
@@ -207,7 +221,7 @@ public class NavigatorPanel extends aNavigatorPanel {
 
 
   static class NavigatorView extends JPanelEx {
-    UIRectangle  rect = new UIRectangle();
+    UIRectangle    rect = new UIRectangle();
     NavigatorPanel panel;
 
     public NavigatorView() {

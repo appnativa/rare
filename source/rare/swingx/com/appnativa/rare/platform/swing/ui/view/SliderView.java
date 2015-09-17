@@ -1,28 +1,39 @@
 /*
- * @(#)SliderView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.platform.swing.plaf.SkinableSliderUI;
+import com.appnativa.rare.ui.event.iChangeListener;
+import com.appnativa.rare.ui.iSlider;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.appnativa.rare.platform.swing.plaf.SkinableSliderUI;
-import com.appnativa.rare.ui.iSlider;
-import com.appnativa.rare.ui.event.iChangeListener;
-
 public class SliderView extends JSlider implements iSlider, ChangeListener {
   com.appnativa.rare.ui.event.ChangeEvent ChangeEvent;
   private iChangeListener                 changeListener;
 
-  public SliderView() {
-  }
+  public SliderView() {}
 
   public SliderView(BoundedRangeModel brm) {
     super(brm);
@@ -63,7 +74,9 @@ public class SliderView extends JSlider implements iSlider, ChangeListener {
 
   @Override
   public void setHorizontal(boolean horizontal) {
-    setOrientation(horizontal ? HORIZONTAL : VERTICAL);
+    setOrientation(horizontal
+                   ? HORIZONTAL
+                   : VERTICAL);
   }
 
   @Override

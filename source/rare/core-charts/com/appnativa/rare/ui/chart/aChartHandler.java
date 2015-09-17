@@ -486,13 +486,13 @@ public abstract class aChartHandler {
         return 1000 * 60 * 60 * 24;
 
       case MONTH :
-        return 1000 * 60 * 60 * 24 * 30;
+        return 1000 * 60 * 60 * 24 * 30.0;
 
       case YEAR :
-        return 1000 * 60 * 60 * 24 * 365;
+        return 1000 * 60 * 60 * 24 * 365.0;
 
       case WEEK :
-        return 1000 * 60 * 60 * 24 * 7;
+        return 1000 * 60 * 60 * 24 * 7.0;
 
       default :
         return 1;

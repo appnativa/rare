@@ -23,7 +23,7 @@ static BOOL statusBarHidden=NO;
 
 @implementation RAREUIViewController {
   CGFloat animatedDistance;
-  NSUInteger supportedOrientations;
+  UIInterfaceOrientationMask supportedOrientations;
   NSInteger darkWindowBackground;
 }
 -initWithWindow: (UIWindow*) win  {
@@ -93,7 +93,7 @@ static BOOL statusBarHidden=NO;
   [super didReceiveMemoryWarning];
 }
 
-- (NSUInteger)supportedInterfaceOrientations
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
   return supportedOrientations;
 }

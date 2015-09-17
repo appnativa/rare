@@ -1234,8 +1234,8 @@ public class PainterUtils {
     /**  */
     boolean            up       = true;
     int                iconSize = UIScreen.platformPixels(Platform.isTouchDevice()
-            ? 16
-            : 8);
+            ? 20
+            : 12);
     @Weak
     iPlatformComponent owner;
     iPlatformPath      path;
@@ -1315,8 +1315,8 @@ public class PainterUtils {
 
     public void setIconSize(int size) {
       int n = UIScreen.platformPixels(Platform.isTouchDevice()
-                                      ? 16
-                                      : 8);
+                                      ? 20
+                                      : 12);
 
       iconSize = Math.max(n, size);
     }

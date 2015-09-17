@@ -144,6 +144,7 @@ public class TreeViewer extends aTreeViewer {
   protected void handleViewerConfigurationWillChange(Object newConfig) {
     selectedIndexes = getSelectedIndexes();
     super.handleViewerConfigurationWillChange(newConfig);
+    ((TreeView) getDataView()).repaintVisibleRows();
   }
 
   protected static void registerForUse() {

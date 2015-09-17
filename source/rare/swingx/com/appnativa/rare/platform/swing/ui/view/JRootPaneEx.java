@@ -1,12 +1,37 @@
 /*
- * @(#)JRootPaneEx.java   2009-08-21
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.BorderPanel;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Container;
 import java.awt.Dimension;
@@ -18,19 +43,6 @@ import java.awt.Rectangle;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import javax.swing.JRootPane;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.BorderPanel;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIRectangle;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  * A JRootPane that supports a custom title pane for use in an undecorated frame
@@ -50,6 +62,7 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
   @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
+
     if (cp != null) {
       if (cp.getBorder() != null) {
         setBorder(cp.getBorder());
@@ -79,20 +92,24 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
   }
 
   public void getInnerBounds(UIRectangle rect) {
-    rect.width = 0;
+    rect.width  = 0;
     rect.height = 0;
+
     Dimension d = getSize();
-    rect.width = d.width;
+
+    rect.width  = d.width;
     rect.height = d.height;
-    if (titlePane != null && titlePane.isVisible()) {
+
+    if ((titlePane != null) && titlePane.isVisible()) {
       titlePane.getSize(d);
       rect.height -= d.height;
-      rect.y += d.height;
+      rect.y      += d.height;
     }
-    if (menuBar != null && menuBar.isVisible()) {
+
+    if ((menuBar != null) && menuBar.isVisible()) {
       menuBar.getSize(d);
       rect.height -= d.height;
-      rect.y += d.height;
+      rect.y      += d.height;
     }
   }
 
@@ -113,7 +130,7 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
   @Override
   protected Container createContentPane() {
     BorderPanel bp = new BorderPanel(new BorderLayoutViewEx());
-    JComponent c = bp.getJComponent();
+    JComponent  c  = bp.getJComponent();
 
     c.setOpaque(true);
     c.setName(this.getName() + ".contentPane");
@@ -135,9 +152,9 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
 
   @Override
   protected void paintChildren(Graphics g) {
-    iPlatformComponentPainter cp = getComponentPainter();
-    float height = getHeight();
-    float width = getWidth();
+    iPlatformComponentPainter cp     = getComponentPainter();
+    float                     height = getHeight();
+    float                     width  = getWidth();
 
     graphics = SwingGraphics.fromGraphics(g, this, graphics);
 
@@ -156,8 +173,8 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
     public BorderLayoutViewEx() {
       super();
     }
-
   }
+
 
   protected class RootLayoutEx extends RootLayout {
     @Override
@@ -168,11 +185,11 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
         return;
       }
 
-      Rectangle b = parent.getBounds();
-      Insets i = getInsets();
-      int contentY = 0;
-      int w = b.width - i.right - i.left;
-      int h = b.height - i.top - i.bottom;
+      Rectangle b        = parent.getBounds();
+      Insets    i        = getInsets();
+      int       contentY = 0;
+      int       w        = b.width - i.right - i.left;
+      int       h        = b.height - i.top - i.bottom;
 
       if (layeredPane != null) {
         layeredPane.setBounds(i.left, i.top, w, h);
@@ -185,8 +202,8 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
       // Note: This is laying out the children in the layeredPane,
       // technically, these are not our children.
       if ((titlePane != null) && titlePane.isVisible()) {
-        iPlatformComponent pc = Platform.createPlatformComponent(titlePane);
-        UIDimension mbd = pc.getPreferredSize();
+        iPlatformComponent pc  = Platform.createPlatformComponent(titlePane);
+        UIDimension        mbd = pc.getPreferredSize();
 
         pc.setBounds(0, contentY, w, mbd.height);
         contentY += mbd.height;
@@ -201,7 +218,8 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
 
       if (contentPane != null) {
         iPlatformComponent c = com.appnativa.rare.ui.Component.fromView((JComponent) contentPane);
-        if (c == null || !aAnimator.isAnimating(c)) {
+
+        if ((c == null) ||!aAnimator.isAnimating(c)) {
           contentPane.setBounds(0, contentY, w, h - contentY);
         }
       }
@@ -217,7 +235,7 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
     @Override
     public Dimension minimumLayoutSize(Container parent) {
       Dimension rd = null, mbd;
-      Insets i = getInsets();
+      Insets    i  = getInsets();
 
       if (contentPane != null) {
         iPlatformComponent pc = Platform.createPlatformComponent(contentPane);
@@ -233,11 +251,12 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
         mbd = new Dimension(0, 0);
       }
 
-      UIDimension dd = ((titlePane == null) || !titlePane.isVisible()) ? null : Platform.createPlatformComponent(titlePane)
-          .getMinimumSize();
+      UIDimension dd = ((titlePane == null) ||!titlePane.isVisible())
+                       ? null
+                       : Platform.createPlatformComponent(titlePane).getMinimumSize();
 
       if (dd != null) {
-        rd.width = Math.max(rd.width, dd.intWidth());
+        rd.width  = Math.max(rd.width, dd.intWidth());
         rd.height += dd.height;
       }
 
@@ -254,7 +273,7 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
     @Override
     public Dimension preferredLayoutSize(Container parent) {
       Dimension rd = null, mbd;
-      Insets i = getInsets();
+      Insets    i  = getInsets();
 
       if (contentPane != null) {
         iPlatformComponent pc = Platform.createPlatformComponent(contentPane);
@@ -270,11 +289,12 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
         mbd = new Dimension(0, 0);
       }
 
-      UIDimension dd = ((titlePane == null) || !titlePane.isVisible()) ? null : Platform.createPlatformComponent(titlePane)
-          .getPreferredSize();
+      UIDimension dd = ((titlePane == null) ||!titlePane.isVisible())
+                       ? null
+                       : Platform.createPlatformComponent(titlePane).getPreferredSize();
 
       if (dd != null) {
-        rd.width = Math.max(rd.width, dd.intWidth());
+        rd.width  = Math.max(rd.width, dd.intWidth());
         rd.height += dd.height;
       }
 
@@ -282,20 +302,20 @@ public class JRootPaneEx extends JRootPane implements iPainterSupport {
     }
   }
 
+
   public void disposeOfPane() {
     try {
       if (componentPainter != null) {
         componentPainter.dispose();
       }
+
       if (contentPane != null) {
         iPlatformComponent pc = Platform.createPlatformComponent(contentPane);
+
         if (pc != null) {
           pc.dispose();
         }
       }
-    } catch (Exception ignore) {
-
-    }
-
+    } catch(Exception ignore) {}
   }
 }

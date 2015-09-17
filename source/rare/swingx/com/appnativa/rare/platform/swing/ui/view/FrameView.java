@@ -1,22 +1,24 @@
 /*
- * @(#)FrameView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.KeyboardFocusManager;
-import java.awt.Paint;
-import java.awt.Rectangle;
-
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import javax.swing.event.MouseInputListener;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -33,6 +35,16 @@ import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.painter.RenderSpace;
 import com.appnativa.rare.ui.painter.aUIPainter;
+
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.Paint;
+import java.awt.Rectangle;
+
+import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputListener;
 
 public class FrameView extends UtilityPanel {
   private RenderType         renderType  = RenderType.STRETCHED;
@@ -102,15 +114,19 @@ public class FrameView extends UtilityPanel {
 
     super.addImpl(glassPane, null, 0);
     this.glassPane = glassPane;
-    if(glassPane instanceof GlassPanel) {
-      UIColor c=(UIColor) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-      if(c==null) {
-        c=Platform.getUIDefaults().getColor("Rare.disabledBackgroundColor");
+
+    if (glassPane instanceof GlassPanel) {
+      UIColor c = (UIColor) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
+
+      if (c == null) {
+        c = Platform.getUIDefaults().getColor("Rare.disabledBackgroundColor");
       }
-      if(c==null) {
-        c=ColorUtils.DISABLED_TRANSPARENT_COLOR;
+
+      if (c == null) {
+        c = ColorUtils.DISABLED_TRANSPARENT_COLOR;
       }
-      ((GlassPanel)glassPane).setLockedColor(c);
+
+      ((GlassPanel) glassPane).setLockedColor(c);
     }
   }
 
@@ -140,8 +156,9 @@ public class FrameView extends UtilityPanel {
         setGlassPane(new GlassPanel(false));
       }
 
-      java.awt.Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
-      boolean isFocusInsideLayer = (focusOwner != null) && SwingUtilities.isDescendingFrom(focusOwner, this);
+      java.awt.Component focusOwner         =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+      boolean            isFocusInsideLayer = (focusOwner != null) && SwingUtilities.isDescendingFrom(focusOwner, this);
 
       if (locked) {
         getGlassPane().addMouseListener(glassPaneMouseListener);
@@ -259,7 +276,7 @@ public class FrameView extends UtilityPanel {
   @Override
   public void getMinimumSize(UIDimension size) {
     Container container = (Container) Component.fromView(this);
-    Component child = null;
+    Component child     = null;
 
     if (size == null) {
       size = new UIDimension(0, 0);
@@ -271,15 +288,17 @@ public class FrameView extends UtilityPanel {
     }
 
     iPlatformBorder border = container.getBorder();
-    UIInsets in = (border != null) ? container.getInsets(insets) : null;
+    UIInsets        in     = (border != null)
+                             ? container.getInsets(insets)
+                             : null;
 
     if (in != null) {
-      size.width += in.left + in.right;
+      size.width  += in.left + in.right;
       size.height += in.top + in.bottom;
     }
 
-    in = padding;
-    size.width += in.left + in.right;
+    in          = padding;
+    size.width  += in.left + in.right;
     size.height += in.top + in.bottom;
   }
 
@@ -288,34 +307,41 @@ public class FrameView extends UtilityPanel {
     UIDimension size = new UIDimension();
 
     getPreferredSize(size, 0);
+
     return new Dimension(size.intWidth(), size.intHeight());
   }
 
   @Override
   public void getPreferredSize(UIDimension size, int maxWidth) {
     Container container = (Container) Component.fromView(this);
-    Component child = null;
+    Component child     = null;
 
     if (size == null) {
       size = new UIDimension(0, 0);
     }
+
     int len = container.getComponentCount();
+
     if (len > 0) {
       child = (Component) container.getComponentAt(len - 1);
-      if(child.isVisible()) {
+
+      if (child.isVisible()) {
         child.getPreferredSize(size, maxWidth);
       }
     }
+
     iPlatformBorder border = container.getBorder();
-    UIInsets in = (border != null) ? container.getInsets(insets) : null;
+    UIInsets        in     = (border != null)
+                             ? container.getInsets(insets)
+                             : null;
 
     if (in != null) {
-      size.width += in.left + in.right;
+      size.width  += in.left + in.right;
       size.height += in.top + in.bottom;
     }
 
-    in = padding;
-    size.width += in.left + in.right;
+    in          = padding;
+    size.width  += in.left + in.right;
     size.height += in.top + in.bottom;
   }
 
@@ -361,12 +387,14 @@ public class FrameView extends UtilityPanel {
     if (renderType == RenderType.XY) {
       return;
     }
+
     Container container = (Container) Component.fromView(this);
-    int len = container.getComponentCount();
+    int       len       = container.getComponentCount();
+
     if (len > 0) {
-      iPlatformComponent c = container.getComponentAt(len - 1);
-      float iw = 0;
-      float ih = 0;
+      iPlatformComponent c  = container.getComponentAt(len - 1);
+      float              iw = 0;
+      float              ih = 0;
 
       if (renderType != RenderType.STRETCHED) {
         UIDimension d = c.getPreferredSize();
@@ -375,14 +403,16 @@ public class FrameView extends UtilityPanel {
         ih = d.height;
       }
 
-      width = (int)Math.ceil(width - padding.left - padding.right);
-      height = (int)Math.ceil(height - padding.top - padding.bottom);
+      width  = (int) Math.ceil(width - padding.left - padding.right);
+      height = (int) Math.ceil(height - padding.top - padding.bottom);
 
-      UIRectangle rect = aUIPainter.getRenderLocation(container, renderSpace, renderType, padding.left, padding.top, width,
-          height, iw, ih, null);
+      UIRectangle rect = aUIPainter.getRenderLocation(container, renderSpace, renderType, padding.left, padding.top,
+                           width, height, iw, ih, null);
+
       for (int i = 0; i < len; i++) {
         c = container.getComponentAt(i);
-        if(c.isVisible()) {
+
+        if (c.isVisible()) {
           c.setBounds(rect.x, rect.y, rect.width, rect.height);
         }
       }

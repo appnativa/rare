@@ -85,7 +85,7 @@ public class Frame extends Container implements iWindow {
     appContext  = app;
 
     if (targetName == null) {
-      targetName = "_new_window_" + Integer.toHexString(hashCode());
+      targetName = "_new_window_" + Integer.toHexString((int)hashCode()); //int cast for java->objc
     }
 
     target = new WindowTarget(app, targetName, this);

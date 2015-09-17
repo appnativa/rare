@@ -64,7 +64,7 @@
   }
 }
 -(void)drawRect:(CGRect)rect {
-  BOOL land=UIDeviceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+  BOOL land=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
   UIImage* img=land ? landscapeImage : portraitImage;
   if(!img) {
     img=portraitImage;

@@ -141,7 +141,12 @@ public abstract class aTableComponent extends Container implements iTableCompone
     super.repaint();
     tableHeader.repaint();
   }
-
+  
+  public void repaintVisibleRows() {
+    tableHeader.repaint();
+    tableView.repaintVisibleRows();
+  }
+  
   @Override
   public void resetTable(List<Column> columns, List<RenderableDataItem> rows) {
     FilterableList<RenderableDataItem> l;

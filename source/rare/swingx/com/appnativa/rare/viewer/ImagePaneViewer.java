@@ -1,14 +1,24 @@
 /*
- * @(#)ImagePaneViewer.java   2012-01-03
- * 
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.viewer;
-
-import java.io.IOException;
 
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.ImagePane;
@@ -16,6 +26,8 @@ import com.appnativa.rare.ui.ImagePanel;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageHelper;
 import com.appnativa.rare.ui.iPlatformImagePanel;
+
+import java.io.IOException;
 
 /**
  * A viewer that displays and image and provides tools
@@ -57,12 +69,15 @@ public class ImagePaneViewer extends aImagePaneViewer {
 
   @Override
   protected iPlatformImagePanel createPanel(ImagePane cfg) {
-  	//super viewer is supposed to set scaling type before calling create panel
-  	ImagePanel p=new ImagePanel(scalingType.isCached());
-  	p.setWidget(this);
+    //super viewer is supposed to set scaling type before calling create panel
+    ImagePanel p = new ImagePanel(scalingType.isCached());
+
+    p.setWidget(this);
+
     if (isDesignMode()) {
       p.setDefaultMinimumSize(50, 50, true);
     }
-  	return p;
+
+    return p;
   }
 }

@@ -301,4 +301,16 @@ public class ImageUtils {
     return image;
   ]-*/
   ;
+
+  public native static Object loadAssetCatalogImageProxy(String name)
+    /*-[
+    #if TARGET_OS_IPHONE
+      UIImage* img=[UIImage imageNamed:name];
+      return img==nil ? nil : [[RAREImageWrapper alloc] initWithImage: img];
+    #else
+      NSImage* img=[NSImage imageNamed:name];
+      return img==nil ? nil : [[RAREImageWrapper alloc] initWithImage: img];
+    #endif
+   ]-*/
+   ;
 }

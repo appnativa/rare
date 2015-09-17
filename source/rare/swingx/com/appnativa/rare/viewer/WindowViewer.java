@@ -1,17 +1,24 @@
 /*
- * @(#)WindowViewer.java   2013-12-18
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.viewer;
-
-import java.io.IOException;
-import java.net.URL;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.ui.DragHandler;
@@ -31,6 +38,12 @@ import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 
+import java.io.IOException;
+
+import java.net.URL;
+
+import javax.swing.JComponent;
+
 /**
  *
  * @author Don DeCoteau
@@ -40,10 +53,10 @@ public class WindowViewer extends aWindowViewer implements iWindow {
 
   public WindowViewer(iPlatformAppContext ctx, String name, iWindow win, WindowViewer parent, iScriptHandler sh) {
     super(ctx, name, win, parent, sh);
-    theWindow = win;
-    formComponent=dataComponent=win.getComponent();
-    widgetType = WidgetType.Window;
-    theWindow  = win;
+    theWindow     = win;
+    formComponent = dataComponent = win.getComponent();
+    widgetType    = WidgetType.Window;
+    theWindow     = win;
   }
 
   /**
@@ -65,7 +78,6 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     addWindowDragger(widget.getContainerComponent());
   }
 
- 
   /**
    * Creates an image painter for the specified image
    *
@@ -100,7 +112,8 @@ public class WindowViewer extends aWindowViewer implements iWindow {
       context = this;
     }
 
-    Component        comp = new Component(view);
+    Component comp = new Component(view);
+
     return new WidgetPaneViewer(this, comp);
   }
 
@@ -119,7 +132,7 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     }
 
     Component  comp = new Component(view);
-    BeanWidget w    = new BeanWidget( context.getContainerViewer(), comp);
+    BeanWidget w    = new BeanWidget(context.getContainerViewer(), comp);
 
     w.setParent(context.getContainerViewer());
 
@@ -132,6 +145,7 @@ public class WindowViewer extends aWindowViewer implements iWindow {
       dragHandler.dispose();
       dragHandler = null;
     }
+
     super.dispose();
   }
 
@@ -144,8 +158,8 @@ public class WindowViewer extends aWindowViewer implements iWindow {
 
   @Override
   public void setDefaultButton(PushButtonWidget widget) {
-    if(theWindow instanceof Frame) {
-      ((Frame)theWindow).setDefaultButton(widget);
+    if (theWindow instanceof Frame) {
+      ((Frame) theWindow).setDefaultButton(widget);
     }
   }
 

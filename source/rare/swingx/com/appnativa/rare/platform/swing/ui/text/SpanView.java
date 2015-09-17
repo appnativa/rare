@@ -1,12 +1,27 @@
 /*
- * @(#)SpanView.java   2009-05-07
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.viewer.iContainer;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -17,29 +32,25 @@ import javax.swing.text.Element;
 import javax.swing.text.IconView;
 import javax.swing.text.Position;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.viewer.iContainer;
-
 /**
  *
  * @author Don DeCoteau
  */
 public class SpanView extends IconView implements HTMLEditorKitEx.iGroupView {
   iContainer theViewer;
-  boolean fromVisible=true;
+  boolean    fromVisible = true;
+
   public SpanView(iContainer parent, Element elem) {
     super(elem);
     theViewer = FormsView.createViewer(this, parent, elem);
-
     theViewer.setParent(parent);
+
     if (!fromVisible) {
       Platform.invokeLater(new Runnable() {
-
         @Override
         public void run() {
           setContainerVisible(false);
         }
-
       });
     }
   }
@@ -61,14 +72,16 @@ public class SpanView extends IconView implements HTMLEditorKitEx.iGroupView {
    */
   @Override
   public void setContainerVisible(boolean visible) {
-    this.fromVisible=visible;
-    if(theViewer!=null) {
+    this.fromVisible = visible;
+
+    if (theViewer != null) {
       int        len = theViewer.getWidgetCount();
       iContainer gb  = theViewer;
 
       for (int i = 0; i < len; i++) {
         gb.getWidget(i).setVisible(visible);
       }
+
       theViewer.getParent().update();
     }
   }

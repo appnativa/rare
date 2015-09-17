@@ -1,18 +1,24 @@
 /*
- * @(#)TreeView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
 
 import com.appnativa.rare.platform.swing.ui.DataItemListModel;
 import com.appnativa.rare.ui.CheckListManager;
@@ -26,6 +32,12 @@ import com.appnativa.rare.ui.tree.aDataItemTreeModel;
 import com.appnativa.rare.ui.tree.iExpansionHandler;
 import com.appnativa.rare.ui.tree.iTree;
 import com.appnativa.rare.ui.tree.iTreeItem;
+
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.MouseInputListener;
 
 public class TreeView extends ListView implements iTree {
   protected int                indentBy              = ScreenUtils.platformPixels(16);
@@ -69,7 +81,7 @@ public class TreeView extends ListView implements iTree {
 
   @Override
   public iPlatformRenderingComponent prepareRendererForReuse(iPlatformRenderingComponent rc, int row, int col) {
-    rc=super.prepareRendererForReuse(rc, row, col);
+    rc = super.prepareRendererForReuse(rc, row, col);
 
     iPlatformIcon indicator = null;
     int           depth     = 0;
@@ -104,6 +116,7 @@ public class TreeView extends ListView implements iTree {
     }
 
     setTreeInfoForRow(rc, indicator, depth);
+
     return rc;
   }
 
@@ -175,17 +188,18 @@ public class TreeView extends ListView implements iTree {
     collapsedIcon   = collapsed;
     indicatorWidth  = 0;
     indicatorHeight = 0;
-    if(showRootHandles) {
+
+    if (showRootHandles) {
       if (expanded != null) {
         indicatorWidth  = expanded.getIconWidth();
         indicatorHeight = expanded.getIconHeight();
       }
-  
+
       if (collapsed != null) {
         indicatorWidth  = Math.max(indicatorWidth, collapsed.getIconWidth());
         indicatorHeight = Math.max(indicatorHeight, collapsed.getIconHeight());
       }
-  
+
       calculateOffset();
     }
   }
@@ -355,14 +369,18 @@ public class TreeView extends ListView implements iTree {
       }
       @Override
       public void mouseClicked(MouseEvent e) {
-        if(!toggleOnTwistyOnly && e.getClickCount()>1) {
-          int       row = getRowAtPoint(e.getPoint());
-          RenderableDataItem item = row!=-1 ? getItemAt(row)  : null;
-          iTreeItem          ti   = item==null ? null : treeModel.getTreeItem(item);
-          if(ti!=null) {
+        if (!toggleOnTwistyOnly && (e.getClickCount() > 1)) {
+          int                row  = getRowAtPoint(e.getPoint());
+          RenderableDataItem item = (row != -1)
+                                    ? getItemAt(row)
+                                    : null;
+          iTreeItem          ti   = (item == null)
+                                    ? null
+                                    : treeModel.getTreeItem(item);
+
+          if (ti != null) {
             handleExpansion(ti, row, true);
           }
-          
         }
       }
     };

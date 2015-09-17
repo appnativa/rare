@@ -1,26 +1,24 @@
 /*
- * @(#)WindowManager.java   2011-12-15
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Image;
-import java.awt.Window;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.UIManager;
 
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
@@ -41,6 +39,22 @@ import com.appnativa.rare.viewer.MenuBarViewer;
 import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.iWidget;
 
+import java.awt.Image;
+import java.awt.Window;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
+import java.lang.reflect.Method;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.UIManager;
+
 /**
  *
  * @author Don DeCoteau
@@ -60,19 +74,24 @@ public class WindowManager extends aWindowManager {
     mainFrame       = window;
     workspaceTarget = window.getTarget();
     theTargets.put(iTarget.TARGET_WORKSPACE, workspaceTarget);
-    if(componentCreator==null) {
+
+    if (componentCreator == null) {
       componentCreator = new ComponentFactory();
       componentCreator.setAppContext(appContext);
     }
   }
+
   @Override
   public void dispose() {
-    iScriptHandler sh=scriptHandler;
+    iScriptHandler sh = scriptHandler;
+
     super.dispose();
-    if(sh!=null) {
+
+    if (sh != null) {
       sh.dispose();
     }
   }
+
   @Override
   public void configure(MainWindow cfg) {
     if (!cfg.decorated.booleanValue()) {
@@ -120,7 +139,7 @@ public class WindowManager extends aWindowManager {
     if (!((AppContext) appContext).isEmbeddedInstance()) {
       ScreenUtils.centerOnScreenAndSize(mainFrame, x, y, w, h);
     }
-    
+
     fireEvent(iConstants.EVENT_CONFIGURE, event, true);
   }
 
@@ -152,7 +171,6 @@ public class WindowManager extends aWindowManager {
 
   @Override
   public void onConfigurationChanged(boolean reset) {
-
     if ((getWorkspaceViewer() != null)) {
       getWorkspaceViewer().onConfigurationChanged(reset);
       getWorkspaceViewer().update();
@@ -165,7 +183,7 @@ public class WindowManager extends aWindowManager {
       getWorkspaceViewer().onConfigurationWillChange(newConfig);
     }
   }
-  
+
   public JComponent getRootPane() {
     return ((Frame) mainFrame).getRootPaneContainer().getRootPane();
   }
@@ -180,17 +198,18 @@ public class WindowManager extends aWindowManager {
 
       ff = new Frame(appContext, f, f);
       f.addComponentListener(new ComponentAdapter() {
-        Boolean oldWider=null;
+        Boolean oldWider = null;
         @Override
         public void componentResized(ComponentEvent e) {
           if (!isDisposed() && e.getComponent().isVisible()) {
             boolean wider = (getWidth() >= getHeight());
-            if(oldWider==null || !oldWider.booleanValue()==wider) {
-              if(oldWider==null) {
-                oldWider=wider;
-              }
-              else {
-                final WindowDeviceConfiguration cfg=new WindowDeviceConfiguration(getSize());
+
+            if ((oldWider == null) ||(!oldWider.booleanValue() == wider)) {
+              if (oldWider == null) {
+                oldWider = wider;
+              } else {
+                final WindowDeviceConfiguration cfg = new WindowDeviceConfiguration(getSize());
+
                 ((aAppContext) getAppContext()).handleConfigurationWillChange(cfg);
                 ((aAppContext) getAppContext()).handleConfigurationChanged(cfg);
               }
@@ -198,20 +217,23 @@ public class WindowManager extends aWindowManager {
           }
         }
       });
+
       try {
-        Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
-        Class params[] = new Class[] { Window.class, Boolean.TYPE };
-        Method method = util.getMethod("setWindowCanFullScreen", params);
+        Class  util     = Class.forName("com.apple.eawt.FullScreenUtilities");
+        Class  params[] = new Class[] { Window.class, Boolean.TYPE };
+        Method method   = util.getMethod("setWindowCanFullScreen", params);
+
         method.invoke(util, f, true);
-      } catch (ClassNotFoundException e1) {
-      } catch (Exception e) {
-      }
+      } catch(ClassNotFoundException e1) {}
+      catch(Exception e) {}
     }
+
     ff.setTarget(new UITarget(appContext, iTarget.TARGET_WORKSPACE, ff, false));
+
     return ff;
   }
-  void setMacFullScreenEnabled(boolean enabled) {
-  }
+
+  void setMacFullScreenEnabled(boolean enabled) {}
 
   @Override
   protected aWidgetListener createWidgetListener(iWidget widget, Map map, iScriptHandler scriptHandler) {

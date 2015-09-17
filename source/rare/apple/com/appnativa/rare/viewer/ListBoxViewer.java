@@ -278,6 +278,9 @@ public class ListBoxViewer extends aListViewer {
   protected void handleViewerConfigurationWillChange(Object newConfig) {
     selectedIndexes = getSelectedIndexes();
     super.handleViewerConfigurationWillChange(newConfig);
+    if( Platform.getUIDefaults().getBoolean("Rare.Table.repaintOnRotation", true)){
+      ((ListView) getDataView()).repaintVisibleRows();
+    }
   }
 
   @Override

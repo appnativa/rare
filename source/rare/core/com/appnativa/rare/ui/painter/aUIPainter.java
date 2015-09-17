@@ -106,7 +106,7 @@ public abstract class aUIPainter implements iPlatformPainter, iBackgroundPainter
   public int hashCode() {
     int hash = 5;
 
-    hash = 17 * hash + super.hashCode();
+    hash = 17 * hash + (int)super.hashCode();
 
     return hash;
   }

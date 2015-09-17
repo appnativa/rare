@@ -184,7 +184,7 @@ static TextFieldDelegate* textFieldDelegate;
 - (BOOL)textFieldEx:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
   RARETextFieldView *tv = (RARETextFieldView *) textField.sparView;
   if (tv->changeListener_ ) {
-    if (![tv->changeListener_  textChangingWithId:tv withInt:range.location withInt:range.location + range.location withJavaLangCharSequence:text]) {
+    if (![tv->changeListener_  textChangingWithId:tv withInt:(int)range.location withInt:(int)range.location + (int)range.location withJavaLangCharSequence:text]) {
       return NO;
     }
   }

@@ -1,28 +1,24 @@
 /*
- * @(#)HTMLViewer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.util.Set;
-
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Worker;
-import javafx.concurrent.Worker.State;
-import javafx.embed.swing.JFXPanel;
-import javafx.geometry.Orientation;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.ScrollBar;
-import javafx.scene.web.WebView;
-
-import javax.swing.SwingUtilities;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -30,6 +26,26 @@ import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.widget.aWidget;
+
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+
+import javafx.concurrent.Worker;
+import javafx.concurrent.Worker.State;
+
+import javafx.embed.swing.JFXPanel;
+
+import javafx.geometry.Orientation;
+
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.web.WebView;
+
+import java.util.Set;
+
+import javax.swing.SwingUtilities;
 
 public class HTMLViewer extends JFXPanel {
   LoadListener    loadListener;

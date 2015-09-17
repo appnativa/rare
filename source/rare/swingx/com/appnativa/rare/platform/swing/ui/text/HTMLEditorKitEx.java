@@ -1,17 +1,42 @@
 /*
- * @(#)HTMLEditorKitEx.java   2010-06-18
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.net.JavaURLConnection;
+import com.appnativa.rare.platform.EventHelper;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.listener.iHyperlinkListener;
+import com.appnativa.rare.viewer.iContainer;
+import com.appnativa.rare.viewer.iFormViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.ObjectHolder;
+import com.appnativa.util.html.MinimalHTMLWriterEx;
+import com.appnativa.util.iURLResolver;
 
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +44,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.Writer;
+
 import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,18 +74,6 @@ import javax.swing.text.html.InlineView;
 import javax.swing.text.html.ParagraphView;
 import javax.swing.text.html.StyleSheet;
 import javax.swing.text.html.parser.ParserDelegator;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.net.JavaURLConnection;
-import com.appnativa.rare.platform.EventHelper;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.listener.iHyperlinkListener;
-import com.appnativa.rare.viewer.iContainer;
-import com.appnativa.rare.viewer.iFormViewer;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.ObjectHolder;
-import com.appnativa.util.iURLResolver;
-import com.appnativa.util.html.MinimalHTMLWriterEx;
 
 /**
  *
@@ -186,78 +201,92 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
   }
 
   public int getHTMLFontIndex(float size) {
-
     return StyleSheet.getIndexOfSize(size);
   }
-  public static StringBuilder removeMarkup(Reader reader,boolean html,StringBuilder sb) throws IOException {
-    if(sb==null) {
-      sb=new StringBuilder();
+
+  public static StringBuilder removeMarkup(Reader reader, boolean html, StringBuilder sb) throws IOException {
+    if (sb == null) {
+      sb = new StringBuilder();
     }
-    List<String> lines = removeMarkupEx(reader,html);
+
+    List<String> lines = removeMarkupEx(reader, html);
+
     for (String line : lines) {
       sb.append(line).append('\n');
     }
+
     return sb;
   }
 
-  public static List<String> removeMarkupEx(Reader reader,boolean html) throws IOException {
-    final ArrayList<String> list = new ArrayList<String>();
+  public static List<String> removeMarkupEx(Reader reader, boolean html) throws IOException {
+    final ArrayList<String> list            = new ArrayList<String>();
+    ParserDelegator         parserDelegator = new ParserDelegator();
+    ParserCallback          parserCallback  = new AParserCallback(list, html);
 
-    ParserDelegator parserDelegator = new ParserDelegator();
-    ParserCallback parserCallback = new AParserCallback(list,html);
     parserDelegator.parse(reader, parserCallback, true);
+
     return list;
   }
+
   private static class AParserCallback extends ParserCallback {
-    final List list;
-    int ignore;
-    boolean html;
-    final static HashSet<Tag> skipTags=new HashSet<Tag>();
+    final List                list;
+    int                       ignore;
+    boolean                   html;
+    final static HashSet<Tag> skipTags = new HashSet<Tag>();
+
     static {
       skipTags.add(Tag.STYLE);
       skipTags.add(Tag.SCRIPT);
       skipTags.add(Tag.SCRIPT);
       skipTags.add(Tag.HEAD);
     }
-    AParserCallback(List list,boolean html) {
-      this.list=list;
-      this.html=html;
+
+    AParserCallback(List list, boolean html) {
+      this.list = list;
+      this.html = html;
     }
 
-      @Override
-      public void handleText(final char[] data, final int pos) {
-        if(ignore<1) {
-          list.add(new String(data));
-        }
+    @Override
+    public void handleText(final char[] data, final int pos) {
+      if (ignore < 1) {
+        list.add(new String(data));
       }
-      @Override
-      public void handleStartTag(Tag tag, MutableAttributeSet attribute, int pos) {
-        if(!html) {
-          return;
-        }
-        if(skipTags.contains(tag)) {
-          ignore++;
-          return;
-        }
+    }
+
+    @Override
+    public void handleStartTag(Tag tag, MutableAttributeSet attribute, int pos) {
+      if (!html) {
+        return;
       }
-      @Override
-      public void handleEndTag(Tag tag, final int pos) {
-        if(!html) {
-          return;
-        }
-        if(skipTags.contains(tag)) {
-          ignore--;
-          return;
-        }
+
+      if (skipTags.contains(tag)) {
+        ignore++;
+
+        return;
       }
+    }
+
+    @Override
+    public void handleEndTag(Tag tag, final int pos) {
+      if (!html) {
+        return;
+      }
+
+      if (skipTags.contains(tag)) {
+        ignore--;
+
+        return;
+      }
+    }
   }
+
+
   public float getHTMLFontSize(int index) {
     StyleSheet s = getStyleSheet();
 
     return s.getPointSize(index);
   }
 
- 
   @Override
   public ViewFactory getViewFactory() {
     return new HTMLFactoryX();
@@ -381,9 +410,10 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
         iHyperlinkListener linkListener = pane.getHyperLinkListener();
 
         if (linkListener != null) {
-          HyperlinkEvent.EventType type = e.getEventType();
-          URL                      url  = e.getURL();
-          com.appnativa.rare.ui.event.MouseEvent me=EventHelper.createMouseEvent(o,mouseEvent);
+          HyperlinkEvent.EventType               type = e.getEventType();
+          URL                                    url  = e.getURL();
+          com.appnativa.rare.ui.event.MouseEvent me   = EventHelper.createMouseEvent(o, mouseEvent);
+
           if (type == HyperlinkEvent.EventType.ENTERED) {
             linkListener.linkEntered(pane, url, e.getDescription(), me);
           } else if (type == HyperlinkEvent.EventType.EXITED) {
@@ -454,12 +484,13 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
     }
   }
 
-/**
- * An HTMLDocument extension
- */
- public static class HTMLDocumentEx extends HTMLDocument {
+
+  /**
+   * An HTMLDocument extension
+   */
+  public static class HTMLDocumentEx extends HTMLDocument {
     HashMap<Element, iContainer> formsMap;
-    ArrayList<ObjectHolder> scriptsList;
+    ArrayList<ObjectHolder>      scriptsList;
 
     /**
      * Creates a new instance
@@ -525,7 +556,8 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
     }
 
     class HTMLReaderEx extends HTMLReader {
-      private boolean inScript=false;
+      private boolean inScript = false;
+
       public HTMLReaderEx(int offset) {
         super(offset);
         registerTag(HTML.Tag.SPAN, new SpecialAction());
@@ -539,33 +571,37 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
       @Override
       public void handleComment(char[] data, int pos) {
         super.handleComment(data, pos);
-        if(inScript && scriptsList!=null && scriptsList.size()>0) {
-          scriptsList.get(scriptsList.size()-1).value=new String(data);
+
+        if (inScript && (scriptsList != null) && (scriptsList.size() > 0)) {
+          scriptsList.get(scriptsList.size() - 1).value = new String(data);
         }
       }
 
       class ScriptAction extends HiddenAction {
-
         @Override
         public void start(Tag t, MutableAttributeSet a) {
-          Object src=a.getAttribute(HTML.Attribute.SRC);
-          Object type=a.getAttribute(HTML.Attribute.TYPE);
-          if(src!=null || type!=null) {
-            if(scriptsList==null) {
-              scriptsList=new ArrayList<ObjectHolder>();
+          Object src  = a.getAttribute(HTML.Attribute.SRC);
+          Object type = a.getAttribute(HTML.Attribute.TYPE);
+
+          if ((src != null) || (type != null)) {
+            if (scriptsList == null) {
+              scriptsList = new ArrayList<ObjectHolder>();
             }
-            scriptsList.add(new ObjectHolder(type,src,src==null ? 1 : 0));
-            inScript=src==null;
+
+            scriptsList.add(new ObjectHolder(type, src, (src == null)
+                    ? 1
+                    : 0));
+            inScript = src == null;
           }
+
           super.start(t, a);
         }
 
         @Override
         public void end(Tag t) {
-          inScript=false;
+          inScript = false;
           super.end(t);
         }
-
       }
     }
   }
@@ -579,45 +615,53 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
    */
   class HTMLFactoryX extends HTMLFactory {
     iContainer spanParent;
-    public javax.swing.text.View create(Element e) {
-      View v = super.create(e); 
-      if(v instanceof InlineView){ 
-          return new InlineView(e){ 
-              public int getBreakWeight(int axis, float pos, float len) { 
-                  return GoodBreakWeight; 
-              } 
-              public View breakView(int axis, int p0, float pos, float len) { 
-                  if(axis == View.X_AXIS) { 
-                      checkPainter(); 
-                      int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len); 
-                      if(p0 == getStartOffset() && p1 == getEndOffset()) { 
-                          return this; 
-                      } 
-                      return createFragment(p0, p1); 
-                  } 
-                  return this; 
-                } 
-            }; 
-      } 
-      else if (v instanceof ParagraphView) { 
-          return new ParagraphView(e) { 
-              protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) { 
-                  if (r == null) { 
-                        r = new SizeRequirements(); 
-                  } 
-                  float pref = layoutPool.getPreferredSpan(axis); 
-                  float min = layoutPool.getMinimumSpan(axis); 
-                  // Don't include insets, Box.getXXXSpan will include them. 
-                    r.minimum = (int)min; 
-                    r.preferred = Math.max(r.minimum, (int) pref); 
-                    r.maximum = Integer.MAX_VALUE; 
-                    r.alignment = 0.5f; 
-                  return r; 
-                } 
 
-            }; 
-        } 
-      return v;       
+    public javax.swing.text.View create(Element e) {
+      View v = super.create(e);
+
+      if (v instanceof InlineView) {
+        return new InlineView(e) {
+          public int getBreakWeight(int axis, float pos, float len) {
+            return GoodBreakWeight;
+          }
+          public View breakView(int axis, int p0, float pos, float len) {
+            if (axis == View.X_AXIS) {
+              checkPainter();
+
+              int p1 = getGlyphPainter().getBoundedPosition(this, p0, pos, len);
+
+              if ((p0 == getStartOffset()) && (p1 == getEndOffset())) {
+                return this;
+              }
+
+              return createFragment(p0, p1);
+            }
+
+            return this;
+          }
+        };
+      } else if (v instanceof ParagraphView) {
+        return new ParagraphView(e) {
+          protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r) {
+            if (r == null) {
+              r = new SizeRequirements();
+            }
+
+            float pref = layoutPool.getPreferredSpan(axis);
+            float min  = layoutPool.getMinimumSpan(axis);
+
+            // Don't include insets, Box.getXXXSpan will include them. 
+            r.minimum   = (int) min;
+            r.preferred = Math.max(r.minimum, (int) pref);
+            r.maximum   = Integer.MAX_VALUE;
+            r.alignment = 0.5f;
+
+            return r;
+          }
+        };
+      }
+
+      return v;
     }
 
 //    public View create(Element elem) {
@@ -695,7 +739,6 @@ public class HTMLEditorKitEx extends HTMLEditorKit {
 //
 //      return super.create(elem);
 //    }
-
     iContainer getParentContainer() {
       if (spanParent != null) {
         return spanParent;

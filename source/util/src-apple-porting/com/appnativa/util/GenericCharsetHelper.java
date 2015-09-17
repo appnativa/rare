@@ -127,6 +127,6 @@ public class GenericCharsetHelper implements iCharsetHelper {
     return false;
   }
   native int nsEncoding() /*-[
-  return [charset_ getEncoding];          
+    return (int)[charset_ getEncoding];          
   ]-*/;
 }

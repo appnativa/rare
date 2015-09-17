@@ -1,18 +1,36 @@
 /*
- * @(#)HTMLDocumentLoader.java   2007-07-10
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.net.iURLConnection;
+import com.appnativa.util.iURLResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+
 import java.net.URLConnection;
+
 import java.util.Locale;
 import java.util.StringTokenizer;
 
@@ -21,10 +39,6 @@ import javax.swing.text.ChangedCharSetException;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.net.iURLConnection;
-import com.appnativa.util.iURLResolver;
 
 /**
  *
@@ -39,9 +53,8 @@ public class HTMLDocumentLoader {
   protected static HTMLEditorKit.Parser parser;
 
   public HTMLDocumentLoader(iURLResolver ur) {
-    kit=new HTMLEditorKitEx(ur);
+    kit = new HTMLEditorKitEx(ur);
   }
-
 
   // Methods that allow customization of the parser and the callback
 
@@ -82,7 +95,6 @@ public class HTMLDocumentLoader {
 
   public HTMLDocument loadDocument(HTMLDocument doc, Reader reader) throws IOException {
     try {
-
       // Remove any document content
       doc.remove(0, doc.getLength());
 
@@ -93,7 +105,6 @@ public class HTMLDocumentLoader {
       htmlReader.flush();
       reader.close();
     } catch(BadLocationException ex) {
-
       // Should not happen - throw an IOException
       throw new IOException(ex.getMessage());
     }
@@ -121,7 +132,6 @@ public class HTMLDocumentLoader {
 
     for (;;) {
       try {
-
         // Remove any document content
         doc.remove(0, doc.getLength());
         in = conn.getInputStream();
@@ -138,14 +148,11 @@ public class HTMLDocumentLoader {
         // All done
         break;
       } catch(BadLocationException ex) {
-
         // Should not happen - throw an IOException
         throw new IOException(ex.getMessage());
       } catch(ChangedCharSetException e) {
-
         // The character set has changed - restart
         charSet = getNewCharSet(e);
-
         // Prevent recursion by suppressing further exceptions
         ignoreCharSet = true;
 
@@ -153,7 +160,6 @@ public class HTMLDocumentLoader {
         if (in != null) {
           in.close();
         }
-
         // Continue the loop to read with the correct encoding
       }
     }
@@ -173,7 +179,6 @@ public class HTMLDocumentLoader {
 
     for (;;) {
       try {
-
         // Remove any document content
         doc.remove(0, doc.getLength());
         in = conn.getInputStream();
@@ -190,14 +195,11 @@ public class HTMLDocumentLoader {
         // All done
         break;
       } catch(BadLocationException ex) {
-
         // Should not happen - throw an IOException
         throw new IOException(ex.getMessage());
       } catch(ChangedCharSetException e) {
-
         // The character set has changed - restart
         charSet = getNewCharSet(e);
-
         // Prevent recursion by suppressing further exceptions
         ignoreCharSet = true;
 
@@ -205,7 +207,6 @@ public class HTMLDocumentLoader {
         if (in != null) {
           in.close();
         }
-
         // Continue the loop to read with the correct encoding
       }
     }
@@ -217,7 +218,6 @@ public class HTMLDocumentLoader {
     String spec = e.getCharSetSpec();
 
     if (e.keyEqualsCharSet()) {
-
       // The event contains the new CharSet
       return spec;
     }

@@ -1,12 +1,31 @@
 /*
- * @(#)UIBackgroundPainter.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.painter;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.iPlatformGraphics;
 
 import java.awt.Color;
 import java.awt.GradientPaint;
@@ -19,21 +38,14 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.UIRectangle;
-import com.appnativa.rare.ui.iPlatformGraphics;
-
 public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneable {
 
   /**
    * default painter that paints the gradient using the component's background
    * color using -45/+45 light adjustment
    */
-  public static final UIBackgroundPainter BGCOLOR_GRADIENT_PAINTER_DK    = new UIBackgroundPainter(null, null,
-                                                                             Direction.VERTICAL_TOP);
+  public static final UIBackgroundPainter BGCOLOR_GRADIENT_PAINTER_DK = new UIBackgroundPainter(null, null,
+                                                                          Direction.VERTICAL_TOP);
 
   /**
    * default painter that paints the gradient using the component's background
@@ -46,32 +58,32 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
    * default painter that paints the gradient using the component's background
    * color using -15/+15 light adjustment
    */
-  public static final UIBackgroundPainter BGCOLOR_GRADIENT_PAINTER_LT    = new UIBackgroundPainter(null, null,
-                                                                             Direction.VERTICAL_TOP);
+  public static final UIBackgroundPainter BGCOLOR_GRADIENT_PAINTER_LT = new UIBackgroundPainter(null, null,
+                                                                          Direction.VERTICAL_TOP);
 
   /**
    * default painter that paints the gradient using the component's background
    * color using -30/+30 light adjustment
    */
-  public static final UIBackgroundPainter BGCOLOR_GRADIENT_PAINTER_MID   = new UIBackgroundPainter(null, null,
-                                                                             Direction.VERTICAL_TOP);
+  public static final UIBackgroundPainter BGCOLOR_GRADIENT_PAINTER_MID = new UIBackgroundPainter(null, null,
+                                                                           Direction.VERTICAL_TOP);
+
   static {
-    BGCOLOR_GRADIENT_PAINTER_DK.bgColorType = BGCOLOR_TYPE.DARK;
+    BGCOLOR_GRADIENT_PAINTER_DK.bgColorType    = BGCOLOR_TYPE.DARK;
     BGCOLOR_GRADIENT_PAINTER_DK_DK.bgColorType = BGCOLOR_TYPE.DARK_DARK;
-    BGCOLOR_GRADIENT_PAINTER_LT.bgColorType = BGCOLOR_TYPE.LITE;
-    BGCOLOR_GRADIENT_PAINTER_MID.bgColorType = BGCOLOR_TYPE.MIDDLE;
+    BGCOLOR_GRADIENT_PAINTER_LT.bgColorType    = BGCOLOR_TYPE.LITE;
+    BGCOLOR_GRADIENT_PAINTER_MID.bgColorType   = BGCOLOR_TYPE.MIDDLE;
   }
 
-  Paint                                   paint;
-  private Rectangle                       drawRect;
-  private GradientPaintEx                 gPaint;
-  private Rectangle                       paintRect;
+  Paint                   paint;
+  private Rectangle       drawRect;
+  private GradientPaintEx gPaint;
+  private Rectangle       paintRect;
 
   /**
    * Creates a background gradient painter
    */
-  public UIBackgroundPainter() {
-  }
+  public UIBackgroundPainter() {}
 
   /**
    * Creates a background gradient painter
@@ -172,36 +184,38 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
 
   public Paint createGradient(float x, float y, float width, float height) {
     UIColor[] colors = getGradientColors(getBackgroundColor());
-    Paint paint;
+    Paint     paint;
+
     try {
       if (gradientType == Type.RADIAL) {
+        float   radius = calculateRadius(width, height);
+        UIPoint p      = calculateRadialCenter(width, height);
 
-        float radius = calculateRadius(width, height);
-        UIPoint p = calculateRadialCenter(width, height);
         paint = new RadialGradientPaint(p.x, p.y, radius, gradientDistribution, colors);
       } else {
         CycleMethod cycleMethod = CycleMethod.NO_CYCLE;
 
-        switch (gradientType) {
-          case LINEAR_REPEAT:
+        switch(gradientType) {
+          case LINEAR_REPEAT :
             cycleMethod = CycleMethod.REPEAT;
 
             break;
 
-          case LINEAR_REFLECT:
+          case LINEAR_REFLECT :
             cycleMethod = CycleMethod.REFLECT;
 
             break;
 
-          default:
+          default :
             break;
         }
 
         UIRectangle r = calculateLinearRect(width, height);
-        paint = new LinearGradientPaint(r.x+x, r.y+y, r.x + r.width+x, r.y + r.height+y, gradientDistribution, colors, cycleMethod);
-      }
 
-    } catch (Exception e) {
+        paint = new LinearGradientPaint(r.x + x, r.y + y, r.x + r.width + x, r.y + r.height + y, gradientDistribution,
+                                        colors, cycleMethod);
+      }
+    } catch(Exception e) {
       Platform.ignoreException("createGradient failed", e);
       paint = colors[0];
     }
@@ -214,8 +228,8 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
     paint = getPaint(x, y, width, height);
 
     Graphics2D g2 = ((SwingGraphics) g).getGraphics();
-    Paint p = g2.getPaint();
-    Object o = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+    Paint      p  = g2.getPaint();
+    Object     o  = g2.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
 
     g2.setPaint(paint);
     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -237,17 +251,18 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
       paintRect.setRect(0, 0, width, height);
 
       if ((gPaint == null) || (drawRect.width != paintRect.width) || (drawRect.height != paintRect.height)) {
-        UIRectangle r = calculateLinearRect(width, height);
-        UIColor[] colors = getGradientColors(getBackgroundColor());
-        boolean cyclic = false;
+        UIRectangle r      = calculateLinearRect(width, height);
+        UIColor[]   colors = getGradientColors(getBackgroundColor());
+        boolean     cyclic = false;
 
-        switch (gradientType) {
-          case LINEAR_REPEAT:
-          case LINEAR_REFLECT:
+        switch(gradientType) {
+          case LINEAR_REPEAT :
+          case LINEAR_REFLECT :
             cyclic = true;
+
             break;
 
-          default:
+          default :
             break;
         }
 
@@ -278,12 +293,14 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
       if (drawRect == null) {
         drawRect = new Rectangle();
       }
+
       if (paintRect == null) {
         paintRect = new Rectangle();
       }
+
       paintRect.setRect(x, y, width, height);
 
-      if ((paint == null) || !paintRect.equals(drawRect)) {
+      if ((paint == null) ||!paintRect.equals(drawRect)) {
         paint = createGradient(x, y, width, height);
         drawRect.setBounds(paintRect);
       }
@@ -302,8 +319,8 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
   @Override
   protected void clearCache() {
     super.clearCache();
-    paint = null;
-    gPaint=null;
+    paint  = null;
+    gPaint = null;
   }
 
   public static class GradientPaintEx extends GradientPaint {
@@ -324,6 +341,5 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
     public GradientPaintEx(Point2D pt1, Color color1, Point2D pt2, Color color2) {
       super(pt1, color1, pt2, color2);
     }
-
   }
 }

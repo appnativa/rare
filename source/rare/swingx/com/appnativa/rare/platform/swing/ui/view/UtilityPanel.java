@@ -1,22 +1,24 @@
 /*
- * @(#)UtilityPanel.java   2009-03-16
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.LayoutManager;
-import java.awt.Rectangle;
-
-import javax.swing.JComponent;
-import javax.swing.Scrollable;
-import javax.swing.border.TitledBorder;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -29,6 +31,16 @@ import com.appnativa.rare.ui.iLayoutManager;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
+
+import javax.swing.JComponent;
+import javax.swing.Scrollable;
+import javax.swing.border.TitledBorder;
+
 /**
  * A general purpose panel
  *
@@ -36,13 +48,13 @@ import com.appnativa.rare.ui.painter.UIComponentPainter;
  * @author Don DeCoteau
  */
 public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable {
-  protected boolean      locked;
+  protected boolean locked;
 
   /** minimum height */
-  protected int          minimumHeight;
+  protected int minimumHeight;
 
   /** minimum width */
-  protected int          minimumWidth;
+  protected int minimumWidth;
 
   /**
    * whether the minimumWidth/minimumHeight values should only be used when the
@@ -121,7 +133,7 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
 
   public void adjustMinimumSize(UIDimension size) {
     if (!useMinimumVarsOnlyWhenEmpty || (getComponentCount() > 0)) {
-      size.width = Math.max(minimumWidth, size.width);
+      size.width  = Math.max(minimumWidth, size.width);
       size.height = Math.max(minimumHeight, size.height);
     }
   }
@@ -189,7 +201,7 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
    *          true to lock; false otherwise
    */
   public void setLockViewSize(boolean lock) {
-    this.lockViewWidth = lock;
+    this.lockViewWidth  = lock;
     this.lockViewHeight = lock;
     this.revalidate();
     this.repaint();
@@ -209,18 +221,24 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
 
   public void setLocked(boolean lock) {
     locked = lock;
+
     if (lock) {
       iPlatformComponent pc = Component.fromView(this);
+
       if (componentPainter == null) {
         pc.setComponentPainter(new UIComponentPainter());
       }
+
       UIColor c = (UIColor) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
+
       if (c == null) {
         c = Platform.getUIDefaults().getColor("Rare.disabledBackgroundColor");
       }
+
       if (c == null) {
         c = ColorUtils.DISABLED_TRANSPARENT_COLOR;
       }
+
       pc.setDisabledColor(c);
     }
 
@@ -325,15 +343,16 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
   @Override
   public void getMinimumSize(UIDimension size) {
     Dimension d = getMinimumSize();
-    size.width = d.width;
+
+    size.width  = d.width;
     size.height = d.height;
   }
 
   @Override
   public void getPreferredSize(UIDimension size, int maxWidth) {
     Dimension d = getPreferredSize();
-    size.width = d.width;
+
+    size.width  = d.width;
     size.height = d.height;
   }
-
 }

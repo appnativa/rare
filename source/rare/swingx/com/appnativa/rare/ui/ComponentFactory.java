@@ -1,47 +1,24 @@
 /*
- * @(#)ComponentFactory.java   2010-07-04
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.net.URL;
-import java.text.ParseException;
-
-import javax.swing.AbstractButton;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.Box;
-import javax.swing.Icon;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JMenuBar;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JToolTip;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.MaskFormatter;
 
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
@@ -98,6 +75,44 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.SNumber;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+
+import java.net.URL;
+
+import java.text.ParseException;
+
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToolTip;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.MaskFormatter;
+
 /**
  * Class hat holds base components
  *
@@ -108,37 +123,33 @@ public class ComponentFactory implements iPlatformComponentFactory {
   /**  */
   public final static ToolTipMouseListener toolTipMouseListener   = new ToolTipMouseListener();
   public static FocusListener              selectAllFocusListener = new FocusListener() {
-                                                                    @Override
-                                                                    public void focusGained(FocusEvent e) {
-                                                                      if (e.getSource() instanceof JTextComponent) {
-                                                                        final JTextComponent tc = (JTextComponent) e.getSource();
+    @Override
+    public void focusGained(FocusEvent e) {
+      if (e.getSource() instanceof JTextComponent) {
+        final JTextComponent tc = (JTextComponent) e.getSource();
 
-                                                                        Platform.invokeLater(new Runnable() {
-                                                                          @Override
-                                                                          public void run() {
-                                                                            tc.selectAll();
-                                                                          }
-                                                                        });
-                                                                      }
-                                                                    }
-
-                                                                    @Override
-                                                                    public void focusLost(FocusEvent e) {
-                                                                    }
-                                                                  };
+        Platform.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            tc.selectAll();
+          }
+        });
+      }
+    }
+    @Override
+    public void focusLost(FocusEvent e) {}
+  };
 
   /**  */
-  protected iPlatformAppContext            appContext;
+  protected iPlatformAppContext appContext;
 
   /**
    * Creates a new instance of ComponentFactory
    */
-  public ComponentFactory() {
-  }
+  public ComponentFactory() {}
 
-  
-  public static Object createToolTipObject(JComponent source, boolean location, Component component, Rectangle cellRect,
-      String text, boolean overlapping, int xOffset) {
+  public static Object createToolTipObject(JComponent source, boolean location, Component component,
+          Rectangle cellRect, String text, boolean overlapping, int xOffset) {
     if ((text == null) || (text.length() == 0)) {
       return null;
     }
@@ -148,10 +159,11 @@ public class ComponentFactory implements iPlatformComponentFactory {
     }
 
     if (component instanceof LabelView) {
-      Rectangle rect = SwingHelper.getToolTipRect((JLabel) component, text, cellRect.width, cellRect.height, overlapping);
+      Rectangle rect = SwingHelper.getToolTipRect((JLabel) component, text, cellRect.width, cellRect.height,
+                         overlapping);
 
-      rect.x += cellRect.x;
-      rect.y += cellRect.y;
+      rect.x   += cellRect.x;
+      rect.y   += cellRect.y;
       cellRect = rect;
 
       if (!cellRect.intersects(source.getBounds())) {
@@ -183,11 +195,15 @@ public class ComponentFactory implements iPlatformComponentFactory {
       if ("{%linkedData}".equals(tip)) {
         Object o = item.getLinkedData();
 
-        tip = (o == null) ? null : o.toString();
+        tip = (o == null)
+              ? null
+              : o.toString();
       } else {
         iWidget w = Platform.findWidgetForComponent(comp);
 
-        tip = (w == null) ? null : w.expandString(tip, false);
+        tip = (w == null)
+              ? null
+              : w.expandString(tip, false);
       }
     }
 
@@ -195,9 +211,8 @@ public class ComponentFactory implements iPlatformComponentFactory {
   }
 
   @Override
-  public void systemAlert(iWidget context, Object message, int displayLocation, iPlatformIcon icon, iActionable actionable,
-      int monitor) {
-  }
+  public void systemAlert(iWidget context, Object message, int displayLocation, iPlatformIcon icon,
+                          iActionable actionable, int monitor) {}
 
   @Override
   public void setAppContext(iPlatformAppContext app) {
@@ -209,8 +224,8 @@ public class ComponentFactory implements iPlatformComponentFactory {
     Object c;
 
     try {
-      String name = cfg.name.getValue();
-      JMenuBar mb = null;
+      String   name = cfg.name.getValue();
+      JMenuBar mb   = null;
 
       if ((context != null) && (context.getDataComponent() instanceof JMenuBar)) {
         mb = (JMenuBar) context.getDataComponent();
@@ -246,14 +261,14 @@ public class ComponentFactory implements iPlatformComponentFactory {
         if ((name == null) || (name.length() == 0)) {
           c = new LabelView(" ");
         } else {
-          URL url = context.getURL(name);
-          iURLConnection conn = context.getAppContext().openConnection(url);
-          ObjectInput stream = new ObjectInputStream(conn.getInputStream());
+          URL            url    = context.getURL(name);
+          iURLConnection conn   = context.getAppContext().openConnection(url);
+          ObjectInput    stream = new ObjectInputStream(conn.getInputStream());
 
           c = stream.readObject();
         }
       }
-    } catch (Throwable ex) {
+    } catch(Throwable ex) {
       if (context.isDesignMode()) {
         ImagePanel p = new ImagePanel(false);
 
@@ -278,50 +293,57 @@ public class ComponentFactory implements iPlatformComponentFactory {
   public AbstractButton getButton(iWidget context, PushButton cfg) {
     ButtonView view;
 
-    switch (cfg.buttonStyle.intValue()) {
-      case PushButton.CButtonStyle.hyperlink:
+    switch(cfg.buttonStyle.intValue()) {
+      case PushButton.CButtonStyle.hyperlink :
         view = new ButtonView();
         view.setUnderlined(true, false);
 
         break;
 
-      case PushButton.CButtonStyle.hyperlink_always_underline:
+      case PushButton.CButtonStyle.hyperlink_always_underline :
         view = new ButtonView();
         view.setUnderlined(true, true);
 
         break;
 
-      case PushButton.CButtonStyle.platform:
+      case PushButton.CButtonStyle.platform :
         view = new ButtonView();
         view.setPlatformButton(true);
 
         break;
 
-      case PushButton.CButtonStyle.toggle:
+      case PushButton.CButtonStyle.toggle :
         ToggleButtonView toggle = new ToggleButtonView();
+
         toggle.setFont(FontUtils.getDefaultFont());
         toggle.setForeground(ColorUtils.getForeground());
+
         return toggle;
 
-      case PushButton.CButtonStyle.toggle_toolbar:
+      case PushButton.CButtonStyle.toggle_toolbar :
         ToggleButtonView toggletb = new ToggleButtonView();
+
         toggletb.setFont(FontUtils.getDefaultFont());
         toggletb.setForeground(ColorUtils.getForeground());
         toggletb.setUI(RareButtonUI.getInstance());
         toggletb.setOpaque(false);
         toggletb.setBorder(null);
+
         return toggletb;
 
-      default:
+      default :
         view = new ButtonView();
+
         if (cfg.actionType.intValue() == PushButton.CActionType.popup_menu) {
           view.setDrawArrow(true);
         }
 
         break;
     }
+
     if (cfg.actionRepeats.booleanValue()) {
       final int delay = SNumber.intValue(cfg.actionRepeats.spot_getAttribute("delay"));
+
       view.setAutoRepeats(delay);
     }
 
@@ -358,15 +380,15 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
   @Override
   public iPlatformTextEditor getDocumentPane(iWidget widget, DocumentPane cfg) {
-    switch (cfg.style.getValue()) {
-      case DocumentPane.CStyle.html_editor:
+    switch(cfg.style.getValue()) {
+      case DocumentPane.CStyle.html_editor :
         if (Platform.isEmbedded()) {
           return new TextPaneEditor(new TextEditor(new ScrollPaneEx()));
         }
 
         return new HTMLTextEditor();
 
-      default:
+      default :
         return new TextPaneEditor(new TextEditor(new ScrollPaneEx()));
     }
   }
@@ -374,6 +396,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
   @Override
   public LabelView getLabel(iWidget context, Label cfg) {
     LabelView view = new LabelView();
+
     return view;
   }
 
@@ -405,7 +428,9 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
   public Object getMenuBarExpander(JMenuBar mb) {
     com.appnativa.rare.ui.Component c = new com.appnativa.rare.ui.Component((JComponent) Box.createGlue());
+
     c.putClientProperty(iConstants.MENU_EXPANSION_NAME, Boolean.TRUE);
+
     return c;
   }
 
@@ -419,7 +444,9 @@ public class ComponentFactory implements iPlatformComponentFactory {
     if (e instanceof MenuItem) {
       UIMenuItem m = MenuUtils.createMenuItem(context, (MenuItem) e);
 
-      return (m == null) ? null : m.getMenuItem();
+      return (m == null)
+             ? null
+             : m.getMenuItem();
     }
 
     return null;
@@ -428,12 +455,15 @@ public class ComponentFactory implements iPlatformComponentFactory {
   @Override
   public JTextField getPasswordTextField(iWidget context, PasswordField cfg) {
     PasswordTextFieldView view = new PasswordTextFieldView();
+
     if (cfg.echoChar.spot_hasValue()) {
       int n = cfg.echoChar.intValue();
-      if (n > 0 && n < 65536) {
+
+      if ((n > 0) && (n < 65536)) {
         view.setEchoChar((char) n);
       }
     }
+
     return view;
   }
 
@@ -442,8 +472,8 @@ public class ComponentFactory implements iPlatformComponentFactory {
     if (cfg.indeterminate.booleanValue() && "true".equals(cfg.indeterminate.spot_getAttribute("useSpinner"))) {
       return new ProgressBarWrapper(PlatformHelper.createLabel(context.getContainerComponent()));
     }
-    return new ProgressBarComponent(new ProgressBarView());
 
+    return new ProgressBarComponent(new ProgressBarView());
   }
 
   @Override
@@ -474,10 +504,12 @@ public class ComponentFactory implements iPlatformComponentFactory {
   @Override
   public TextAreaView getTextArea(iWidget context, TextField cfg) {
     TextAreaView v = new TextAreaView();
+
     if (((TextArea) cfg).wordWrap.booleanValue()) {
       v.setWrapStyleWord(true);
       v.setLineWrap(true);
     }
+
     return v;
   }
 
@@ -535,7 +567,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
     /**
      * Override the stringToValue method to check the blank representation.
-     * 
+     *
      * @param value
      * @return
      * @throws java.text.ParseException
@@ -556,7 +588,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
     /**
      * Sets whether a blank field is allowed; false otherwise
-     * 
+     *
      * @param allowBlankField
      *          true if a blank field is allowed; false otherwise
      */
@@ -566,7 +598,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
     /**
      * Sets the mask
-     * 
+     *
      * @param mask
      *          the mask
      * @throws java.text.ParseException
@@ -579,7 +611,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
     /**
      * Update our blank representation whenever the mask is updated.
-     * 
+     *
      * @param placeholder
      */
     @Override
@@ -590,7 +622,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
     /**
      * Returns if a blank field is allowed; false otherwise
-     * 
+     *
      * @return true if a blank field is allowed; false otherwise
      */
     public boolean isAllowBlankField() {
@@ -603,11 +635,12 @@ public class ComponentFactory implements iPlatformComponentFactory {
         // get the 'blank'
         // representation.
         blankRepresentation = valueToString(null);
-      } catch (ParseException e) {
+      } catch(ParseException e) {
         blankRepresentation = null;
       }
     }
   }
+
 
   /**
    *
@@ -619,7 +652,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     protected Action hideAction;
 
     public ToolTipMouseListener() {
-      JLabel c = new JLabel();
+      JLabel   c        = new JLabel();
       InputMap inputMap = c.getInputMap(JComponent.WHEN_FOCUSED);
 
       inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_CUT, 0), ActionHelper.getCopyAction());
@@ -642,8 +675,8 @@ public class ComponentFactory implements iPlatformComponentFactory {
           unregister(t);
           t.getComponent().putClientProperty("Rare.Tooltip.closeTime", System.currentTimeMillis());
         }
-      } else { // prevent the mouseExited event of the component from hiding the
-               // overlapping tooltip
+      } else {    // prevent the mouseExited event of the component from hiding the
+        // overlapping tooltip
         JToolTip t = (JToolTip) e.getComponent();
 
         t.getComponent().removeMouseListener(ToolTipManager.sharedInstance());
@@ -651,12 +684,11 @@ public class ComponentFactory implements iPlatformComponentFactory {
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-    }
+    public void mouseEntered(MouseEvent e) {}
 
     @Override
     public void mouseExited(MouseEvent e) {
-      JToolTip t = (JToolTip) e.getComponent();
+      JToolTip   t = (JToolTip) e.getComponent();
       JComponent c = t.getComponent();
 
       if (hideAction != null) {
@@ -665,8 +697,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     }
 
     @Override
-    public void mouseMoved(MouseEvent e) {
-    }
+    public void mouseMoved(MouseEvent e) {}
 
     /**
      * {@inheritDoc}
@@ -686,14 +717,14 @@ public class ComponentFactory implements iPlatformComponentFactory {
           Point p = e.getPoint();
 
           p = SwingUtilities.convertPoint(e.getComponent(), p, comp);
-          e = new MouseEvent(comp, e.getID(), e.getWhen(), e.getModifiers() | e.getModifiersEx(), p.x, p.y, e.getClickCount(),
-              e.isPopupTrigger());
+          e = new MouseEvent(comp, e.getID(), e.getWhen(), e.getModifiers() | e.getModifiersEx(), p.x, p.y,
+                             e.getClickCount(), e.isPopupTrigger());
           comp.dispatchEvent(e);
-          e = new MouseEvent(comp, MouseEvent.MOUSE_RELEASED, e.getWhen(), e.getModifiers() | e.getModifiersEx(), p.x, p.y,
-              e.getClickCount(), e.isPopupTrigger());
+          e = new MouseEvent(comp, MouseEvent.MOUSE_RELEASED, e.getWhen(), e.getModifiers() | e.getModifiersEx(), p.x,
+                             p.y, e.getClickCount(), e.isPopupTrigger());
           comp.dispatchEvent(e);
-          e = new MouseEvent(comp, MouseEvent.MOUSE_CLICKED, e.getWhen(), e.getModifiers() | e.getModifiersEx(), p.x, p.y,
-              e.getClickCount(), e.isPopupTrigger());
+          e = new MouseEvent(comp, MouseEvent.MOUSE_CLICKED, e.getWhen(), e.getModifiers() | e.getModifiersEx(), p.x,
+                             p.y, e.getClickCount(), e.isPopupTrigger());
           comp.dispatchEvent(e);
         }
       }
@@ -726,11 +757,13 @@ public class ComponentFactory implements iPlatformComponentFactory {
     }
   }
 
+
   @Override
   public TableView getTable(iWidget context, Table cfg) {
     if (cfg instanceof TreeTable) {
       return new TreeTableView();
     }
+
     return new TableView();
   }
 }

@@ -196,14 +196,14 @@ public class Html {
       next = text.nextSpanTransition(i, end, QuoteSpan.class);
 
       QuoteSpan[] quotes = text.getSpans(i, next, QuoteSpan.class);
-
-      for (QuoteSpan quote : quotes) {
+      int len=quotes.length;
+      for (int n=0;n<len;n++) {
         out.append("<blockquote>");
       }
 
       withinBlockquote(out, text, i, next);
 
-      for (QuoteSpan quote : quotes) {
+      for (int n=0;n<len;n++) {
         out.append("</blockquote>\n");
       }
     }

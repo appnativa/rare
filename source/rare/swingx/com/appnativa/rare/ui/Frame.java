@@ -1,29 +1,29 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright appNativa Inc. All Rights Reserved.
+ *
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Dialog.ModalityType;
-import java.awt.Window;
-import java.awt.event.WindowListener;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import javax.swing.RootPaneContainer;
-
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.JDialogEx;
@@ -45,6 +45,22 @@ import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.SNumber;
+
+import java.awt.BorderLayout;
+import java.awt.Dialog.ModalityType;
+import java.awt.Window;
+import java.awt.event.WindowListener;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.RootPaneContainer;
 
 /**
  *
@@ -75,8 +91,8 @@ public class Frame extends Container implements iWindow, WindowListener {
 
   public Frame(iPlatformAppContext app, Window win, RootPaneContainer rpc) {
     super(rpc.getRootPane());
-    this.window = win;
-    appContext = app;
+    this.window       = win;
+    appContext        = app;
     rootPaneContainer = rpc;
     rpc.getRootPane().putClientProperty("apple.awt.draggableWindowBackground", Boolean.FALSE);
     win.addWindowListener(this);
@@ -129,8 +145,7 @@ public class Frame extends Container implements iWindow, WindowListener {
     if (w != null) {
       try {
         w.removeWindowListener(this);
-      } catch (Exception ignore) {
-      }
+      } catch(Exception ignore) {}
 
       if (disposeOfNativeWindow) {
         w.dispose();
@@ -161,14 +176,14 @@ public class Frame extends Container implements iWindow, WindowListener {
         super.disposeEx();
       }
 
-      titleWidget = null;
+      titleWidget   = null;
       toolbarHolder = null;
-      statusBar = null;
-      window = null;
-      windowViewer = null;
-      menuBar = null;
-      target = null;
-      appContext = null;
+      statusBar     = null;
+      window        = null;
+      windowViewer  = null;
+      menuBar       = null;
+      target        = null;
+      appContext    = null;
     }
   }
 
@@ -192,17 +207,22 @@ public class Frame extends Container implements iWindow, WindowListener {
     if (rect == null) {
       rect = new UIRectangle();
     }
+
     if (rootPaneContainer.getRootPane() instanceof JRootPaneEx) {
       int h;
+
       ((JRootPaneEx) rootPaneContainer.getRootPane()).getInnerBounds(rect);
-      if (toolbarHolder != null && toolbarHolder.getComponent().isVisible()) {
+
+      if ((toolbarHolder != null) && toolbarHolder.getComponent().isVisible()) {
         rect.height -= h = toolbarHolder.getComponent().getHeight();
-        rect.y += h;
+        rect.y      += h;
       }
-      if (statusBar != null && statusBar.getComponent().isVisible()) {
+
+      if ((statusBar != null) && statusBar.getComponent().isVisible()) {
         rect.height -= h = statusBar.getComponent().getHeight();
-        rect.y += h;
+        rect.y      += h;
       }
+
       return rect;
     } else {
       return super.getInnerBounds(rect);
@@ -212,11 +232,14 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public UIDimension getInnerSize(UIDimension size) {
     UIRectangle rect = getInnerBounds(null);
+
     if (size == null) {
       size = new UIDimension();
     }
-    size.width = UIScreen.snapToSize(rect.width);
+
+    size.width  = UIScreen.snapToSize(rect.width);
     size.height = UIScreen.snapToSize(rect.height);
+
     return size;
   }
 
@@ -261,7 +284,9 @@ public class Frame extends Container implements iWindow, WindowListener {
 
   @Override
   public String getTargetName() {
-    return (target == null) ? null : target.getName();
+    return (target == null)
+           ? null
+           : target.getName();
   }
 
   @Override
@@ -291,7 +316,9 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   private aWidgetListener getWidgetListener() {
-    return (windowViewer == null) ? null : windowViewer.getWidgetListener();
+    return (windowViewer == null)
+           ? null
+           : windowViewer.getWidgetListener();
   }
 
   public WindowViewer getWindowViewer() {
@@ -308,7 +335,9 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   public boolean isClosingAllowed() {
-    return (windowViewer == null) ? true : windowViewer.isClosingAllowed();
+    return (windowViewer == null)
+           ? true
+           : windowViewer.isClosingAllowed();
   }
 
   public boolean isDialog() {
@@ -358,7 +387,9 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public void removeAll() {
     iParentComponent pc = (iParentComponent) Component.fromView((JComponent) rootPaneContainer.getContentPane());
+
     pc.removeAll();
+
     if (overlayContainer != null) {
       overlayContainer.dispose();
       overlayContainer = null;
@@ -366,7 +397,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   public void removeOverlay(iPlatformComponent c) {
-    if (c != null && overlayContainer != null) {
+    if ((c != null) && (overlayContainer != null)) {
       overlayContainer.removeOverlay(c);
     }
   }
@@ -432,7 +463,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public iPlatformMenuBar setMenuBar(iPlatformMenuBar mb) {
     iPlatformMenuBar omb = menuBar;
-    JRootPane rp = rootPaneContainer.getRootPane();
+    JRootPane        rp  = rootPaneContainer.getRootPane();
 
     if (rp instanceof JRootPaneEx) {
       if (omb != null) {
@@ -451,7 +482,9 @@ public class Frame extends Container implements iWindow, WindowListener {
         }
       }
     } else {
-      JComponent jm = (mb == null) ? null : mb.getContainerComponent().getView();
+      JComponent jm = (mb == null)
+                      ? null
+                      : mb.getContainerComponent().getView();
 
       setMenuOrToolBarComponent(jm, true);
     }
@@ -466,7 +499,9 @@ public class Frame extends Container implements iWindow, WindowListener {
       if (menuToolbarPanel != null) {
         BorderLayout bl = ((BorderLayout) menuToolbarPanel.getLayout());
 
-        c = (JComponent) bl.getLayoutComponent(menu ? BorderLayout.BEFORE_FIRST_LINE : BorderLayout.CENTER);
+        c = (JComponent) bl.getLayoutComponent(menu
+                ? BorderLayout.BEFORE_FIRST_LINE
+                : BorderLayout.CENTER);
 
         if (c != null) {
           menuToolbarPanel.remove(c);
@@ -487,14 +522,11 @@ public class Frame extends Container implements iWindow, WindowListener {
     }
   }
 
-  public void setMovable(boolean movable) {
-  }
+  public void setMovable(boolean movable) {}
 
-  public void setPartialLocation(UIPoint uiPoint) {
-  }
+  public void setPartialLocation(UIPoint uiPoint) {}
 
-  public void setPartialSize(UIDimension uiDimension) {
-  }
+  public void setPartialSize(UIDimension uiDimension) {}
 
   @Override
   public void setResizable(boolean resizable) {
@@ -517,12 +549,15 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public iStatusBar setStatusBar(iStatusBar sb) {
     iStatusBar osb = statusBar;
+
     statusBar = sb;
 
     if (rootPaneContainer.getRootPane() instanceof JRootPaneEx) {
       BorderPanel bp = (BorderPanel) Component.fromView((JComponent) rootPaneContainer.getContentPane());
 
-      bp.setBottomView((sb == null) ? null : sb.getComponent());
+      bp.setBottomView((sb == null)
+                       ? null
+                       : sb.getComponent());
     }
 
     return osb;
@@ -544,8 +579,10 @@ public class Frame extends Container implements iWindow, WindowListener {
   public void setTitleWidget(iWidget widget) {
     titleWidget = widget;
 
-    JComponent c = (widget == null) ? null : widget.getContainerComponent().getView();
-    JRootPane rp = rootPaneContainer.getRootPane();
+    JComponent c  = (widget == null)
+                    ? null
+                    : widget.getContainerComponent().getView();
+    JRootPane  rp = rootPaneContainer.getRootPane();
 
     if (rp instanceof JRootPaneEx) {
       ((JRootPaneEx) rp).setTitlePane(c);
@@ -559,9 +596,13 @@ public class Frame extends Container implements iWindow, WindowListener {
     if (rootPaneContainer.getRootPane() instanceof JRootPaneEx) {
       BorderPanel bp = (BorderPanel) Component.fromView((JComponent) rootPaneContainer.getContentPane());
 
-      bp.setTopView((tbh == null) ? null : tbh.getComponent());
+      bp.setTopView((tbh == null)
+                    ? null
+                    : tbh.getComponent());
     } else {
-      JComponent c = (tbh == null) ? null : tbh.getComponent().getView();
+      JComponent c = (tbh == null)
+                     ? null
+                     : tbh.getComponent().getView();
 
       setMenuOrToolBarComponent(c, false);
     }
@@ -576,9 +617,9 @@ public class Frame extends Container implements iWindow, WindowListener {
       parent = appContext.getWindowViewer();
     }
 
-    Frame main = (Frame) appContext.getWindowManager().getMainWindow().getComponent();
+    Frame              main          = (Frame) appContext.getWindowManager().getMainWindow().getComponent();
     iPlatformComponent mainComponent = main.getComponent();
-    iScriptHandler sh = parent.getScriptHandler();
+    iScriptHandler     sh            = parent.getScriptHandler();
 
     windowViewer = new WindowViewer(appContext, target.getName(), this, parent, sh);
     sh.setScriptingContext(windowViewer, null, null, null, true);
@@ -603,7 +644,7 @@ public class Frame extends Container implements iWindow, WindowListener {
       return;
     }
 
-    Object o = options.get("cpborder");
+    Object          o = options.get("cpborder");
     iPlatformBorder b = null;
 
     if (o instanceof iPlatformBorder) {
@@ -614,7 +655,6 @@ public class Frame extends Container implements iWindow, WindowListener {
 
         if (b != null) {
           setBorder(b);
-
           // if ("true".equalsIgnoreCase((String)
           // options.get("useborderforsizing"))) {
           // WindowAdapter.makeWindowResizable(theWindow);
@@ -632,7 +672,7 @@ public class Frame extends Container implements iWindow, WindowListener {
         StatusBar sb = null;
 
         if (SNumber.booleanValue((String) options.get("resizable"))
-            && !"false".equalsIgnoreCase((String) options.get("resizeCorner"))) {
+            &&!"false".equalsIgnoreCase((String) options.get("resizeCorner"))) {
           sb = new StatusBar();
           sb.showMemoryUsage.setValue(false);
           sb.showInsertOverwrite.setValue(false);
@@ -657,6 +697,7 @@ public class Frame extends Container implements iWindow, WindowListener {
     if (map != null) {
       windowViewer.setWidgetListener(new WidgetListener(windowViewer, map, windowViewer.getScriptHandler()));
     }
+
     Utils.setupWindowOptions(this, map);
   }
 
@@ -682,6 +723,7 @@ public class Frame extends Container implements iWindow, WindowListener {
 
         if (!locationSet) {
           WindowViewer top = Platform.getWindowViewer();
+
           if (top == windowViewer) {
             ScreenUtils.centerOnScreen(this);
           } else {
@@ -805,7 +847,6 @@ public class Frame extends Container implements iWindow, WindowListener {
     if ((listenerList != null) && listenerList.hasListeners(iWindowListener.class)) {
       Utils.fireWindowEvent(listenerList, new WindowEvent(this, WindowEvent.Type.Opened));
     }
-
   }
 
   public static Frame create(iWidget context, String title, String target, boolean modal, boolean decorated) {
@@ -822,13 +863,13 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   public static Frame createFromOptions(iWidget context, String targetName, Map options) {
-    iPlatformAppContext app = context.getAppContext();
-    boolean modal = true;
-    boolean dialog = false;
-    boolean popup = false;
-    String type = "frame";
-    Object o;
-    WindowViewer parentv = Platform.getWindowViewer(context);
+    iPlatformAppContext app    = context.getAppContext();
+    boolean             modal  = true;
+    boolean             dialog = false;
+    boolean             popup  = false;
+    String              type   = "frame";
+    Object              o;
+    WindowViewer        parentv = Platform.getWindowViewer(context);
 
     if (parentv == null) {
       parentv = (WindowViewer) Platform.getWindowViewer().getTop();
@@ -858,7 +899,7 @@ public class Frame extends Container implements iWindow, WindowListener {
       o = app.getUIDefaults().get("Rare.emulateMainWindow");
     }
 
-    boolean emulate = ((o == Boolean.TRUE) || "true".equals(o));
+    boolean emulate     = ((o == Boolean.TRUE) || "true".equals(o));
     boolean undecorated = false;
     boolean transparent = false;
 
@@ -884,7 +925,9 @@ public class Frame extends Container implements iWindow, WindowListener {
     if (type.equalsIgnoreCase("dialog")) {
       dialog = true;
 
-      JDialog d = new JDialogEx(parent, modal ? ModalityType.APPLICATION_MODAL : ModalityType.MODELESS);
+      JDialog d = new JDialogEx(parent, modal
+                                        ? ModalityType.APPLICATION_MODAL
+                                        : ModalityType.MODELESS);
 
       d.setBackground(ColorUtils.getBackground());
       d.setUndecorated(undecorated);
@@ -895,7 +938,7 @@ public class Frame extends Container implements iWindow, WindowListener {
         d.setBackground(ColorUtils.getBackground());
       }
 
-      win = d;
+      win   = d;
       popup = true;
     } else if (type.equalsIgnoreCase("popup")) {
       PopupWindow p = new PopupWindow(parent, context);
@@ -908,7 +951,7 @@ public class Frame extends Container implements iWindow, WindowListener {
         p.setModal(true);
       }
 
-      win = p;
+      win   = p;
       popup = true;
     } else if (type.equalsIgnoreCase("popup_orphan")) {
       PopupWindow p = new PopupWindow(context);
@@ -944,8 +987,8 @@ public class Frame extends Container implements iWindow, WindowListener {
 
     frame.target = new WindowTarget(app, targetName, frame);
     frame.dialog = dialog;
-    frame.popup = popup;
-    frame.modal = modal;
+    frame.popup  = popup;
+    frame.modal  = modal;
     frame.setupWindow(parentv, options, emulate);
 
     return frame;
@@ -954,15 +997,18 @@ public class Frame extends Container implements iWindow, WindowListener {
   OverlayContainer getOverlayContainer() {
     if (overlayContainer == null) {
       iParentComponent pc = (iParentComponent) Component.fromView((JComponent) rootPaneContainer.getContentPane());
+
       if (pc instanceof BorderPanel) {
-        BorderPanel p = (BorderPanel) pc;
+        BorderPanel        p  = (BorderPanel) pc;
         iPlatformComponent oc = p.getCenterView();
+
         overlayContainer = new OverlayContainer(oc);
         p.setCenterView(overlayContainer);
       } else {
         throw new ApplicationException("cannot add overlay to curent window content pane");
       }
     }
+
     return overlayContainer;
   }
 }

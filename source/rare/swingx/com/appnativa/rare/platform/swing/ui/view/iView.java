@@ -1,13 +1,35 @@
-package com.appnativa.rare.platform.swing.ui.view;
+/*
+ * Copyright appNativa Inc. All Rights Reserved.
+ *
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
 
-import java.awt.geom.AffineTransform;
+package com.appnativa.rare.platform.swing.ui.view;
 
 import com.appnativa.rare.ui.UIDimension;
 
+import java.awt.geom.AffineTransform;
+
 public interface iView {
-	public void getMinimumSize(UIDimension size);
-	public void getPreferredSize(UIDimension size,int maxWidth);
-	public AffineTransform getTransformEx();
-	public void setTransformEx(AffineTransform tx);
-	
+  public void getMinimumSize(UIDimension size);
+
+  public void getPreferredSize(UIDimension size, int maxWidth);
+
+  public AffineTransform getTransformEx();
+
+  public void setTransformEx(AffineTransform tx);
 }

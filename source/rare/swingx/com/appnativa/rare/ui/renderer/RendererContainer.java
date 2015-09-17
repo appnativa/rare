@@ -1,9 +1,21 @@
 /*
- * @(#)RendererContainer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.renderer;
@@ -30,11 +42,14 @@ public class RendererContainer extends aRendererContainer {
       ((ListRowContainer) view).setContentView(rc.getComponent().getView());
     }
   }
+
   @Override
   protected void getMinimumSizeEx(UIDimension size) {
     super.getMinimumSizeEx(size);
+
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-    if (i != null && i.intValue() > size.height) {
+
+    if ((i != null) && (i.intValue() > size.height)) {
       size.height = i.intValue();
     }
   }
@@ -42,8 +57,10 @@ public class RendererContainer extends aRendererContainer {
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     super.getPreferredSizeEx(size, maxWidth);
+
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-    if (i != null && i.intValue() > size.height) {
+
+    if ((i != null) && (i.intValue() > size.height)) {
       size.height = i.intValue();
     }
   }
@@ -58,4 +75,4 @@ public class RendererContainer extends aRendererContainer {
   public void setComponentPainter(iPlatformComponentPainter cp) {
     setComponentPainterEx(cp);
   }
- }
+}

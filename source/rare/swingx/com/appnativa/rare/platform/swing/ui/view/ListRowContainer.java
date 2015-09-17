@@ -1,19 +1,24 @@
 /*
- * @(#)ListRowContainer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Rectangle;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.Component;
@@ -21,15 +26,22 @@ import com.appnativa.rare.ui.PainterUtils.GripperIcon;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iListView.EditingMode;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.effects.ValueRangeAnimator;
 import com.appnativa.rare.ui.effects.iAnimatorListener;
 import com.appnativa.rare.ui.effects.iAnimatorValueListener;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.iListView.EditingMode;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+import javax.swing.JComponent;
 
 public class ListRowContainer extends JPanelEx {
   int                                 editorX = 0;
@@ -54,7 +66,7 @@ public class ListRowContainer extends JPanelEx {
   private int                         animateX;
   private int                         contentViewPrefWidth;
   private int                         position;
-  int measuringMaxWidth;
+  int                                 measuringMaxWidth;
 
   public ListRowContainer(ListView parent) {
     super();
@@ -82,8 +94,7 @@ public class ListRowContainer extends JPanelEx {
     this.checked       = checked;
     this.animateX      = animateX;
     this.draggableIcon = ic;
-
-    animator             = null;
+    animator           = null;
     setContentView(content);
   }
 
@@ -107,9 +118,9 @@ public class ListRowContainer extends JPanelEx {
 
     addEditingComponent(c);
 
-    float         width  = getWidth();
-    float         height = getHeight();
-    float         w;
+    float       width  = getWidth();
+    float       height = getHeight();
+    float       w;
     UIDimension d = editingComponent.getPreferredSize();
 
     w = d.width;
@@ -127,7 +138,7 @@ public class ListRowContainer extends JPanelEx {
     if (animate) {
       animateDeleteButton(true);
     } else {
-      editorX = (int)Math.ceil(w);
+      editorX = (int) Math.ceil(w);
     }
   }
 
@@ -144,10 +155,11 @@ public class ListRowContainer extends JPanelEx {
   public void setBounds(int x, int y, int width, int height) {
     super.setBounds(x, y, width, height);
 
-    if (height > 0 && contentView!=null) {
-
+    if ((height > 0) && (contentView != null)) {
       x = contentViewX;
-      int cw=width-x;
+
+      int cw = width - x;
+
       if (editingComponent != null) {
         UIDimension d = editingComponent.getSize();
         int         w = d.intWidth();
@@ -166,12 +178,16 @@ public class ListRowContainer extends JPanelEx {
           x -= editorX;
         }
       }
-      cw-=animateX;
+
+      cw -= animateX;
+
       if ((draggableIcon != null) && editing) {
-        int w = draggableIcon.getIconWidth()+animateX;
+        int w = draggableIcon.getIconWidth() + animateX;
+
         cw -= w;
         cw -= ScreenUtils.PLATFORM_PIXELS_8;
       }
+
       Component.fromView(contentView).setBounds(x + animateX, 0, cw, height);
     }
   }
@@ -246,31 +262,34 @@ public class ListRowContainer extends JPanelEx {
   public iPlatformIcon getDraggableIcon() {
     return draggableIcon;
   }
+
   @Override
   public Dimension getPreferredSize() {
     Dimension d = super.getPreferredSize();
-    if(measuringMaxWidth>0) {
-      d.width=measuringMaxWidth;
+
+    if (measuringMaxWidth > 0) {
+      d.width = measuringMaxWidth;
     }
-    d.height+=8;
+
+    d.height += 8;
 
     return d;
   }
 
   @Override
   public void getPreferredSize(UIDimension size, int maxWidth) {
-    int count     = getComponentCount();
+    int   count     = getComponentCount();
     float maxHeight = 0;
 
     maxWidth = 0;
-    
+
     for (int i = 0; i < count; i++) {
       JComponent child = (JComponent) getComponent(i);
 
       if (child.isVisible()) {
         iPlatformComponent pc = Component.fromView(child);
 
-        pc.getPreferredSize(size,measuringMaxWidth);
+        pc.getPreferredSize(size, measuringMaxWidth);
         maxWidth  += size.width;
         maxHeight = Math.max(maxHeight, size.height);
 
@@ -283,7 +302,7 @@ public class ListRowContainer extends JPanelEx {
     maxWidth    += contentViewX;
     maxHeight   = Math.max(maxHeight, maxIconHeight);
     size.width  = maxWidth;
-    size.height = maxHeight+2;
+    size.height = maxHeight + 2;
   }
 
   public iPlatformIcon getUncheckedIcon() {

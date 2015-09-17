@@ -1,17 +1,24 @@
 /*
- * @(#)UILabelRenderer.java   2012-02-08
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.renderer;
-
-import java.beans.PropertyChangeEvent;
-import java.util.Map;
-
-import javax.swing.JLabel;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
@@ -25,12 +32,18 @@ import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.border.UICompoundBorder;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+
+import java.beans.PropertyChangeEvent;
+
+import java.util.Map;
+
+import javax.swing.JLabel;
 
 /**
  * A renderer that displays text and an associated icon. A platform label
@@ -59,15 +72,17 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   }
 
   public void prepareForReuse(int row, int column) {
-    componentPainter=null;
+    componentPainter = null;
     view.setOpaque(false);
   }
 
   @Override
   protected void getMinimumSizeEx(UIDimension size) {
     super.getMinimumSizeEx(size);
+
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-    if (i != null && i.intValue() > size.height) {
+
+    if ((i != null) && (i.intValue() > size.height)) {
       size.height = i.intValue();
     }
   }
@@ -75,15 +90,16 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     super.getPreferredSizeEx(size, maxWidth);
+
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-    if (i != null && i.intValue() > size.height) {
+
+    if ((i != null) && (i.intValue() > size.height)) {
       size.height = i.intValue();
     }
   }
 
   @Override
-  public void propertyChange(PropertyChangeEvent pce) {
-  }
+  public void propertyChange(PropertyChangeEvent pce) {}
 
   @Override
   public void clearRenderer() {
@@ -112,7 +128,9 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
       super.setComponentPainter(null);
     }
 
-    view.setBackground(bg == null ? null : bg);
+    view.setBackground((bg == null)
+                       ? null
+                       : bg);
   }
 
   public void setColumnWidth(int width) {
@@ -147,12 +165,10 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   }
 
   @Override
-  public void setOptions(Map<String, Object> options) {
-  }
+  public void setOptions(Map<String, Object> options) {}
 
   @Override
-  public void setOrientation(Orientation o) {
-  }
+  public void setOrientation(Orientation o) {}
 
   @Override
   public iPlatformComponent getComponent() {
@@ -163,13 +179,15 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   public iPlatformComponent getComponent(CharSequence value, RenderableDataItem item) {
     final JLabel tv = (JLabel) view;
 
-    tv.setText((value == null) ? "" : value.toString());
+    tv.setText((value == null)
+               ? ""
+               : value.toString());
 
     return this;
   }
 
   public iPlatformComponent getComponent(iPlatformComponent list, CharSequence value, RenderableDataItem item, int row,
-      boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
+          boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
     if (handleAll) {
       Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, false, null);
       setBorder(item.getBorder());
@@ -196,7 +214,7 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
 
   @Override
   public iPlatformComponent getComponent(iPlatformComponent list, Object value, RenderableDataItem item, int row,
-      boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
+          boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
     return this;
   }
 

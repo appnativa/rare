@@ -21,28 +21,30 @@
 package com.appnativa.rare.net;
 
 import com.appnativa.rare.iConstants;
+import com.appnativa.util.ASCII85InputStream;
+import com.appnativa.util.Base64;
 import com.appnativa.util.ByteArray;
 import com.appnativa.util.CharScanner;
+import com.appnativa.util.Streams;
 import com.appnativa.util.io.BufferedReaderEx;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-
 import java.util.List;
 import java.util.Map;
 
 /**
  *
  *
- * @version    0.3, 2007-05-14
- * @author     Don DeCoteau
+ * @version 0.3, 2007-05-14
+ * @author Don DeCoteau
  */
 public class InlineURLConnection extends URLConnection implements iURLConnection {
   private String defaultCharset = "ISO-8859-1";
@@ -54,7 +56,8 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
   /**
    * Constructs a new instance
    *
-   * @param url the URL
+   * @param url
+   *          the URL
    */
   public InlineURLConnection(URL url) {
     this(url, null);
@@ -63,7 +66,8 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
   /**
    * Constructs a new instance
    *
-   * @param url the URL
+   * @param url
+   *          the URL
    */
   public InlineURLConnection(URL url, String mime) {
     super(url);
@@ -71,11 +75,9 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
 
     if (inlineData == null) {
       final String s = url.getFile();
-      final int    n = s.indexOf('#');
+      final int n = s.indexOf('#');
 
-      inlineData = (n == -1)
-                   ? ""
-                   : s.substring(n + 1);
+      inlineData = (n == -1) ? "" : s.substring(n + 1);
 
       int p = s.indexOf('~');
 
@@ -93,7 +95,7 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
     } else {
       final String s = url.getFile();
 
-      mimeType        = CharScanner.getPiece(s, '~', 1);
+      mimeType = CharScanner.getPiece(s, '~', 1);
       contentEncoding = CharScanner.getPiece(s, '~', 2);
     }
 
@@ -113,33 +115,60 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
   /**
    * Constructs a new instance
    *
-   * @param url the URL
-   * @param data the data
-   * @param mime the MIME type
-   * @param enc the the content encoding
+   * @param url
+   *          the URL
+   * @param data
+   *          the data
+   * @param mime
+   *          the MIME type
+   * @param enc
+   *          the the content encoding
    */
   public InlineURLConnection(URL url, String data, String mime, String enc) {
     super(url);
-    inlineData      = data;
-    mimeType        = mime;
+    inlineData = data;
+    mimeType = mime;
     contentEncoding = enc;
-    charSet         = JavaURLConnection.getCharset(mimeType, "ISO-8859-1");
+    charSet = JavaURLConnection.getCharset(mimeType, "ISO-8859-1");
   }
 
   @Override
-  public void close() {}
+  public void close() {
+  }
 
   @Override
-  public void connect() throws IOException {}
+  public void connect() throws IOException {
+  }
 
   public static URL createURL(String data, String mimeType, String enc) throws MalformedURLException {
     return NetHelper.createInlineURL(data, mimeType, enc);
   }
 
-  public void disconnect() {}
+  public static URL createURL(String hier_part) throws MalformedURLException {
+    try {
+      int n = hier_part.indexOf(',');
+      String data = hier_part.substring(n + 1);
+      int p = hier_part.indexOf(';');
+      String enc = p == -1 ? null : hier_part.substring(p + 1, n);
+      if (p == -1) {
+        p = n;
+      }
+      String mimeType = hier_part.substring(0, p);
+      if (mimeType.length() == 0) {
+        mimeType = "application/x-www-form-urlencoded";
+      }
+      return NetHelper.createInlineURL(data, mimeType, enc);
+    } catch (Exception e) {
+      throw new MalformedURLException(hier_part);
+    }
+  }
+
+  public void disconnect() {
+  }
 
   @Override
-  public void dispose() {}
+  public void dispose() {
+  }
 
   @Override
   public boolean exist() {
@@ -152,13 +181,14 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
   }
 
   public static String toExternalForm(URL url) {
-    StringBuilder       sb = new StringBuilder(iConstants.INLINE_PREFIX);
+    StringBuilder sb = new StringBuilder(iConstants.INLINE_PREFIX);
     InlineURLConnection ic = null;
 
     if (NetHelper.hasStreamHandlerPermission()) {
       try {
         ic = (InlineURLConnection) url.openConnection();
-      } catch(Exception e) {}
+      } catch (Exception e) {
+      }
     }
 
     if (ic == null) {
@@ -177,7 +207,7 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
 
     try {
       URLEncoder.encode(ic.inlineData, ic.getCharset(), sb);
-    } catch(UnsupportedEncodingException ex) {
+    } catch (UnsupportedEncodingException ex) {
       sb.append(ic.inlineData);
     }
 
@@ -209,17 +239,21 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
    * Gets a byte array for the associated queryString
    *
    * @return a byte array for the associated queryString
-   * @throws java.io.UnsupportedEncodingException
+   * @throws java.io.IOException
    */
-  public ByteArray getByteArray() throws UnsupportedEncodingException {
-    return new ByteArray(inlineData.getBytes(getCharset()));
+  public ByteArray getByteArray() throws IOException {
+    InputStream in=getInputStream();
+    if(in instanceof ByteArray) {
+      return (ByteArray)in;
+    }
+    ByteArray ba=new ByteArray(inlineData.length());
+    Streams.streamToBytes(in, ba);
+    return ba;
   }
 
   @Override
   public String getCharset() {
-    return (charSet != null)
-           ? charSet
-           : defaultCharset;
+    return (charSet != null) ? charSet : defaultCharset;
   }
 
   @Override
@@ -265,14 +299,27 @@ public class InlineURLConnection extends URLConnection implements iURLConnection
 
   @Override
   public InputStream getInputStream() throws IOException {
-    return new ByteArray(inlineData.getBytes(getCharset()));
+    byte[] bytes = null;
+    if (contentEncoding != null) {
+      if (contentEncoding.equals("base64")) {
+        bytes = Base64.decode(inlineData);
+      } else if (contentEncoding.equalsIgnoreCase("base85") || contentEncoding.equalsIgnoreCase("ascii85")) {
+        bytes = inlineData.getBytes("US-ASCII");
+        return new ASCII85InputStream(new ByteArray(bytes));
+      }
+    }
+    if (bytes == null) {
+      bytes = inlineData.getBytes(getCharset());
+    }
+    return new ByteArray(bytes);
   }
 
   @Override
   public Reader getReader() throws IOException {
-    return new BufferedReaderEx(new StringReader(inlineData), (inlineData.length() == 0)
-            ? 1
-            : inlineData.length());
+    if (contentEncoding != null) {
+      return new BufferedReaderEx(new InputStreamReader(getInputStream(), getCharset()));
+    }
+    return new BufferedReaderEx(new StringReader(inlineData), (inlineData.length() == 0) ? 1 : inlineData.length());
   }
 
   @Override

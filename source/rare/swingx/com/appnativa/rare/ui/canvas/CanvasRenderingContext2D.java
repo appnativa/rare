@@ -1,12 +1,34 @@
 /*
- * @(#)CanvasRenderingContext2D.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.canvas;
+
+import com.appnativa.rare.platform.swing.ui.util.Java2DUtils;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingPaint;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIImage;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformGraphics;
+import com.appnativa.rare.ui.iPlatformPaint;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -21,19 +43,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-
-import com.appnativa.rare.platform.swing.ui.util.Java2DUtils;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingPaint;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIImage;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformGraphics;
-import com.appnativa.rare.ui.iPlatformPaint;
 
 public class CanvasRenderingContext2D extends aCanvasRenderingContext2D {
   SwingGraphics graphics;
@@ -208,11 +221,12 @@ public class CanvasRenderingContext2D extends aCanvasRenderingContext2D {
   public static class CanvasPattern implements Cloneable, iCanvasPattern {
     SwingPaint    paint = null;
     iImageElement image;
-    boolean                  repeatY = true;
-    boolean                  repeatX = true;
+    boolean       repeatY = true;
+    boolean       repeatX = true;
 
     public CanvasPattern(iImageElement img, String repetition) {
       image = img;
+
       if ("no-repeat".equals(repetition)) {
         repeatX = false;
         repeatY = false;

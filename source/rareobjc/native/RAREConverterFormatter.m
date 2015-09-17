@@ -47,7 +47,7 @@
   if(strings_) {
     [strings_ enumerateObjectsUsingBlock:^(id s, NSUInteger idx, BOOL *stop) {
       if([string isEqualToString:(NSString*)s]) {
-        *obj= [NSNumber numberWithUnsignedInt:idx];
+        *obj= [NSNumber numberWithUnsignedInt:(int)idx];
         ok=YES;
         *stop=YES;
       }

@@ -100,7 +100,11 @@ public class TreeComponent extends Container {
   public DataItemTreeModel getTreeModel() {
     return (DataItemTreeModel) ((TreeView) view).getTreeModel();
   }
-
+  
+  public void repaintVisibleRows() {
+    ((TreeView) view).repaintVisibleRows();
+  }
+  
   public void setAutoSizeRows(boolean autoSize) {
     ((TreeView) view).setAutoSizeRows(autoSize);
   }

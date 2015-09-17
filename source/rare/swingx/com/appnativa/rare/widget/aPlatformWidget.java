@@ -1,19 +1,24 @@
 /*
- * @(#)aPlatformWidget.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.widget;
-
-import java.awt.Window;
-import java.util.ArrayList;
-import java.util.Map;
-
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -29,14 +34,22 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.iActionable;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.iActionable;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.listener.aMouseAdapter;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.spot.SPOTSet;
+
+import java.awt.Window;
+
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 
 /**
  *  Base class for all widgets
@@ -50,7 +63,6 @@ public abstract class aPlatformWidget extends aWidget {
   protected Object                 jsObject;
   private ScaleGestureDetector     scaleGestureDetector;
 
-  
   /**
    *  Constructs a new instance
    *
@@ -260,6 +272,7 @@ public abstract class aPlatformWidget extends aWidget {
   protected aWidgetListener createWidgetListener(iWidget widget, Map map, iScriptHandler scriptHandler) {
     return new WidgetListener(widget, map, scriptHandler);
   }
+
   @Override
   protected void initializeListeners(aWidgetListener listener) {
     WidgetListener l = (WidgetListener) listener;
@@ -267,15 +280,14 @@ public abstract class aPlatformWidget extends aWidget {
     initializePoupuMenuListener(l);
 
     if (this instanceof iActionable) {
-      final boolean eventEnabled=l!=null && l.isActionEventEnabled();
-      if(eventEnabled) {
+      final boolean eventEnabled = (l != null) && l.isActionEventEnabled();
+
+      if (eventEnabled) {
         ((iActionable) this).addActionListener(l);
-      }
-      else {
-        ((iActionable)this).addActionListener(this);
+      } else {
+        ((iActionable) this).addActionListener(this);
       }
     }
-
 
     if (l == null) {
       return;

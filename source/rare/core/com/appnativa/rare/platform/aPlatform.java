@@ -618,11 +618,6 @@ public abstract class aPlatform implements iPlatform {
     return false;
   }
 
-  @Override
-  public boolean isUseFullScreen() {
-    return isTouchDevice();
-  }
-
   protected void handleUIProperty(iWidget context, UIProperties defs, String property, Object value) {}
 
   protected Object getLinkContent(iWidget w, ActionLink link, final ActionLink.ReturnDataType type) throws Exception {

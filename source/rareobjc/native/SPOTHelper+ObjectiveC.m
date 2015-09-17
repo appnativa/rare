@@ -15,7 +15,9 @@
 #include "com/appnativa/util/Helper.h"
 
 @implementation SPOTHelper (ObjectiveC)
-  
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 + (void)setReferenceVariableWithISPOTElement:(id<iSPOTElement>)parent
                                 withNSString:(NSString *)name
                             withISPOTElement:(id<iSPOTElement>)element {
@@ -67,5 +69,6 @@
     return nil;
   }
 }
+#pragma clang diagnostic pop
 
 @end

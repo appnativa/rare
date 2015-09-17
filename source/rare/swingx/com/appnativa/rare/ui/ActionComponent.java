@@ -1,28 +1,27 @@
 /*
- * @(#)ActionComponent.java   2012-03-18
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
 
-import java.awt.Insets;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.AbstractButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
-
-import com.appnativa.rare.iConstants;
 import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.ButtonView;
@@ -42,11 +41,26 @@ import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.widget.aGroupableButton;
 
+import java.awt.Insets;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+
 /**
  *
  * @author Don DeCoteau
  */
-public class ActionComponent extends Component implements PropertyChangeListener, iActionComponent, ActionListener, ItemListener {
+public class ActionComponent extends Component
+        implements PropertyChangeListener, iActionComponent, ActionListener, ItemListener {
   protected IconPosition  iconPosition = IconPosition.AUTO;
   protected UIAction      action;
   protected iPlatformIcon disabledIcon;
@@ -55,7 +69,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
   protected float         scaleFactor;
   protected boolean       scaleIcon;
   protected iPlatformIcon selectedIcon;
-  private int             iconGap      = 4;
+  private int             iconGap = 4;
   private boolean         hasChangeListener;
   private boolean         minHeightSet;
   private boolean         scrollview;
@@ -63,8 +77,8 @@ public class ActionComponent extends Component implements PropertyChangeListener
 
   public ActionComponent(JComponent view) {
     super(view);
-    // sageMinHeight = "1ln";
 
+    // sageMinHeight = "1ln";
     if (view instanceof AbstractButton) {
       ((AbstractButton) view).addActionListener(this);
       ((AbstractButton) view).addItemListener(this);
@@ -73,7 +87,6 @@ public class ActionComponent extends Component implements PropertyChangeListener
     } else {
       scrollview = true;
     }
-
   }
 
   protected ActionComponent() {
@@ -121,7 +134,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
   public iPlatformComponent copy() {
     try {
       return new ActionComponent(view.getClass().newInstance());
-    } catch (Exception e) {
+    } catch(Exception e) {
       throw new ApplicationException(e);
     }
   }
@@ -145,14 +158,16 @@ public class ActionComponent extends Component implements PropertyChangeListener
     if (!textWrapped) {
       return false;
     }
+
     CharSequence cs = getText();
-    return cs != null && cs.length() > 0;
+
+    return (cs != null) && (cs.length() > 0);
   }
 
   @Override
   public void itemStateChanged(ItemEvent e) {
-    aGroupableButton b = (aGroupableButton) getWidget();
-    boolean isChecked = e.getStateChange() == ItemEvent.SELECTED;
+    aGroupableButton b         = (aGroupableButton) getWidget();
+    boolean          isChecked = e.getStateChange() == ItemEvent.SELECTED;
 
     b.selectionChanged(isChecked);
 
@@ -172,9 +187,9 @@ public class ActionComponent extends Component implements PropertyChangeListener
 
       return;
     }
-    
-    UIAction a = (UIAction) pce.getSource();
-    String property = pce.getPropertyName();
+
+    UIAction a        = (UIAction) pce.getSource();
+    String   property = pce.getPropertyName();
 
     if (property.equals("enabled")) {
       if (a.isEnabled()) {
@@ -203,7 +218,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
   public void putClientProperty(String key, Object value) {
     if (iConstants.RARE_MIN_HEIGHT_PROPERTY == key) {
       minHeightSet = true;
-    } else if ((iConstants.RARE_HEIGHT_PROPERTY == key) && !minHeightSet) {
+    } else if ((iConstants.RARE_HEIGHT_PROPERTY == key) &&!minHeightSet) {
       sageMinHeight = null;
     }
 
@@ -226,7 +241,9 @@ public class ActionComponent extends Component implements PropertyChangeListener
   public String toString() {
     CharSequence cs = getText();
 
-    return (cs == null) ? "" : cs.toString();
+    return (cs == null)
+           ? ""
+           : cs.toString();
   }
 
   @Override
@@ -276,7 +293,9 @@ public class ActionComponent extends Component implements PropertyChangeListener
     if (icon instanceof UIImageIcon) {
       ((UIImageIcon) icon).isImageLoaded(this);
     }
+
     disabledIcon = icon;
+
     if (view instanceof AbstractButton) {
       ((AbstractButton) view).setDisabledIcon(icon);
     } else if (view instanceof JLabel) {
@@ -285,8 +304,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
   }
 
   @Override
-  public void setDisabledSelectedIcon(iPlatformIcon icon) {
-  }
+  public void setDisabledSelectedIcon(iPlatformIcon icon) {}
 
   /**
    * @param icon
@@ -296,8 +314,9 @@ public class ActionComponent extends Component implements PropertyChangeListener
   public void setIcon(iPlatformIcon icon) {
     if (this.icon != icon) {
       if (this.icon instanceof UISpriteIcon) {
-        ((UISpriteIcon)this.icon).setOwner(null);
+        ((UISpriteIcon) this.icon).setOwner(null);
       }
+
       this.icon = icon;
 
       if (icon instanceof UIImageIcon) {
@@ -308,13 +327,16 @@ public class ActionComponent extends Component implements PropertyChangeListener
 
       if (view instanceof AbstractButton) {
         ((AbstractButton) view).setIcon(icon);
+
         if (view instanceof JToggleButton) {
           if (pressedIcon == null) {
             ((AbstractButton) view).setPressedIcon(icon);
           }
+
           if (selectedIcon == null) {
             ((AbstractButton) view).setSelectedIcon(icon);
           }
+
           if (disabledIcon == null) {
             ((AbstractButton) view).setDisabledIcon(null);
             ((AbstractButton) view).setDisabledSelectedIcon(null);
@@ -406,7 +428,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
 
   @Override
   public void setScaleIcon(boolean scale, float scaleFactor) {
-    scaleIcon = scale;
+    scaleIcon        = scale;
     this.scaleFactor = scaleFactor;
   }
 
@@ -426,12 +448,15 @@ public class ActionComponent extends Component implements PropertyChangeListener
     if (view instanceof AbstractButton) {
       ((AbstractButton) view).setSelectedIcon(icon);
     }
+
     this.selectedIcon = icon;
   }
 
   @Override
   public void setText(CharSequence buttonText) {
-    String text = (buttonText == null) ? "" : buttonText.toString();
+    String text = (buttonText == null)
+                  ? ""
+                  : buttonText.toString();
 
     if (view instanceof AbstractButton) {
       ((AbstractButton) view).setText(text);
@@ -445,7 +470,9 @@ public class ActionComponent extends Component implements PropertyChangeListener
   @Override
   public void setToolTipText(CharSequence text) {
     if (view instanceof JComponent) {
-      view.setToolTipText((text == null) ? "" : text.toString());
+      view.setToolTipText((text == null)
+                          ? ""
+                          : text.toString());
     }
   }
 
@@ -498,6 +525,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
     if (!isFocusOwner()) {
       return null;
     }
+
     return super.getFocusPaint(g, def);
   }
 
@@ -540,7 +568,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
     }
 
     if (m != null) {
-      size.width -= (m.left + m.right);
+      size.width  -= (m.left + m.right);
       size.height -= (m.top + m.bottom);
     } else {
       iPlatformBorder b = getBorder();
@@ -548,7 +576,7 @@ public class ActionComponent extends Component implements PropertyChangeListener
       if (b != null) {
         UIInsets in = b.getBorderInsets(new UIInsets());
 
-        size.width -= (in.left + in.right);
+        size.width  -= (in.left + in.right);
         size.height -= (in.top + in.bottom);
       }
     }
@@ -654,14 +682,18 @@ public class ActionComponent extends Component implements PropertyChangeListener
   @Override
   protected void getMinimumSizeEx(UIDimension size) {
     boolean addBackIconWidth = false;
+
     if (scrollview) {
       super.getMinimumSizeEx(size);
-      size.width = FontUtils.getCharacterWidth(getFont()) * 3;
+      size.width       = FontUtils.getCharacterWidth(getFont()) * 3;
       addBackIconWidth = true;
     } else {
       super.getPreferredSizeEx(size, 0);
-      CharSequence s = getText();
-      int len = (s == null) ? 0 : s.length();
+
+      CharSequence s   = getText();
+      int          len = (s == null)
+                         ? 0
+                         : s.length();
 
       if (len > 0) {
         int n = 0;
@@ -675,25 +707,29 @@ public class ActionComponent extends Component implements PropertyChangeListener
         }
 
         if (n > 0) {
-          n *= FontUtils.getCharacterWidth(getFont());
-          size.width = Math.min(n, size.width);
-          size.height = Math.max(size.height, ScreenUtils.lineHeight(this));
+          n                *= FontUtils.getCharacterWidth(getFont());
+          size.width       = Math.min(n, size.width);
+          size.height      = Math.max(size.height, ScreenUtils.lineHeight(this));
           addBackIconWidth = true;
         }
       }
     }
+
     if (addBackIconWidth) {
       iPlatformIcon ic = getIcon();
+
       if (ic != null) {
-        switch (iconPosition) {
-          case LEADING:
-          case LEFT:
-          case TRAILING:
-          case RIGHT:
-          case RIGHT_JUSTIFIED:
+        switch(iconPosition) {
+          case LEADING :
+          case LEFT :
+          case TRAILING :
+          case RIGHT :
+          case RIGHT_JUSTIFIED :
             size.width += ic.getIconWidth() + getIconGap();
+
             break;
-          default:
+
+          default :
             break;
         }
       }

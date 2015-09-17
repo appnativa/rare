@@ -128,18 +128,6 @@
 - (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)connection;
 @end
 
-@interface RAREUIRectangle (SparRect2D)
-#if TARGET_OS_IPHONE
--(void) setWithRect: (CGRect) rect;
--(CGRect) toRect;
-+(id) fromRect: (CGRect) rect;
-#else
--(void) setWithRect: (NSRect) rect;
--(NSRect) toRect;
-+(id) fromRect: (NSRect) rect;
-#endif
-@end
-
 @interface RAREUIRectangle (SparRect)
 #if TARGET_OS_IPHONE
 -(void) setWithRect: (CGRect) rect;

@@ -1,12 +1,26 @@
 /*
- * @(#)UIColor.java   2011-11-11
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.converters.Conversions;
 
 import java.awt.Color;
 import java.awt.Paint;
@@ -14,9 +28,7 @@ import java.awt.color.ColorSpace;
 
 import javax.swing.plaf.UIResource;
 
-import com.appnativa.rare.converters.Conversions;
-
-public class UIColor extends Color implements iPlatformPaint,Cloneable {
+public class UIColor extends Color implements iPlatformPaint, Cloneable {
   protected static final double FACTOR = 0.7;
 
   /**
@@ -90,7 +102,7 @@ public class UIColor extends Color implements iPlatformPaint,Cloneable {
   }
 
   public UIColor(int rgba) {
-    super(rgba,true);
+    super(rgba, true);
   }
 
   public UIColor(ColorSpace cspace, float[] components, float alpha) {
@@ -114,9 +126,10 @@ public class UIColor extends Color implements iPlatformPaint,Cloneable {
   }
 
   public UIColor alpha(int alpha) {
-    if(alpha==getAlpha()) {
+    if (alpha == getAlpha()) {
       return this;
     }
+
     return new UIColor(getRed(), getGreen(), getBlue(), alpha);
   }
 
@@ -167,23 +180,26 @@ public class UIColor extends Color implements iPlatformPaint,Cloneable {
 
   @Override
   public boolean equals(Object o) {
-    if(o==this) {
+    if (o == this) {
       return true;
     }
-    if(o instanceof UIColorShade) {
+
+    if (o instanceof UIColorShade) {
       return false;
     }
-    if(o instanceof UIColor) {
-      return getARGB()==((UIColor)o).getARGB();
+
+    if (o instanceof UIColor) {
+      return getARGB() == ((UIColor) o).getARGB();
     }
+
     return false;
   }
-  
+
   @Override
   public int hashCode() {
     return getARGB();
   }
-  
+
   public int getARGB() {
     return getRGB();
   }
@@ -204,19 +220,19 @@ public class UIColor extends Color implements iPlatformPaint,Cloneable {
   public boolean isSimpleColor() {
     return true;
   }
-  
+
   @Override
   public Object clone() {
     try {
       return super.clone();
-    } catch (CloneNotSupportedException e) {
+    } catch(CloneNotSupportedException e) {
       throw new InternalError();
     }
   }
+
   public UIColor getDisabledColor(UIColor def) {
     return def;
   }
-
 
   public static class UIColorResource extends UIColor implements UIResource {
     public UIColorResource(Color c) {

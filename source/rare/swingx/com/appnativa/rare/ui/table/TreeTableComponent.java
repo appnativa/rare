@@ -1,27 +1,40 @@
 /*
- * @(#)TreeTableComponent.java
- * 
- * Copyright (c) appNativa. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.table;
-
-import java.util.Comparator;
-import java.util.List;
 
 import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.iTreeHandler;
+import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.event.EventListenerList;
+import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.tree.DataItemTreeModel;
 import com.appnativa.rare.ui.tree.aTreeHandler;
 import com.appnativa.rare.util.SubItemComparator;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.iFilterableList;
+
+import java.util.Comparator;
+import java.util.List;
 
 public class TreeTableComponent extends TableComponent {
   SubItemComparator         itemComparator;
@@ -52,8 +65,8 @@ public class TreeTableComponent extends TableComponent {
       treeModel.dispose();
     }
 
-    treeHandler = null;
-    treeModel = null;
+    treeHandler    = null;
+    treeModel      = null;
     itemComparator = null;
   }
 
@@ -66,8 +79,9 @@ public class TreeTableComponent extends TableComponent {
   protected void initialize(TableView table, Table cfg) {
     super.initialize(table, cfg);
 
-    TreeTable tt = (TreeTable) cfg;
+    TreeTable     tt = (TreeTable) cfg;
     TreeTableView tv = (TreeTableView) tableView;
+
     tv.setShowRootHandles(tt.showRootHandles.booleanValue());
     treeModel.setExpandableColumn(tt.expandableColumn.intValue());
     treeModel.setExpandAll(tt.expandAll.booleanValue());
@@ -117,6 +131,11 @@ public class TreeTableComponent extends TableComponent {
   public iTreeHandler getTreeHandler() {
     return treeHandler;
   }
+  
+  public void setTreeIcons(iPlatformIcon expanded, iPlatformIcon collapsed) {
+    TreeTableView tv = (TreeTableView) tableView;
+    tv.setTreeIcons(expanded, collapsed);
+  }
 
   public DataItemTreeModel getTreeModel() {
     return treeModel;
@@ -136,17 +155,14 @@ public class TreeTableComponent extends TableComponent {
       protected boolean hasListeners() {
         return listenerList != null;
       }
-
       @Override
       protected EventListenerList getEventListenerList() {
         return TreeTableComponent.this.getEventListenerList();
       }
-
       @Override
       public boolean isAutoScrollOnExpansion() {
         return tv.isAutoScrollOnExpansion();
       }
-
       @Override
       public void setAutoScrollOnExpansion(boolean autoScrollOnExpansion) {
         tv.setAutoScrollOnExpansion(autoScrollOnExpansion);

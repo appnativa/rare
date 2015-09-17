@@ -1,19 +1,31 @@
 /*
- * @(#)aPlatformViewer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.viewer;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.platform.swing.ui.view.FrameView;
 import com.appnativa.rare.platform.swing.ui.view.PopupWindow;
 import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.print.iPageSetup;
+
+import javax.swing.JComponent;
 
 /**
  * Base class for viewers
@@ -39,7 +51,6 @@ public abstract class aPlatformViewer extends aViewer {
     return null;
   }
 
-
   public void setLocked(boolean locked) {
     JComponent c = formComponent.getView();
 
@@ -59,7 +70,7 @@ public abstract class aPlatformViewer extends aViewer {
     iPopup popup = new PopupWindow();
 
     popup.setSize(width, height);
+
     return popup;
   }
-
 }

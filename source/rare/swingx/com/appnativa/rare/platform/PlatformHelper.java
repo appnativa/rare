@@ -1,64 +1,30 @@
 /*
- * @(#)PlatformHelper.java   2012-04-28
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform;
 
-import java.awt.AlphaComposite;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.KeyboardFocusManager;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.net.CookieHandler;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.LineUnavailableException;
-import javax.swing.AbstractButton;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
-import javax.swing.plaf.UIResource;
-import javax.swing.text.JTextComponent;
-
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.CookieManager;
 import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.Applet;
@@ -117,6 +83,11 @@ import com.appnativa.rare.ui.UISound;
 import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.WindowDeviceConfiguration;
 import com.appnativa.rare.ui.aFocusedAction;
+import com.appnativa.rare.ui.dnd.DefaultTransferHandler;
+import com.appnativa.rare.ui.dnd.DragSourceAdapter;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformBorder;
@@ -128,11 +99,6 @@ import com.appnativa.rare.ui.iPlatformMenuBar;
 import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iPlatformShape;
-import com.appnativa.rare.ui.dnd.DefaultTransferHandler;
-import com.appnativa.rare.ui.dnd.DragSourceAdapter;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.renderer.Renderers;
 import com.appnativa.rare.viewer.MenuBarViewer;
@@ -144,6 +110,57 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.FilterableList;
 
+import java.awt.AlphaComposite;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.KeyboardFocusManager;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import java.lang.reflect.Method;
+
+import java.net.CookieHandler;
+import java.net.URL;
+import java.net.URLConnection;
+
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.LineUnavailableException;
+
+import javax.swing.AbstractButton;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
+import javax.swing.plaf.UIResource;
+import javax.swing.text.JTextComponent;
+
 public class PlatformHelper extends aPlatformHelper {
   private static JLabel  _fontLabel;
   private static boolean sunGraphicsFailed;
@@ -152,10 +169,10 @@ public class PlatformHelper extends aPlatformHelper {
     return text;
   }
 
-  public static void clearSessionCookies() {
-  }
+  public static void clearSessionCookies() {}
 
-  public static PopupListBoxHandler createPopupListBoxHandler(iWidget w, iPlatformListDataModel model, boolean forMenu) {
+  public static PopupListBoxHandler createPopupListBoxHandler(iWidget w, iPlatformListDataModel model,
+          boolean forMenu) {
     return new PopupListBoxHandler(w, model, forMenu);
   }
 
@@ -163,7 +180,9 @@ public class PlatformHelper extends aPlatformHelper {
     if (uiEvent.getSource() instanceof JComponent) {
       iPlatformComponent c = Component.fromView((JComponent) uiEvent.getSource());
 
-      return (c == null) ? null : new Component((JComponent) uiEvent.getSource());
+      return (c == null)
+             ? null
+             : new Component((JComponent) uiEvent.getSource());
     }
 
     return null;
@@ -194,7 +213,7 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static iPlatformComponent createBorderPanel(iPlatformComponent comp, iPlatformBorder border) {
-    if ((comp.getView() instanceof JScrollPane) && (!border.isPaintLast() || !border.isRectangular())) {
+    if ((comp.getView() instanceof JScrollPane) && (!border.isPaintLast() ||!border.isRectangular())) {
       ContainerPanel cp = new ContainerPanel(comp);
 
       cp.setBorderPanel(true);
@@ -289,13 +308,18 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static UIMenuItem createMenuItem(UIAction action, boolean topLevel) {
     if (action == null) {
-      return new UIMenuItem(action, topLevel ? new JMenu() : new JMenuItem());
+      return new UIMenuItem(action, topLevel
+                                    ? new JMenu()
+                                    : new JMenuItem());
     }
 
-    return new UIMenuItem(action, topLevel ? new JMenu() : new JMenuItem());
+    return new UIMenuItem(action, topLevel
+                                  ? new JMenu()
+                                  : new JMenuItem());
   }
 
-  public static iActionComponent createNakedButton(iPlatformComponent context, boolean parentPaints, int autoRepeatDelay) {
+  public static iActionComponent createNakedButton(iPlatformComponent context, boolean parentPaints,
+          int autoRepeatDelay) {
     ButtonView v = new ButtonView();
 
     if (autoRepeatDelay > 0) {
@@ -319,14 +343,16 @@ public class PlatformHelper extends aPlatformHelper {
       return (ActionEvent) se;
     }
 
-    return new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, e.getActionCommand(), System.currentTimeMillis(), 0);
+    return new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, e.getActionCommand(),
+                           System.currentTimeMillis(), 0);
   }
 
   public static iPlatformPath createPath() {
     return new SwingPath();
   }
 
-  public static iPlatformRenderingComponent createRenderer(String className, aWidget aWidget) throws ClassNotFoundException {
+  public static iPlatformRenderingComponent createRenderer(String className, aWidget aWidget)
+          throws ClassNotFoundException {
     return Renderers.createRenderer(className);
   }
 
@@ -355,16 +381,18 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static void defaultFontUpdated(UIFont font) {
-    final String[] FONT_PROPERTY_NAMES = { "List.font", "TableHeader.font", "Panel.font", "TextArea.font", "ToggleButton.font",
-        "ComboBox.font", "ScrollPane.font", "Spinner.font", "RadioButtonMenuItem.font", "Slider.font", "EditorPane.font",
-        "OptionPane.font", "ToolBar.font", "Tree.font", "CheckBoxMenuItem.font", "FileChooser.listFont", "Rare.html.font",
-        "Rare.richtext.font", "Table.font", "MenuBar.font", "PopupMenu.font", "Label.font", "MenuItem.font", "TextField.font",
-        "TextPane.font", "CheckBox.font", "ProgressBar.font", "FormattedTextField.font", "ColorChooser.font", "Menu.font",
-        "PasswordField.font", "Viewport.font", "TabbedPane.font", "RadioButton.font", "ToolTip.font", "Button.font",
-        "JideButton.font", "JideSplitButton.font", "JideTabbedPane.font", "DockableFrame.font", "JideLabel.font",
-        "OptionPane.messageFont", "SidePane.font", "CollapsiblePane.titleFont", "StatusBar.font", "TitledBorder.font",
-        "CommandBar.titleBarFont", "DockableFrameTitlePane.font", "Menu.acceleratorFont", "JideTabbedPane.selectedTabFont",
-        "CommandBar.font", };
+    final String[] FONT_PROPERTY_NAMES = {
+      "List.font", "TableHeader.font", "Panel.font", "TextArea.font", "ToggleButton.font", "ComboBox.font",
+      "ScrollPane.font", "Spinner.font", "RadioButtonMenuItem.font", "Slider.font", "EditorPane.font",
+      "OptionPane.font", "ToolBar.font", "Tree.font", "CheckBoxMenuItem.font", "FileChooser.listFont", "Rare.html.font",
+      "Rare.richtext.font", "Table.font", "MenuBar.font", "PopupMenu.font", "Label.font", "MenuItem.font",
+      "TextField.font", "TextPane.font", "CheckBox.font", "ProgressBar.font", "FormattedTextField.font",
+      "ColorChooser.font", "Menu.font", "PasswordField.font", "Viewport.font", "TabbedPane.font", "RadioButton.font",
+      "ToolTip.font", "Button.font", "JideButton.font", "JideSplitButton.font", "JideTabbedPane.font",
+      "DockableFrame.font", "JideLabel.font", "OptionPane.messageFont", "SidePane.font", "CollapsiblePane.titleFont",
+      "StatusBar.font", "TitledBorder.font", "CommandBar.titleBarFont", "DockableFrameTitlePane.font",
+      "Menu.acceleratorFont", "JideTabbedPane.selectedTabFont", "CommandBar.font",
+    };
 
     Platform.getUIDefaults().put("Label.font", font);
 
@@ -393,7 +421,7 @@ public class PlatformHelper extends aPlatformHelper {
     java.awt.Component node = c.getView();
     java.awt.Component p;
 
-    while (node != null) {
+    while(node != null) {
       p = node.getParent();
 
       if (p instanceof JScrollPane) {
@@ -410,8 +438,7 @@ public class PlatformHelper extends aPlatformHelper {
     handleCookieExtraction(conn.getURL().toString(), conn);
   }
 
-  public static void handleCookieExtraction(String url, URLConnection conn) {
-  }
+  public static void handleCookieExtraction(String url, URLConnection conn) {}
 
   public static String handleCookieInjection(URLConnection conn) {
     return handleCookieInjection(conn.getURL().toString(), conn);
@@ -439,11 +466,9 @@ public class PlatformHelper extends aPlatformHelper {
     }
   }
 
-  public static void hideVirtualKeyboard(iPlatformComponent c) {
-  }
+  public static void hideVirtualKeyboard(iPlatformComponent c) {}
 
-  public static void hideVirtualKeyboard(iWidget context) {
-  }
+  public static void hideVirtualKeyboard(iWidget context) {}
 
   public static void initialize() {
     float screenDpi = Toolkit.getDefaultToolkit().getScreenResolution();
@@ -453,10 +478,10 @@ public class PlatformHelper extends aPlatformHelper {
     Font f = UIManager.getFont("Label.font");
 
     FontUtils.setSystemFont(new UIFont(f));
-    if (!Applet.isRunningAsApplet() && !Rare.isWebStart()) {
+
+    if (!Applet.isRunningAsApplet() &&!Rare.isWebStart()) {
       CookieHandler.setDefault(new CookieManager());
     }
-
   }
 
   public static void layout(iPlatformComponent c, float x, float y, float w, float h) {
@@ -479,8 +504,8 @@ public class PlatformHelper extends aPlatformHelper {
    */
   public static UIFont loadFont(String name, URL location, String type) {
     try {
-      InputStream in = Platform.getAppContext().openConnection(location).getInputStream();
-      int format = UIFont.TRUETYPE_FONT;
+      InputStream in     = Platform.getAppContext().openConnection(location).getInputStream();
+      int         format = UIFont.TRUETYPE_FONT;
 
       if ((type != null) && type.equalsIgnoreCase("type1")) {
         format = UIFont.TYPE1_FONT;
@@ -491,7 +516,7 @@ public class PlatformHelper extends aPlatformHelper {
       FontUtils.addCustomFont(name, f);
 
       return f;
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       Platform.ignoreException("Could no load font:" + name, ex);
 
       return null;
@@ -516,11 +541,9 @@ public class PlatformHelper extends aPlatformHelper {
     return new Container(sp);
   }
 
-  public static void paintIcon(iPlatformGraphics g, iPlatformIcon icon, float x, float y, float width, float height) {
-  }
+  public static void paintIcon(iPlatformGraphics g, iPlatformIcon icon, float x, float y, float width, float height) {}
 
-  public static void performHapticFeedback(Object view) {
-  }
+  public static void performHapticFeedback(Object view) {}
 
   public static iPlatformComponent resolveBeanComponent(Object bean) {
     if (bean instanceof JComponent) {
@@ -531,33 +554,36 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static UIImage scaleImage(UIImage image, int width, int height) {
-    if (width != image.getWidth() || height != image.getHeight()) {
-      image = new UIImage(ImageUtils.getScaledInstance(image.getBufferedImage(), width, height, image.getScalingType()));
+    if ((width != image.getWidth()) || (height != image.getHeight())) {
+      image = new UIImage(ImageUtils.getScaledInstance(image.getBufferedImage(), width, height,
+              image.getScalingType()));
     }
+
     return image;
   }
 
-  public static void showVirtualKeyboard(iWidget context) {
-  }
+  public static void showVirtualKeyboard(iWidget context) {}
 
   public static void systemAlert(iWidget context, Object message, iPlatformIcon icon, final iActionListener listener) {
-    final AlertPanel p = AlertPanel.ok(context, null, message, icon);
+    final AlertPanel  p  = AlertPanel.ok(context, null, message, icon);
     iFunctionCallback cb = null;
+
     if (listener != null) {
       cb = new iFunctionCallback() {
-
         @Override
         public void finished(boolean canceled, Object returnValue) {
           listener.actionPerformed(new com.appnativa.rare.ui.event.ActionEvent(Platform.getWindowViewer()));
         }
       };
     }
+
     p.showDialog(cb);
   }
 
   public static UIRectangle toUIRectangle(Rectangle2D fxrect, UIRectangle rect) {
     if (rect == null) {
-      return new UIRectangle((int) fxrect.getMinX(), (int) fxrect.getMinY(), (int) fxrect.getWidth(), (int) fxrect.getHeight());
+      return new UIRectangle((int) fxrect.getMinX(), (int) fxrect.getMinY(), (int) fxrect.getWidth(),
+                             (int) fxrect.getHeight());
     }
 
     rect.setBounds((int) fxrect.getMinX(), (int) fxrect.getMinY(), (int) fxrect.getWidth(), (int) fxrect.getHeight());
@@ -576,7 +602,7 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static boolean setComponentAlpha(iPlatformComponent component, float alpha) {
-    if ((component != null) && (component.getView() instanceof JPanelEx) && !component.isDisposed()) {
+    if ((component != null) && (component.getView() instanceof JPanelEx) &&!component.isDisposed()) {
       ((JPanelEx) component.getView()).setComposite(AlphaComposite.SrcOver.derive(alpha));
 
       return true;
@@ -599,19 +625,18 @@ public class PlatformHelper extends aPlatformHelper {
 
       if (handler != null) {
         Map<String, List<String>> headers = new HashMap<String, List<String>>();
-        List<String> values = new ArrayList<String>();
+        List<String>              values  = new ArrayList<String>();
 
         values.add(value);
         headers.put("Cookie", values);
         handler.put(url.toURI(), headers);
       }
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       throw new ApplicationException(ex);
     }
   }
 
-  public static void setLabelForComponent(iPlatformComponent c, Object l) {
-  }
+  public static void setLabelForComponent(iPlatformComponent c, Object l) {}
 
   public static void setMinimumSizeEx(iPlatformComponent comp, int w, int h) {
     if (comp.getView() instanceof JComponent) {
@@ -622,7 +647,8 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static void setMinimumSizeEx(iPlatformComponent comp, String width, String height) {
-    setMinimumSizeEx(comp, ScreenUtils.toPlatformPixelWidth(width, comp, 0), ScreenUtils.toPlatformPixelHeight(height, comp, 0));
+    setMinimumSizeEx(comp, ScreenUtils.toPlatformPixelWidth(width, comp, 0),
+                     ScreenUtils.toPlatformPixelHeight(height, comp, 0));
   }
 
   /**
@@ -643,18 +669,18 @@ public class PlatformHelper extends aPlatformHelper {
     }
 
     int len = text.length();
-    int n = -1;
+    int n   = -1;
 
-    if ((len > 0) && !text.startsWith("<html>")) {
+    if ((len > 0) &&!text.startsWith("<html>")) {
       n = text.indexOf('_');
     }
 
     if ((n != -1) && (n < len - 1)) {
       if (n == 0) {
-        mn = text.charAt(1);
+        mn   = text.charAt(1);
         text = text.substring(1);
       } else {
-        mn = text.charAt(n + 1);
+        mn   = text.charAt(n + 1);
         text = text.substring(0, n) + text.substring(n + 1);
       }
     }
@@ -686,18 +712,18 @@ public class PlatformHelper extends aPlatformHelper {
     }
 
     int len = text.length();
-    int n = -1;
+    int n   = -1;
 
-    if ((len > 0) && !text.startsWith("<html>")) {
+    if ((len > 0) &&!text.startsWith("<html>")) {
       n = text.indexOf('_');
     }
 
     if ((n != -1) && (n < len - 1)) {
       if (n == 0) {
-        mn = text.charAt(1);
+        mn   = text.charAt(1);
         text = text.substring(1);
       } else {
-        mn = text.charAt(n + 1);
+        mn   = text.charAt(n + 1);
         text = text.substring(0, n) + text.substring(n + 1);
       }
     }
@@ -715,23 +741,23 @@ public class PlatformHelper extends aPlatformHelper {
     if ((component != null) && (component.getView() instanceof JComponent)) {
       final JComponent l = component.getView();
 
-      switch (cfgOrientation) {
-        case Label.COrientation.horizontal:
+      switch(cfgOrientation) {
+        case Label.COrientation.horizontal :
           setOrientation(l, Orientation.HORIZONTAL);
 
           break;
 
-        case Label.COrientation.vertical_up:
+        case Label.COrientation.vertical_up :
           setOrientation(l, Orientation.VERTICAL_UP);
 
           break;
 
-        case Label.COrientation.vertical_down:
+        case Label.COrientation.vertical_down :
           setOrientation(l, Orientation.VERTICAL_DOWN);
 
           break;
 
-        default:
+        default :
           break;
       }
     }
@@ -750,18 +776,18 @@ public class PlatformHelper extends aPlatformHelper {
       } else if (view instanceof iView) {
         iView v = (iView) view;
 
-        switch (orientation) {
-          case VERTICAL_DOWN:
+        switch(orientation) {
+          case VERTICAL_DOWN :
             v.setTransformEx(AffineTransform.getRotateInstance(-Math.PI / 2));
 
             break;
 
-          case VERTICAL_UP:
+          case VERTICAL_UP :
             v.setTransformEx(AffineTransform.getRotateInstance(Math.PI / 2));
 
             break;
 
-          default:
+          default :
             v.setTransformEx(null);
 
             break;
@@ -779,17 +805,16 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static void setPreferredSizeEx(iPlatformComponent c, String width, String height) {
-    if ((width != null) && (width.length() > 0) && !width.equals("-1")) {
+    if ((width != null) && (width.length() > 0) &&!width.equals("-1")) {
       c.putClientProperty(iConstants.RARE_WIDTH_PROPERTY, width);
     }
 
-    if ((height != null) && (height.length() > 0) && !height.equals("-1")) {
+    if ((height != null) && (height.length() > 0) &&!height.equals("-1")) {
       c.putClientProperty(iConstants.RARE_HEIGHT_PROPERTY, height);
     }
   }
 
-  public static void setScreenOrientation(Object orientation) {
-  }
+  public static void setScreenOrientation(Object orientation) {}
 
   public static void setShortcut(UIMenuItem mi, String keystroke) {
     KeyStroke ks = SwingHelper.getKeyStroke(keystroke);
@@ -833,8 +858,7 @@ public class PlatformHelper extends aPlatformHelper {
     SwingHelper.setVerticalAlignment(comp, va);
   }
 
-  public static void setUseDarkStatusBarText(boolean dark) {
-  }
+  public static void setUseDarkStatusBarText(boolean dark) {}
 
   public static ClassLoader getApplicationClassLoader() {
     return ((PlatformImpl) Platform.getPlatform()).getApplicationClassLoader();
@@ -846,8 +870,8 @@ public class PlatformHelper extends aPlatformHelper {
    * @return a list of all available font names
    */
   public static List<String> getAvailableFontNames() {
-    String[] sa = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-    int len = sa.length;
+    String[]               sa   = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    int                    len  = sa.length;
     FilterableList<String> list = new FilterableList<String>(len);
 
     FontUtils.addCustomFontNamesToList(list);
@@ -871,10 +895,10 @@ public class PlatformHelper extends aPlatformHelper {
    * @return a list of all available fonts
    */
   public static List<UIFont> getAvailableFonts() {
-    UIFont f = FontUtils.getDefaultFont();
-    int size = f.getSize();
-    String[] sa = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-    int len = sa.length;
+    UIFont                 f    = FontUtils.getDefaultFont();
+    int                    size = f.getSize();
+    String[]               sa   = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    int                    len  = sa.length;
     FilterableList<UIFont> list = new FilterableList<UIFont>(len);
 
     FontUtils.addCustomFontsToList(list);
@@ -923,7 +947,9 @@ public class PlatformHelper extends aPlatformHelper {
   public static String getDefaultRowHeight() {
     String s = Platform.getUIDefaults().getString("Rare.List.rowHeight");
 
-    return (s == null) ? "1ln" : s;
+    return (s == null)
+           ? "1ln"
+           : s;
   }
 
   /**
@@ -941,9 +967,11 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static Object getConfiguration(iPlatformComponent comp) {
     WindowViewer w = Platform.getWindowViewer(comp);
+
     if (w == null) {
       w = Platform.getWindowViewer();
     }
+
     return new WindowDeviceConfiguration(w.getSize());
   }
 
@@ -951,7 +979,8 @@ public class PlatformHelper extends aPlatformHelper {
     return ColorUtils.getSimpleDrawableStateList(map);
   }
 
-  public static File getFile(iPlatformComponent context, String title, boolean open, boolean dironly, File dir, String extfilters) {
+  public static File getFile(iPlatformComponent context, String title, boolean open, boolean dironly, File dir,
+                             String extfilters) {
     return SwingHelper.getFileWithNativeDialog(context.getView(), title, open, dironly, dir, extfilters);
   }
 
@@ -961,7 +990,7 @@ public class PlatformHelper extends aPlatformHelper {
     }
 
     FontMetrics fm = _fontLabel.getFontMetrics(font);
-    float h = fm.getHeight();
+    float       h  = fm.getHeight();
 
     if (full) {
       h += fm.getDescent();
@@ -975,13 +1004,13 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static UIImage getImageFromResourceFileName(String name) {
-    String file = Rare.makeResourcePath(name);
-    UIImage img = null;
+    String  file = Rare.makeResourcePath(name);
+    UIImage img  = null;
 
     try {
       img = ImageHelper.createImage(fileToURL(file), false, 0);
       img.setResourceName(name);
-    } catch (IOException e) {
+    } catch(IOException e) {
       Platform.ignoreException(null, e);
     }
 
@@ -1045,15 +1074,15 @@ public class PlatformHelper extends aPlatformHelper {
       return null;
     }
 
-    boolean good = false;
+    boolean good    = false;
     boolean pattern = false;
 
     if (color.startsWith("drawable/")) {
       color = color.substring(9);
-      good = true;
+      good  = true;
     } else if (color.startsWith("pattern/")) {
-      good = true;
-      color = color.substring(8);
+      good    = true;
+      color   = color.substring(8);
       pattern = true;
     }
 
@@ -1085,12 +1114,16 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static int getScreen(iPlatformComponent comp) {
-    java.awt.Component c = comp.getView();
-    Window w = SwingUtilities.windowForComponent(c);
-    GraphicsConfiguration gc = (w == null) ? null : w.getGraphicsConfiguration();
-    GraphicsDevice gd = (gc == null) ? null : gc.getDevice();
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
+    java.awt.Component    c  = comp.getView();
+    Window                w  = SwingUtilities.windowForComponent(c);
+    GraphicsConfiguration gc = (w == null)
+                               ? null
+                               : w.getGraphicsConfiguration();
+    GraphicsDevice        gd = (gc == null)
+                               ? null
+                               : gc.getDevice();
+    GraphicsEnvironment   ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice[]      gs = ge.getScreenDevices();
 
     for (int i = 0; i < gs.length; i++) {
       if (gs[i].equals(gd)) {
@@ -1103,15 +1136,15 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static UIRectangle getScreenBounds() {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle r = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+    Rectangle           r  = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
 
     return new UIRectangle(r.x, r.y, r.width, r.height);
   }
 
   public static UIRectangle getScreenBounds(int monitor) {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
-    Rectangle r = gs[monitor].getDefaultConfiguration().getBounds();
+    GraphicsDevice[]    gs = ge.getScreenDevices();
+    Rectangle           r  = gs[monitor].getDefaultConfiguration().getBounds();
 
     return new UIRectangle(r.x, r.y, r.width, r.height);
   }
@@ -1128,7 +1161,7 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static int getScreenHeight() {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle r = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+    Rectangle           r  = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
 
     return r.height;
   }
@@ -1136,7 +1169,9 @@ public class PlatformHelper extends aPlatformHelper {
   public static int getScreenHeight(int screen) {
     Rectangle r = getScreenBoundsEx(screen);
 
-    return (r == null) ? 0 : r.height;
+    return (r == null)
+           ? 0
+           : r.height;
   }
 
   public static Object getScreenOrientation() {
@@ -1145,20 +1180,26 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static int getScreenRotation() {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle r = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
-    return r.width > r.height ? 90 : 0;
+    Rectangle           r  = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+
+    return (r.width > r.height)
+           ? 90
+           : 0;
   }
 
   public static int getScreenRotation(Object orientation) {
     if (orientation instanceof WindowDeviceConfiguration) {
-      return ((WindowDeviceConfiguration) orientation).isWider() ? 90 : 0;
+      return ((WindowDeviceConfiguration) orientation).isWider()
+             ? 90
+             : 0;
     }
+
     return getScreenRotation();
   }
 
   public static UIDimension getScreenSize() {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle r = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+    Rectangle           r  = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
 
     return new UIDimension(r.width, r.height);
   }
@@ -1166,19 +1207,22 @@ public class PlatformHelper extends aPlatformHelper {
   public static UIDimension getScreenSize(int screen) {
     Rectangle r = getScreenBoundsEx(screen);
 
-    return (r == null) ? null : new UIDimension(r.width, r.height);
+    return (r == null)
+           ? null
+           : new UIDimension(r.width, r.height);
   }
 
   public static UIDimension getScreenSizeForConfiguration(Object configuration) {
     if (configuration instanceof WindowDeviceConfiguration) {
       return ((WindowDeviceConfiguration) configuration).getSize();
     }
+
     return getScreenSize();
   }
 
   public static int getScreenWidth() {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    Rectangle r = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+    Rectangle           r  = ge.getDefaultScreenDevice().getDefaultConfiguration().getBounds();
 
     return r.width;
   }
@@ -1186,7 +1230,9 @@ public class PlatformHelper extends aPlatformHelper {
   public static int getScreenWidth(int screen) {
     Rectangle r = getScreenBoundsEx(screen);
 
-    return (r == null) ? 0 : r.width;
+    return (r == null)
+           ? 0
+           : r.width;
   }
 
   /**
@@ -1228,10 +1274,12 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static UIRectangle getUsableScreenBounds(int screen) {
-    GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
+    GraphicsEnvironment   ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    GraphicsDevice[]      gs = ge.getScreenDevices();
     GraphicsConfiguration gc = gs[screen].getDefaultConfiguration();
-    Rectangle r = sunGraphicsFailed ? null : getUsableBoundsEx(gc);
+    Rectangle             r  = sunGraphicsFailed
+                               ? null
+                               : getUsableBoundsEx(gc);
 
     if (r == null) {
       r = ge.getMaximumWindowBounds();
@@ -1241,7 +1289,9 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static UIRectangle getUsableScreenBounds(iPlatformComponent c) {
-    int n = (c == null) ? -1 : getScreen(c);
+    int n = (c == null)
+            ? -1
+            : getScreen(c);
 
     if (n == -1) {
       n = 0;
@@ -1266,6 +1316,7 @@ public class PlatformHelper extends aPlatformHelper {
     if (orientation instanceof WindowDeviceConfiguration) {
       return ((WindowDeviceConfiguration) orientation).isWider();
     }
+
     return (orientation == null) || Boolean.TRUE.equals(orientation);
   }
 
@@ -1295,7 +1346,7 @@ public class PlatformHelper extends aPlatformHelper {
     }
 
     return isMouseClick(UIScreen.snapToPosition(startPoint.x), UIScreen.snapToPosition(startPoint.y), mousePressedTime,
-        (java.awt.event.MouseEvent) releaseEvent.getNativeEvent());
+                        (java.awt.event.MouseEvent) releaseEvent.getNativeEvent());
   }
 
   public static boolean isMouseClick(int x, int y, long startTime, java.awt.event.MouseEvent releaseEvent) {
@@ -1320,18 +1371,18 @@ public class PlatformHelper extends aPlatformHelper {
 
   static Rectangle getScreenBoundsEx(int monitor) {
     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    GraphicsDevice[] gs = ge.getScreenDevices();
+    GraphicsDevice[]    gs = ge.getScreenDevices();
 
     return gs[monitor].getDefaultConfiguration().getBounds();
   }
 
   private static Rectangle getUsableBoundsEx(GraphicsConfiguration gc) {
     try {
-      Class cls = Class.forName("sun.java2d.SunGraphicsEnvironment");
-      Method m = cls.getMethod("getUsableBounds", GraphicsDevice.class);
+      Class  cls = Class.forName("sun.java2d.SunGraphicsEnvironment");
+      Method m   = cls.getMethod("getUsableBounds", GraphicsDevice.class);
 
       return (Rectangle) m.invoke(null, gc.getDevice());
-    } catch (Exception ignore) {
+    } catch(Exception ignore) {
       sunGraphicsFailed = true;
       ignore.printStackTrace();
 
@@ -1351,41 +1402,48 @@ public class PlatformHelper extends aPlatformHelper {
     if (sound.indexOf('.') == -1) {
       sound += ".mp3";
     }
+
     if (!sound.startsWith("/")) {
       sound = Rare.makeResourcePath(sound);
     }
+
     return getSound(Platform.getAppContext().getResourceURL(sound));
   }
 
   public static UISound getSound(URL url) throws Exception {
-
     SoundClip clip = null;
-    String ext = url.getFile().toLowerCase();
+    String    ext  = url.getFile().toLowerCase();
 
     if (ext.endsWith(".mp3")) {
       Class cls = Platform.loadClass("javazoom.jl.decoder.Decoder");
-      cls = Platform.loadClass("com.appnativa.rare.util.MP3SoundClip");
+
+      cls  = Platform.loadClass("com.appnativa.rare.util.MP3SoundClip");
       clip = (SoundClip) cls.getConstructor(URL.class).newInstance(url);
       clip.open();
     }
+
     if (clip == null) {
       clip = new SoundClip(url);
       clip.open();
     }
-    return clip == null ? null : new UISound(clip);
 
+    return (clip == null)
+           ? null
+           : new UISound(clip);
   }
 
   public static void playSound(UISound uiSound) {
     Clip clip = (Clip) uiSound.getPlatformSound();
+
     if (clip != null) {
       if (!clip.isOpen()) {
         try {
           clip.open();
-        } catch (LineUnavailableException e) {
+        } catch(LineUnavailableException e) {
           throw new ApplicationException(e);
         }
       }
+
       clip.setFramePosition(0);
       clip.start();
     }
@@ -1393,20 +1451,23 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static void pauseSound(UISound uiSound) {
     Clip clip = (Clip) uiSound.getPlatformSound();
-    if ((clip != null) && !clip.isRunning()) {
+
+    if ((clip != null) &&!clip.isRunning()) {
       clip.stop();
     }
   }
 
   public static void resumeSound(UISound uiSound) {
     Clip clip = (Clip) uiSound.getPlatformSound();
-    if ((clip != null) && !clip.isRunning()) {
+
+    if ((clip != null) &&!clip.isRunning()) {
       clip.start();
     }
   }
 
   public static void stopSound(UISound uiSound) {
     Clip clip = (Clip) uiSound.getPlatformSound();
+
     if ((clip != null) && clip.isRunning()) {
       clip.stop();
     }
@@ -1414,6 +1475,7 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static void disposeOfSound(UISound uiSound) {
     Clip clip = (Clip) uiSound.getPlatformSound();
+
     if ((clip != null)) {
       clip.close();
     }
@@ -1421,19 +1483,22 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static Object setVolume(UISound uiSound, int percent) {
     Clip clip = (Clip) uiSound.getPlatformSound();
+
     try {
       if (clip.isControlSupported(FloatControl.Type.VOLUME)) {
         FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.VOLUME);
 
         volumeControl.setValue((float) (percent / 100.0));
       } else if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-        float value = (float) (percent / 100.0);
+        float        value       = (float) (percent / 100.0);
         FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        float dB = (float) (Math.log((value == 0.0) ? 0.0001 : value) / Math.log(10.0) * 20.0);
+        float        dB          = (float) (Math.log((value == 0.0)
+                ? 0.0001
+                : value) / Math.log(10.0) * 20.0);
 
         gainControl.setValue(dB);
       }
-    } catch (Exception e) {
+    } catch(Exception e) {
       Platform.ignoreException(null, e);
     }
 
@@ -1443,5 +1508,4 @@ public class PlatformHelper extends aPlatformHelper {
   public static void beep() {
     UIManager.getLookAndFeel().provideErrorFeedback(null);
   }
-
 }

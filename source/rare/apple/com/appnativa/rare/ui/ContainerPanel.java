@@ -88,12 +88,11 @@ public class ContainerPanel extends Container {
 
   @Override
   public void dispose() {
-    super.dispose();
-
     if (borderComponentPainter != null) {
       borderComponentPainter.dispose();
       borderComponentPainter = null;
     }
+    super.dispose();
 
     borderPanel = false;
   }
@@ -214,6 +213,10 @@ public class ContainerPanel extends Container {
 
     @Override
     public synchronized void dispose() {
+      if (partner != null) {
+        partner.removePropertyChangeListener(this);
+      }
+      partner=null;
       view = null;
       super.dispose();
     }

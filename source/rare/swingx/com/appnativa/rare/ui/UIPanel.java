@@ -1,12 +1,27 @@
 /*
- * @(#)UIPanel.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
 
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -14,9 +29,6 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 
 import javax.swing.ToolTipManager;
-
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
 
 public class UIPanel extends aUIPanel {
   public UIPanel() {
@@ -70,11 +82,16 @@ public class UIPanel extends aUIPanel {
 
       UIPanel.this.paint(pg, in.left, in.top, width, height);
     }
+
     @Override
     public Point getToolTipLocation(MouseEvent event) {
-      UIPoint p=UIPanel.this.getToolTipLocation(event.getX(), event.getY());
-      return p==null ? null : new Point((int)p.x,(int)p.y);
+      UIPoint p = UIPanel.this.getToolTipLocation(event.getX(), event.getY());
+
+      return (p == null)
+             ? null
+             : new Point((int) p.x, (int) p.y);
     }
+
     @Override
     public String getToolTipText(MouseEvent event) {
       CharSequence cs = UIPanel.this.getToolTipText(event.getX(), event.getY());
@@ -85,8 +102,9 @@ public class UIPanel extends aUIPanel {
     }
   }
 
+
   @Override
   public UIPoint getToolTipLocation(int x, int y) {
-    return new UIPoint(x,y);
+    return new UIPoint(x, y);
   }
 }

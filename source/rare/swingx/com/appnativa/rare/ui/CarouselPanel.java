@@ -1,17 +1,24 @@
 /*
- * @(#)CarouselPanel.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Composite;
-import java.awt.Insets;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
 import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
@@ -23,6 +30,11 @@ import com.appnativa.rare.ui.effects.PerspectiveFilter;
 import com.appnativa.rare.ui.effects.iAnimator;
 import com.appnativa.rare.ui.renderer.UILabelRenderer;
 import com.appnativa.util.IdentityArrayList;
+
+import java.awt.Composite;
+import java.awt.Insets;
+
+import javax.swing.JComponent;
 
 public class CarouselPanel extends aCarouselPanel {
   protected IdentityArrayList<iPlatformComponent> componentList = new IdentityArrayList<iPlatformComponent>();
@@ -57,8 +69,7 @@ public class CarouselPanel extends aCarouselPanel {
   }
 
   @Override
-  public void stopAnimation() {
-  }
+  public void stopAnimation() {}
 
   public void valueChanged(iAnimator animator, double value) {
     int val = (int) value;
@@ -83,14 +94,13 @@ public class CarouselPanel extends aCarouselPanel {
     return false;
   }
 
-  PerspectiveFilter createPerspectiveTransform(float x, float y, float width, float height, float ulx, float uly, float urx,
-      float ury, float lrx, float lry, float llx, float lly) {
+  PerspectiveFilter createPerspectiveTransform(float x, float y, float width, float height, float ulx, float uly,
+          float urx, float ury, float lrx, float lry, float llx, float lly) {
     return new PerspectiveFilter(ulx, uly, urx, ury, lrx, lry, llx, lly);
   }
 
   @Override
-  protected void animateMove(float dx) {
-  }
+  protected void animateMove(float dx) {}
 
   @Override
   protected void bringToFrontOrClip(iPlatformComponent c, float clipWidth, boolean leftSide) {
@@ -113,49 +123,55 @@ public class CarouselPanel extends aCarouselPanel {
   protected iPlatformComponent createLayoutComponent() {
     ContentView p;
 
-    if (imageCreator != null || usesImagesAlways) {
+    if ((imageCreator != null) || usesImagesAlways) {
       p = new ContentView(preserveAspectRatio, true, reflectionFraction, reflectionOpacity);
     } else {
-      switch (dataType) {
-        case WIDGET_URLS:
+      switch(dataType) {
+        case WIDGET_URLS :
           p = new ContentView(reflectionFraction, reflectionOpacity);
 
           break;
 
-        case IMAGE_URLS:
+        case IMAGE_URLS :
           p = new ContentView(preserveAspectRatio, true, reflectionFraction, reflectionOpacity);
 
           break;
 
-        default:
+        default :
           p = new ContentView(new UILabelRenderer(), reflectionFraction, reflectionOpacity);
+
           break;
       }
     }
+
     Component c = new Component(p);
 
     c.setComponentPainter(cellPainter);
 
     return c;
   }
-  
+
   @Override
   protected void setComposite(iPlatformComponent component, GraphicsComposite composite) {
-    Composite c=null;
-    if(composite!=null) {
-      c=(Composite) composite.getPlatformComposite();
-      if(c==null) {
+    Composite c = null;
+
+    if (composite != null) {
+      c = (Composite) composite.getPlatformComposite();
+
+      if (c == null) {
         c = SwingHelper.resolveInstance(composite);
       }
     }
-    ((ContentView) component.getView()).setComposite(c);      
+
+    ((ContentView) component.getView()).setComposite(c);
   }
-  
+
   @Override
   protected void renderComponentContent(iPlatformComponent dst, RenderableDataItem src) {
     boolean sel = getDataIndex(dst) == selectedIndex;
 
-    itemRenderer.configureRenderingComponent(this, ((ContentView) dst.getView()).renderer, src, 0, sel, sel, null, null);
+    itemRenderer.configureRenderingComponent(this, ((ContentView) dst.getView()).renderer, src, 0, sel, sel, null,
+            null);
   }
 
   @Override
@@ -167,29 +183,31 @@ public class CarouselPanel extends aCarouselPanel {
   protected void updateComponentContent(iPlatformComponent dst, UIImage src, CharSequence title) {
     ((ContentView) dst.getView()).setImage(src, title);
   }
-  
+
   @Override
   protected void clearComponentContent(iPlatformComponent c) {
-     c.putClientProperty(RARE_CAROUSEL_ITEM, null);
-     ((ContentView) c.getView()).clearContent();
+    c.putClientProperty(RARE_CAROUSEL_ITEM, null);
+    ((ContentView) c.getView()).clearContent();
   }
-   
+
   @Override
   protected void setPerspectiveFilter(iPlatformComponent c, float width, float height, boolean left, int pos) {
-    float f = perspectiveFraction + (pos * .01f);
+    float f               = perspectiveFraction + (pos * .01f);
     float perspectiveDiff = f * height;
-    float x = 0;
-    float y = height;
+    float x               = 0;
+    float y               = height;
 
     height *= 2;
-    width *= 2;
+    width  *= 2;
 
     PerspectiveFilter tx;
 
     if (left) {
-      tx = createPerspectiveTransform(x, y, width, height, 0, 0, width, perspectiveDiff, width, height - perspectiveDiff, 0, height);
+      tx = createPerspectiveTransform(x, y, width, height, 0, 0, width, perspectiveDiff, width,
+                                      height - perspectiveDiff, 0, height);
     } else {
-      tx = createPerspectiveTransform(x, y, width, height, 0, perspectiveDiff, width, 0, width, height, 0, height - perspectiveDiff);
+      tx = createPerspectiveTransform(x, y, width, height, 0, perspectiveDiff, width, 0, width, height, 0,
+                                      height - perspectiveDiff);
     }
 
     ((ContentView) c.getView()).set3DTransform(tx);
@@ -202,8 +220,7 @@ public class CarouselPanel extends aCarouselPanel {
     }
 
     @Override
-    public void setOpaque(boolean isOpaque) {
-    }
+    public void setOpaque(boolean isOpaque) {}
 
     @Override
     public void getMinimumSize(UIDimension size) {
@@ -220,12 +237,14 @@ public class CarouselPanel extends aCarouselPanel {
     }
 
     int getSelectionFromView(java.awt.Component v) {
-      while (v instanceof JComponent) {
+      while(v instanceof JComponent) {
         if (v instanceof ContentView) {
-          iPlatformComponent c = Component.fromView((JComponent) v);
-          Integer index = (Integer) c.getClientProperty(RARE_CAROUSEL_ITEM);
+          iPlatformComponent c     = Component.fromView((JComponent) v);
+          Integer            index = (Integer) c.getClientProperty(RARE_CAROUSEL_ITEM);
 
-          return (index == null) ? -1 : index.intValue();
+          return (index == null)
+                 ? -1
+                 : index.intValue();
         }
 
         v = v.getParent();
@@ -238,10 +257,14 @@ public class CarouselPanel extends aCarouselPanel {
     protected void layoutContainerEx(int width, int height) {
       CarouselPanel.this.layout(0, 0, width, height);
 
-      int i = (adjustable != null) ? (int) adjustable.getValue() : 0;
+      int i = (adjustable != null)
+              ? (int) adjustable.getValue()
+              : 0;
+
       updateContent(Math.max(i, 0));
     }
   }
+
 
   static class ContentView extends JPanelEx {
     JComponent          contentView;
@@ -261,13 +284,15 @@ public class CarouselPanel extends aCarouselPanel {
     }
 
     public void clearContent() {
-      if(imageView!=null) {
-        imageView.setImage((UIImage)null);
+      if (imageView != null) {
+        imageView.setImage((UIImage) null);
       }
-      if(renderer!=null) {
+
+      if (renderer != null) {
         renderer.clearRenderer();
       }
-      if(titleLabel!=null) {
+
+      if (titleLabel != null) {
         titleLabel.setIcon(null);
         titleLabel.setText(null);
       }
@@ -296,8 +321,7 @@ public class CarouselPanel extends aCarouselPanel {
     }
 
     public void set3DTransform(PerspectiveFilter tx) {
-      if (imageView != null) {
-      }
+      if (imageView != null) {}
 
       imageView.setTransformFilter(tx);
     }
@@ -376,26 +400,39 @@ public class CarouselPanel extends aCarouselPanel {
 
     @Override
     protected void layoutContainerEx(int width, int height) {
-      iPlatformBorder b = UIProxyBorder.fromBorder(getBorder());
-      Insets in = (b == null) ? null : b.getBorderInsets(this);
-      JComponent v = (reflectionView == null) ? contentView : reflectionView;
+      iPlatformBorder b  = UIProxyBorder.fromBorder(getBorder());
+      Insets          in = (b == null)
+                           ? null
+                           : b.getBorderInsets(this);
+      JComponent      v  = (reflectionView == null)
+                           ? contentView
+                           : reflectionView;
 
-      if ((v == null) || !v.isVisible()) {
+      if ((v == null) ||!v.isVisible()) {
         return;
       }
 
       int theight = 0;
-      int pl = (in == null) ? 0 : in.left;
-      int pr = (in == null) ? 0 : in.right;
-      int pt = (in == null) ? 0 : in.top;
-      int pb = (in == null) ? 0 : in.bottom;
+      int pl      = (in == null)
+                    ? 0
+                    : in.left;
+      int pr      = (in == null)
+                    ? 0
+                    : in.right;
+      int pt      = (in == null)
+                    ? 0
+                    : in.top;
+      int pb      = (in == null)
+                    ? 0
+                    : in.bottom;
 
-      width -= (pr + pl);
+      width  -= (pr + pl);
       height -= (pt + pb);
 
       if ((titleLabel != null) && (titleLabel.isVisible())) {
         theight = titleLabel.getPreferredHeight(-1);
       }
+
       iPlatformComponent c = Component.fromView(v);
 
       c.setBounds(pl, pt, width, height - theight);
@@ -411,6 +448,7 @@ public class CarouselPanel extends aCarouselPanel {
     }
   }
 
+
   static class ReflectionView extends JPanelEx {
     UIImage            reflection;
     float              rfraction;
@@ -421,7 +459,7 @@ public class CarouselPanel extends aCarouselPanel {
     public ReflectionView(float rfraction, float ropacity) {
       super();
       this.rfraction = rfraction;
-      this.ropacity = ropacity;
+      this.ropacity  = ropacity;
     }
 
     public void setSourceView(JComponent sourceView) {
@@ -446,6 +484,7 @@ public class CarouselPanel extends aCarouselPanel {
       return false;
     }
   }
+
 
   static class ReflectionViewGroup extends JPanelEx {
     ReflectionView reflection;
@@ -479,7 +518,7 @@ public class CarouselPanel extends aCarouselPanel {
     protected void layoutContainerEx(int width, int height) {
       JComponent v = reflection.getSourceView();
 
-      if ((v == null) || !v.isVisible()) {
+      if ((v == null) ||!v.isVisible()) {
         return;
       }
 

@@ -681,22 +681,6 @@ public class aPlatformHelper {
     return AppleHelper.makeScrollPane(context, cfg, comp);
   }
 
-  public static native String md5(String val, boolean base64)    /*-[
-                                                                 const char *bytes = [val cStringUsingEncoding:NSUTF8StringEncoding];
-
-                                                                 uint8_t digest[CC_MD5_DIGEST_LENGTH];
-
-                                                                 CC_MD5(bytes, strlen(bytes), digest);
-                                                                 if(base64) {
-                                                                 IOSByteArray * ba=[IOSByteArray arrayWithBytes:(char*)digest count:CC_MD5_DIGEST_LENGTH];
-                                                                 return [RAREUTBase64 encodeBytesWithByteArray:ba];
-                                                                 }
-                                                                 return [[NSString alloc] initWithBytes:digest
-                                                                 length:CC_MD5_DIGEST_LENGTH
-                                                                 encoding:NSASCIIStringEncoding];
-                                                                 ]-*/
-  ;
-
   public static void performHapticFeedback(Object view) {}
 
   public static iPlatformComponent resolveBeanComponent(Object bean) {

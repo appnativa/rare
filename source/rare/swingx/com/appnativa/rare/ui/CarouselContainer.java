@@ -1,17 +1,24 @@
 /*
- * @(#)CarouselContainer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -23,7 +30,13 @@ import com.appnativa.rare.ui.carousel.MotionHandler.iScrollingParent;
 import com.appnativa.rare.ui.carousel.aCarouselPanel;
 import com.appnativa.rare.ui.carousel.aCarouselPanel.DataType;
 import com.appnativa.rare.ui.event.EventListenerList;
+
 import com.google.j2objc.annotations.Weak;
+
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+
+import javax.swing.JComponent;
 
 public class CarouselContainer extends BorderPanel {
   static int          xThreashold = 5;
@@ -35,7 +48,7 @@ public class CarouselContainer extends BorderPanel {
 
   public CarouselContainer(DataType dataType) {
     super();
-    panel = new CarouselPanel(dataType);
+    panel       = new CarouselPanel(dataType);
     scrollPanel = new ScrollPanel(panel);
     setCenterView(scrollPanel);
     panel.setAdjustable(new Adjustable(this));
@@ -46,8 +59,7 @@ public class CarouselContainer extends BorderPanel {
     revalidate();
   }
 
-  public void setScrollBarOpacity(float opacity) {
-  }
+  public void setScrollBarOpacity(float opacity) {}
 
   public void setShowScrollBar(boolean show) {
     if (!Platform.isTouchDevice()) {
@@ -98,12 +110,13 @@ public class CarouselContainer extends BorderPanel {
     @Override
     protected void layoutContainerEx(int width, int height) {
       ScrollPanel panel = (ScrollPanel) Component.fromView(this);
+
       panel.motionHandler.layoutChild(width, height);
     }
   }
 
-  static class ScrollPanel extends Container implements iScrollingParent {
 
+  static class ScrollPanel extends Container implements iScrollingParent {
     private MotionHandler motionHandler;
 
     public ScrollPanel(CarouselPanel panel) {
@@ -129,7 +142,6 @@ public class CarouselContainer extends BorderPanel {
           c.getMinimumSize(size);
         }
       }
-
     }
 
     @Override
@@ -148,13 +160,17 @@ public class CarouselContainer extends BorderPanel {
     @Override
     public int getIndexOfComponentAt(float x, float y) {
       JComponent v = (JComponent) view.findComponentAt(UIScreen.snapToPosition(x), UIScreen.snapToPosition(y));
-      while (v != null) {
-        if (v instanceof ContentView) {
-          iPlatformComponent c = Component.fromView(v);
-          Integer index = (Integer) c.getClientProperty(aCarouselPanel.RARE_CAROUSEL_ITEM);
 
-          return (index == null) ? -1 : index.intValue();
+      while(v != null) {
+        if (v instanceof ContentView) {
+          iPlatformComponent c     = Component.fromView(v);
+          Integer            index = (Integer) c.getClientProperty(aCarouselPanel.RARE_CAROUSEL_ITEM);
+
+          return (index == null)
+                 ? -1
+                 : index.intValue();
         }
+
         if (v.getParent() instanceof JComponent) {
           v = (JComponent) v.getParent();
         } else {
@@ -165,6 +181,7 @@ public class CarouselContainer extends BorderPanel {
       return -1;
     }
   }
+
 
   static class Adjustable extends aAdjustable {
     @Weak
@@ -191,6 +208,7 @@ public class CarouselContainer extends BorderPanel {
     }
   }
 
+
   static class AdjustableScrollBar extends aAdjustable implements AdjustmentListener {
     private static final double MULTIPLIER = 1;
     ScrollBarView               sb         = new ScrollBarView(true);
@@ -206,18 +224,19 @@ public class CarouselContainer extends BorderPanel {
     @Override
     public void adjustmentValueChanged(AdjustmentEvent e) {
       super.setValue((e.getValue() / MULTIPLIER));
+
       if (e.getValueIsAdjusting()) {
         wasAdjusting = true;
       } else {
-        if (wasAdjusting) { // notify that we have stopped scrolling
+        if (wasAdjusting) {    // notify that we have stopped scrolling
           Platform.invokeLater(new Runnable() {
-
             @Override
             public void run() {
               panel.fireChangeEvent();
             }
           });
         }
+
         wasAdjusting = false;
       }
     }
@@ -267,7 +286,6 @@ public class CarouselContainer extends BorderPanel {
       return sb.getModel().getValueIsAdjusting();
     }
   }
-
   // class ScrollView extends JPanelEx implements MouseMotionListener,
   // MouseListener {
   // int mouseDownX = 0;

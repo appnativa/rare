@@ -111,22 +111,6 @@
   }
 }
 
-//-(void)setNeedsDisplay {
-//  [super setNeedsDisplay];
-//  [self.visibleCells enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-//    UITableViewCell* cell=(UITableViewCell*) obj;
-//    [cell setNeedsDisplay];
-//  }];
-//}
-//-(void)setNeedsLayout {
-//  [super setNeedsLayout];
-//  [self.visibleCells enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-//    UITableViewCell* cell=(UITableViewCell*) obj;
-//    [cell setNeedsLayout];
-////    [cell setNeedsDisplay];
-//  }];
-//}
-
 -(void)sparDispose {
   self.delegate=nil;
   if(flingGesture) {
@@ -202,10 +186,10 @@
   if(path.length==0) return -1;
   if(hasSectionIndex_) {
     RAREListView* lb=(RAREListView*)self.sparView;
-    return [lb->sectionIndex_ getFlatIndexWithInt:path.section withInt:path.row];
+    return [lb->sectionIndex_ getFlatIndexWithInt:(int)path.section withInt:(int)path.row];
   }
   else {
-    return path.row;
+    return (int)path.row;
   }
 }
 -(NSIndexPath*) pathFromRow: (int) row; {

@@ -1,12 +1,50 @@
 /*
- * @(#)PopupWindow.java   2009-08-14
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.UIScreen;
+import com.appnativa.rare.ui.UITarget;
+import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.WindowPane;
+import com.appnativa.rare.ui.WindowTarget;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.effects.iAnimator.Direction;
+import com.appnativa.rare.ui.effects.iAnimatorListener;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.event.EventListenerList;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.iPopupMenuListener;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPopup;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.viewer.iViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.IdentityArrayList;
 
 import java.awt.AWTEvent;
 import java.awt.Component;
@@ -22,6 +60,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
+
 import java.util.Map;
 
 import javax.swing.AbstractAction;
@@ -32,32 +71,6 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.UIScreen;
-import com.appnativa.rare.ui.UITarget;
-import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.WindowPane;
-import com.appnativa.rare.ui.WindowTarget;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPopup;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.effects.iAnimator.Direction;
-import com.appnativa.rare.ui.effects.iAnimatorListener;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.event.EventListenerList;
-import com.appnativa.rare.ui.event.ExpansionEvent;
-import com.appnativa.rare.ui.event.iPopupMenuListener;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.viewer.iViewer;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.IdentityArrayList;
 
 /**
  * A popup window
@@ -99,7 +112,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
    *          the context
    */
   public PopupWindow(iWidget context) {
-    this((Window)context.getWindow().getUIWindow(),context);
+    this((Window) context.getWindow().getUIWindow(), context);
   }
 
   /**
@@ -210,7 +223,9 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   @Override
   public void setContent(iPlatformComponent component) {
     windowPane.setContent(component);
-    content = (component == null) ? null : component.getView();
+    content = (component == null)
+              ? null
+              : component.getView();
   }
 
   @Override
@@ -220,12 +235,10 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   }
 
   @Override
-  public void setMovable(boolean moveble) {
-  }
+  public void setMovable(boolean moveble) {}
 
   @Override
-  public void setOptions(Map<String, String> options) {
-  }
+  public void setOptions(Map<String, String> options) {}
 
   @Override
   public void setPopupLocation(float x, float y) {
@@ -244,8 +257,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   }
 
   @Override
-  public void setResizable(boolean resizable) {
-  }
+  public void setResizable(boolean resizable) {}
 
   @Override
   public void setSize(float width, float height) {
@@ -275,19 +287,21 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
 
   @Override
   public void dispose() {
-    if(_awtEventListener!=null) {
+    if (_awtEventListener != null) {
       removeMouseEventHandler();
     }
+
     if (target != null) {
       target.dispose(false);
     }
-    
+
     target = null;
+
     if (windowPane != null) {
-      
       setContentPane(new JPanel());
       windowPane.dispose();
     }
+
     windowPane = null;
     super.dispose();
   }
@@ -310,17 +324,19 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
       animator.addListener(new iAnimatorListener() {
         @Override
         public void animationStarted(iPlatformAnimator source) {
-          if(windowPane!=null) {
+          if (windowPane != null) {
             windowPane.setVisible(true);
           }
         }
-
         @Override
         public void animationEnded(iPlatformAnimator source) {
           source.removeListener(this);
-          source.setDirection(visibleIsforward ? Direction.FORWARD : Direction.BACKWARD); // reset
-                                                                                          // direction
-          if(windowPane!=null) {
+          source.setDirection(visibleIsforward
+                              ? Direction.FORWARD
+                              : Direction.BACKWARD);    // reset
+
+          // direction
+          if (windowPane != null) {
             if (!visible) {
               setVisibleEx(false);
             } else {
@@ -397,7 +413,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   }
 
   protected void handleComponentEvent(ComponentEvent event) {
-    if ((event.getID() == ComponentEvent.COMPONENT_HIDDEN) && (owner != null) && !owner.isShowing()) {
+    if ((event.getID() == ComponentEvent.COMPONENT_HIDDEN) && (owner != null) &&!owner.isShowing()) {
       cancelPopup(true);
     }
   }
@@ -405,10 +421,12 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   protected void handleMouseEvent(MouseEvent event) {
     if (event.getID() == MouseEvent.MOUSE_PRESSED) {
       Component comp = event.getComponent();
-      if (comp!=this && isTransient() && (SwingUtilities.windowForComponent(comp) != this)) {
+
+      if ((comp != this) && isTransient() && (SwingUtilities.windowForComponent(comp) != this)) {
         IdentityArrayList windows = Platform.getAppContext().getActiveWindows();
-        int len = windows.size();
-        if (len > 0 && windows.get(len - 1) == this) {
+        int               len     = windows.size();
+
+        if ((len > 0) && (windows.get(len - 1) == this)) {
           event.consume();
           cancelPopup(true);
         }
@@ -422,7 +440,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
         cancelPopup(false);
       }
     } else if (isTransient() && (e.getID() == WindowEvent.WINDOW_DEACTIVATED)) {
-      if (e.getWindow() == this || !getFocusableWindowState()) {
+      if ((e.getWindow() == this) ||!getFocusableWindowState()) {
         cancelPopup(false);
       }
     }
@@ -449,7 +467,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
 
   protected void initialize(iWidget context) {
     contextWidget = context;
-    windowPane = new WindowPane(context);
+    windowPane    = new WindowPane(context);
 
     String targetName = "_popup_window_" + Integer.toHexString(hashCode());
 
@@ -458,7 +476,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
     setUndecorated(true);
     setFocusable(false);
     setBackground(ColorUtils.TRANSPARENT_COLOR);
-    getRootPane().putClientProperty( "Window.shadow", Boolean.FALSE );
+    getRootPane().putClientProperty("Window.shadow", Boolean.FALSE);
     getRootPane().putClientProperty("apple.awt.draggableWindowBackground", Boolean.FALSE);
   }
 
@@ -476,15 +494,14 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
       t.start();
     }
 
-    if (isTransient()) {
-    }
+    if (isTransient()) {}
   }
 
   protected void setVisibleEx(boolean visible) {
     if (visible) {
       canceled = false;
 
-      if (listenerList != null) { // can be null if disposed was called
+      if (listenerList != null) {    // can be null if disposed was called
         if (expansionEvent == null) {
           expansionEvent = new ExpansionEvent(PopupWindow.this);
         }
@@ -520,11 +537,11 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
           yy = p.y;
         }
       } else if (owner != null) {
-        UIPoint loc = owner.getLocationOnScreen(null);
+        UIPoint     loc  = owner.getLocationOnScreen(null);
         UIDimension size = owner.getOrientedSize(null);
+
         xx += loc.x;
         yy += loc.y + size.height;
-
       }
 
       setLocation(UIScreen.snapToPosition(xx), UIScreen.snapToPosition(yy));
@@ -535,13 +552,14 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
     } else {
       removeMouseEventHandler();
 
-      if (listenerList != null) { // can be null if disposed was called
+      if (listenerList != null) {    // can be null if disposed was called
         if (expansionEvent == null) {
           expansionEvent = new ExpansionEvent(PopupWindow.this);
         }
 
         Utils.firePopupEvent(listenerList, expansionEvent, false);
       }
+
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -551,14 +569,15 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
     }
 
     super.setVisible(visible);
+
     if (visible) {
       Platform.getAppContext().getActiveWindows().add(this);
+
       if (istransient) {
         addMouseEventHandler();
       }
     } else {
       Platform.getAppContext().getActiveWindows().remove(this);
-
     }
   }
 
@@ -583,12 +602,12 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
         @Override
         public Object run() {
           Toolkit.getDefaultToolkit().addAWTEventListener(_awtEventListener,
-              AWTEvent.MOUSE_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK | AWTEvent.COMPONENT_EVENT_MASK);
+                  AWTEvent.MOUSE_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK | AWTEvent.COMPONENT_EVENT_MASK);
 
           return null;
         }
       });
-    } catch (SecurityException e) {
+    } catch(SecurityException e) {
       throw new RuntimeException(e);
     }
   }
@@ -604,7 +623,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
           return null;
         }
       });
-    } catch (SecurityException e) {
+    } catch(SecurityException e) {
       throw new RuntimeException(e);
     }
   }

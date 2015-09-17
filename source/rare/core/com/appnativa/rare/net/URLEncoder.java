@@ -72,7 +72,7 @@ public class URLEncoder {
   /**
    * The default charset used for string decoding and encoding.
    */
-  private static String charset = "iso-8859-1";
+  private static String charset = "US-ASCII";
 
   /**
    * BitSet of www-form-url safe characters.
@@ -278,7 +278,7 @@ public class URLEncoder {
 
   /**
    * Encodes a string into its URL safe form using the default string
-   * charset. Unsafe characters are escaped.
+   * charset. Characters deemed unsafe for use with 'application/x-www-form-urlencoded' mime type are escaped.
    *
    * @param pString string to convert to a URL safe form
    * @return URL safe string

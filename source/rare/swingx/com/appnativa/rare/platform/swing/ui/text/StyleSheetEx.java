@@ -1,12 +1,27 @@
 /*
- * @(#)StyleSheetEx.java   2010-04-07
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
+
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColorShade;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -18,9 +33,6 @@ import javax.swing.text.html.CSS;
 import javax.swing.text.html.CSS.Attribute;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.StyleSheet;
-
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIColorShade;
 
 /**
  *
@@ -40,8 +52,7 @@ public class StyleSheetEx extends StyleSheet {
     }
 
     if (key == HTML.Attribute.BGCOLOR) {
-      return super.addAttribute(old, CSS.Attribute.BACKGROUND_COLOR,
-      		ColorUtils.getColor((String) value));
+      return super.addAttribute(old, CSS.Attribute.BACKGROUND_COLOR, ColorUtils.getColor((String) value));
     }
 
     return super.addAttribute(old, key, value);
@@ -77,11 +88,10 @@ public class StyleSheetEx extends StyleSheet {
     }
 
     if (fg != null) {
-      if(fg instanceof UIColorShade) {
+      if (fg instanceof UIColorShade) {
         rule.append(" color: ");
         rule.append(fg.toString());
-      }
-      else {
+      } else {
         rule.append(" color: #");
 
         if (fg.getRed() < 16) {
@@ -102,6 +112,7 @@ public class StyleSheetEx extends StyleSheet {
 
         rule.append(Integer.toHexString(fg.getBlue()));
       }
+
       rule.append(" ; ");
     }
 

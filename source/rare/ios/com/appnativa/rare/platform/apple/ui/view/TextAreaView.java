@@ -128,7 +128,7 @@ public class TextAreaView extends aTextEditorView {
   public native int getSelectionEnd()
   /*-[
     NSRange r=((RAREAPTextView*)proxy_).selectedRangeEx;
-    return (int)r.location+r.length;
+    return (int)(r.location+r.length);
    ]-*/
   ;
 

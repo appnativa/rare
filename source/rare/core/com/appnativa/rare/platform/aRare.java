@@ -1162,6 +1162,9 @@ public abstract class aRare implements iExceptionHandler, iAsyncLoadStatusHandle
       return CollectionURLConnection.createURL(getRootViewer(), url.substring(iConstants.COLLECTION_PREFIX_LENGTH));
     }
 
+    if (url.startsWith(iConstants.INLINE_PREFIX)) {
+      return InlineURLConnection.createURL(url.substring(iConstants.INLINE_PREFIX_LENGTH));
+    }
     if (context == null) {
       context = this.contextURL;
     }

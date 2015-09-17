@@ -1,16 +1,24 @@
 /*
- * @(#)iComponentFactory.java   2010-07-03
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import javax.swing.AbstractButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.ui.view.CheckBoxView;
@@ -42,211 +50,211 @@ import com.appnativa.rare.ui.table.TableView;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.widget.iWidget;
 
+import javax.swing.AbstractButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 
-
-public interface iPlatformComponentFactory extends iComponentFactory{
-
-  /**
-  * Displays a system alert that animates into view at the specified location, stays visible for 5 seconds
-  * and then fades away. The property "Rare.systemAlert.duration" (in milliseconds) controls the duration
-  * The valid locations are: <ul>
-  *  <li>CENTER</li>
-  *  <li>EAST</li>
-  *  <li>NORTH</li>
-  *  <li>NORTH_EAST</li>
-  *  <li>NORTH_WEST</li>
-  *  <li>SOUTH</li>
-  *  <li>SOUTH_EAST</li>
-  *  <li>SOUTH_WEST</li>
-  *  <li>WEST</li>
-  * </ul>
-  *  <p> These locations are global constants in the scripting environment
-  *
-  * @param context the context
-  * @param message the message can be a string, a widget, or a swing 
-  * @param displayLocation the display location.
-  * @param icon a icon for the alert
-  * @param actionable an actionable that will be used to close hide the alert
-  * @param monitor the monitor on which to display the alert (1 -relative)
-  */
- void systemAlert(iWidget context, Object message, int displayLocation, iPlatformIcon icon, iActionable actionable, int monitor);
-
- /**
-  * Set the application context that the factory was created for
-  *
-  * @param app the application instance
-  */
- @Override
-void setAppContext(iPlatformAppContext app);
-
- /**
-  * Gets a bean object. The object must be an instance of <code>iBeanIntegrator</code>
-  * or <code>iPlatformComponent</code>
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- Object getBean(iWidget context, Bean cfg);
-
- /**
-  * Gets a button 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- AbstractButton getButton(iWidget context, PushButton cfg);
-
- /**
-  * Gets a checkbox 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- CheckBoxView getCheckBox(iWidget context, CheckBox cfg);
-
- /**
-  * Gets a collapsible 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- @Override
-iCollapsible getCollapsible(iWidget context, CollapsibleInfo cfg);
+public interface iPlatformComponentFactory extends iComponentFactory {
 
   /**
-  * Gets a label 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- LabelView getLabel(iWidget context, Label cfg);
+   * Displays a system alert that animates into view at the specified location, stays visible for 5 seconds
+   * and then fades away. The property "Rare.systemAlert.duration" (in milliseconds) controls the duration
+   * The valid locations are: <ul>
+   *  <li>CENTER</li>
+   *  <li>EAST</li>
+   *  <li>NORTH</li>
+   *  <li>NORTH_EAST</li>
+   *  <li>NORTH_WEST</li>
+   *  <li>SOUTH</li>
+   *  <li>SOUTH_EAST</li>
+   *  <li>SOUTH_WEST</li>
+   *  <li>WEST</li>
+   * </ul>
+   *  <p> These locations are global constants in the scripting environment
+   *
+   * @param context the context
+   * @param message the message can be a string, a widget, or a swing
+   * @param displayLocation the display location.
+   * @param icon a icon for the alert
+   * @param actionable an actionable that will be used to close hide the alert
+   * @param monitor the monitor on which to display the alert (1 -relative)
+   */
+  void systemAlert(iWidget context, Object message, int displayLocation, iPlatformIcon icon, iActionable actionable,
+                   int monitor);
 
- /**
-  * Gets a line 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- LineView getLine(iWidget context, Line cfg);
+  /**
+   * Set the application context that the factory was created for
+   *
+   * @param app the application instance
+   */
+  @Override
+  void setAppContext(iPlatformAppContext app);
 
- /**
-  * Gets a list 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- ListView getList(iWidget context, ListBox cfg);
+  /**
+   * Gets a bean object. The object must be an instance of <code>iBeanIntegrator</code>
+   * or <code>iPlatformComponent</code>
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  Object getBean(iWidget context, Bean cfg);
 
+  /**
+   * Gets a button
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  AbstractButton getButton(iWidget context, PushButton cfg);
 
- /**
-  * Gets a password text field 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- JTextField getPasswordTextField(iWidget context, PasswordField cfg);
+  /**
+   * Gets a checkbox
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  CheckBoxView getCheckBox(iWidget context, CheckBox cfg);
 
- /**
-  * Gets a progress bar 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- iProgressBar getProgressBar(iWidget context, ProgressBar cfg);
+  /**
+   * Gets a collapsible
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  @Override
+  iCollapsible getCollapsible(iWidget context, CollapsibleInfo cfg);
 
- /**
-  * Gets a radio button 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- RadioButtonView getRadioButton(iWidget context, RadioButton cfg);
+  /**
+   * Gets a label
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  LabelView getLabel(iWidget context, Label cfg);
 
- /**
-  * Gets a table view
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- TableView getTable(iWidget context, Table cfg);
+  /**
+   * Gets a line
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  LineView getLine(iWidget context, Line cfg);
 
+  /**
+   * Gets a list
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  ListView getList(iWidget context, ListBox cfg);
 
- /**
-  * Gets a slider 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- SliderView getSlider(iWidget context, Slider cfg);
+  /**
+   * Gets a password text field
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  JTextField getPasswordTextField(iWidget context, PasswordField cfg);
 
- /**
-  * Gets a text field 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- TextFieldView getTextField(iWidget context, TextField cfg);
+  /**
+   * Gets a progress bar
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  iProgressBar getProgressBar(iWidget context, ProgressBar cfg);
 
- /**
-  * Gets a text area 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- TextAreaView getTextArea(iWidget context, TextField cfg);
+  /**
+   * Gets a radio button
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  RadioButtonView getRadioButton(iWidget context, RadioButton cfg);
 
- /**
-  * Gets a toolbar button 
-  *
-  * @param context the widget context
-  * @param cfg the configuration
-  *
-  * @return the view
-  */
- AbstractButton getToolbarButton(iWidget context, PushButton cfg);
- 
- TreeView getTree(iWidget context, Tree cfg);
- 
- 
- /**
-  * Resolves a rendering . 
-  * This method will handle the unwrapping of rendering components
-  * that may be done be special rendering classes
-  * @param widget the widget the  was rendering on
-  * @param rc the rendering  returned by a get*RenderingComponent method
-  * @return the unwrapped 
-  */
- iPlatformComponent resolveRenderingComponent(iWidget widget,iPlatformComponent rc);
+  /**
+   * Gets a table view
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  TableView getTable(iWidget context, Table cfg);
 
-	iPlatformTextEditor getDocumentPane(iWidget context,DocumentPane cfg);
+  /**
+   * Gets a slider
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  SliderView getSlider(iWidget context, Slider cfg);
 
-	JScrollPane getScrollPane(iWidget context, ScrollPane cfg);
+  /**
+   * Gets a text field
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  TextFieldView getTextField(iWidget context, TextField cfg);
+
+  /**
+   * Gets a text area
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  TextAreaView getTextArea(iWidget context, TextField cfg);
+
+  /**
+   * Gets a toolbar button
+   *
+   * @param context the widget context
+   * @param cfg the configuration
+   *
+   * @return the view
+   */
+  AbstractButton getToolbarButton(iWidget context, PushButton cfg);
+
+  TreeView getTree(iWidget context, Tree cfg);
+
+  /**
+   * Resolves a rendering .
+   * This method will handle the unwrapping of rendering components
+   * that may be done be special rendering classes
+   * @param widget the widget the  was rendering on
+   * @param rc the rendering  returned by a get*RenderingComponent method
+   * @return the unwrapped
+   */
+  iPlatformComponent resolveRenderingComponent(iWidget widget, iPlatformComponent rc);
+
+  iPlatformTextEditor getDocumentPane(iWidget context, DocumentPane cfg);
+
+  JScrollPane getScrollPane(iWidget context, ScrollPane cfg);
 }

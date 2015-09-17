@@ -1,12 +1,52 @@
 /*
- * @(#)Component.java   2012-04-06
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.platform.EventHelper;
+import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
+import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
+import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
+import com.appnativa.rare.platform.swing.ui.view.iView;
+import com.appnativa.rare.ui.RenderableDataItem.Orientation;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
+import com.appnativa.rare.ui.listener.iFocusListener;
+import com.appnativa.rare.ui.listener.iKeyListener;
+import com.appnativa.rare.ui.listener.iMouseListener;
+import com.appnativa.rare.ui.listener.iMouseMotionListener;
+import com.appnativa.rare.ui.listener.iViewListener;
+import com.appnativa.rare.ui.painter.PainterHolder;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
+import com.appnativa.rare.ui.painter.iComponentPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -22,6 +62,7 @@ import java.awt.event.HierarchyListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -29,40 +70,13 @@ import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import javax.swing.plaf.UIResource;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.EventHelper;
-import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
-import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
-import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
-import com.appnativa.rare.platform.swing.ui.view.iView;
-import com.appnativa.rare.ui.RenderableDataItem.Orientation;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.listener.iFocusListener;
-import com.appnativa.rare.ui.listener.iKeyListener;
-import com.appnativa.rare.ui.listener.iMouseListener;
-import com.appnativa.rare.ui.listener.iMouseMotionListener;
-import com.appnativa.rare.ui.listener.iViewListener;
-import com.appnativa.rare.ui.painter.PainterHolder;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-import com.appnativa.rare.ui.painter.iComponentPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 /**
  *
  * @author Don DeCoteau
  */
-public class Component extends aComponent implements MouseListener, MouseMotionListener, KeyListener, FocusListener,
-    PropertyChangeListener, ComponentListener, HierarchyListener {
+public class Component extends aComponent
+        implements MouseListener, MouseMotionListener, KeyListener, FocusListener, PropertyChangeListener,
+                   ComponentListener, HierarchyListener {
   public static String                RARE_COMPONENT_PROXY_PROPERTY = "__RARE_COMPONENT_PROXY_PROPERTY__";
   SwingGraphics                       graphics;
   int                                 graphicsReference;
@@ -71,11 +85,11 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   protected boolean                   hadInteraction;
   protected iParentComponent          parent;
   protected JComponent                view;
-  protected boolean foregroundSet;
+  protected boolean                   foregroundSet;
   private ScaleGestureDetector        scaleGestureDetector;
 
   public Component(JComponent component) {
-    this.view = component;
+    this.view                  = component;
     useBorderInSizeCalculation = false;
 
     if (component != null) {
@@ -83,8 +97,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
     }
   }
 
-  protected Component() {
-  }
+  protected Component() {}
 
   @Override
   public void addFocusListener(iFocusListener l) {
@@ -136,8 +149,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   }
 
   @Override
-  public void componentHidden(ComponentEvent e) {
-  }
+  public void componentHidden(ComponentEvent e) {}
 
   @Override
   public void componentMoved(ComponentEvent e) {
@@ -145,24 +157,26 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   }
 
   @Override
-  public void componentResized(ComponentEvent e) {
-  }
+  public void componentResized(ComponentEvent e) {}
 
   @Override
-  public void componentShown(ComponentEvent e) {
-  }
+  public void componentShown(ComponentEvent e) {}
 
   public boolean setAlpha(float alpha) {
     if (isDisposed()) {
       return false;
     }
+
     if (view instanceof JPanelEx) {
       ((JPanelEx) view).setComposite(AlphaComposite.SrcOver.derive(alpha));
+
       return true;
     } else {
       UIComponentPainter cp = (UIComponentPainter) getComponentPainter(true);
+
       cp.setComposite(GraphicsComposite.DEFAULT_COMPOSITE.derive(alpha));
     }
+
     return true;
   }
 
@@ -170,7 +184,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   public iPlatformComponent copy() {
     try {
       return new Component(view.getClass().newInstance());
-    } catch (Exception e) {
+    } catch(Exception e) {
       throw new ApplicationException(e);
     }
   }
@@ -247,7 +261,9 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public iPlatformGraphics graphicsWrap(Graphics g) {
-    Graphics og = (graphics == null) ? null : graphics.getGraphics();
+    Graphics og = (graphics == null)
+                  ? null
+                  : graphics.getGraphics();
 
     if ((og != null) && (og != g)) {
       return new SwingGraphics(g, this);
@@ -288,7 +304,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    KeyEvent ke = new KeyEvent(this, e);
+    KeyEvent ke        = new KeyEvent(this, e);
     Object[] listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -308,7 +324,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    KeyEvent ke = new KeyEvent(this, e);
+    KeyEvent ke        = new KeyEvent(this, e);
     Object[] listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -328,7 +344,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    KeyEvent ke = new KeyEvent(this, e);
+    KeyEvent ke        = new KeyEvent(this, e);
     Object[] listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -343,8 +359,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   }
 
   @Override
-  public void mouseClicked(java.awt.event.MouseEvent e) {
-  }
+  public void mouseClicked(java.awt.event.MouseEvent e) {}
 
   @Override
   public void mouseDragged(java.awt.event.MouseEvent e) {
@@ -352,8 +367,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    MouseEvent me = EventHelper.createMouseEvent(this, e);
-    Object[] listeners = listenerList.getListenerList();
+    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseMotionListener.class) {
@@ -372,8 +387,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    MouseEvent me = EventHelper.createMouseEvent(this, e);
-    Object[] listeners = listenerList.getListenerList();
+    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
@@ -392,8 +407,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    MouseEvent me = EventHelper.createMouseEvent(this, e);
-    Object[] listeners = listenerList.getListenerList();
+    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
@@ -412,8 +427,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    MouseEvent me = EventHelper.createMouseEvent(this, e);
-    Object[] listeners = listenerList.getListenerList();
+    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseMotionListener.class) {
@@ -432,8 +447,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    MouseEvent me = EventHelper.createMouseEvent(this, e);
-    Object[] listeners = listenerList.getListenerList();
+    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
@@ -452,8 +467,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       return;
     }
 
-    MouseEvent me = EventHelper.createMouseEvent(this, e);
-    Object[] listeners = listenerList.getListenerList();
+    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
@@ -489,8 +504,10 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
         }
       }
     } else if (property == iComponentPainter.PROPERTY_PAINTER_HOLDER) {
-      PainterHolder ph = (PainterHolder) evt.getNewValue();
-      iPlatformBorder b = (ph == null) ? null : ph.getBorder(ButtonState.DEFAULT);
+      PainterHolder   ph = (PainterHolder) evt.getNewValue();
+      iPlatformBorder b  = (ph == null)
+                           ? null
+                           : ph.getBorder(ButtonState.DEFAULT);
 
       if (b != null) {
         view.setBorder(b);
@@ -535,6 +552,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   @Override
   public void setBackground(UIColor bg) {
     view.setBackground(bg);
+
     if ((bg != null) && (bg.getAlpha() == 0)) {
       view.setOpaque(false);
 
@@ -553,8 +571,8 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   @Override
   public void setBorder(iPlatformBorder border) {
     if (view instanceof iPainterSupport) {
-      view.setBorder(border); // call first because then next line will cause a
-                              // property change event to be fired
+      view.setBorder(border);    // call first because then next line will cause a
+      // property change event to be fired
       getComponentPainter(true).setBorder(border);
     } else {
       view.setBorder(border);
@@ -563,12 +581,14 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public void setBounds(float x, float y, float width, float height) {
-    setBounds(UIScreen.snapToPosition(x), UIScreen.snapToPosition(y), UIScreen.snapToSize(width), UIScreen.snapToSize(height));
+    setBounds(UIScreen.snapToPosition(x), UIScreen.snapToPosition(y), UIScreen.snapToSize(width),
+              UIScreen.snapToSize(height));
   }
 
   @Override
   public void setBounds(int x, int y, int width, int height) {
-    boolean changed = width != getWidth() || height != getHeight();
+    boolean changed = (width != getWidth()) || (height != getHeight());
+
     view.setBounds(x, y, width, height);
 
     if ((parent != null) && (parent.getOrientation() != Orientation.HORIZONTAL)) {
@@ -580,6 +600,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
     } else {
       bounds = null;
     }
+
     if (wantsViewResizeEvent && changed) {
       componentEvent(false, true, false);
     }
@@ -599,7 +620,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
       if (cp != null) {
         iPlatformBorder nb = cp.getBorder();
-        UIColor bg = cp.getBackgroundColor();
+        UIColor         bg = cp.getBackgroundColor();
 
         if (bg != null) {
           view.setBackground(bg);
@@ -635,7 +656,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
       if (cp != null) {
         iPlatformBorder nb = cp.getBorder();
-        UIColor bg = cp.getBackgroundColor();
+        UIColor         bg = cp.getBackgroundColor();
 
         if (bg != null) {
           view.setBackground(bg);
@@ -659,7 +680,9 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public void setCursor(UICursor cursor) {
-    view.setCursor(cursor == null ? null : cursor.getCursor());
+    view.setCursor((cursor == null)
+                   ? null
+                   : cursor.getCursor());
   }
 
   @Override
@@ -670,10 +693,13 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public void setEnabled(boolean enabled) {
-    if(enabled!=view.isEnabled()) {
+    if (enabled != view.isEnabled()) {
       view.setEnabled(enabled);
-      if(!foregroundSet) {
-        view.setForeground(enabled ? ColorUtils.getForeground() : ColorUtils.getDisabledForeground());
+
+      if (!foregroundSet) {
+        view.setForeground(enabled
+                           ? ColorUtils.getForeground()
+                           : ColorUtils.getDisabledForeground());
       }
     }
   }
@@ -690,7 +716,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public void setForeground(UIColor fg) {
-    foregroundSet=fg!=null;
+    foregroundSet = fg != null;
     view.setForeground(fg);
 
     if ((fg != null) && (componentPainter != null)) {
@@ -725,15 +751,16 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public void setSize(float width, float height) {
-    boolean changed = width != getWidth() || height != getHeight();
+    boolean changed = (width != getWidth()) || (height != getHeight());
+
     view.setSize((int) Math.ceil(width), (int) Math.ceil(height));
+
     if (wantsViewResizeEvent && changed) {
       componentEvent(false, true, false);
     }
   }
 
-  public void setText(CharSequence text) {
-  }
+  public void setText(CharSequence text) {}
 
   public void setView(JComponent view) {
     if (view != null) {
@@ -756,12 +783,15 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   public UIColor getBackgroundEx() {
     if (componentPainter != null) {
       UIColor c = componentPainter.getBackgroundColor();
+
       if (c != null) {
         return c;
       }
     }
+
     if (view.isBackgroundSet()) {
       Color c = view.getBackground();
+
       return UIColor.fromColor(c);
     }
 
@@ -790,7 +820,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
     Font f = view.getFont();
 
-    if ((f != null) && !(f instanceof UIFont)) {
+    if ((f != null) &&!(f instanceof UIFont)) {
       return null;
     }
 
@@ -799,13 +829,13 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
   @Override
   public UIColor getForegroundEx() {
-    if (!foregroundSet || !view.isForegroundSet()) {
+    if (!foregroundSet ||!view.isForegroundSet()) {
       return null;
     }
 
     Color c = view.getForeground();
 
-    if ((c != null) && !(c instanceof UIColor)) {
+    if ((c != null) &&!(c instanceof UIColor)) {
       return null;
     }
 
@@ -847,7 +877,9 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
     }
 
     iParentComponent pc = getParent();
-    Orientation o = (pc == null) ? Orientation.HORIZONTAL : pc.getOrientation();
+    Orientation      o  = (pc == null)
+                          ? Orientation.HORIZONTAL
+                          : pc.getOrientation();
 
     if ((o != Orientation.VERTICAL_DOWN) && (o != Orientation.VERTICAL_UP)) {
       Point p = view.getLocationOnScreen();
@@ -877,7 +909,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
     if (parent == null) {
       java.awt.Component c = view.getParent();
 
-      while (c != null) {
+      while(c != null) {
         iPlatformComponent pc = Platform.findPlatformComponent(c);
 
         if (pc instanceof iParentComponent) {
@@ -954,7 +986,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
 
     Color c = view.getBackground();
 
-    return (c != null) && !(c instanceof UIResource);
+    return (c != null) &&!(c instanceof UIResource);
   }
 
   @Override
@@ -1007,8 +1039,7 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
   }
 
   @Override
-  protected void interacted() {
-  }
+  protected void interacted() {}
 
   @Override
   protected boolean needsHiearachyInvalidated() {
@@ -1071,5 +1102,4 @@ public class Component extends aComponent implements MouseListener, MouseMotionL
       SwingHelper.setUIDimension(size, view.getPreferredSize());
     }
   }
-
 }

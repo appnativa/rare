@@ -1252,41 +1252,6 @@ static CGColorRef clearColor=NULL;
 }
 @end
 
-@implementation RAREUIRectangle (SparRect2D)
-#if TARGET_OS_IPHONE
--(void)setWithRect:(CGRect)rect {
-  x_=rect.origin.x;
-  y_=rect.origin.y;
-  width_=rect.size.width;
-  height_=rect.size.height;
-}
--(CGRect)toRect {
-  return CGRectMake(x_,y_,width_,height_);
-}
-+(id) fromRect: (CGRect) rect {
-  RAREUIRectangle* r=[RAREUIRectangle new];
-  [r setWithRect:rect];
-  return r;
-}
-#else
--(void)setWithRect:(NSRect)rect {
-  x_=rect.origin.x;
-  y_=rect.origin.y;
-  width_=rect.size.width;
-  height_=rect.size.height;
-}
--(NSRect)toRect {
-  return NSMakeRect(x_,y_,width_,height_);
-}
-+(id) fromRect: (NSRect) rect {
-  RAREUIRectangle* r=[RAREUIRectangle new];
-  [r setWithRect:rect];
-  return r;
-}
-#endif
-@end
-
-
 @implementation RAREUIRectangle (SparRect)
 #if TARGET_OS_IPHONE
 -(void)setWithRect:(CGRect)rect {

@@ -1,12 +1,33 @@
 /*
- * @(#)TablePainter.java   2010-11-28
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.table;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.iTableModel;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -24,27 +45,18 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.iTableModel;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 /**
  *
  * @author Don DeCoteau
  */
 public class TablePainter {
-  SwingGraphics                         graphics;
-  protected boolean                     extendBackground          = false;
-  protected Stroke                      lineStroke;
-  protected TableComponent              tableComponent;
-  protected TableStyle                  tableStyle;
-  private boolean                       changeSelColorOnLostFocus = true;
-  private TableInformation              tableInformation;
+  SwingGraphics            graphics;
+  protected boolean        extendBackground = false;
+  protected Stroke         lineStroke;
+  protected TableComponent tableComponent;
+  protected TableStyle     tableStyle;
+  private boolean          changeSelColorOnLostFocus = true;
+  private TableInformation tableInformation;
 
   /**
    * Creates a new instance of TableViewPort
@@ -53,11 +65,11 @@ public class TablePainter {
    *          the table handler
    */
   public TablePainter(TableComponent tableComponent) {
-    lineStroke = SwingHelper.HALF_SOLID_STROKE;
-    tableInformation = new TableInformation();
-    tableStyle = tableComponent.tableStyle;
+    lineStroke          = SwingHelper.HALF_SOLID_STROKE;
+    tableInformation    = new TableInformation();
+    tableStyle          = tableComponent.tableStyle;
     this.tableComponent = tableComponent;
-    extendBackground = tableStyle.extendBackgroundRendering;
+    extendBackground    = tableStyle.extendBackgroundRendering;
   }
 
   public void paintAfterComponent(TableView table, Graphics2D g) {
@@ -65,29 +77,38 @@ public class TablePainter {
   }
 
   public void paintBeforeComponent(TableView table, Graphics2D g) {
-    if (!extendBackground && table.getRowCount() == 0) {
+    if (!extendBackground && (table.getRowCount() == 0)) {
       return;
     }
+
     setTableInformation(tableInformation, g, table);
-    PaintBucket pb = table.getItemRenderer().getSelectionPaintForExternalPainter(tableComponent.getWidget().isFocusOwner());
-    iPlatformComponentPainter cp = pb == null ? null : pb.getCachedComponentPainter();
-    TableInformation ti = tableInformation;
-    int viewWidth = table.getWidth();
-    int viewHeight = table.getHeight();
-    int rMax = ti.rowMax;
-    int rMin = ti.rowMin;
-    int y = ti.damagedArea.y;
-    int h;
-    int pw = tableStyle.showVerticalLines ? 1 : 0;
-    int ph = tableStyle.showHorizontalLines ? 1 : 0;
+
+    PaintBucket pb =
+      table.getItemRenderer().getSelectionPaintForExternalPainter(tableComponent.getWidget().isFocusOwner());
+    iPlatformComponentPainter cp         = (pb == null)
+            ? null
+            : pb.getCachedComponentPainter();
+    TableInformation          ti         = tableInformation;
+    int                       viewWidth  = table.getWidth();
+    int                       viewHeight = table.getHeight();
+    int                       rMax       = ti.rowMax;
+    int                       rMin       = ti.rowMin;
+    int                       y          = ti.damagedArea.y;
+    int                       h;
+    int                       pw = tableStyle.showVerticalLines
+                                   ? 1
+                                   : 0;
+    int                       ph = tableStyle.showHorizontalLines
+                                   ? 1
+                                   : 0;
     //int lead = (cp == null) ? -1 : table.getSelectionModel().getLeadSelectionIndex();
-    iTableModel tm = tableComponent.getTableModel();
-    int x = 0;
-    TableColumnModel cm = table.getColumnModel();
-    int start = tableComponent.getTableHeader().getSelectionPaintStartColumn();
-    int end = tableComponent.getTableHeader().getSelectionPaintEndColumn();
-    int sx = x;
-    int ex = viewWidth - x;
+    iTableModel      tm    = tableComponent.getTableModel();
+    int              x     = 0;
+    TableColumnModel cm    = table.getColumnModel();
+    int              start = tableComponent.getTableHeader().getSelectionPaintStartColumn();
+    int              end   = tableComponent.getTableHeader().getSelectionPaintEndColumn();
+    int              sx    = x;
+    int              ex    = viewWidth - x;
 
     if ((start != 0) && (cm.getColumn(start).getModelIndex() == start)) {
       sx = table.getCellRect(rMin, start, false).x - cm.getColumnMargin();
@@ -118,10 +139,11 @@ public class TablePainter {
         paintColumnHilite(g, table, sort, tableStyle.sortColumnHiliteColor);
       }
     }
+
     for (int row = rMin; row <= rMax; row++) {
       h = table.getRowHeight(row);
 
-      if (cp != null && table.isRowSelected(row)) {
+      if ((cp != null) && table.isRowSelected(row)) {
         cp.paint(table, g, sx, y, ex - sx, h - ph, true, iPainter.UNKNOWN);
       } else {
         if ((hiliteColor != null) && (row % 2 == 1)) {
@@ -130,7 +152,7 @@ public class TablePainter {
         }
 
         RenderableDataItem item = tm.getRow(row);
-        Border b = item.getBorder();
+        Border             b    = item.getBorder();
 
         if (b != null) {
           b.paintBorder(table, g, 0, y, viewWidth - pw, h - ph);
@@ -146,13 +168,17 @@ public class TablePainter {
   }
 
   protected void paintBorder(Graphics g, Border b, int row) {
-    TableInformation ti = tableInformation;
-    JTable table = ti.theTable;
-    int viewWidth = table.getWidth();
-    int rMax = ti.rowMax;
-    int rMin = ti.rowMin;
-    int pw = tableStyle.showVerticalLines ? 1 : 0;
-    int ph = tableStyle.showHorizontalLines ? 1 : 0;
+    TableInformation ti        = tableInformation;
+    JTable           table     = ti.theTable;
+    int              viewWidth = table.getWidth();
+    int              rMax      = ti.rowMax;
+    int              rMin      = ti.rowMin;
+    int              pw        = tableStyle.showVerticalLines
+                                 ? 1
+                                 : 0;
+    int              ph        = tableStyle.showHorizontalLines
+                                 ? 1
+                                 : 0;
 
     if ((row >= rMin) && (row <= rMax)) {
       Rectangle rect = table.getCellRect(row, 0, true);
@@ -165,15 +191,15 @@ public class TablePainter {
     int row = table.getRowCount();
 
     if (row > 0) {
-      Graphics2D g2d = (Graphics2D) g;
-      Rectangle clip = g.getClipBounds();
-      Color ocolor = g2d.getColor();
+      Graphics2D g2d    = (Graphics2D) g;
+      Rectangle  clip   = g.getClipBounds();
+      Color      ocolor = g2d.getColor();
 
       // the color should have the tranparency set
       g2d.setColor(color);
 
       try {
-        int h = clip.height;
+        int       h    = clip.height;
         Rectangle rect = table.getTableHeader().getHeaderRect(col);
 
         if (!extendBackground) {
@@ -194,7 +220,8 @@ public class TablePainter {
 
     if (table.getRowCount() == 0) {
       if (extendBackground) {
-        paintEmptyTableGrid(table, g, tableStyle.showHorizontalLines, tableStyle.showVerticalLines, size, tableInformation);
+        paintEmptyTableGrid(table, g, tableStyle.showHorizontalLines, tableStyle.showVerticalLines, size,
+                            tableInformation);
       }
     } else {
       paintGrid(tableInformation, g, size);
@@ -202,13 +229,13 @@ public class TablePainter {
   }
 
   protected void paintGrid(TableInformation ti, Graphics2D g, Dimension size) {
-    Color ocolor = g.getColor();
-    Stroke ostroke = g.getStroke();
-    int viewWidth = size.width;
-    int viewHeight = size.height;
-    TableView table = (TableView) ti.theTable;
-    int endy = ti.damagedArea.y + ti.damagedArea.height;
-    int endx = ti.damagedArea.x + ti.damagedArea.width;
+    Color     ocolor     = g.getColor();
+    Stroke    ostroke    = g.getStroke();
+    int       viewWidth  = size.width;
+    int       viewHeight = size.height;
+    TableView table      = (TableView) ti.theTable;
+    int       endy       = ti.damagedArea.y + ti.damagedArea.height;
+    int       endx       = ti.damagedArea.x + ti.damagedArea.width;
 
     if (extendBackground) {
       if (ti.damagedArea.y + viewHeight > endy) {
@@ -225,47 +252,53 @@ public class TablePainter {
     if (lineStroke != null) {
       g.setStroke(lineStroke);
     }
+
     try {
-      int rowHeight = table.getRowHeight();
-      int tableWidth = table.getWidth();
-      int x = ti.damagedArea.x;
-      int rMax = ti.rowMax;
-      int rMin = ti.rowMin;
-      int cMin = ti.columnMin;
-      int cMax = ti.columnMax;
-      int y = ti.damagedArea.y;
-      boolean showv = tableStyle.showVerticalLines;
-      boolean showh = tableStyle.showHorizontalLines;
-      Rectangle r;
-      JTableHeader th = table.getTableHeader();
-      TableColumnModel cm = th.getColumnModel();
-      iTableModel tm = (iTableModel) table.getModel();
-      int colCount = cm.getColumnCount();
+      int              rowHeight  = table.getRowHeight();
+      int              tableWidth = table.getWidth();
+      int              x          = ti.damagedArea.x;
+      int              rMax       = ti.rowMax;
+      int              rMin       = ti.rowMin;
+      int              cMin       = ti.columnMin;
+      int              cMax       = ti.columnMax;
+      int              y          = ti.damagedArea.y;
+      boolean          showv      = tableStyle.showVerticalLines;
+      boolean          showh      = tableStyle.showHorizontalLines;
+      Rectangle        r;
+      JTableHeader     th       = table.getTableHeader();
+      TableColumnModel cm       = th.getColumnModel();
+      iTableModel      tm       = (iTableModel) table.getModel();
+      int              colCount = cm.getColumnCount();
 
       cMax++;
 
       if (cMax >= colCount) {
         cMax--;
       }
+
       for (int row = rMin; row <= rMax; row++) {
         int rh = table.getRowHeight(row);
 
-        if (showv && !table.isRowSelected(row)) {
+        if (showv &&!table.isRowSelected(row)) {
           RenderableDataItem rowItem = tm.get(row);
-          int vx = 0;
-          int i = 0;
+          int                vx      = 0;
+          int                i       = 0;
 
-          if(rowItem.getColumnSpan()!=-1)  {
+          if (rowItem.getColumnSpan() != -1) {
             if (table.header.paintRightMargin) {
               g.drawLine(tableWidth - 1, y, tableWidth - 1, y + rh - 1);
             }
+
             if (table.header.paintLeftMargin) {
               g.drawLine(0, y, 0, y + rh - 1);
             }
           }
-          while (i < cMax) {
+
+          while(i < cMax) {
             RenderableDataItem item = rowItem.getItemEx(i);
-            int span = (item == null) ? 1 : item.getColumnSpan();
+            int                span = (item == null)
+                                      ? 1
+                                      : item.getColumnSpan();
 
             if (span < 0) {
               break;
@@ -285,7 +318,7 @@ public class TablePainter {
 
             i += span;
 
-            if (i < cMin || vx - 1 < x) {
+            if ((i < cMin) || (vx - 1 < x)) {
               continue;
             }
 
@@ -298,16 +331,19 @@ public class TablePainter {
           g.drawLine(x, y - 1, endx - 1, y - 1);
         }
       }
-      y = ti.displayHeight;
-      if (extendBackground && y < viewHeight) {
 
+      y = ti.displayHeight;
+
+      if (extendBackground && (y < viewHeight)) {
         if (showv) {
           if (table.header.paintRightMargin) {
             g.drawLine(tableWidth - 1, y, tableWidth - 1, viewHeight);
           }
+
           if (table.header.paintLeftMargin) {
             g.drawLine(0, y, 0, viewHeight);
           }
+
           for (int col = cMin; col <= cMax; col++) {
             r = th.getHeaderRect(col);
 
@@ -318,7 +354,7 @@ public class TablePainter {
         }
 
         if (showh) {
-          while (y < endy) {
+          while(y < endy) {
             y += rowHeight;
             g.drawLine(x, y - 1, endx - 1, y - 1);
           }
@@ -331,10 +367,10 @@ public class TablePainter {
   }
 
   public void paintResizeLine(Component source, Graphics g, Dimension size, int x, int y, boolean vertical) {
-    Graphics2D g2d = (Graphics2D) g;
-    Color ocolor = g2d.getColor();
-    int viewWidth = size.width;
-    int viewHeight = size.height;
+    Graphics2D g2d        = (Graphics2D) g;
+    Color      ocolor     = g2d.getColor();
+    int        viewWidth  = size.width;
+    int        viewHeight = size.height;
 
     g2d.setXORMode(source.getBackground());
     g2d.setColor(source.getForeground());
@@ -364,9 +400,9 @@ public class TablePainter {
   }
 
   public void setTableInformation(TableInformation ti, Graphics g, JTable table) {
-    Rectangle clip = g.getClipBounds();
-    Rectangle bounds = table.getBounds();
-    int rowCount = table.getRowCount();
+    Rectangle clip     = g.getClipBounds();
+    Rectangle bounds   = table.getBounds();
+    int       rowCount = table.getRowCount();
 
     if (rowCount == 0) {
       ti.displayHeight = 0;
@@ -380,25 +416,26 @@ public class TablePainter {
     // into the table's bounds
     bounds.x = bounds.y = 0;
 
-    if ((clip == null) || !bounds.intersects(clip) || (((rowCount <= 0) || (table.getColumnCount() <= 0)) && !extendBackground))
+    if ((clip == null) ||!bounds.intersects(clip)
+        || (((rowCount <= 0) || (table.getColumnCount() <= 0)) &&!extendBackground))
     // this check prevents us from painting the entire table
     // when the clip doesn't intersect our bounds at all
     {
-      bounds.y = bounds.height;
-      ti.theTable = table;
-      ti.rowMin = table.getRowCount();
-      ti.rowMax = ti.rowMin - 1;
-      ti.columnMin = table.getColumnCount();
-      ti.columnMax = ti.columnMin - 1;
+      bounds.y       = bounds.height;
+      ti.theTable    = table;
+      ti.rowMin      = table.getRowCount();
+      ti.rowMax      = ti.rowMin - 1;
+      ti.columnMin   = table.getColumnCount();
+      ti.columnMax   = ti.columnMin - 1;
       ti.damagedArea = bounds;
 
       return;
     }
 
-    Point upperLeft = clip.getLocation();
+    Point upperLeft  = clip.getLocation();
     Point lowerRight = new Point(clip.x + clip.width - 1, clip.y + clip.height - 1);
-    int rMin = table.rowAtPoint(upperLeft);
-    int rMax = table.rowAtPoint(lowerRight);
+    int   rMin       = table.rowAtPoint(upperLeft);
+    int   rMax       = table.rowAtPoint(lowerRight);
 
     // This should never happen (as long as our bounds intersect the clip,
     // which is why we bail above if that is the case).
@@ -414,9 +451,13 @@ public class TablePainter {
       rMax = table.getRowCount() - 1;
     }
 
-    boolean ltr = table.getComponentOrientation().isLeftToRight();
-    int cMin = table.columnAtPoint(ltr ? upperLeft : lowerRight);
-    int cMax = table.columnAtPoint(ltr ? lowerRight : upperLeft);
+    boolean ltr  = table.getComponentOrientation().isLeftToRight();
+    int     cMin = table.columnAtPoint(ltr
+                                       ? upperLeft
+                                       : lowerRight);
+    int     cMax = table.columnAtPoint(ltr
+                                       ? lowerRight
+                                       : upperLeft);
 
     // This should never happen.
     if (cMin == -1) {
@@ -429,9 +470,9 @@ public class TablePainter {
       cMax = table.getColumnCount() - 1;
     }
 
-    ti.theTable = table;
-    ti.rowMin = rMin;
-    ti.rowMax = rMax;
+    ti.theTable  = table;
+    ti.rowMin    = rMin;
+    ti.rowMax    = rMax;
     ti.columnMax = cMax;
     ti.columnMin = cMin;
 
@@ -449,20 +490,21 @@ public class TablePainter {
     return extendBackground;
   }
 
-  protected void paintAlternatingColumnColor(TableInformation ti, Graphics2D g, int viewWidth, int viewHeight, Color color) {
-    Color ocolor = g.getColor();
-    JTable table = ti.theTable;
-    Color tableBg = null; // table.getBackground(); dont paint table always
-                          // transparent
+  protected void paintAlternatingColumnColor(TableInformation ti, Graphics2D g, int viewWidth, int viewHeight,
+          Color color) {
+    Color  ocolor  = g.getColor();
+    JTable table   = ti.theTable;
+    Color  tableBg = null;    // table.getBackground(); dont paint table always
+    // transparent
     Color bg = null;
 
     try {
-      int y = ti.damagedArea.y;
-      TableColumnModel cm = table.getColumnModel();
-      int cMin = ti.columnMin;
-      int cMax = ti.columnMax;
-      int x;
-      int w;
+      int              y    = ti.damagedArea.y;
+      TableColumnModel cm   = table.getColumnModel();
+      int              cMin = ti.columnMin;
+      int              cMax = ti.columnMax;
+      int              x;
+      int              w;
 
       viewHeight -= y;
 
@@ -470,8 +512,10 @@ public class TablePainter {
         x = ti.damagedArea.x;
 
         for (int column = cMin; column <= cMax; column++) {
-          w = cm.getColumn(column).getWidth();
-          bg = (column % 2 == 1) ? color : tableBg;
+          w  = cm.getColumn(column).getWidth();
+          bg = (column % 2 == 1)
+               ? color
+               : tableBg;
 
           if (bg != null) {
             g.setColor(bg);
@@ -485,12 +529,14 @@ public class TablePainter {
           g.fillRect(x, y, viewHeight, viewHeight);
         }
       } else {
-        x = ti.damagedArea.x;
+        x  = ti.damagedArea.x;
         bg = null;
 
         for (int column = cMin; column <= cMax; column++) {
-          bg = (column % 2 == 1) ? color : tableBg;
-          w = cm.getColumn(column).getWidth();
+          bg = (column % 2 == 1)
+               ? color
+               : tableBg;
+          w  = cm.getColumn(column).getWidth();
 
           if (bg != null) {
             g.setColor(bg);
@@ -509,27 +555,28 @@ public class TablePainter {
     }
   }
 
-  protected void paintEmptyCells(JComponent container, TableInformation ti, Graphics2D g, int viewWidth, int viewHeight,
-      UIColor rowHilite) {
-    int cMin = ti.columnMin;
-    int cMax = ti.columnMax;
-    TableView table = (TableView) ti.theTable;
-    TableColumnModel model = table.getColumnModel();
-    int rm = table.getRowMargin();
-    int cm = model.getColumnMargin();
-    int y = ti.displayHeight;
-    int height = table.getRowHeight();
-    int cw = 0;
-    int x = 0;
-    TableColumn col;
-    aTableHeader h = tableComponent.getTableHeader();
+  protected void paintEmptyCells(JComponent container, TableInformation ti, Graphics2D g, int viewWidth,
+                                 int viewHeight, UIColor rowHilite) {
+    int              cMin   = ti.columnMin;
+    int              cMax   = ti.columnMax;
+    TableView        table  = (TableView) ti.theTable;
+    TableColumnModel model  = table.getColumnModel();
+    int              rm     = table.getRowMargin();
+    int              cm     = model.getColumnMargin();
+    int              y      = ti.displayHeight;
+    int              height = table.getRowHeight();
+    int              cw     = 0;
+    int              x      = 0;
+    TableColumn      col;
+    aTableHeader     h = tableComponent.getTableHeader();
 
     graphics = SwingGraphics.fromGraphics(g, table, graphics);
 
-    SwingGraphics sg = graphics;
-    int row = table.getRowCount();
-    int lvc = table.header.getLastVisibleColumn();
-    while (y < viewHeight) {
+    SwingGraphics sg  = graphics;
+    int           row = table.getRowCount();
+    int           lvc = table.header.getLastVisibleColumn();
+
+    while(y < viewHeight) {
       x = ti.damagedArea.x;
 
       if ((rowHilite != null) && (row % 2 == 1)) {
@@ -542,7 +589,9 @@ public class TablePainter {
 
         int w = col.getWidth();
 
-        h.paintColumn(col.getModelIndex(), sg, x, y, w - (lvc == column ? 0 : cm), height - rm);
+        h.paintColumn(col.getModelIndex(), sg, x, y, w - ((lvc == column)
+                ? 0
+                : cm), height - rm);
         x += w;
       }
 
@@ -558,14 +607,14 @@ public class TablePainter {
   }
 
   protected void paintEmptyTableGrid(TableView table, Graphics g, boolean horizontal, boolean vertical, Dimension size,
-      TableInformation ti) {
-    int viewWidth = table.getWidth();
-    int viewHeight = size.height;
-    int y = 0;
-    int x = 0;
-    Graphics2D g2d = (Graphics2D) g;
-    Color ocolor = g2d.getColor();
-    Stroke ostroke = g2d.getStroke();
+                                     TableInformation ti) {
+    int        viewWidth  = table.getWidth();
+    int        viewHeight = size.height;
+    int        y          = 0;
+    int        x          = 0;
+    Graphics2D g2d        = (Graphics2D) g;
+    Color      ocolor     = g2d.getColor();
+    Stroke     ostroke    = g2d.getStroke();
 
     g2d.setColor(tableStyle.gridColor);
 
@@ -577,20 +626,22 @@ public class TablePainter {
       if (horizontal) {
         int height = table.getRowHeight();
 
-        while (y < viewHeight) {
+        while(y < viewHeight) {
           y += height;
           g.drawLine(x, y - 1, viewWidth - 1, y - 1);
         }
       }
 
       if (vertical) {
-        JTableHeader th = table.getTableHeader();
-        TableColumnModel cm = th.getColumnModel();
-        int len = cm.getColumnCount();
-        boolean first = true;
+        JTableHeader     th    = table.getTableHeader();
+        TableColumnModel cm    = th.getColumnModel();
+        int              len   = cm.getColumnCount();
+        boolean          first = true;
+
         if (table.header.paintRightMargin) {
           g.drawLine(viewWidth - 1, 0, viewWidth - 1, viewHeight);
         }
+
         if (table.header.paintLeftMargin) {
           g.drawLine(0, 0, 0, viewHeight);
         }

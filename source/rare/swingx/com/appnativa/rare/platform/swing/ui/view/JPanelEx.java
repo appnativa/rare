@@ -1,9 +1,37 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright appNativa Inc. All Rights Reserved.
+ *
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.effects.iTransitionAnimator;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
@@ -20,19 +48,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JToolTip;
 import javax.swing.border.Border;
-
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.effects.iTransitionAnimator;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -71,12 +86,10 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
   }
 
   @Override
-  public void addLayoutComponent(java.awt.Component comp, Object constraints) {
-  }
+  public void addLayoutComponent(java.awt.Component comp, Object constraints) {}
 
   @Override
-  public void addLayoutComponent(String name, java.awt.Component comp) {
-  }
+  public void addLayoutComponent(String name, java.awt.Component comp) {}
 
   @Override
   public JToolTip createToolTip() {
@@ -85,24 +98,26 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
 
   @Override
   public Dimension getPreferredSize() {
-    Dimension d = inPreferedLayout ? new Dimension(0, 0) : super.getPreferredSize();
-    Integer w = (Integer) getClientProperty(iPlatformComponent.RARE_SWING_WIDTH_FIXED_VALUE);
-    Integer h = (Integer) getClientProperty(iPlatformComponent.RARE_SWING_HEIGHT_FIXED_VALUE);
+    Dimension d = inPreferedLayout
+                  ? new Dimension(0, 0)
+                  : super.getPreferredSize();
+    Integer   w = (Integer) getClientProperty(iPlatformComponent.RARE_SWING_WIDTH_FIXED_VALUE);
+    Integer   h = (Integer) getClientProperty(iPlatformComponent.RARE_SWING_HEIGHT_FIXED_VALUE);
 
     if ((w != null) && (w.intValue() > 0)) {
       d.width = w;
     }
+
     if ((h != null) && (h.intValue() > 0)) {
       d.height = h;
     }
+
     return d;
   }
 
   @Override
-  public void invalidateLayout(Container target) {
-  }
+  public void invalidateLayout(Container target) {}
 
-  
   @Override
   public void layoutContainer(Container parent) {
     Object a = getClientProperty(aAnimator.ANIMATOR_KEY);
@@ -119,7 +134,7 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
       putClientProperty(aAnimator.ANIMATOR_KEY, null);
     }
 
-    int width = getWidth();
+    int width  = getWidth();
     int height = getHeight();
 
     layoutContainerEx(width, height);
@@ -139,9 +154,11 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
   public void paint(Graphics g) {
     paintComponentCalled = false;
 
-    Graphics2D g2 = (Graphics2D) g;
+    Graphics2D      g2 = (Graphics2D) g;
     AffineTransform tx = g2.getTransform();
-    Composite cx = (composite == null) ? null : g2.getComposite();
+    Composite       cx = (composite == null)
+                         ? null
+                         : g2.getComposite();
 
     if (transform != null) {
       g2.transform(transform);
@@ -159,7 +176,9 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
     }
 
     if (composite != null) {
-      g2.setComposite((cx == null) ? AlphaComposite.SrcOver : cx);
+      g2.setComposite((cx == null)
+                      ? AlphaComposite.SrcOver
+                      : cx);
     }
 
     graphics.clear();
@@ -169,6 +188,7 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
   public Dimension preferredLayoutSize(java.awt.Container parent) {
     try {
       inPreferedLayout = true;
+
       return SwingHelper.setDimension(null, Component.fromView((JComponent) parent).getPreferredSize());
     } finally {
       inPreferedLayout = false;
@@ -176,8 +196,7 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
   }
 
   @Override
-  public void removeLayoutComponent(java.awt.Component comp) {
-  }
+  public void removeLayoutComponent(java.awt.Component comp) {}
 
   @Override
   public void setBorder(Border border) {
@@ -229,13 +248,13 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
 
   @Override
   public void getMinimumSize(UIDimension size) {
-    size.width = 0;
+    size.width  = 0;
     size.height = 0;
   }
 
   @Override
   public void getPreferredSize(UIDimension size, int maxWidth) {
-    size.width = 0;
+    size.width  = 0;
     size.height = 0;
   }
 
@@ -257,8 +276,7 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
     return !shapedBorder && super.isOpaque();
   }
 
-  protected void layoutContainerEx(int width, int height) {
-  }
+  protected void layoutContainerEx(int width, int height) {}
 
   @Override
   protected void paintBorder(Graphics g) {
@@ -269,9 +287,9 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
 
   @Override
   protected void paintChildren(Graphics g) {
-    iPlatformComponentPainter cp = getComponentPainter();
-    float height = getHeight();
-    float width = getWidth();
+    iPlatformComponentPainter cp     = getComponentPainter();
+    float                     height = getHeight();
+    float                     width  = getWidth();
 
     if (!paintComponentCalled && (cp != null)) {
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);
@@ -292,9 +310,9 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
   protected void paintComponent(Graphics g) {
     paintComponentCalled = true;
 
-    iPlatformComponentPainter cp = getComponentPainter();
-    float height = getHeight();
-    float width = getWidth();
+    iPlatformComponentPainter cp     = getComponentPainter();
+    float                     height = getHeight();
+    float                     width  = getWidth();
 
     if (cp != null) {
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);

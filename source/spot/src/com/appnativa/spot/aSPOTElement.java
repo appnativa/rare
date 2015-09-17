@@ -379,10 +379,10 @@ public abstract class aSPOTElement implements iSPOTElement, iSPOTConstants, Clon
     String s = spot_stringValue();
     int    h = (s == null)
                ? 0
-               : s.hashCode();
+               : (int)s.hashCode();
 
     if (_attributes != null) {
-      h += _attributes.hashCode();
+      h += (int)_attributes.hashCode();
     }
 
     return h;

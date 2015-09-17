@@ -200,14 +200,14 @@ public class TextFieldView extends aTextEditorView {
   public native int getSelectionEnd()
   /*-[
     NSRange r=((RAREAPTextField*)proxy_).selectedRangeEx;
-    return r.location+r.length;
+    return (int)(r.location+r.length);
   ]-*/
   ;
 
   @Override
   public native int getSelectionStart()
   /*-[
-    return ((RAREAPTextField*)proxy_).selectedRangeEx.location;
+    return (int)((RAREAPTextField*)proxy_).selectedRangeEx.location;
   ]-*/
   ;
 
@@ -221,7 +221,7 @@ public class TextFieldView extends aTextEditorView {
   @Override
   public native int getTextLength()
   /*-[
-    return ((RAREAPTextField*)proxy_).text.length;
+    return (int)((RAREAPTextField*)proxy_).text.length;
   ]-*/
   ;
 

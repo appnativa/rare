@@ -202,7 +202,7 @@ public class FunctionHelper {
      const char *cKey  = [key cStringUsingEncoding:NSUTF8StringEncoding];
      const char *cData = [val cStringUsingEncoding:NSUTF8StringEncoding];
      unsigned char digest[CC_MD5_DIGEST_LENGTH];
-     CCHmac(kCCHmacAlgMD5, cKey, strlen(cKey), cData, strlen(cData), digest);
+     CCHmac(kCCHmacAlgMD5, cKey, (CC_LONG)strlen(cKey), cData, (CC_LONG)strlen(cData), digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_MD5_DIGEST_LENGTH];
         if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
@@ -226,7 +226,7 @@ public class FunctionHelper {
     const char *cKey  = [key cStringUsingEncoding:NSUTF8StringEncoding];
     const char *cData = [val cStringUsingEncoding:NSUTF8StringEncoding];
     unsigned char digest[CC_SHA256_DIGEST_LENGTH];
-    CCHmac(kCCHmacAlgSHA256, cKey, strlen(cKey), cData, strlen(cData), digest);
+    CCHmac(kCCHmacAlgSHA256, cKey, (CC_LONG)strlen(cKey), cData, (CC_LONG)strlen(cData), digest);
     if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_SHA256_DIGEST_LENGTH];
         if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
@@ -248,7 +248,7 @@ public class FunctionHelper {
 
      uint8_t digest[CC_MD5_DIGEST_LENGTH];
 
-     CC_MD5(bytes, strlen(bytes), digest);
+     CC_MD5(bytes, (CC_LONG)strlen(bytes), digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_MD5_DIGEST_LENGTH];
         if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
@@ -270,7 +270,7 @@ public class FunctionHelper {
 
      uint8_t digest[CC_SHA1_DIGEST_LENGTH];
 
-     CC_SHA1(bytes, val->size_, digest);
+     CC_SHA1(bytes, (CC_LONG)val->size_, digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
         if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
@@ -292,7 +292,7 @@ public class FunctionHelper {
 
      uint8_t digest[CC_SHA1_DIGEST_LENGTH];
 
-     CC_SHA1(bytes, strlen(bytes), digest);
+     CC_SHA1(bytes, (CC_LONG)strlen(bytes), digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
         if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {

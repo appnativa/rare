@@ -1,27 +1,24 @@
 /*
- * @(#)UITextAreaRenderer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.renderer;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Insets;
-import java.awt.Rectangle;
-import java.util.Map;
-
-import javax.swing.Icon;
-import javax.swing.border.Border;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultCaret;
-import javax.swing.text.Document;
-import javax.swing.text.Segment;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.swing.ui.view.TextAreaView;
@@ -42,6 +39,22 @@ import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.painter.iComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Insets;
+import java.awt.Rectangle;
+
+import java.util.Map;
+
+import javax.swing.Icon;
+import javax.swing.border.Border;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
+import javax.swing.text.Document;
+import javax.swing.text.Segment;
 
 /**
  *
@@ -65,10 +78,10 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
 
   public UITextAreaRenderer() {
     super();
-    component=new Component(this);
+    component = new Component(this);
     adjustUI();
   }
-  
+
   @Override
   public void clearRenderer() {
     setComponentPainter(null);
@@ -77,6 +90,7 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
     setIcon(null);
     setText("");
   }
+
   @Override
   public final void invalidate() {}
 
@@ -173,7 +187,8 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
   public void setVerticalTextPosition(int position) {}
 
   public Dimension getAutoPreferredSize() {
-    Dimension d=null;
+    Dimension d = null;
+
     do {
       if (linefeedWrap) {
         Font f = getFont();
@@ -232,17 +247,20 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
 
         w += insets.left + insets.right;
         n = insets.top + insets.bottom + ((fm.getHeight() + fm.getDescent()) * lines);
-
-        d=new Dimension(w, n);
+        d = new Dimension(w, n);
       }
     } while(false);
-    if(d==null) {
+
+    if (d == null) {
       super.getPreferredSize();
     }
+
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-    if(i !=null && i.intValue()>d.height) {
-      d.height=i.intValue();
+
+    if ((i != null) && (i.intValue() > d.height)) {
+      d.height = i.intValue();
     }
+
     return d;
   }
 
@@ -302,7 +320,7 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
   public Dimension getPreferredSize() {
     Number i = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
 
-    if (i != null && i.intValue()>0) {
+    if ((i != null) && (i.intValue() > 0)) {
       setSize(i.intValue(), Short.MAX_VALUE);
     }
 
@@ -327,20 +345,19 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
     setForeground(ColorUtils.getForeground());
   }
 
-	@Override
-	public void dispose() {
-		if(component!=null) {
-			component.dispose();
-		}
-	}
-
   @Override
-  public void setWordWrap(boolean wrap) {
+  public void dispose() {
+    if (component != null) {
+      component.dispose();
+    }
   }
 
   @Override
-  public void setScaleIcon(boolean scale, float scaleFactor) {
-  }
+  public void setWordWrap(boolean wrap) {}
+
+  @Override
+  public void setScaleIcon(boolean scale, float scaleFactor) {}
+
   @Override
   public void prepareForReuse(int row, int column) {
     setComponentPainter(null);

@@ -28,6 +28,7 @@ import com.appnativa.rare.spot.ListBox;
 import com.appnativa.rare.spot.Tree;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
@@ -1070,8 +1071,8 @@ public abstract class aTreeViewer extends aListViewer implements iTreeHandler {
         break;
     }
 
-    setTreeIcons(Platform.getResourceAsIcon("Rare.Tree.expandedIcon"),
-                 Platform.getResourceAsIcon("Rare.Tree.collapsedIcon"));
+    setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
+        new PainterUtils.TwistyIcon(dataComponent,true));
     treeHandler.setShowRootNode(cfg.showRootNode.booleanValue());
     treeHandler.setShowRootHandles(cfg.showRootHandles.booleanValue());
 

@@ -1,45 +1,24 @@
 /*
- * @(#)ListView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Stroke;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.DefaultListSelectionModel;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JViewport;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.event.EventListenerList;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iFunctionCallback;
@@ -65,16 +44,6 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.aListHandler;
-import com.appnativa.rare.ui.iListHandler.SelectionMode;
-import com.appnativa.rare.ui.iListHandler.SelectionType;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformListDataModel;
-import com.appnativa.rare.ui.iPlatformListView;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.iRenderingComponent;
-import com.appnativa.rare.ui.iScrollerSupport;
-import com.appnativa.rare.ui.iToolBar;
 import com.appnativa.rare.ui.dnd.RenderableDataItemTransferable;
 import com.appnativa.rare.ui.effects.ValueRangeAnimator;
 import com.appnativa.rare.ui.effects.iAnimatorListener;
@@ -87,6 +56,16 @@ import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.event.iDataModelListener;
 import com.appnativa.rare.ui.event.iItemChangeListener;
+import com.appnativa.rare.ui.iListHandler.SelectionMode;
+import com.appnativa.rare.ui.iListHandler.SelectionType;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformListDataModel;
+import com.appnativa.rare.ui.iPlatformListView;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.iRenderingComponent;
+import com.appnativa.rare.ui.iScrollerSupport;
+import com.appnativa.rare.ui.iToolBar;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.renderer.RendererContainer;
 import com.appnativa.rare.ui.renderer.UILabelRenderer;
@@ -97,8 +76,43 @@ import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.IntList;
 
-public class ListView extends ScrollPaneEx implements iPlatformListView, ListSelectionListener, MouseListener, MouseMotionListener,
-    iDataModelListener,FocusListener {
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.MouseInputListener;
+
+public class ListView extends ScrollPaneEx
+        implements iPlatformListView, ListSelectionListener, MouseListener, MouseMotionListener, iDataModelListener,
+                   FocusListener {
   protected static final int          ICON_GAP                = ScreenUtils.PLATFORM_PIXELS_4;
   protected static final Object       PROPERTY_CHECKMARK_ICON = "__RARE_PROPERTY_CHECKMARK_ICON__";
   protected final static int          PAD_SIZE                = ScreenUtils.PLATFORM_PIXELS_2;
@@ -112,14 +126,14 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   UIAction                            markAll;
   int                                 measuringMaxWidth;
   RendererContainer                   rendererContainer;
-  protected int                       currentSelection        = -1;
-  protected int                       hilightIndex            = -1;
-  protected int                       popupIndex              = -1;
-  protected boolean                   selectable              = true;
-  protected UIInsets                  rinsets                 = new UIInsets();
-  protected SelectionType             selectionType           = SelectionType.ROW_ON_BOTTOM;
-  protected UIInsets                  paintInsets             = new UIInsets();
-  EditingMode                         editingMode             = EditingMode.NONE;
+  protected int                       currentSelection = -1;
+  protected int                       hilightIndex     = -1;
+  protected int                       popupIndex       = -1;
+  protected boolean                   selectable       = true;
+  protected UIInsets                  rinsets          = new UIInsets();
+  protected SelectionType             selectionType    = SelectionType.ROW_ON_BOTTOM;
+  protected UIInsets                  paintInsets      = new UIInsets();
+  EditingMode                         editingMode      = EditingMode.NONE;
   protected iActionListener           actionListener;
   protected boolean                   autoHilight;
   protected boolean                   autoSizeRows;
@@ -141,7 +155,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   protected int                       rowHeight;
   protected ListSelectionModel        selectionModel;
   protected boolean                   singleClickAction;
-  private int                         lastEditedRow           = -1;
+  private int                         lastEditedRow = -1;
   private int                         animateX;
   private ValueRangeAnimator          animator;
   private boolean                     autoEndEditing;
@@ -160,32 +174,33 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   private iPlatformListDataModel      listModel;
   private Point                       mousePressedPoint;
   private long                        mousePressedTime;
-  private boolean keepSelectionVisible;
+  private boolean                     keepSelectionVisible;
+  protected static Action             enterKeyAction = new AbstractAction("Rare.enterKeyAction") {
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+      Object o = (e == null)
+                 ? null
+                 : e.getSource();
 
-  protected static Action enterKeyAction = new AbstractAction("Rare.enterKeyAction") {
-                                           @Override
-                                          public void actionPerformed(java.awt.event.ActionEvent e) {
-                                             Object o = (e == null) ? null : e.getSource();
+      if (o instanceof JListEx) {
+        ListView lv = ((JListEx) o).getLisView();
 
-                                             if (o instanceof JListEx) {
-                                               ListView lv = ((JListEx) o).getLisView();
+        if (lv.isEditing()) {
+          lv.stopEditing(true);
 
-                                               if (lv.isEditing()) {
-                                                 lv.stopEditing(true);
-                                                 return;
-                                               }
+          return;
+        }
 
-                                               int n = lv.getSelectedIndex();
+        int n = lv.getSelectedIndex();
 
-                                               if (n != -1 && lv.actionListener != null) {
-                                                 ActionEvent ae = new ActionEvent(o, "enter");
+        if ((n != -1) && (lv.actionListener != null)) {
+          ActionEvent ae = new ActionEvent(o, "enter");
 
-                                                 lv.actionListener.actionPerformed(ae);
-                                               }
-                                             }
-                                           }
-
-                                         };
+          lv.actionListener.actionPerformed(ae);
+        }
+      }
+    }
+  };
 
   public ListView() {
     super();
@@ -203,7 +218,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
     list.setMouseOverideListener(createOverrideListener());
     list.setListView(this);
-    InputMap im = list.getInputMap(JList.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+    InputMap  im = list.getInputMap(JList.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     ActionMap am = list.getActionMap();
 
     im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enterKeyAction.getValue(Action.NAME));
@@ -218,6 +234,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     list.setModel(lm);
     listModel = lm;
   }
+
   @Override
   public void addSelectionIndex(int index) {
     disableChangeEvent = true;
@@ -240,8 +257,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
         if (!in) {
           stopEditingEx();
-        } else if (draggable) {
-        }
+        } else if (draggable) {}
 
         animateX = 0;
 
@@ -251,10 +267,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
         repaint();
       }
-
       @Override
-      public void animationStarted(iPlatformAnimator animation) {
-      }
+      public void animationStarted(iPlatformAnimator animation) {}
     });
     animator.addValueListener(new iAnimatorValueListener() {
       @Override
@@ -269,7 +283,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   protected void calculateOffset() {
-    int left = 0;
+    int left  = 0;
     int right = 0;
 
     if (checkboxWidth > 0) {
@@ -284,7 +298,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   protected boolean checkForCellHotspot(int row, float x, float y, float width, float height) {
-    if ((checkListManager != null) && !linkedSelection && isOnCheckBox(x, y, width, height, getIndent(row))) {
+    if ((checkListManager != null) &&!linkedSelection && isOnCheckBox(x, y, width, height, getIndent(row))) {
       if (checkListManager.toggleRow(row)) {
         repaint();
       } else {
@@ -311,7 +325,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   protected void clickCheck(MouseEvent e, boolean release) {
-    if (editing || !selectable || e.isPopupTrigger() || !list.isEnabled()) {
+    if (editing ||!selectable || e.isPopupTrigger() ||!list.isEnabled()) {
       return;
     }
 
@@ -323,7 +337,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       return;
     }
 
-    if (release && !PlatformHelper.isMouseClick(mousePressedPoint, mousePressedTime, e)) {
+    if (release &&!PlatformHelper.isMouseClick(mousePressedPoint, mousePressedTime, e)) {
       return;
     }
 
@@ -335,12 +349,14 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     RenderableDataItem item = getItemAt(row);
 
-    if (!item.isEnabled() || !item.isSelectable()) {
+    if (!item.isEnabled() ||!item.isSelectable()) {
       return;
     }
 
     if (actionListener != null) {
-      ActionEvent ae = new ActionEvent(list, (e.getClickCount() > 1) ? "dblClick" : "click");
+      ActionEvent ae = new ActionEvent(list, (e.getClickCount() > 1)
+              ? "dblClick"
+              : "click");
 
       actionListener.actionPerformed(ae);
     }
@@ -351,7 +367,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     lastEditedRow = -1;
 
     if (editing) {
-      if (autoEndEditing && (editableGestureListener==null || editableGestureListener.reordingRow==-1)) {
+      if (autoEndEditing && ((editableGestureListener == null) || (editableGestureListener.reordingRow == -1))) {
         stopEditingEx();
       }
     } else {
@@ -375,15 +391,16 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
         pressedRow = -1;
         super.mouseDragged(e);
       }
-
       @Override
       public void mousePressed(MouseEvent e) {
         int row = list.locationToIndex(e.getPoint());
 
         pressedRow = row;
 
-        if ((checkboxWidth > 0) && !linkedSelection && list.isEnabled() && !e.isPopupTrigger()) {
-          Rectangle r = (row == -1) ? null : list.getCellBounds(row, row);
+        if ((checkboxWidth > 0) &&!linkedSelection && list.isEnabled() &&!e.isPopupTrigger()) {
+          Rectangle r = (row == -1)
+                        ? null
+                        : list.getCellBounds(row, row);
 
           if (r != null) {
             if (checkForCellHotspot(row, e.getX(), e.getY() - r.y, r.width, r.height)) {
@@ -392,7 +409,6 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
           }
         }
       }
-
       @Override
       public void mouseReleased(MouseEvent e) {
         pressedRow = -1;
@@ -404,17 +420,19 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   public void dispose() {
     actionListener = null;
     changeListener = null;
-    listComponent = null;
-    list = null;
-    itemRenderer = null;
-    listModel = null;
+    listComponent  = null;
+    list           = null;
+    itemRenderer   = null;
+    listModel      = null;
   }
 
   @Override
   public void doLayout() {
     super.doLayout();
 
-    int w = list.getScrollableTracksViewportWidth() ? getViewport().getWidth() : 0;
+    int w = list.getScrollableTracksViewportWidth()
+            ? getViewport().getWidth()
+            : 0;
 
     if ((w != measuringMaxWidth) && (list.getFixedCellHeight() == -1)) {
       measuringMaxWidth = w;
@@ -448,41 +466,49 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   @Override
   public void focusGained(FocusEvent e) {
-     aListViewer lv = (aListViewer) Platform.getWidgetForComponent(this);
-     iPlatformComponent pc=lv.getContainerComponent();
-     if(pc.isFocusPainted()) {
-       pc.repaint();
-     }
-     if(getSelectedIndex()==-1 && getRowCount()>0) {
-       if(lv.isHandleFirstFocusSelection()) {
-         int n=aListHandler.getFirstSelectableIndex(listModel);
-         if(n!=-1) {
-           setSelectedIndex(n);
-         }
-       }
-     }
+    aListViewer        lv = (aListViewer) Platform.getWidgetForComponent(this);
+    iPlatformComponent pc = lv.getContainerComponent();
+
+    if (pc.isFocusPainted()) {
+      pc.repaint();
+    }
+
+    if ((getSelectedIndex() == -1) && (getRowCount() > 0)) {
+      if (lv.isHandleFirstFocusSelection()) {
+        int n = aListHandler.getFirstSelectableIndex(listModel);
+
+        if (n != -1) {
+          setSelectedIndex(n);
+        }
+      }
+    }
   }
 
   @Override
   public void focusLost(FocusEvent e) {
     aListViewer lv = (aListViewer) Platform.getWidgetForComponent(this);
-    if(lv==null || lv.isDisposed() || !lv.isShowing()) {
+
+    if ((lv == null) || lv.isDisposed() ||!lv.isShowing()) {
       return;
     }
-    iPlatformComponent pc=lv.getContainerComponent();
-    if(pc.isFocusPainted()) {
+
+    iPlatformComponent pc = lv.getContainerComponent();
+
+    if (pc.isFocusPainted()) {
       pc.repaint();
     }
-    int n=getSelectedIndex();
-    if(n!=-1) {
-      if(lv.isChangeSelColorOnLostFocus()) {
-        if(lv.getSelectedIndexCount()>1) {
-          int sels[]=lv.getSelectedIndexes();
-          for(int i:sels) {
+
+    int n = getSelectedIndex();
+
+    if (n != -1) {
+      if (lv.isChangeSelColorOnLostFocus()) {
+        if (lv.getSelectedIndexCount() > 1) {
+          int sels[] = lv.getSelectedIndexes();
+
+          for (int i : sels) {
             lv.repaintRow(i);
           }
-        }
-        else {
+        } else {
           lv.repaintRow(n);
         }
       }
@@ -532,11 +558,11 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   public int getLastEditedRow() {
     return lastEditedRow;
   }
+
   @Override
   public int getLastVisibleIndex() {
     return list.getLastVisibleIndex();
   }
-   
 
   public JListEx getList() {
     return list;
@@ -575,11 +601,13 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   public int getRowCount() {
-    return (listModel == null) ? 0 : listModel.size();
+    return (listModel == null)
+           ? 0
+           : listModel.size();
   }
 
   public iPlatformComponent getRowEditingComponent(int index) {
-    editingRow = index;
+    editingRow    = index;
     lastEditedRow = index;
     list.clearSelection();
 
@@ -598,8 +626,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     if (editingComponent == null) {
       centerRowEditorVertically = Platform.getUIDefaults().getBoolean("Rare.List.centerDeleteButton", false);
 
-      WindowViewer w = Platform.getWindowViewer();
-      PushButton cfg = (PushButton) Platform.getWindowViewer().createConfigurationObject("PushButton", "Rare.List.deleteButton");
+      WindowViewer w   = Platform.getWindowViewer();
+      PushButton   cfg = (PushButton) Platform.getWindowViewer().createConfigurationObject("PushButton",
+                           "Rare.List.deleteButton");
 
       if (cfg.value.getValue() == null) {
         cfg.value.setValue(Platform.getResourceAsString("Rare.action.delete"));
@@ -625,8 +654,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       pb.addActionListener(new iActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          RenderableDataItemTransferable t = new RenderableDataItemTransferable(listModel.get(editingRow));
-          aListViewer lv = (aListViewer) Component.fromView(ListView.this).getWidget();
+          RenderableDataItemTransferable t  = new RenderableDataItemTransferable(listModel.get(editingRow));
+          aListViewer                    lv = (aListViewer) Component.fromView(ListView.this).getWidget();
 
           hideRowEditingComponent(false);
           lv.removeData(t);
@@ -660,8 +689,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
         return;
       }
 
-      JComponent c = editingComponent.getView();
-      Rectangle eb = listRowWithEditor.editorBounds;
+      JComponent c  = editingComponent.getView();
+      Rectangle  eb = listRowWithEditor.editorBounds;
 
       c.setBounds(eb);
       x -= eb.x;
@@ -747,14 +776,14 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   protected boolean isDeleteButtonTouched(MouseEvent e) {
-    Point p = e.getPoint();
-    int row = getRowAtPoint(p);
+    Point p   = e.getPoint();
+    int   row = getRowAtPoint(p);
 
     if ((row == -1) || (row != editingRow)) {
       return false;
     }
 
-    Rectangle r = listRowWithEditor.getDeleteBounds();
+    Rectangle r  = listRowWithEditor.getDeleteBounds();
     Rectangle cr = list.getCellBounds(row, row);
 
     r.x += cr.x;
@@ -774,7 +803,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   @Override
   public boolean isFocusOwner() {
-    return list.isFocusOwner();
+    return list!=null && list.isFocusOwner();
   }
 
   @Override
@@ -785,12 +814,12 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   public boolean isMultipleSelectionAllowed() {
     ListSelectionModel sm = list.getSelectionModel();
 
-    switch (sm.getSelectionMode()) {
-      case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION:
-      case ListSelectionModel.SINGLE_INTERVAL_SELECTION:
+    switch(sm.getSelectionMode()) {
+      case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION :
+      case ListSelectionModel.SINGLE_INTERVAL_SELECTION :
         return true;
 
-      default:
+      default :
         return false;
     }
   }
@@ -803,7 +832,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
 
     float sx;
-    int slop = INDICATOR_SLOP;
+    int   slop = INDICATOR_SLOP;
 
     if (selectionType == SelectionType.CHECKED_RIGHT) {
       sx = width - rightOffset - PAD_SIZE - checkboxWidth;
@@ -836,8 +865,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   @Override
   public void makeSelectionVisible() {
-    int index=getSelectedIndex();
-    if(index>-1) {
+    int index = getSelectedIndex();
+
+    if (index > -1) {
       list.ensureIndexIsVisible(index);
     }
   }
@@ -848,16 +878,13 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   @Override
-  public void mouseDragged(MouseEvent e) {
-  }
+  public void mouseDragged(MouseEvent e) {}
 
   @Override
-  public void mouseEntered(MouseEvent e) {
-  }
+  public void mouseEntered(MouseEvent e) {}
 
   @Override
-  public void mouseExited(MouseEvent e) {
-  }
+  public void mouseExited(MouseEvent e) {}
 
   @Override
   public void mouseMoved(MouseEvent e) {
@@ -893,7 +920,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   public void mousePressed(MouseEvent e) {
     if (!e.isPopupTrigger() && list.isEnabled()) {
       mousePressedPoint = e.getLocationOnScreen();
-      mousePressedTime = e.getWhen();
+      mousePressedTime  = e.getWhen();
     }
 
     mousePopupCheck(e);
@@ -919,12 +946,15 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     if (rendererContainer == null) {
       rc.getComponent().getView().putClientProperty(iPlatformComponent.RARE_SWING_WIDTH_FIXED_VALUE, measuringMaxWidth);
-      rc.prepareForReuse(row,col);
+      rc.prepareForReuse(row, col);
+
       return rc;
     }
 
-    ListRowContainer lc = (row == editingRow) ? listRowWithEditor : listRow;
-    iPlatformIcon ic = null;
+    ListRowContainer lc = (row == editingRow)
+                          ? listRowWithEditor
+                          : listRow;
+    iPlatformIcon    ic = null;
 
     if (draggingAllowed) {
       RenderableDataItem item = listModel.get(row);
@@ -934,7 +964,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       }
     }
 
-    lc.prepareForReuse(row, editing ? editingSelectionModel.isChecked(row) : false, animateX, rc.getComponent().getView(), ic);
+    lc.prepareForReuse(row, editing
+                            ? editingSelectionModel.isChecked(row)
+                            : false, animateX, rc.getComponent().getView(), ic);
     rendererContainer.setView(lc);
     rendererContainer.setRenderingComponent(rc);
     lc.measuringMaxWidth = measuringMaxWidth;
@@ -953,7 +985,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   public void repaintRow(RenderableDataItem item) {
-    int row = (item == null) ? -1 : listModel.indexOf(item);
+    int row = (item == null)
+              ? -1
+              : listModel.indexOf(item);
 
     if (row > -1) {
       repaintRow(row);
@@ -974,12 +1008,14 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     if (r != null) {
       JViewport vp = getViewport();
-      Point p = vp.getViewPosition();
-      int y=r.y+vp.getExtentSize().height-r.height;
-      if(y>vp.getViewSize().height) {
-        y=vp.getViewSize().height-vp.getExtentSize().height;
+      Point     p  = vp.getViewPosition();
+      int       y  = r.y + vp.getExtentSize().height - r.height;
+
+      if (y > vp.getViewSize().height) {
+        y = vp.getViewSize().height - vp.getExtentSize().height;
       }
-      if (p.y!=y) {
+
+      if (p.y != y) {
         p.y = y;
         vp.setViewPosition(p);
       }
@@ -992,7 +1028,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     if (r != null) {
       JViewport vp = getViewport();
-      Point p = vp.getViewPosition();
+      Point     p  = vp.getViewPosition();
 
       if (vp.getExtentSize().height - r.y > 0) {
         p.y = r.y;
@@ -1014,15 +1050,15 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
       ListSelectionModel sm = list.getSelectionModel();
 
-      switch (sm.getSelectionMode()) {
-        case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION:
-        case ListSelectionModel.SINGLE_INTERVAL_SELECTION:
+      switch(sm.getSelectionMode()) {
+        case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION :
+        case ListSelectionModel.SINGLE_INTERVAL_SELECTION :
           sm.clearSelection();
           sm.addSelectionInterval(0, len - 1);
 
           break;
 
-        default:
+        default :
           break;
       }
 
@@ -1048,7 +1084,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   public void setAutoHilight(boolean autoHilight) {
     if (this.autoHilight != autoHilight) {
       this.autoHilight = autoHilight;
-      hilightIndex = -1;
+      hilightIndex     = -1;
 
       if (autoHilight) {
         this.addMouseMotionListener(this);
@@ -1082,10 +1118,10 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     if (border != null) {
       Insets in = border.getBorderInsets(this);
 
-      leftOffset = in.left;
+      leftOffset  = in.left;
       rightOffset = in.right;
     } else {
-      leftOffset = 0;
+      leftOffset  = 0;
       rightOffset = 0;
     }
   }
@@ -1093,11 +1129,14 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   @Override
   public void setBounds(int x, int y, int width, int height) {
     super.setBounds(x, y, width, height);
-    if(keepSelectionVisible) {
-      int n=getSelectedIndex();
-      if(n!=-1) {
-        Rectangle r=list.getCellBounds(n, n);
-        if(r==null || !getViewport().getViewRect().contains(r)) {
+
+    if (keepSelectionVisible) {
+      int n = getSelectedIndex();
+
+      if (n != -1) {
+        Rectangle r = list.getCellBounds(n, n);
+
+        if ((r == null) ||!getViewport().getViewRect().contains(r)) {
           makeSelectionVisible();
         }
       }
@@ -1113,7 +1152,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   @Override
   public void setDividerLine(UIColor color, UIStroke stroke) {
-    Stroke s = (stroke == null) ? SwingHelper.SOLID_STROKE : SwingHelper.getStroke(stroke);
+    Stroke s = (stroke == null)
+               ? SwingHelper.SOLID_STROKE
+               : SwingHelper.getStroke(stroke);
 
     list.setDividerLineColor(color);
     list.setDividerStroke(s);
@@ -1130,12 +1171,12 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     aListViewer lv = (aListViewer) Component.fromView(this).getWidget();
 
     draggingAllowed = (mode == EditingMode.REORDERING) || (mode == EditingMode.REORDERING_AND_SELECTION)
-        || (mode == EditingMode.REORDERING_AND_DELETEING);
-    deletingAllowed = lv.canDelete();
+                      || (mode == EditingMode.REORDERING_AND_DELETEING);
+    deletingAllowed         = lv.canDelete();
     editingSelectionAllowed = (mode == EditingMode.SELECTION) || (mode == EditingMode.REORDERING_AND_SELECTION);
 
     if ((rendererContainer == null) && ((mode != EditingMode.NONE) || deletingAllowed)) {
-      listRow = new ListRowContainer(this);
+      listRow           = new ListRowContainer(this);
       rendererContainer = new RendererContainer(this, null);
 
       if (draggingAllowed) {
@@ -1158,8 +1199,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
         }
       };
 
-      getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0),
-          "ESCAPE_KEY");
+      getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(
+          KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "ESCAPE_KEY");
       getActionMap().put("ESCAPE_KEY", escapeAction);
     }
 
@@ -1193,9 +1234,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   public void setIcons(iPlatformIcon checked, iPlatformIcon unchecked, iPlatformIcon indeterminate) {
     checkboxHeight = checked.getIconHeight();
-    checkboxWidth = checked.getIconWidth();
+    checkboxWidth  = checked.getIconWidth();
     checkboxHeight = Math.max(checkboxHeight, unchecked.getIconHeight());
-    checkboxWidth = Math.max(checkboxWidth, unchecked.getIconWidth());
+    checkboxWidth  = Math.max(checkboxWidth, unchecked.getIconWidth());
 
     if (checkListManager == null) {
       checkListManager = createCheckListManager();
@@ -1220,7 +1261,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   @Override
   public void setKeepSelectionVisible(boolean keepSelectionVisible) {
-    this.keepSelectionVisible=keepSelectionVisible;
+    this.keepSelectionVisible = keepSelectionVisible;
   }
 
   protected void setLinkedSelectionChecked(int row, boolean checked) {
@@ -1269,12 +1310,12 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   public void setRowEditingComponent(iPlatformComponent c, boolean centerVertically) {
-    editingComponent = c;
+    editingComponent          = c;
     centerRowEditorVertically = centerVertically;
 
     if (c != null) {
       if (rendererContainer == null) {
-        listRow = new ListRowContainer(this);
+        listRow           = new ListRowContainer(this);
         rendererContainer = new RendererContainer(this, null);
       }
 
@@ -1288,6 +1329,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   public void setRowHeight(int height) {
     rowHeight = height;
     list.setMinRowHeight(height);
+
     if (!autoSizeRows) {
       list.setFixedCellHeight(height);
     }
@@ -1336,18 +1378,18 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       list.setSelectionModel(new DefaultListSelectionModel());
     }
 
-    switch (selectionMode) {
-      case BLOCK:
+    switch(selectionMode) {
+      case BLOCK :
         list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
         break;
 
-      case MULTIPLE:
+      case MULTIPLE :
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         break;
 
-      case INVISIBLE:
+      case INVISIBLE :
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         if (itemRenderer != null) {
@@ -1356,13 +1398,13 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
         break;
 
-      case NONE:
+      case NONE :
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         list.setSelectionModel(new EmptyListSelectionModel());
 
         break;
 
-      default:
+      default :
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
   }
@@ -1392,11 +1434,11 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   protected void setTreeInfoForRow(iRenderingComponent rc, iPlatformIcon indicator, int indent) {
-    if(rc instanceof UIListLabelRenderer) {
+    if (rc instanceof UIListLabelRenderer) {
       ListItemLabelRenderer view = (ListItemLabelRenderer) ((UIListLabelRenderer) rc).getView();
-  
+
       view.indicatorIcon = indicator;
-      view.indent = indent;
+      view.indent        = indent;
     }
   }
 
@@ -1434,14 +1476,14 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
       if (actions == null) {
         if (deletingAllowed && editingSelectionAllowed) {
-          actions = new UIAction[2];
+          actions    = new UIAction[2];
           actions[0] = new UIAction("Rare.action.markAll", Platform.getResourceAsString("Rare.action.markAll"), null);
           actions[1] = new UIAction("Rare.action.delete", Platform.getResourceAsString("Rare.action.delete"), null);
         } else if (deletingAllowed) {
-          actions = new UIAction[1];
+          actions    = new UIAction[1];
           actions[0] = new UIAction("Rare.action.delete", Platform.getResourceAsString("Rare.action.delete"), null);
         } else if (editingSelectionAllowed) {
-          actions = new UIAction[1];
+          actions    = new UIAction[1];
           actions[0] = new UIAction("Rare.action.markAll", Platform.getResourceAsString("Rare.action.markAll"), null);
         }
       }
@@ -1449,8 +1491,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       if ((actions != null) && (actions.length > 0) && (editToolbar != null)) {
         this.editActions = actions;
 
-        iToolBar tb = editToolbar;
-        boolean isDelete = false;
+        iToolBar tb       = editToolbar;
+        boolean  isDelete = false;
 
         for (UIAction a : actions) {
           if ("Rare.action.delete".equalsIgnoreCase(a.getActionName())) {
@@ -1513,9 +1555,9 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
   }
 
   protected void stopEditingEx() {
-    this.editing = false;
+    this.editing     = false;
     this.editActions = null;
-    animateX = 0;
+    animateX         = 0;
     listRow.setEditing(false);
 
     if (listRowWithEditor != null) {
@@ -1552,13 +1594,15 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
   protected void updateActions() {
     if (this.editActions != null) {
-      int mc = listModel.editModeGetMarkCount();
-      int size = listModel.size();
-      boolean hasMarks = mc > 0;
+      int     mc        = listModel.editModeGetMarkCount();
+      int     size      = listModel.size();
+      boolean hasMarks  = mc > 0;
       boolean allMarked = (mc == size) && (mc != 0);
 
       if (markAll != null) {
-        markAll.setActionText(Platform.getResourceAsString(allMarked ? "Rare.action.unmarkAll" : "Rare.action.markAll"));
+        markAll.setActionText(Platform.getResourceAsString(allMarked
+                ? "Rare.action.unmarkAll"
+                : "Rare.action.markAll"));
       }
 
       for (UIAction a : editActions) {
@@ -1581,16 +1625,16 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
         left += indicatorWidth + ICON_GAP;
       }
 
-      in.left += left;
+      in.left  += left;
       in.right += right;
     }
   }
 
   @Override
   public void valueChanged(ListSelectionEvent e) {
-    if (!e.getValueIsAdjusting() && (changeListener != null) && !disableChangeEvent) {
-      Object oldValue = null;
-      Object newValue = null;
+    if (!e.getValueIsAdjusting() && (changeListener != null) &&!disableChangeEvent) {
+      Object  oldValue = null;
+      Object  newValue = null;
       boolean multiple = isMultipleSelectionAllowed();
 
       if (multiple) {
@@ -1617,10 +1661,10 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       }
     }
 
-    if ((checkListManager != null) && linkedSelection && !e.getValueIsAdjusting()) {
-      ListSelectionModel sm = list.getSelectionModel();
-      int first = e.getFirstIndex();
-      int last = e.getLastIndex();
+    if ((checkListManager != null) && linkedSelection &&!e.getValueIsAdjusting()) {
+      ListSelectionModel sm    = list.getSelectionModel();
+      int                first = e.getFirstIndex();
+      int                last  = e.getLastIndex();
 
       for (int i = first; i <= last; i++) {
         setLinkedSelectionChecked(i, sm.isSelectedIndex(i));
@@ -1640,7 +1684,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
   }
 
-   public static void fireChangeEvent(EventListenerList listenerList, ChangeEvent e) {
+  public static void fireChangeEvent(EventListenerList listenerList, ChangeEvent e) {
     Object[] listeners = listenerList.getListenerList();
 
     // Process the listeners last to first, notifying
@@ -1664,7 +1708,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     public EditableGestureListener() {
       if (list.getUI() instanceof BasicListExUI) {
-        ui = (BasicListExUI) list.getUI();
+        ui            = (BasicListExUI) list.getUI();
         dragThreshold = java.awt.dnd.DragSource.getDragThreshold();
       }
     }
@@ -1680,17 +1724,17 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
           Rectangle r;
 
           if (reordingRow == -1) {
-            reordingRow = pressedRow;
-            r = list.getCellBounds(pressedRow, pressedRow);
-            pressedRow = -1;
+            reordingRow    = pressedRow;
+            r              = list.getCellBounds(pressedRow, pressedRow);
+            pressedRow     = -1;
             reordingMouseY = pressPoint.y;
 
-            int y = pressPoint.y;
+            int y      = pressPoint.y;
             int height = getRowHeight();
 
             if (r != null) {
-              height = r.height;
-              y = r.y + (e.getY() - y);
+              height       = r.height;
+              y            = r.y + (e.getY() - y);
               reordingRowY = r.y;
             } else {
               reordingRowY = y;
@@ -1707,7 +1751,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
             if ((row != -1) && (row != currentRow)) {
               currentRow = row;
-              r = list.getCellBounds(row, row);
+              r          = list.getCellBounds(row, row);
 
               if (r != null) {
                 list.scrollRectToVisible(r);
@@ -1722,8 +1766,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     @Override
     public void mousePressed(MouseEvent e) {
-      pressPoint = e.getPoint();
-      reordingRow = -1;
+      pressPoint    = e.getPoint();
+      reordingRow   = -1;
       pressConsumed = false;
 
       if (editingRow != -1) {
@@ -1772,7 +1816,8 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     @Override
     public void onFling(Object view, MouseEvent e1, MouseEvent e2, float velocityX, float velocityY) {
-      if ((deletingAllowed || (editingComponent != null)) && (reordingRow == -1) && (!editing || editingSwipingAllowed)) {
+      if ((deletingAllowed || (editingComponent != null)) && (reordingRow == -1)
+          && (!editing || editingSwipingAllowed)) {
         int row = list.locationToIndex(e1.getPoint());
 
         if ((row != -1) && (editingRow == -1) && (e1.getX() > e2.getX())) {
@@ -1793,14 +1838,15 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
 
     public void stopReordering() {
       if ((ui != null) && (reordingRow != -1)) {
-        pressedRow = -1;
+        pressedRow  = -1;
         reordingRow = -1;
         ui.setReordingInfo(-1, 0, 0);
         repaint();
       }
     }
   }
-  
+
+
   class EditingSelectionModel extends DefaultListSelectionModel {
     DefaultListSelectionModel sm = new DefaultListSelectionModel();
 
@@ -1810,8 +1856,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
 
     @Override
-    public void addListSelectionListener(ListSelectionListener l) {
-    }
+    public void addListSelectionListener(ListSelectionListener l) {}
 
     @Override
     public void addSelectionInterval(int index0, int index1) {
@@ -1836,8 +1881,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
 
     @Override
-    public void clearSelection() {
-    }
+    public void clearSelection() {}
 
     public void clearSelectionEx() {
       sm.clearSelection();
@@ -1852,8 +1896,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
 
     @Override
-    public void removeSelectionInterval(int index0, int index1) {
-    }
+    public void removeSelectionInterval(int index0, int index1) {}
 
     public void selectAll() {
       if (editing) {
@@ -1863,24 +1906,23 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
 
     @Override
-    public void setAnchorSelectionIndex(int anchorIndex) {
-    }
+    public void setAnchorSelectionIndex(int anchorIndex) {}
 
     @Override
-    public void setLeadSelectionIndex(int leadIndex) {
-    }
+    public void setLeadSelectionIndex(int leadIndex) {}
 
     @Override
     public void setSelectionInterval(int index0, int index1) {
       addSelectionInterval(index0, index1);
     }
   }
+
+
   class ListItemLabelRenderer extends LabelRenderer {
     Insets                  insets = new Insets(0, 0, 0, 0);
     protected iPlatformIcon checkIcon;
     protected int           indent;
     protected iPlatformIcon indicatorIcon;
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -1916,6 +1958,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
   }
 
+
   public static class SelectionChangeMaintainer {
     IntList newSelections;
     IntList oldSelections;
@@ -1943,11 +1986,11 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
     }
   }
 
+
   class UIListLabelRenderer extends UILabelRenderer {
     public UIListLabelRenderer() {
       super(new ListItemLabelRenderer());
     }
-
 
     public void setIndent(int indent) {
       ((ListItemLabelRenderer) view).indent = indent;
@@ -1962,6 +2005,7 @@ public class ListView extends ScrollPaneEx implements iPlatformListView, ListSel
       insets.left = left;
     }
   }
+
 
   @Override
   public iScrollerSupport getScrollerSupport() {

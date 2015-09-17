@@ -1,9 +1,21 @@
 /*
- * @(#)BasicHTMLEx.java   2010-07-11
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
@@ -43,7 +55,6 @@ import javax.swing.text.html.ImageView;
 import javax.swing.text.html.InlineView;
 import javax.swing.text.html.StyleSheet;
 
-import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.ui.text.HTMLEditorKitEx.HTMLDocumentEx;
 import com.appnativa.rare.scripting.Functions;
@@ -68,31 +79,32 @@ public class BasicHTMLEx {
    * references are resolved against. For example, lets say you keep your images
    * in the directory resources relative to the code path, you would use the
    * following the set the base:
-   * 
+   *
    * <pre>
    * jComponent.putClientProperty(documentBaseKey, xxx.class.getResource(&quot;resources/&quot;));
    * </pre>
    */
-  public static final String    documentBaseKey = "html.base";
+  public static final String documentBaseKey = "html.base";
 
   /**
    * Key to use for the html renderer when stored as a client property of a
    * JComponent.
    */
-  public static final String    propertyKey     = "html";
+  public static final String propertyKey = "html";
 
   /**
    * If this client property of a JComponent is set to Boolean.TRUE the
    * component's 'text' property is never treated as HTML.
    */
-  private static final String   htmlDisable     = "rare.html.disable";
+  private static final String htmlDisable = "rare.html.disable";
 
   /**
    * Overrides to the default stylesheet. Should consider just creating a
    * completely fresh stylesheet.
    */
-  private static final String   styleChanges    = "p { margin-top: 0; margin-bottom: 0; margin-left: 0; margin-right: 0 }"
-                                                    + "body { margin-top: 0; margin-bottom: 0; margin-left: 0; margin-right: 0 }";
+  private static final String styleChanges =
+    "p { margin-top: 0; margin-bottom: 0; margin-left: 0; margin-right: 0 }"
+    + "body { margin-top: 0; margin-bottom: 0; margin-left: 0; margin-right: 0 }";
 
   /**
    * The source of the html renderers
@@ -102,21 +114,23 @@ public class BasicHTMLEx {
   /**
    * Creates the Views that visually represent the model.
    */
-  private static ViewFactory    basicHTMLViewFactory;
+  private static ViewFactory basicHTMLViewFactory;
 
   /**
    * Create an html renderer for the given component and string of html.
    */
   @SuppressWarnings("resource")
   public static View createHTMLView(JComponent c, String html) {
-    BasicEditorKit kit = getFactory();
-    Document doc = kit.createDefaultDocument(c.getFont(), c.getForeground());
-    Object base = c.getClientProperty(documentBaseKey);
+    BasicEditorKit kit  = getFactory();
+    Document       doc  = kit.createDefaultDocument(c.getFont(), c.getForeground());
+    Object         base = c.getClientProperty(documentBaseKey);
 
     if (base instanceof URL) {
       ((HTMLDocument) doc).setBase((URL) base);
     }
+
     boolean center;
+
     if (c instanceof JLabel) {
       center = ((JLabel) c).getHorizontalAlignment() == SwingConstants.CENTER;
     } else if (c instanceof AbstractButton) {
@@ -124,37 +138,48 @@ public class BasicHTMLEx {
     } else {
       center = false;
     }
+
     if (html == null) {
       html = "";
     }
+
     Reader r;
+
     if (html.startsWith("<html>")) {
       r = new StringReader(html);
     } else {
       if (html.indexOf('\n') != -1) {
-        String prefix = center ? "<center>" : null;
-        String suffix = center ? "</center>" : null;
+        String prefix = center
+                        ? "<center>"
+                        : null;
+        String suffix = center
+                        ? "</center>"
+                        : null;
+
         r = new StringReader(Functions.tokenToHTMLBreak(html, "\n", true, prefix, suffix, -1));
       } else {
         CharArray ca = new CharArray(html.length() + 25);
+
         ca.append("<html><body>");
+
         if (center) {
           ca.append("<center>").append(html).append("</center>");
         } else {
           ca.append(html);
         }
+
         ca.append("</body></html>");
         r = ca;
       }
     }
+
     try {
       kit.read(r, doc, 0);
-    } catch (Throwable e) {
-    }
+    } catch(Throwable e) {}
 
-    ViewFactory f = kit.getViewFactory();
-    View hview = f.create(doc.getDefaultRootElement());
-    View v = new Renderer(c, f, hview);
+    ViewFactory f     = kit.getViewFactory();
+    View        hview = f.create(doc.getDefaultRootElement());
+    View        v     = new Renderer(c, f, hview);
 
     return v;
   }
@@ -172,8 +197,8 @@ public class BasicHTMLEx {
   }
 
   public static void updateRenderer(JComponent c, String text, boolean forceHtml) {
-    View value = null;
-    View oldValue = (View) c.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+    View    value        = null;
+    View    oldValue     = (View) c.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
     Boolean htmlDisabled = (Boolean) c.getClientProperty(htmlDisable);
 
     if (forceHtml || ((htmlDisabled != Boolean.TRUE) && BasicHTMLEx.isHTMLString(text))) {
@@ -273,7 +298,7 @@ public class BasicHTMLEx {
   static BasicEditorKit getFactory() {
     if (basicHTMLFactory == null) {
       basicHTMLViewFactory = new BasicHTMLViewFactory();
-      basicHTMLFactory = new BasicEditorKit();
+      basicHTMLFactory     = new BasicEditorKit();
     }
 
     return basicHTMLFactory;
@@ -285,7 +310,7 @@ public class BasicHTMLEx {
     }
 
     AttributeSet attributes = view.getElement().getAttributes();
-    Object name = null;
+    Object       name       = null;
 
     if (attributes != null) {
       name = attributes.getAttribute(StyleConstants.NameAttribute);
@@ -294,7 +319,6 @@ public class BasicHTMLEx {
     int index = 0;
 
     if ((name == HTML.Tag.HTML) && (view.getViewCount() > 1)) {
-
       // For html on widgets the header is not visible, skip it.
       index++;
     }
@@ -332,7 +356,7 @@ public class BasicHTMLEx {
     }
 
     AttributeSet attributes = view.getElement().getAttributes();
-    Object name = null;
+    Object       name       = null;
 
     if (attributes != null) {
       name = attributes.getAttribute(StyleConstants.NameAttribute);
@@ -341,7 +365,6 @@ public class BasicHTMLEx {
     int index = 0;
 
     if ((name == HTML.Tag.HTML) && (view.getViewCount() > 1)) {
-
       // For html on widgets the header is not visible, skip it.
       index = 1;
     }
@@ -357,7 +380,6 @@ public class BasicHTMLEx {
   static class BasicDocument extends HTMLDocumentEx {
 
     /** The host, that is where we are rendering. */
-
     // private JComponent host;
     BasicDocument(StyleSheet s, Font defaultFont, Color foreground) {
       super(s);
@@ -374,6 +396,7 @@ public class BasicHTMLEx {
       getStyleSheet().addRule(StyleSheetEx.displayPropertiesToCSS(font, fg));
     }
   }
+
 
   /**
    * The views produced for the ComponentUI implementations aren't going to be
@@ -397,7 +420,7 @@ public class BasicHTMLEx {
      */
     public Document createDefaultDocument(Font defaultFont, Color foreground) {
       StyleSheet styles = getStyleSheet();
-      StyleSheet ss = new StyleSheetEx();
+      StyleSheet ss     = new StyleSheetEx();
 
       ss.addStyleSheet(styles);
 
@@ -421,8 +444,7 @@ public class BasicHTMLEx {
 
         try {
           defaultStyles.loadRules(r, null);
-        } catch (Throwable e) {
-
+        } catch(Throwable e) {
           // don't want to die in static initialization...
           // just display things wrong.
         }
@@ -443,6 +465,7 @@ public class BasicHTMLEx {
       return basicHTMLViewFactory;
     }
   }
+
 
   /**
    * BasicHTMLViewFactory extends HTMLFactory to force images to be loaded
@@ -481,87 +504,98 @@ public class BasicHTMLEx {
                 URL u = new URL(reference, src);
 
                 return u;
-              } catch (MalformedURLException e) {
+              } catch(MalformedURLException e) {
                 return null;
               }
             }
           };
-        } else if ((kind == HTML.Tag.MENU) || (kind == HTML.Tag.DIR) || (kind == HTML.Tag.UL) || (kind == HTML.Tag.OL)) {
-          if (!Platform.getUIDefaults().getBoolean("Rare.swing.html.useDefaultListView", false)) {
-            return new ListView(elem);
-          }
-        }
-        else if (kind == HTML.Tag.CONTENT) {
+//        } else if ((kind == HTML.Tag.MENU) || (kind == HTML.Tag.DIR) || (kind == HTML.Tag.UL)
+//                   || (kind == HTML.Tag.OL)) {
+        } else if (kind == HTML.Tag.CONTENT) {
           return new InlineViewEx(elem);
         }
-
       }
 
       return super.create(elem);
     }
 
     static Object getAttribute(AttributeSet set, Object key) {
-      return set.isDefined(key) ? set.getAttribute(key) : null;
+      return set.isDefined(key)
+             ? set.getAttribute(key)
+             : null;
     }
   }
 
-  static class InlineViewEx extends InlineView {
 
+  static class InlineViewEx extends InlineView {
     private float minimumSpan;
 
     public InlineViewEx(Element elem) {
       super(elem);
     }
+
     @Override
     public void insertUpdate(DocumentEvent e, Shape a, ViewFactory f) {
       super.insertUpdate(e, a, f);
-      minimumSpan=-1;
+      minimumSpan = -1;
     }
+
     @Override
     public void removeUpdate(DocumentEvent e, Shape a, ViewFactory f) {
       super.removeUpdate(e, a, f);
-      minimumSpan=-1;
+      minimumSpan = -1;
     }
+
     @Override
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
       super.changedUpdate(e, a, f);
-      minimumSpan=-1;
+      minimumSpan = -1;
     }
+
     @Override
     public float getMinimumSpan(int axis) {
-      super.getMinimumSpan(axis); //call so super private variables are set;
-        switch (axis) {
-            case View.X_AXIS:
-                if (minimumSpan < 0) {
-                    minimumSpan = 0;
-                    int p0 = getStartOffset();
-                    int p1 = getEndOffset();
-                    while (p1 > p0) {
-                        int breakSpot = getBreakSpot(p0, p1);
-                        if (breakSpot == BreakIterator.DONE) {
-                            // the rest of the view is non-breakable
-                            breakSpot = p0;
-                        }
-                        minimumSpan = Math.max(minimumSpan,
-                                getPartialSpan(breakSpot, p1));
-                        // Note: getBreakSpot returns the *last* breakspot
-                        p1 = breakSpot - 1;
-                    }
-                }
-                return minimumSpan;
-            case View.Y_AXIS:
-                return super.getMinimumSpan(axis);
-            default:
-                throw new IllegalArgumentException("Invalid axis: " + axis);
-        }
+      super.getMinimumSpan(axis);    //call so super private variables are set;
+
+      switch(axis) {
+        case View.X_AXIS :
+          if (minimumSpan < 0) {
+            minimumSpan = 0;
+
+            int p0 = getStartOffset();
+            int p1 = getEndOffset();
+
+            while(p1 > p0) {
+              int breakSpot = getBreakSpot(p0, p1);
+
+              if (breakSpot == BreakIterator.DONE) {
+                // the rest of the view is non-breakable
+                breakSpot = p0;
+              }
+
+              minimumSpan = Math.max(minimumSpan, getPartialSpan(breakSpot, p1));
+              // Note: getBreakSpot returns the *last* breakspot
+              p1 = breakSpot - 1;
+            }
+          }
+
+          return minimumSpan;
+
+        case View.Y_AXIS :
+          return super.getMinimumSpan(axis);
+
+        default :
+          throw new IllegalArgumentException("Invalid axis: " + axis);
+      }
     }
-    
+
     @Override
     public int getBreakWeight(int axis, float pos, float len) {
-      int bw=super.getBreakWeight(axis, pos, len); //call so super private variables are set;
+      int bw = super.getBreakWeight(axis, pos, len);    //call so super private variables are set;
+
       if (axis == View.X_AXIS) {
         return View.GoodBreakWeight;
       }
+
       return bw;
     }
 
@@ -574,6 +608,7 @@ public class BasicHTMLEx {
       return BreakIterator.DONE;
     }
   }
+
 
   /**
    * A simple whitespace-based BreakIterator implementation.
@@ -590,25 +625,34 @@ public class BasicHTMLEx {
      */
     public void setText(CharacterIterator ci) {
       int begin = ci.getBeginIndex();
+
       text = new char[ci.getEndIndex() - begin];
+
       int[] breaks0 = new int[text.length + 1];
-      int brIx = 0;
+      int   brIx    = 0;
+
       breaks0[brIx++] = begin;
 
-      int charIx = 0;
-      boolean inWs = false;
+      int     charIx = 0;
+      boolean inWs   = false;
+
       for (char c = ci.first(); c != CharacterIterator.DONE; c = ci.next()) {
         text[charIx] = c;
-        boolean ws = Character.isWhitespace(c) || c == '/' || c == '-';
-        if (inWs && !ws) {
+
+        boolean ws = Character.isWhitespace(c) || (c == '/') || (c == '-');
+
+        if (inWs &&!ws) {
           breaks0[brIx++] = charIx + begin;
         }
+
         inWs = ws;
         charIx++;
       }
+
       if (text.length > 0) {
         breaks0[brIx++] = text.length + begin;
       }
+
       System.arraycopy(breaks0, 0, breaks = new int[brIx], 0, brIx);
     }
 
@@ -629,11 +673,15 @@ public class BasicHTMLEx {
     }
 
     public int next() {
-      return (pos == breaks.length - 1 ? DONE : breaks[++pos]);
+      return ((pos == breaks.length - 1)
+              ? DONE
+              : breaks[++pos]);
     }
 
     public int previous() {
-      return (pos == 0 ? DONE : breaks[--pos]);
+      return ((pos == 0)
+              ? DONE
+              : breaks[--pos]);
     }
 
     public int next(int n) {
@@ -657,11 +705,17 @@ public class BasicHTMLEx {
     }
 
     private int adjacent(int n, int bias) {
-      int hit = Arrays.binarySearch(breaks, n);
-      int offset = (hit < 0 ? (bias < 0 ? -1 : -2) : 0);
+      int hit    = Arrays.binarySearch(breaks, n);
+      int offset = ((hit < 0)
+                    ? ((bias < 0)
+                       ? -1
+                       : -2)
+                    : 0);
+
       return checkhit(Math.abs(hit) + bias + offset);
     }
   }
+
 
   /**
    * Root text view that acts as an HTML renderer.
@@ -674,9 +728,9 @@ public class BasicHTMLEx {
 
     Renderer(JComponent c, ViewFactory f, View v) {
       super(null);
-      host = c;
+      host    = c;
       factory = f;
-      view = v;
+      view    = v;
       view.setParent(this);
       // initially layout to the preferred size
       width = (int) view.getPreferredSpan(X_AXIS);
@@ -921,7 +975,6 @@ public class BasicHTMLEx {
     @Override
     public float getPreferredSpan(int axis) {
       if (axis == X_AXIS) {
-
         // width currently laid out to
         return width;
       }

@@ -1,22 +1,29 @@
 /*
- * @(#)MacUtils.java   2010-03-07
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.util;
 
-import java.awt.Image;
-import java.lang.reflect.Method;
-
-import javax.swing.JComponent;
-import javax.swing.JMenuItem;
-
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.AppContext;
@@ -24,8 +31,12 @@ import com.appnativa.rare.ui.UIMenuItem;
 import com.appnativa.rare.ui.aWindowManager;
 import com.appnativa.rare.ui.iPlatformWindowManager;
 
+import java.awt.Image;
 
+import java.lang.reflect.Method;
 
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 
 /**
  *
@@ -45,7 +56,7 @@ public class MacUtils extends ApplicationAdapter {
   @Override
   public void handleAbout(ApplicationEvent e) {
     if (aboutHandler != null) {
-    	doClick(aboutHandler.getMenuItem());
+      doClick(aboutHandler.getMenuItem());
       e.setHandled(true);
     } else {
       iPlatformWindowManager wm = AppContext.getContext().getWindowManager();
@@ -94,21 +105,21 @@ public class MacUtils extends ApplicationAdapter {
   @Override
   public void handleOpenFile(ApplicationEvent e) {
     if (openFileHandler != null) {
-    	doClick(openFileHandler.getMenuItem());
+      doClick(openFileHandler.getMenuItem());
       e.setHandled(true);
     }
   }
 
   private void doClick(JComponent menuItem) {
-  	if(menuItem instanceof JMenuItem) {
-  		((JMenuItem)menuItem).doClick();
-  	}
-	}
+    if (menuItem instanceof JMenuItem) {
+      ((JMenuItem) menuItem).doClick();
+    }
+  }
 
-	@Override
+  @Override
   public void handlePreferences(ApplicationEvent e) {
     if (preferencesHandler != null) {
-    	doClick(preferencesHandler.getMenuItem());
+      doClick(preferencesHandler.getMenuItem());
       e.setHandled(true);
     }
   }
@@ -116,7 +127,7 @@ public class MacUtils extends ApplicationAdapter {
   @Override
   public void handlePrintFile(ApplicationEvent e) {
     if (printHandler != null) {
-    	doClick(printHandler.getMenuItem());
+      doClick(printHandler.getMenuItem());
       e.setHandled(true);
     }
   }
@@ -127,54 +138,50 @@ public class MacUtils extends ApplicationAdapter {
 
     iPlatformAppContext app = AppContext.getContext();
 
-
     if (app != null) {
       app.exit();
     }
   }
 
   public static void setDockIconImage(Image image) {
-
     try {
       Application app = Application.getApplication();
-      Method m=app.getClass().getMethod("setDockIconImage", Image.class);
+      Method      m   = app.getClass().getMethod("setDockIconImage", Image.class);
+
       m.invoke(app, image);
-     } catch(Throwable e) {
-    }
+    } catch(Throwable e) {}
   }
 
   public static Image getDockIconImage() {
-
     try {
       Application app = Application.getApplication();
-      Method m=app.getClass().getMethod("getDockIconImage", Image.class);
+      Method      m   = app.getClass().getMethod("getDockIconImage", Image.class);
+
       return (Image) m.invoke(app);
-     } catch(Throwable e) {
-       return null;
+    } catch(Throwable e) {
+      return null;
     }
   }
 
   public static void setDockIconBadge(String badge) {
-
     try {
       Application app = Application.getApplication();
-      Method m=app.getClass().getMethod("setDockIconBadge", String.class);
+      Method      m   = app.getClass().getMethod("setDockIconBadge", String.class);
+
       m.invoke(app, badge);
-     } catch(Throwable e) {
-    }
+    } catch(Throwable e) {}
   }
 
   public static String getDockIconBadge(String badge) {
-
     try {
       Application app = Application.getApplication();
-      Method m=app.getClass().getMethod("getDockIconBadge", String.class);
-      return (String)m.invoke(app);
-     } catch(Throwable e) {
-       return null;
+      Method      m   = app.getClass().getMethod("getDockIconBadge", String.class);
+
+      return (String) m.invoke(app);
+    } catch(Throwable e) {
+      return null;
     }
   }
- 
 
   public static MacUtils getInstance() {
     if (_instance == null) {
@@ -183,5 +190,4 @@ public class MacUtils extends ApplicationAdapter {
 
     return _instance;
   }
-
 }

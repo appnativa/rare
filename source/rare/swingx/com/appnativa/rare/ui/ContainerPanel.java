@@ -1,9 +1,21 @@
 /*
- * @(#)ContainerPanel.java   2014-02-06
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
@@ -14,9 +26,9 @@ import com.appnativa.rare.ui.painter.RenderSpace;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
-public class ContainerPanel extends Container implements iTargetContainer{
+public class ContainerPanel extends Container implements iTargetContainer {
   private UIComponentPainter borderComponentPainter;
-  private boolean                 borderPanel;
+  private boolean            borderPanel;
 
   public ContainerPanel() {
     super(new FrameView());
@@ -36,31 +48,33 @@ public class ContainerPanel extends Container implements iTargetContainer{
 
     super.dispose();
   }
-  
+
   @Override
   public boolean isFocusPainted() {
     return false;
   }
-  
+
   @Override
   public void setBorder(iPlatformBorder border) {
     if (borderComponentPainter != null) {
-    	borderComponentPainter.setBorder(border);
+      borderComponentPainter.setBorder(border);
       ((FrameView) view).setBorder(border);
-    }
-    else {
+    } else {
       super.setBorder(border);
     }
   }
 
   @Override
   public PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket def) {
-    if(!focusPainted || getComponentCount()==0) {
+    if (!focusPainted || (getComponentCount() == 0)) {
       return null;
     }
-    return getComponentAt(0).isFocusOwner() ? def : null;
+
+    return getComponentAt(0).isFocusOwner()
+           ? def
+           : null;
   }
-  
+
   @Override
   public void setBackground(UIColor bg) {
     if (borderPanel && (getComponentCount() > 0)) {
@@ -73,16 +87,20 @@ public class ContainerPanel extends Container implements iTargetContainer{
   @Override
   public void setFocusPainted(boolean focusPainted) {
     super.setFocusPainted(focusPainted);
+
     if (getComponentCount() > 0) {
       iPlatformComponent c = getComponentAt(0);
+
       c.setFocusPainted(focusPainted);
     }
   }
 
   public void setBorderPanel(boolean borderPanel) {
-  	if(borderComponentPainter==null)
-  	borderComponentPainter=new UIComponentPainter();
-  	((FrameView) view).setComponentPainter(borderComponentPainter);
+    if (borderComponentPainter == null) {
+      borderComponentPainter = new UIComponentPainter();
+    }
+
+    ((FrameView) view).setComponentPainter(borderComponentPainter);
     this.borderPanel = borderPanel;
     ((FrameView) view).setRenderSpace(borderPanel
                                       ? RenderSpace.WITHIN_BORDER
@@ -126,6 +144,7 @@ public class ContainerPanel extends Container implements iTargetContainer{
   @Override
   public boolean setRenderType(RenderType renderType) {
     ((FrameView) view).setViewRenderType(renderType);
+
     return true;
   }
 

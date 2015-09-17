@@ -1,12 +1,44 @@
 /*
- * @(#)TextEditor.java   2010-06-23
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.net.iURLConnection;
+import com.appnativa.rare.platform.swing.AppContext;
+import com.appnativa.rare.platform.swing.Rare;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.UISoundHelper;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.listener.iHyperlinkListener;
+import com.appnativa.rare.ui.painter.iComponentPainter;
+import com.appnativa.rare.util.iTextSearcher;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.ByteArray;
+import com.appnativa.util.UnescapingReader;
+import com.appnativa.util.iURLResolver;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -26,6 +58,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +69,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -83,26 +117,6 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.undo.UndoManager;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.net.iURLConnection;
-import com.appnativa.rare.platform.swing.AppContext;
-import com.appnativa.rare.platform.swing.Rare;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.UISoundHelper;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.listener.iHyperlinkListener;
-import com.appnativa.rare.ui.painter.iComponentPainter;
-import com.appnativa.rare.util.iTextSearcher;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.ByteArray;
-import com.appnativa.util.UnescapingReader;
-import com.appnativa.util.iURLResolver;
-
 /**
  *
  * @author Don DeCoteau
@@ -114,20 +128,13 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
   private static final SimpleAttributeSet plainAttributeSet  = new SimpleAttributeSet();
   iComponentPainter                       componentPainter;
   Cursor                                  linkCursor;
-
-  iURLResolver urlResolver;
-
-  protected boolean overwriteMode = false;
-
-  protected CursorShown cursorShown;
-
-  protected HTMLDocumentLoader documentLoader;
-
-  protected DocumentSearcher documentSearcher;
-
-  protected JScrollPane scrollPane;
-
-  protected boolean showOverwriteCursor;
+  iURLResolver                            urlResolver;
+  protected boolean                       overwriteMode = false;
+  protected CursorShown                   cursorShown;
+  protected HTMLDocumentLoader            documentLoader;
+  protected DocumentSearcher              documentSearcher;
+  protected JScrollPane                   scrollPane;
+  protected boolean                       showOverwriteCursor;
 
   /**  */
   protected UndoManager      undoManager;
@@ -137,7 +144,8 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
   // private StyledTextAction   textAction;
   private volatile boolean wordWrap;
   private boolean          zoomingSupported;
-  private DocumentFilter documentFilter;
+  private DocumentFilter   documentFilter;
+
   /**
    *
    */
@@ -235,11 +243,12 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
 
     out.writeObject(doc);
 
-    ByteArray         in  = new ByteArray(bo.toByteArray());
-    ObjectInputStream ois = new ObjectInputStream(in);
+    ByteArray         in   = new ByteArray(bo.toByteArray());
+    ObjectInputStream ois  = new ObjectInputStream(in);
+    Document          ndoc = (Document) ois.readObject();
 
-    Document ndoc=(Document) ois.readObject();
     ois.close();
+
     return ndoc;
   }
 
@@ -375,7 +384,7 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
     if (p == null) {
       pos = comp.getCaretPosition();
     } else {
-      pos = comp.viewToModel(new Point((int)p.x, (int)p.y));
+      pos = comp.viewToModel(new Point((int) p.x, (int) p.y));
 
       if (pos < 0) {
         pos = 0;
@@ -428,7 +437,7 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
     fireAction("Rare.action.text.increaseIndent");
   }
 
-  public void insertHTML(int location,String html) throws IOException, BadLocationException {
+  public void insertHTML(int location, String html) throws IOException, BadLocationException {
     // assumes this is already set to iConstants.HTML_MIME_TYPE type
     HTMLEditorKit kit = (HTMLEditorKit) this.getEditorKit();
     Document      doc = this.getDocument();
@@ -1104,9 +1113,11 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
     if (set) {
       this.setDocument(doc);
     }
-    if(documentFilter!=null && doc instanceof AbstractDocument) {
-    	((AbstractDocument)doc).setDocumentFilter(documentFilter);
+
+    if ((documentFilter != null) && (doc instanceof AbstractDocument)) {
+      ((AbstractDocument) doc).setDocumentFilter(documentFilter);
     }
+
     if (undoManager != null) {
       undoManager.discardAllEdits();
       this.getDocument().addUndoableEditListener(undoManager);
@@ -1429,19 +1440,17 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
   }
 
 
-	public boolean isFollowHyperlinks() {
-		return hyperLinkListener==null;
-	}
+  public boolean isFollowHyperlinks() {
+    return hyperLinkListener == null;
+  }
 
-	public void setFollowHyperlinks(boolean follow) {
-		
-	}
+  public void setFollowHyperlinks(boolean follow) {}
 
-	public DocumentFilter getDocumentFilter() {
-		return documentFilter;
-	}
+  public DocumentFilter getDocumentFilter() {
+    return documentFilter;
+  }
 
-	public void setDocumentFilter(DocumentFilter documentFilter) {
-		this.documentFilter = documentFilter;
-	}
+  public void setDocumentFilter(DocumentFilter documentFilter) {
+    this.documentFilter = documentFilter;
+  }
 }

@@ -1,42 +1,24 @@
 /*
- * @(#)JLabelEx.java   2010-04-07
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import java.awt.Color;
-import java.awt.ComponentOrientation;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import javax.swing.Icon;
-import javax.swing.JLabel;
-import javax.swing.JToolTip;
-import javax.swing.border.Border;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.Position;
-import javax.swing.text.StyledDocument;
-import javax.swing.text.View;
-import javax.swing.text.html.HTML;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.EventHelper;
@@ -55,6 +37,37 @@ import com.appnativa.rare.ui.painter.iComponentPainter;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+
+import java.awt.Color;
+import java.awt.ComponentOrientation;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JToolTip;
+import javax.swing.border.Border;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.Position;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.View;
+import javax.swing.text.html.HTML;
 
 /**
  *
@@ -89,10 +102,8 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
   public LabelView() {
     super();
     this.setFocusable(false);
-
     setFont(FontUtils.getDefaultFont());
     setForeground(ColorUtils.getForeground());
-
   }
 
   public LabelView(Icon icon) {
@@ -252,10 +263,10 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
       g2.transform(transform);
     }
 
-    graphics = SwingGraphics.fromGraphics(g, this, graphics);
-    blockRevalidateAndRepaint=true;
+    graphics                  = SwingGraphics.fromGraphics(g, this, graphics);
+    blockRevalidateAndRepaint = true;
     super.paint(g);
-    blockRevalidateAndRepaint=false;
+    blockRevalidateAndRepaint = false;
     graphics.clear();
 
     if (tx != null) {
@@ -350,7 +361,8 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     if (text == null) {
       text = "";
     }
-    iconOnly=text.length()==0;
+
+    iconOnly = text.length() == 0;
     super.setText(text);
   }
 
@@ -515,19 +527,21 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
 
     return super.getForeground();
   }
-  
+
   @Override
   public Icon getDisabledIcon() {
-    Icon icon=super.getDisabledIcon();
-    if(icon==null) {
-      Icon ic=getIcon();
-      if(ic instanceof iPlatformIcon) {
-        icon=((iPlatformIcon)ic).getDisabledVersion();
+    Icon icon = super.getDisabledIcon();
+
+    if (icon == null) {
+      Icon ic = getIcon();
+
+      if (ic instanceof iPlatformIcon) {
+        icon = ((iPlatformIcon) ic).getDisabledVersion();
       }
     }
+
     return icon;
   }
-
 
   public String getHrefAtPoint(Point p) {
     final int stringIndexAtPoint = getIndexAtPoint(p, false);
@@ -676,42 +690,45 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
   }
 
   public void getPreferredSize(UIDimension d) {
-    boolean blocked=blockRevalidateAndRepaint;
-    blockRevalidateAndRepaint=true;
+    boolean blocked = blockRevalidateAndRepaint;
+
+    blockRevalidateAndRepaint = true;
+
     try {
-    Number num = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
+      Number num = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
 
-    if ((num != null) && (num.intValue() > 0)) {
-      d.width  = num.floatValue();
-      d.height = getPreferredHeight(d.intWidth());
+      if ((num != null) && (num.intValue() > 0)) {
+        d.width  = num.floatValue();
+        d.height = getPreferredHeight(d.intWidth());
+        num      = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
+
+        if ((num != null) && (num.intValue() > d.height)) {
+          d.height = num.intValue();
+        }
+
+        return;
+      }
+
+      getPreferredSizeEx(d);
       num = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-      if(num !=null && num.intValue()>d.height) {
-        d.height=num.intValue();
+
+      if ((num != null) && (num.intValue() > d.height)) {
+        d.height = num.intValue();
       }
 
-      return;
-    }
+      if (getOrientation() != Orientation.HORIZONTAL) {
+        Insets in = this.getInsets();
 
-    getPreferredSizeEx(d);
-
-    num = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-    if(num !=null && num.intValue()>d.height) {
-      d.height=num.intValue();
-    }
-    if (getOrientation() != Orientation.HORIZONTAL) {
-      Insets in = this.getInsets();
-
-      if (in != null) {
-        d.width  -= (in.left + in.right);
-        d.height -= (in.top + in.bottom);
-        d.setSize(d.height, d.width);
-        d.width  += (in.left + in.right);
-        d.height += (in.top + in.bottom);
+        if (in != null) {
+          d.width  -= (in.left + in.right);
+          d.height -= (in.top + in.bottom);
+          d.setSize(d.height, d.width);
+          d.width  += (in.left + in.right);
+          d.height += (in.top + in.bottom);
+        }
       }
-    }
-    }
-    finally {
-      blockRevalidateAndRepaint=blocked;
+    } finally {
+      blockRevalidateAndRepaint = blocked;
     }
   }
 
@@ -852,6 +869,7 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
   @Override
   protected void paintComponent(Graphics g) {
     graphics = SwingGraphics.fromGraphics(g, this, graphics);
+
     iPlatformComponentPainter cp = getComponentPainter();
 
     if (cp != null) {

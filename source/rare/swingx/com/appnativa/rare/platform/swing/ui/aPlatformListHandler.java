@@ -1,16 +1,24 @@
 /*
- * @(#)aPlatformListHandler.java   2014-01-19
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui;
-
-import java.awt.Rectangle;
-
-import javax.swing.JComponent;
 
 import com.appnativa.rare.platform.swing.ui.view.ListView;
 import com.appnativa.rare.ui.Component;
@@ -27,6 +35,10 @@ import com.appnativa.rare.ui.listener.iHyperlinkListener;
 import com.appnativa.rare.ui.renderer.aListItemRenderer;
 import com.appnativa.rare.ui.table.TableView;
 import com.appnativa.util.IntList;
+
+import java.awt.Rectangle;
+
+import javax.swing.JComponent;
 
 public abstract class aPlatformListHandler extends aListHandler {
   public aPlatformListHandler(iListView view) {
@@ -51,7 +63,7 @@ public abstract class aPlatformListHandler extends aListHandler {
       ((TableView) listView).selectAll();
     }
   }
- 
+
   @Override
   public void setAlternatingRowColor(UIColor color) {
     listView.setAlternatingRowColor(color);
@@ -69,7 +81,6 @@ public abstract class aPlatformListHandler extends aListHandler {
     } else if (listView instanceof TableView) {
       ((TableView) listView).setSelectable(selectable);
     }
-    
   }
 
   @Override
@@ -141,11 +152,12 @@ public abstract class aPlatformListHandler extends aListHandler {
 
   @Override
   public UIRectangle getRowBounds(int firstRow, int lastRow) {
-    Rectangle r=null;
+    Rectangle r = null;
+
     if (listView instanceof ListView) {
-      r=((ListView) listView).getRowBounds(firstRow, lastRow);
+      r = ((ListView) listView).getRowBounds(firstRow, lastRow);
     } else if (listView instanceof ListView) {
-      r=((TableView) listView).getRowBounds(firstRow, lastRow);
+      r = ((TableView) listView).getRowBounds(firstRow, lastRow);
     }
 
     if (r == null) {
@@ -157,7 +169,6 @@ public abstract class aPlatformListHandler extends aListHandler {
 
   @Override
   public int getRowHeight() {
-
     if (listView instanceof ListView) {
       return ((ListView) listView).getRowHeight();
     }
@@ -172,11 +183,11 @@ public abstract class aPlatformListHandler extends aListHandler {
   @Override
   public int getRowIndexAt(float x, float y) {
     if (listView instanceof ListView) {
-      return ((ListView) listView).getRowAtPoint((int)x, (int)y);
+      return ((ListView) listView).getRowAtPoint((int) x, (int) y);
     }
 
     if (listView instanceof TableView) {
-      return ((TableView) listView).getRowAtPoint((int)x, (int)y);
+      return ((TableView) listView).getRowAtPoint((int) x, (int) y);
     }
 
     return -1;
@@ -201,7 +212,6 @@ public abstract class aPlatformListHandler extends aListHandler {
 
   @Override
   protected void setRowHeightEx(int height) {
-
     if (listView instanceof ListView) {
       ((ListView) listView).setRowHeight(height);
     } else if (listView instanceof TableView) {

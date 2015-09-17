@@ -1,29 +1,24 @@
 /*
- * @(#)WaitCursorHandler.java   2011-11-15
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JRootPane;
-import javax.swing.KeyStroke;
-import javax.swing.RootPaneContainer;
-import javax.swing.SwingUtilities;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -42,26 +37,41 @@ import com.appnativa.util.IdentityArrayList;
 import com.appnativa.util.MutableInteger;
 import com.appnativa.util.iCancelable;
 
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
+import javax.swing.RootPaneContainer;
+import javax.swing.SwingUtilities;
+
 /**
  * Wait cursor handler
  *
  * @author Don DeCoteau
  */
 public class WaitCursorHandler {
-  private final static MouseAdapter           mouseAdapter   = new MouseAdapter() {
-                                                             };
+  private final static MouseAdapter           mouseAdapter   = new MouseAdapter() {}
+  ;
   private static IdentityArrayList<JRootPane> lockedPanes    = new IdentityArrayList<JRootPane>();
   private static final MutableInteger         cursorCount    = new MutableInteger(0);
   private static Cursor                       WAIT_CURSOR    = new Cursor(Cursor.WAIT_CURSOR);
   private static Cursor                       DEFAULT_CURSOR = new Cursor(Cursor.DEFAULT_CURSOR);
   private static JDialog                      progressDialog;
   private static LabelView                    progressDialogLabel;
-
-  static iPlatformComponentPainter componentPainter;
+  static iPlatformComponentPainter            componentPainter;
 
   /** Creates a new instance of CursorHandler */
-  private WaitCursorHandler() {
-  }
+  private WaitCursorHandler() {}
 
   public static void hideProgressPopup(iPlatformComponent comp, boolean force) {
     stopWaitCursor(comp, force);
@@ -71,50 +81,61 @@ public class WaitCursorHandler {
     showProgressPopup(comp, message, null);
   }
 
-  public static void showProgressPopup(iPlatformComponent component, final CharSequence message, final iCancelable cancelable) {
-    synchronized (cursorCount) {
+  public static void showProgressPopup(iPlatformComponent component, final CharSequence message,
+          final iCancelable cancelable) {
+    synchronized(cursorCount) {
       int cnt = cursorCount.getAndIncrement();
+
       if (cnt > 0) {
         return;
       }
-      Runnable r = new Runnable() {
 
+      Runnable r = new Runnable() {
         @Override
         public void run() {
           if (componentPainter == null) {
             componentPainter = PainterUtils.createProgressPopupPainter();
           }
-          UIColor fg=componentPainter.getForegroundColor();
-          if(fg==null) {
-            fg=ColorUtils.getForeground();
-          }
-          Window win = (Window) Platform.getAppContext().getWindowManager().getUIWindow();
-          PopupWindow d = new PopupWindow(win, null);
 
-          LabelView l = new LabelView(message == null ? "" : message.toString());
+          UIColor fg = componentPainter.getForegroundColor();
+
+          if (fg == null) {
+            fg = ColorUtils.getForeground();
+          }
+
+          Window      win = (Window) Platform.getAppContext().getWindowManager().getUIWindow();
+          PopupWindow d   = new PopupWindow(win, null);
+          LabelView   l   = new LabelView((message == null)
+                                          ? ""
+                                          : message.toString());
 
           l.setBorder(new UIEmptyBorder(4, 4, 4, 4));
           l.setForeground(fg);
           l.setWordWrap(true);
+
           UtilityPanel p = new UtilityPanel(l);
-          if(Platform.isInitialized()) {
-            ActionComponent pb=new ActionComponent(new LabelView());
+
+          if (Platform.isInitialized()) {
+            ActionComponent pb = new ActionComponent(new LabelView());
+
             pb.setIcon(UISpriteIcon.getDefaultSpinner());
             p.add(pb.getJComponent(), java.awt.BorderLayout.WEST);
-          }
-          else {
+          } else {
             ProgressBarView pb = new ProgressBarView();
+
             pb.setPreferredSize(new Dimension(32, 32));
             pb.setIndeterminate(true);
             p.add(pb, java.awt.BorderLayout.WEST);
           }
-          Container pc=new Container(p);
-          if(cancelable!=null) {
+
+          Container pc = new Container(p);
+
+          if (cancelable != null) {
             iActionComponent b = PlatformHelper.createNakedButton(pc, false, 0);
+
             b.setIcon(Platform.getResourceAsIcon("Rare.icon.cancel"));
             b.setForeground(fg);
             b.addActionListener(new iActionListener() {
-              
               @Override
               public void actionPerformed(com.appnativa.rare.ui.event.ActionEvent e) {
                 if (progressDialog != null) {
@@ -128,10 +149,13 @@ public class WaitCursorHandler {
             });
             p.add(b.getView(), java.awt.BorderLayout.EAST);
           }
+
           BeanViewer bv = new BeanViewer(Platform.getWindowViewer(), pc);
+
           bv.setComponentPainter(componentPainter);
           d.setViewer(bv);
           d.pack();
+
           KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
           d.getRootPane().registerKeyboardAction(new ActionListener() {
@@ -146,10 +170,12 @@ public class WaitCursorHandler {
               }
             }
           }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-          progressDialog = d;
+          progressDialog      = d;
           progressDialogLabel = l;
           SwingHelper.center(win, d);
+
           JRootPane root = null;
+
           if (win instanceof RootPaneContainer) {
             root = ((RootPaneContainer) win).getRootPane();
           }
@@ -159,6 +185,7 @@ public class WaitCursorHandler {
             root.getGlassPane().setVisible(true);
             lockedPanes.addIfNotPresent(root);
           }
+
           d.setVisible(true);
         }
       };
@@ -175,7 +202,10 @@ public class WaitCursorHandler {
    */
   public static void startWaitCursor(final iPlatformComponent comp, final iCancelable cancelable) {
     if (Platform.isUIThread()) {
-      startWaitCursorEx(comp == null ? null : comp.getView(), cancelable,  Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
+      startWaitCursorEx((comp == null)
+                        ? null
+                        : comp.getView(), cancelable,
+                        Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
 
       return;
     }
@@ -183,7 +213,10 @@ public class WaitCursorHandler {
     Runnable r = new Runnable() {
       @Override
       public void run() {
-        startWaitCursorEx(comp == null ? null : comp.getView(), cancelable,  Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
+        startWaitCursorEx((comp == null)
+                          ? null
+                          : comp.getView(), cancelable,
+                          Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
       }
     };
 
@@ -198,7 +231,9 @@ public class WaitCursorHandler {
    */
   public static void startWaitCursor(final iPlatformComponent comp, final iCancelable cancelable, final int delay) {
     if (Platform.isUIThread()) {
-      startWaitCursorEx(comp == null ? null : comp.getView(), cancelable, delay);
+      startWaitCursorEx((comp == null)
+                        ? null
+                        : comp.getView(), cancelable, delay);
 
       return;
     }
@@ -206,7 +241,9 @@ public class WaitCursorHandler {
     Runnable r = new Runnable() {
       @Override
       public void run() {
-        startWaitCursorEx(comp == null ? null : comp.getView(), cancelable, delay);
+        startWaitCursorEx((comp == null)
+                          ? null
+                          : comp.getView(), cancelable, delay);
       }
     };
 
@@ -247,7 +284,9 @@ public class WaitCursorHandler {
    */
   public static void stopWaitCursor(final iPlatformComponent comp, final boolean force) {
     if (Platform.isUIThread()) {
-      stopWaitCursorEx(comp == null ? null : comp.getView(), force);
+      stopWaitCursorEx((comp == null)
+                       ? null
+                       : comp.getView(), force);
 
       return;
     }
@@ -255,7 +294,9 @@ public class WaitCursorHandler {
     Runnable r = new Runnable() {
       @Override
       public void run() {
-        stopWaitCursorEx(comp == null ? null : comp.getView(), force);
+        stopWaitCursorEx((comp == null)
+                         ? null
+                         : comp.getView(), force);
       }
     };
 
@@ -292,7 +333,7 @@ public class WaitCursorHandler {
 
     iWidget w = Platform.getWindowViewer();
 
-    if (w != null && !w.isDisposed()) {
+    if ((w != null) &&!w.isDisposed()) {
       return SwingUtilities.getRootPane(w.getContainerComponent().getView());
     }
 
@@ -301,8 +342,9 @@ public class WaitCursorHandler {
 
   private static void startWaitCursorEx(final Component comp, final iCancelable cancelable, int dealy) {
     if (comp != null) {
-      synchronized (cursorCount) {
+      synchronized(cursorCount) {
         int cnt = cursorCount.getAndIncrement();
+
         if (cnt == 0) {
           JRootPane root = getRootPane(comp);
 
@@ -319,10 +361,11 @@ public class WaitCursorHandler {
                   if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                     try {
                       cancelable.cancel(true);
-                    } catch (Exception ignore) {
-                    }
+                    } catch(Exception ignore) {}
 
-                    stopWaitCursor(comp == null ? null : Platform.findPlatformComponent(comp));
+                    stopWaitCursor((comp == null)
+                                   ? null
+                                   : Platform.findPlatformComponent(comp));
                   }
                 }
               });
@@ -334,7 +377,7 @@ public class WaitCursorHandler {
   }
 
   private static void stopWaitCursorEx(Component comp, boolean force) {
-    synchronized (cursorCount) {
+    synchronized(cursorCount) {
       if (force) {
         cursorCount.set(0);
       }
@@ -343,38 +386,39 @@ public class WaitCursorHandler {
 
       if (cnt < 1) {
         cursorCount.set(0);
+
         if (progressDialog != null) {
           try {
             progressDialog.setVisible(false);
-          } catch (Exception ignore) {
-          }
-          progressDialog = null;
+          } catch(Exception ignore) {}
+
+          progressDialog      = null;
           progressDialogLabel = null;
-        } 
-        if(!Platform.isShuttingDown()) {
-  
+        }
+
+        if (!Platform.isShuttingDown()) {
           JRootPane root = getRootPane(comp);
-  
+
           if (root != null) {
             root.getGlassPane().setCursor(DEFAULT_CURSOR);
             root.getGlassPane().removeMouseListener(mouseAdapter);
             root.getGlassPane().setVisible(false);
           }
-  
+
           try {
             for (JRootPane p : lockedPanes) {
               Component g = p.getGlassPane();
-  
+
               if (g != null) {
                 g.setCursor(DEFAULT_CURSOR);
                 g.removeMouseListener(mouseAdapter);
                 g.setVisible(false);
               }
             }
-          } catch (Exception e) {
+          } catch(Exception e) {
             Platform.ignoreException(null, e);
           }
-  
+
           lockedPanes.clear();
         }
       }

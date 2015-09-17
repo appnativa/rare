@@ -368,7 +368,7 @@ public interface iPlatform {
 
   /**
    * Gets the directory where cache files are created
-   * @return the directory where cache files are created
+   * @return the directory where cache files are created or null if not supported
    */
   File getCacheDir();
 

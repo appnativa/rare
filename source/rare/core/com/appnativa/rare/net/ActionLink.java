@@ -20,32 +20,6 @@
 
 package com.appnativa.rare.net;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.aRare;
-import com.appnativa.rare.spot.Link;
-import com.appnativa.rare.spot.Viewer;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.iPlatformWindowManager;
-import com.appnativa.rare.util.DataItemParserHandler;
-import com.appnativa.rare.util.DataParser;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.spot.SPOTPrintableString;
-import com.appnativa.util.Base64;
-import com.appnativa.util.ByteArray;
-import com.appnativa.util.SNumber;
-import com.appnativa.util.Streams;
-import com.appnativa.util.UnescapingReader;
-import com.appnativa.util.iCancelable;
-
-import com.google.j2objc.annotations.Weak;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -58,20 +32,42 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-
 import java.nio.channels.ClosedChannelException;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.aRare;
+import com.appnativa.rare.spot.Link;
+import com.appnativa.rare.spot.Viewer;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iPlatformWindowManager;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.util.DataItemParserHandler;
+import com.appnativa.rare.util.DataParser;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.spot.SPOTPrintableString;
+import com.appnativa.util.Base64;
+import com.appnativa.util.ByteArray;
+import com.appnativa.util.SNumber;
+import com.appnativa.util.Streams;
+import com.appnativa.util.UnescapingReader;
+import com.appnativa.util.iCancelable;
+import com.google.j2objc.annotations.Weak;
 
 /**
  * This class represents a link to a resource
@@ -1292,7 +1288,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
   public void hit() throws IOException {
     try {
       closeOutput();
-      urlConnection.getContent();
+      InputStream stream=getInputStream();
+      Streams.drain(stream, true);
     } finally {
       close();
     }
@@ -2242,13 +2239,28 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    */
   @Override
   public String toString() {
+    String s;
     if (stringURL != null) {
-      return stringURL;
+      s=stringURL;
     } else {
-      return (theURL == null)
-             ? super.toString()
-             : JavaURLConnection.toExternalForm(theURL);
+      if(theURL == null) {
+        return "";
+      }
+      s=JavaURLConnection.toExternalForm(theURL);
     }
+    if(requestMethod==RequestMethod.GET && linkAttributes!=null) { 
+      StringWriter sw = new StringWriter();
+      sw.write(s);
+      sw.append('?');
+      try {
+        FormHelper.writeHTTPValues(true, contextWidget, sw, getAttributes(), false);
+      } catch (IOException e) {
+        Platform.ignoreException(null, e);
+      }
+      s=sw.toString();
+    }
+      
+    return s;
   }
 
   /**

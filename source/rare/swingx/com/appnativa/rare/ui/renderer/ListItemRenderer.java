@@ -1,20 +1,24 @@
 /*
- * @(#)ListItemRenderer.java   2012-01-21
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.renderer;
-
-import java.awt.Graphics;
-
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JTable;
-import javax.swing.ListCellRenderer;
-import javax.swing.table.TableCellRenderer;
 
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.Component;
@@ -23,6 +27,14 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformListView;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iTableModel;
+
+import java.awt.Graphics;
+
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
+import javax.swing.table.TableCellRenderer;
 
 /**
  * An item render for List type components
@@ -39,7 +51,7 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
    */
   public ListItemRenderer(iPlatformListView listView, boolean handleSelction) {
     super(handleSelction);
-    this.listView = listView;
+    this.listView       = listView;
     alwaysCallSetBorder = true;
   }
 
@@ -48,7 +60,7 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
    */
   public ListItemRenderer(iPlatformListView listView) {
     super(false);
-    this.listView = listView;
+    this.listView       = listView;
     alwaysCallSetBorder = true;
   }
 
@@ -68,20 +80,20 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
   public void setRenderingComponent(iPlatformRenderingComponent rc) {
     renderingComponent = rc;
 
-    if ((rc != null) && (listView != null) && !listView.isRowSizeFixed()) {
+    if ((rc != null) && (listView != null) &&!listView.isRowSizeFixed()) {
       rc.setWordWrap(true);
     }
   }
 
   @Override
   public java.awt.Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-      boolean cellHasFocus) {
+          boolean cellHasFocus) {
     if (renderingComponent == null) {
       setRenderingComponent(new UILabelRenderer());
     }
 
     RenderableDataItem item = (RenderableDataItem) value;
-    iPlatformComponent c = item.getRenderingComponent();
+    iPlatformComponent c    = item.getRenderingComponent();
 
     if (c != null) {
       return c.getView();
@@ -94,7 +106,8 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
     }
 
     iPlatformComponent pc = Component.fromView(list);
-    CharSequence cs = configureRenderingComponent(pc, rc, (RenderableDataItem) value, index, isSelected, cellHasFocus, null, null);
+    CharSequence       cs = configureRenderingComponent(pc, rc, (RenderableDataItem) value, index, isSelected,
+                              cellHasFocus, null, null);
 
     return rc.getComponent(cs, (RenderableDataItem) value).getView();
   }
@@ -104,10 +117,12 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
   }
 
   @Override
-  public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-      int row, int column) {
-    RenderableDataItem rowItem = (value == null) ? defaultItem : ((iTableModel) table.getModel()).getRow(row);
-    Column col = ((iTableModel) table.getModel()).getColumn(column);
+  public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+          boolean hasFocus, int row, int column) {
+    RenderableDataItem rowItem = (value == null)
+                                 ? defaultItem
+                                 : ((iTableModel) table.getModel()).getRow(row);
+    Column             col     = ((iTableModel) table.getModel()).getColumn(column);
 
     if (renderingComponent == null) {
       renderingComponent = new UILabelRenderer();
@@ -126,16 +141,22 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
     if (!col.isVisible()) {
       value = defaultItem;
     }
-    RenderableDataItem item=(RenderableDataItem)value;
+
+    RenderableDataItem item = (RenderableDataItem) value;
+
     if (!item.isVisible()) {
       return getBlankRenderingComponent();
     }
-    iPlatformComponent comp=item.getRenderingComponent();
-    if(comp==null) {
+
+    iPlatformComponent comp = item.getRenderingComponent();
+
+    if (comp == null) {
       iPlatformComponent pc = Component.fromView(table);
-      CharSequence cs = configureRenderingComponent(pc, rc, item, row, isSelected, hasFocus, col, rowItem);
-       comp = rc.getComponent(cs, (RenderableDataItem) value);
-    }  
+      CharSequence       cs = configureRenderingComponent(pc, rc, item, row, isSelected, hasFocus, col, rowItem);
+
+      comp = rc.getComponent(cs, (RenderableDataItem) value);
+    }
+
     return comp.getView();
   }
 
@@ -146,16 +167,13 @@ public class ListItemRenderer extends aListItemRenderer implements ListCellRende
         protected void paintComponent(Graphics g) {
           super.paintComponent(g);
         }
-
         @Override
-        public void revalidate() {
-        }
-
+        public void revalidate() {}
         @Override
-        public void invalidate() {
-        }
+        public void invalidate() {}
       };
     }
+
     return blankRenderingComponent;
   }
 }

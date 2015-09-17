@@ -1,45 +1,27 @@
 /*
- * @(#)TableView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 /**
  * Setup table view similar to list view so that we can copy/paste tree view to table tree view
  */
 package com.appnativa.rare.ui.table;
-
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.dnd.Autoscroll;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.util.List;
-
-import javax.swing.DefaultListSelectionModel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JViewport;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.EventListenerList;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableColumnModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -59,6 +41,13 @@ import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.aListHandler;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ChangeEvent;
+import com.appnativa.rare.ui.event.ItemChangeEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iChangeListener;
+import com.appnativa.rare.ui.event.iDataModelListener;
+import com.appnativa.rare.ui.event.iItemChangeListener;
 import com.appnativa.rare.ui.iListHandler.SelectionMode;
 import com.appnativa.rare.ui.iListHandler.SelectionType;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -68,13 +57,6 @@ import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iRenderingComponent;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.iTableModel;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.ChangeEvent;
-import com.appnativa.rare.ui.event.ItemChangeEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.event.iDataModelListener;
-import com.appnativa.rare.ui.event.iItemChangeListener;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.renderer.UILabelRenderer;
 import com.appnativa.rare.ui.renderer.aListItemRenderer;
@@ -83,11 +65,43 @@ import com.appnativa.rare.ui.table.iTableComponent.TableType;
 import com.appnativa.rare.viewer.TableViewer;
 import com.appnativa.util.IntList;
 
-public class TableView extends JTable implements iPlatformListView, MouseListener, MouseMotionListener, iDataModelListener,
-    FocusListener, Autoscroll {
-  protected static int                INDICATOR_SLOP   = ScreenUtils.PLATFORM_PIXELS_4;
-  protected static final int          PAD_SIZE         = 0;
-  protected static final int          ICON_GAP         = ScreenUtils.PLATFORM_PIXELS_4;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.dnd.Autoscroll;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+
+import java.util.List;
+
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JViewport;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.EventListenerList;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableColumnModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+
+public class TableView extends JTable
+        implements iPlatformListView, MouseListener, MouseMotionListener, iDataModelListener, FocusListener,
+                   Autoscroll {
+  protected static int                INDICATOR_SLOP = ScreenUtils.PLATFORM_PIXELS_4;
+  protected static final int          PAD_SIZE       = 0;
+  protected static final int          ICON_GAP       = ScreenUtils.PLATFORM_PIXELS_4;
   boolean                             editing;
   int                                 leftOffset;
   int                                 oldWidth;
@@ -131,7 +145,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   protected boolean                   preferedSizeCalled;
   protected boolean                   resizeRepaintBlocked;
   protected int                       visibleRowCount;
-  protected boolean                   mainTable        = true;
+  protected boolean                   mainTable = true;
   protected TableType                 tableType;
 
   public TableView() {
@@ -165,13 +179,17 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
   public boolean canChangeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
     RenderableDataItem item = ((iTableModel) getModel()).get(rowIndex);
+
     if (!item.isSelectable()) {
       return false;
     }
+
     if (header.isColumnSelectionAllowed()) {
       item = item.getItemEx(columnIndex);
-      return item != null && item.isSelectable();
+
+      return (item != null) && item.isSelectable();
     }
+
     return true;
   }
 
@@ -183,9 +201,11 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   public void columnResized() {
     if (autoSizeRows) {
       TableColumn tc = getTableHeader().getResizingColumn();
+
       if (tc != null) {
         header.columns[tc.getModelIndex()].setWidth(tc.getWidth());
       }
+
       needSizeToFitCall = true;
     }
   }
@@ -195,6 +215,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (header.isGridView()) {
       header.handleGridView(getParent().getWidth(), getParent().getHeight(), getGridRowHeight(), true);
     }
+
     if (autoSizeRows) {
       needSizeToFitCall = true;
     }
@@ -249,16 +270,13 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   }
 
   @Override
-  public void mouseDragged(MouseEvent e) {
-  }
+  public void mouseDragged(MouseEvent e) {}
 
   @Override
-  public void mouseEntered(MouseEvent e) {
-  }
+  public void mouseEntered(MouseEvent e) {}
 
   @Override
-  public void mouseExited(MouseEvent e) {
-  }
+  public void mouseExited(MouseEvent e) {}
 
   @Override
   public void mouseMoved(MouseEvent e) {
@@ -280,7 +298,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
     if (!e.isPopupTrigger() && isEnabled()) {
       mousePressedPoint = e.getLocationOnScreen();
-      mousePressedTime = e.getWhen();
+      mousePressedTime  = e.getWhen();
     }
 
     if (e.isPopupTrigger() && isEnabled()) {
@@ -309,7 +327,9 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
       view.checkIcon = checkListManager.getRowIcon(row, ((iTableModel) getModel()).get(row));
     }
+
     rc.prepareForReuse(row, col);
+
     return rc;
   }
 
@@ -349,11 +369,12 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (autoSizeRows) {
       setRowSizes();
     }
+
     Rectangle r = getCellRect(row, 0, true);
 
     if (r != null) {
       JViewport vp = getViewport();
-      Point p = vp.getViewPosition();
+      Point     p  = vp.getViewPosition();
 
       if (vp.getExtentSize().height - r.y > 0) {
         p.y = r.y;
@@ -368,11 +389,13 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
     if (r != null) {
       JViewport vp = getViewport();
-      Point p = vp.getViewPosition();
-      int y = r.y + vp.getExtentSize().height - r.height;
+      Point     p  = vp.getViewPosition();
+      int       y  = r.y + vp.getExtentSize().height - r.height;
+
       if (y > vp.getViewSize().height) {
         y = vp.getViewSize().height - vp.getExtentSize().height;
       }
+
       if (p.y != y) {
         p.y = y;
         vp.setViewPosition(p);
@@ -385,9 +408,10 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (autoSizeRows) {
       setRowSizes();
     }
+
     JViewport viewport = getViewport();
-    Point pt = viewport.getViewPosition();
-    int col = getTableHeader().getColumnModel().getColumnIndexAtX(pt.x);
+    Point     pt       = viewport.getViewPosition();
+    int       col      = getTableHeader().getColumnModel().getColumnIndexAtX(pt.x);
 
     if (col == -1) {
       col = 0;
@@ -407,15 +431,15 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
       ListSelectionModel sm = getSelectionModel();
 
-      switch (sm.getSelectionMode()) {
-        case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION:
-        case ListSelectionModel.SINGLE_INTERVAL_SELECTION:
+      switch(sm.getSelectionMode()) {
+        case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION :
+        case ListSelectionModel.SINGLE_INTERVAL_SELECTION :
           sm.clearSelection();
           sm.addSelectionInterval(0, len - 1);
 
           break;
 
-        default:
+        default :
           break;
       }
 
@@ -431,6 +455,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
       return;
     }
+
     if (header.isGridView()) {
       header.handleGridView(getViewport().getWidth(), getViewport().getHeight(), getGridRowHeight(), true);
     } else if (this.autoSizeColumns) {
@@ -451,16 +476,18 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   }
 
   public boolean updateColumnSizes(int width, int height) {
-    if (Math.abs(oldWidth - width) > 5
-        || (header.getGridViewType() == GridViewType.HORIZONTAL_WRAP && Math.abs(oldHeight - height) > 5)) {
-      oldWidth = width;
-      oldHeight = height;
+    if ((Math.abs(oldWidth - width) > 5)
+        || ((header.getGridViewType() == GridViewType.HORIZONTAL_WRAP) && (Math.abs(oldHeight - height) > 5))) {
+      oldWidth               = width;
+      oldHeight              = height;
       columnSizesInitialized = true;
 
       if (header.isAutoSizedColumns()) {
         return false;
       }
+
       boolean updated = false;
+
       if (header.isGridView()) {
         updated = header.handleGridView(width, height, getGridRowHeight(), false);
       } else {
@@ -473,10 +500,11 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
         header.updateColumnModel();
         updated = true;
       }
+
       if (needSizeToFitCall) {
         sizeToFit();
         updated = true;
-      } else if (autoSizeRows && getAutoResizeMode() != JTable.AUTO_RESIZE_OFF) {
+      } else if (autoSizeRows && (getAutoResizeMode() != JTable.AUTO_RESIZE_OFF)) {
         sizeRowsToFit(0, getRowCount() - 1);
         updated = true;
       }
@@ -490,9 +518,10 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   @Override
   public void valueChanged(ListSelectionEvent e) {
     super.valueChanged(e);
-    if (!e.getValueIsAdjusting() && (changeListener != null) && !disableChangeEvent) {
-      Object oldValue = null;
-      Object newValue = null;
+
+    if (!e.getValueIsAdjusting() && (changeListener != null) &&!disableChangeEvent) {
+      Object  oldValue = null;
+      Object  newValue = null;
       boolean multiple = isMultipleSelectionAllowed();
 
       if (multiple) {
@@ -520,8 +549,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
-  public void willPaintRows(int rMin, int rMax) {
-  }
+  public void willPaintRows(int rMin, int rMax) {}
 
   @Override
   public void setActionListener(iActionListener l) {
@@ -530,7 +558,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
   public void setAlternatingColumnColor(UIColor color) {
     alternatingRowColor = color;
-    alternatingColumns = true;
+    alternatingColumns  = true;
   }
 
   @Override
@@ -542,7 +570,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   public void setAutoHilight(boolean autoHilight) {
     if (this.autoHilight != autoHilight) {
       this.autoHilight = autoHilight;
-      hilightIndex = -1;
+      hilightIndex     = -1;
 
       if (autoHilight) {
         this.addMouseMotionListener(this);
@@ -578,14 +606,11 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     this.keepSelectionVisible = keepSelectionVisible;
   }
 
-  public void setCheckMarkBoxIcon(iPlatformIcon icon) {
-  }
+  public void setCheckMarkBoxIcon(iPlatformIcon icon) {}
 
-  public void setCheckMarkIcon(iPlatformIcon icon) {
-  }
+  public void setCheckMarkIcon(iPlatformIcon icon) {}
 
-  public void setCheckedRows(int[] indices) {
-  }
+  public void setCheckedRows(int[] indices) {}
 
   @Override
   public void setDividerLine(UIColor color, UIStroke stroke) {
@@ -618,13 +643,13 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     itemRenderer = lr;
     lr.setRenderingComponent(new UIListLabelRenderer());
     setDefaultRenderer(RenderableDataItem.class, lr);
+
     if (header.isGridView()) {
       lr.setHandlesSelection(true);
     }
   }
 
-  public void setLinkSelection(boolean linked) {
-  }
+  public void setLinkSelection(boolean linked) {}
 
   public void setListModel(iTableModel listModel) {
     if (getModel() == listModel) {
@@ -641,13 +666,12 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
-  public void setRowChecked(int row, boolean checked) {
-  }
+  public void setRowChecked(int row, boolean checked) {}
 
   @Override
   public void setRowHeight(int height) {
     super.setRowHeight(height);
-    rowHeight = height;
+    rowHeight    = height;
     rowHeightSet = true;
   }
 
@@ -734,18 +758,18 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       setSelectionModel(new DefaultListSelectionModel());
     }
 
-    switch (selectionMode) {
-      case BLOCK:
+    switch(selectionMode) {
+      case BLOCK :
         setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
         break;
 
-      case MULTIPLE:
+      case MULTIPLE :
         setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         break;
 
-      case INVISIBLE:
+      case INVISIBLE :
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         if (itemRenderer != null) {
@@ -754,13 +778,13 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
         break;
 
-      case NONE:
+      case NONE :
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setSelectionModel(new EmptyListSelectionModel());
 
         break;
 
-      default:
+      default :
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
   }
@@ -771,7 +795,9 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
   @Override
   public void setShowDivider(boolean show) {
-    setRowMargin(show ? 1 : 0);
+    setRowMargin(show
+                 ? 1
+                 : 0);
   }
 
   @Override
@@ -800,8 +826,8 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
   @Override
   public int getFirstVisibleIndex() {
-    Point p = getViewport().getViewPosition();
-    int rowIndex = rowAtPoint(p);
+    Point p        = getViewport().getViewPosition();
+    int   rowIndex = rowAtPoint(p);
 
     if ((rowIndex == -1) && (getRowCount() > 0)) {
       rowIndex = getRowCount() - 1;
@@ -896,6 +922,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (getRowCount() > 0) {
       return getRowHeight(0);
     }
+
     return getRowHeight();
   }
 
@@ -906,23 +933,29 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (!autoSizeRows) {
       return rh;
     }
+
     if (!rowHeightSet) {
       rh = 0;
     }
+
     iTableModel tm = (iTableModel) getModel();
-    int h;
+    int         h;
+
     if (tableType != null) {
-      h=super.getRowHeight(row);
+      h = super.getRowHeight(row);
     } else {
       if (needSizeToFitCall) {
         needSizeToFitCall = false;
+
         int len = tm.getRowCount();
+
         for (int i = 0; i < len; i++) {
           tm.getRow(i).setHeight(0);
         }
       }
 
       RenderableDataItem rowItem = tm.getRow(row);
+
       h = rowItem.getHeight();
 
       if (h < 1) {
@@ -931,9 +964,11 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
         rowItem.setHeight(h);
       }
     }
+
     if (super.getRowHeight(row) != h) {
       setRowHeight(row, h);
     }
+
     return h;
   }
 
@@ -956,14 +991,17 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
   @Override
   public void focusGained(FocusEvent e) {
-    TableViewer tv = (TableViewer) Platform.getWidgetForComponent(this);
+    TableViewer        tv = (TableViewer) Platform.getWidgetForComponent(this);
     iPlatformComponent pc = tv.getContainerComponent();
+
     if (pc.isFocusPainted()) {
       pc.repaint();
     }
-    if (getSelectedIndex() == -1 && getRowCount() > 0) {
+
+    if ((getSelectedIndex() == -1) && (getRowCount() > 0)) {
       if (tv.isHandleFirstFocusSelection()) {
         int n = aListHandler.getFirstSelectableIndex(((iTableModel) getModel()));
+
         if (n != -1) {
           setSelectedIndex(n);
         }
@@ -974,18 +1012,24 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   @Override
   public void focusLost(FocusEvent e) {
     TableViewer tv = (TableViewer) Platform.getWidgetForComponent(this);
-    if (tv == null || tv.isDisposed() || !tv.isShowing()) {
+
+    if ((tv == null) || tv.isDisposed() ||!tv.isShowing()) {
       return;
     }
+
     iPlatformComponent pc = tv.getContainerComponent();
+
     if (pc.isFocusPainted()) {
       pc.repaint();
     }
+
     int n = getSelectedIndex();
+
     if (n != -1) {
       if (tv.isChangeSelColorOnLostFocus()) {
         if (tv.getSelectedIndexCount() > 1) {
           int sels[] = tv.getSelectedIndexes();
+
           for (int i : sels) {
             tv.repaintRow(i);
           }
@@ -994,7 +1038,6 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
         }
       }
     }
-
   }
 
   @Override
@@ -1018,12 +1061,12 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   public boolean isMultipleSelectionAllowed() {
     ListSelectionModel sm = getSelectionModel();
 
-    switch (sm.getSelectionMode()) {
-      case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION:
-      case ListSelectionModel.SINGLE_INTERVAL_SELECTION:
+    switch(sm.getSelectionMode()) {
+      case ListSelectionModel.MULTIPLE_INTERVAL_SELECTION :
+      case ListSelectionModel.SINGLE_INTERVAL_SELECTION :
         return true;
 
-      default:
+      default :
         return false;
     }
   }
@@ -1063,15 +1106,14 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
-  protected void calculateOffset() {
-  }
+  protected void calculateOffset() {}
 
   protected boolean checkForCellHotspot(int row, float x, float y, float width, float height) {
     return false;
   }
 
   protected void clickCheck(MouseEvent e, boolean release) {
-    if (!selectable || e.isPopupTrigger() || !isEnabled()) {
+    if (!selectable || e.isPopupTrigger() ||!isEnabled()) {
       return;
     }
 
@@ -1083,24 +1125,26 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       return;
     }
 
-    if (release && !PlatformHelper.isMouseClick(mousePressedPoint, mousePressedTime, e)) {
+    if (release &&!PlatformHelper.isMouseClick(mousePressedPoint, mousePressedTime, e)) {
       return;
     }
 
     int row = rowAtPoint(e.getPoint());
 
-    if (row == -1) {
+    if (row == -1 || getSelectedIndex()!=row) {
       return;
     }
 
     RenderableDataItem item = getItemAt(row);
 
-    if (!item.isEnabled() || !item.isSelectable()) {
+    if (!item.isEnabled() ||!item.isSelectable()) {
       return;
     }
 
     if (actionListener != null) {
-      ActionEvent ae = new ActionEvent(this, (e.getClickCount() > 1) ? "dblClick" : "click");
+      ActionEvent ae = new ActionEvent(this, (e.getClickCount() > 1)
+              ? "dblClick"
+              : "click");
 
       actionListener.actionPerformed(ae);
     }
@@ -1108,8 +1152,23 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
   protected void sizeRowsToFit(int rMin, int rMax) {
     if (tableType == null) {
-      iTableModel tm = (iTableModel) getModel();
+      iTableModel tm  = (iTableModel) getModel();
+      int         len = tm.getRowCount();
+
+      if (rMin > len - 1) {
+        rMin = len - 1;
+
+        if (rMin < 0) {
+          rMin = 0;
+        }
+      }
+
+      if (rMax > len - 1) {
+        rMax = len - 1;
+      }
+
       needSizeToFitCall = false;
+
       for (int i = rMin; i <= rMax; i++) {
         tm.getRow(i).setHeight(0);
       }
@@ -1119,26 +1178,31 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   }
 
   protected void setRowSizes() {
-    iTableModel tm = (iTableModel) getModel();
-    int len = tm.getRowCount();
-    if(len==0) {
+    iTableModel tm  = (iTableModel) getModel();
+    int         len = tm.getRowCount();
+
+    if (len == 0) {
       return;
     }
+
     needSizeToFitCall = false;
     setResizeRepaintBlocked(true);
 
     if (tableType != null) {
       MultiTableTableComponent mt = (MultiTableTableComponent) ((TableViewer) header.getWidget()).getTableComponent();
+
       ((TableComponent) mt.getMainTable()).setMultiTableRowSizes();
     } else {
       int rh = getRowHeight();
       int h;
+
       if (!rowHeightSet) {
         rh = 0;
       }
-      for (int i = 0; i < len; i++) {
 
+      for (int i = 0; i < len; i++) {
         RenderableDataItem rowItem = tm.getRow(i);
+
         h = rowItem.getHeight();
 
         if (h < 1) {
@@ -1146,11 +1210,13 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
           h += 4;
           rowItem.setHeight(h);
         }
-        if(super.getRowHeight(i)!=h) {
+
+        if (super.getRowHeight(i) != h) {
           setRowHeight(i, h);
         }
       }
     }
+
     setResizeRepaintBlocked(false);
   }
 
@@ -1163,7 +1229,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       }
 
       view.indicatorIcon = indicator;
-      view.indent = indent;
+      view.indent        = indent;
     }
   }
 
@@ -1198,6 +1264,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
+
   class EditableGestureListener extends MouseInputAdapter {
     int             reordingRow = -1;
     boolean         canDelete;
@@ -1212,7 +1279,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       this.canDelete = canDelete;
 
       if (getUI() instanceof BasicTableExUI) {
-        ui = (BasicTableExUI) getUI();
+        ui            = (BasicTableExUI) getUI();
         dragThreshold = java.awt.dnd.DragSource.getDragThreshold();
       }
     }
@@ -1228,17 +1295,17 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
           Rectangle r;
 
           if (reordingRow == -1) {
-            reordingRow = pressedRow;
-            r = getCellRect(pressedRow, pressedRow, false);
-            pressedRow = -1;
+            reordingRow    = pressedRow;
+            r              = getCellRect(pressedRow, pressedRow, false);
+            pressedRow     = -1;
             reordingMouseY = pressPoint.y;
 
-            int y = pressPoint.y;
+            int y      = pressPoint.y;
             int height = getRowHeight();
 
             if (r != null) {
-              height = r.height;
-              y = r.y + (e.getY() - y);
+              height       = r.height;
+              y            = r.y + (e.getY() - y);
               reordingRowY = r.y;
             } else {
               reordingRowY = y;
@@ -1268,9 +1335,9 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
 
     @Override
     public void mousePressed(MouseEvent e) {
-      pressPoint = e.getPoint();
+      pressPoint  = e.getPoint();
       reordingRow = -1;
-      pressedRow = rowAtPoint(e.getPoint());
+      pressedRow  = rowAtPoint(e.getPoint());
       super.mousePressed(e);
     }
 
@@ -1290,6 +1357,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       }
     }
   }
+
 
   class ListItemLabelRenderer extends LabelRenderer {
     Insets                  insets = new Insets(0, 0, 0, 0);
@@ -1330,6 +1398,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
+
   class UIListLabelRenderer extends UILabelRenderer {
     public UIListLabelRenderer() {
       super(new ListItemLabelRenderer());
@@ -1349,9 +1418,11 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
+
   @Override
   public void makeSelectionVisible() {
     int index = getSelectedIndex();
+
     if (index > -1) {
       int col = getHeader().getSelectedColumn();
 
@@ -1360,6 +1431,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       }
 
       Rectangle r = getCellRect(index, col, true);
+
       scrollRectToVisible(r);
     }
   }
@@ -1383,27 +1455,27 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     TableColumn tc = getTableHeader().getResizingColumn();
 
     if (tc != null) {
-      int n = tc.getModelIndex();
+      int    n = tc.getModelIndex();
       Column c = getHeader().getColumnAt(n);
 
       c.preferedWidth = tc.getWidth();
-      c.widthUnit = ScreenUtils.Unit.PIXELS;
+      c.widthUnit     = ScreenUtils.Unit.PIXELS;
       columnResized();
     }
   }
 
   @Override
   public void doLayout() {
-    if ((autoResizeMode != AUTO_RESIZE_OFF) || (columnModel == null) || !isResizingColumn()) {
+    if ((autoResizeMode != AUTO_RESIZE_OFF) || (columnModel == null) ||!isResizingColumn()) {
       super.doLayout();
 
       return;
     }
 
-    TableColumnModel cm = columnModel;
-    int width = getWidth();
-    int cw = cm.getTotalColumnWidth();
-    int delta = width - cw;
+    TableColumnModel cm    = columnModel;
+    int              width = getWidth();
+    int              cw    = cm.getTotalColumnWidth();
+    int              delta = width - cw;
 
     if ((delta > 0) && (cm.getColumnCount() > 0)) {
       TableColumn c = cm.getColumn(getLastResizableColumn());
@@ -1421,7 +1493,6 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   @Override
   public void tableChanged(TableModelEvent e) {
     super.tableChanged(e);
-
     sizeToFit();
   }
 
@@ -1461,8 +1532,8 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   }
 
   public int getLastResizableColumn() {
-    TableColumnModel cm = columnModel;
-    int len = cm.getColumnCount();
+    TableColumnModel cm  = columnModel;
+    int              len = cm.getColumnCount();
 
     for (int i = len - 1; i > -1; i--) {
       if (cm.getColumn(i).getResizable()) {
@@ -1531,6 +1602,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
         }
       }
     }
+
     return preferredViewportSize;
   }
 
@@ -1538,11 +1610,11 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   public Dimension getPreferredSize() {
     preferedSizeCalled = true;
 
-    int rowCount = getRowCount();
+    int         rowCount = getRowCount();
+    UIDimension size     = header.getPreferredSize();
+    int         width    = (int) size.width;
+    int         height   = (int) size.height;
 
-    UIDimension size = header.getPreferredSize();
-    int width = (int) size.width;
-    int height = (int) size.height;
     if ((rowCount > 0) && (getColumnCount() > 0)) {
       Rectangle r = getCellRect(rowCount - 1, 0, true);
 
@@ -1555,8 +1627,8 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
       tmp = Integer.MAX_VALUE;
     }
 
-    Dimension d = new Dimension((int) tmp, height);
-    int rows = visibleRowCount;
+    Dimension d    = new Dimension((int) tmp, height);
+    int       rows = visibleRowCount;
 
     if (rows == 0) {
       rows = minimumVisibleRowCount;
@@ -1582,17 +1654,20 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if ((w != null) && (w.intValue() > 0)) {
       d.width = w;
     }
+
     if ((h != null) && (h.intValue() > 0)) {
       d.height = h;
     }
+
     preferredViewportSize.setSize(d);
+
     return d;
   }
 
   public JScrollPane getScrollPane() {
     Container parent = getParent();
 
-    while (parent != null) {
+    while(parent != null) {
       if (parent instanceof JScrollPane) {
         return (JScrollPane) parent;
       }
@@ -1608,6 +1683,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (autoResizeMode != AUTO_RESIZE_OFF) {
       return true;
     }
+
     java.awt.Component parent = getParent();
 
     if (parent instanceof JViewport) {
@@ -1624,15 +1700,19 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   public boolean isResizingColumn() {
     JTableHeader h = getTableHeader();
 
-    return (h == null) ? false : h.getResizingColumn() != null;
+    return (h == null)
+           ? false
+           : h.getResizingColumn() != null;
   }
 
   @Override
   protected void configureEnclosingScrollPane() {
     if (mainTable) {
       super.configureEnclosingScrollPane();
+
       if (!getTableHeader().isVisible()) {
         JScrollPane sp = getScrollPane();
+
         if (sp.getColumnHeader() != null) {
           sp.getColumnHeader().setVisible(false);
         }
@@ -1668,28 +1748,28 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     if (mouseOverideListener != null) {
       int id = e.getID();
 
-      switch (id) {
-        case MouseEvent.MOUSE_PRESSED:
+      switch(id) {
+        case MouseEvent.MOUSE_PRESSED :
           mouseOverideListener.mousePressed(e);
 
           break;
 
-        case MouseEvent.MOUSE_RELEASED:
+        case MouseEvent.MOUSE_RELEASED :
           mouseOverideListener.mouseReleased(e);
 
           break;
 
-        case MouseEvent.MOUSE_CLICKED:
+        case MouseEvent.MOUSE_CLICKED :
           mouseOverideListener.mouseClicked(e);
 
           break;
 
-        case MouseEvent.MOUSE_EXITED:
+        case MouseEvent.MOUSE_EXITED :
           mouseOverideListener.mouseExited(e);
 
           break;
 
-        case MouseEvent.MOUSE_ENTERED:
+        case MouseEvent.MOUSE_ENTERED :
           mouseOverideListener.mouseEntered(e);
 
           break;
@@ -1733,6 +1813,7 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
     }
   }
 
+
   @Override
   public iScrollerSupport getScrollerSupport() {
     return (iScrollerSupport) getScrollPane();
@@ -1741,6 +1822,5 @@ public class TableView extends JTable implements iPlatformListView, MouseListene
   @Override
   public void setShowLastDivider(boolean show) {
     // TODO Auto-generated method stub
-
   }
 }

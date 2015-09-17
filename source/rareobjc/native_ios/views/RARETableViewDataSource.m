@@ -86,7 +86,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
   RAREListView* lb=(RAREListView*)tableView.sparView;
   if(lb->sectionIndex_) {
-    return [lb->sectionIndex_ getSizeWithInt:section];
+    return [lb->sectionIndex_ getSizeWithInt:(int)section];
   }
   return list_.size;
 }
@@ -107,7 +107,7 @@
 -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
   RAREListView* lb=(RAREListView*)tableView.sparView;
   if(lb->sectionIndex_) {
-    return [lb->sectionIndex_ getTitleTextWithInt:section];
+    return [lb->sectionIndex_ getTitleTextWithInt:(int)section];
   }
   return nil;
 }

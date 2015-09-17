@@ -1,19 +1,31 @@
 /*
- * @(#)UITextIcon.java   2008-10-26
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
 
+import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
+import com.appnativa.rare.ui.painter.aUIPainter;
+
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Paint;
-
-import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
-import com.appnativa.rare.ui.painter.aUIPainter;
 
 /**
  * An icon that draws text
@@ -40,7 +52,7 @@ public class UITextIcon extends aUITextIcon {
 
   public void paint(Component c, Graphics g, int x, int y, int width, int height, boolean hasValue, int orientation) {
     UIRectangle rect = aUIPainter.getRenderLocation(c, renderSpace, renderType, x, y, width, height, size.width,
-                           size.height, null);
+                         size.height, null);
 
     g.translate((int) rect.x, (int) rect.y);
     this.paintIcon(c, g, x, y);

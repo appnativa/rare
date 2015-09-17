@@ -26,6 +26,7 @@ import com.appnativa.rare.iFunctionHandler;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.aAppContext;
 import com.appnativa.rare.platform.aRare;
+import com.appnativa.rare.platform.apple.ui.util.ImageUtils;
 import com.appnativa.rare.platform.apple.ui.view.DialogWindow;
 import com.appnativa.rare.platform.apple.ui.view.PopupWindow;
 import com.appnativa.rare.ui.Frame;
@@ -40,10 +41,7 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharArray;
 import com.appnativa.util.IdentityArrayList;
 
-import java.io.IOException;
-
 import java.net.URL;
-
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -64,7 +62,7 @@ import java.util.logging.Logger;
 public abstract class aAppContextImpl extends aAppContext {
   HashMap<String, String> interfaceProxies = new HashMap<String, String>();;
   protected Logger        logger;
-  protected boolean       useIOSResourceNamingConvention;
+  protected boolean       useAssetCatalog;
 
   public aAppContextImpl(aRare instance) {
     super(instance, new UIProperties());
@@ -347,75 +345,29 @@ public abstract class aAppContextImpl extends aAppContext {
     if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".gif")) {
       return PlatformHelper.getImageFromResourceFileName(name);
     }
-
-    if (name.startsWith("Rare.icon.")) {
+    if (name.startsWith("Rare.icon") ) {
       return super.getManagedResource(name);
     }
 
     if (!managedResourcePathInitialized) {
       initializeManagedResourcePaths();
-
+      useAssetCatalog=uiDefaults.getBoolean("Rare.Apple.useAssetCatalog", false);
       if (managedResourcePaths.length == 0) {
-        useIOSResourceNamingConvention = true;
+        useAssetCatalog = true;
       }
     }
 
-    if (!useIOSResourceNamingConvention) {
+    if (!useAssetCatalog) {
       return super.getManagedResource(name);
     }
-
-    UIImage   img     = null;
-    String    path[]  = new String[5];
-    int       len     = 0;
-    float     density = PlatformHelper.getUnscaledImageDensity();
-    CharArray ca      = new CharArray();
-
-    ca.set(getDefaultManagedResourcePath());
-    ca.append('/');
-    ca.append(name);
-
-    int dlen = ca._length;
-
-    if (density == 2) {
-      ca.append(landscapeMode
-                ? "-Landscape@2x"
-                : "-Portrait@2x");
-      path[len++] = ca.toString();
-      ca._length  = dlen;
-      ca.append("@2x");
-      path[len++] = ca.toString();
-      ca._length  = dlen;
+    String oname=name;
+    if(name.indexOf('.')!=-1) {
+      CharArray ca      = new CharArray(name);
+      ca.toLowerCase().replace('.', '_');
+      name=ca.toString();
     }
-
-    ca.append(landscapeMode
-              ? "-Landscape"
-              : "-Portrait");
-    path[len++] = ca.toString();
-    ca._length  = dlen;
-
-    for (int i = 0; i < len; i++) {
-      String rname = path[i];
-      URL    url   = checkForFile(rname);
-
-      if (url != null) {
-        float fd = 1;
-
-        if (rname.contains("@2x")) {
-          fd = 2;
-        }
-
-        try {
-          img = PlatformHelper.createImage(url, false, fd);
-          img.setResourceName(name);
-
-          return img;
-        } catch(IOException e) {
-          return null;
-        }
-      }
-    }
-
-    return null;
+    Object proxy=ImageUtils.loadAssetCatalogImageProxy(name);
+    return proxy==null ? null : new UIImage(proxy,oname);
   }
 
   @Override
@@ -564,8 +516,6 @@ public abstract class aAppContextImpl extends aAppContext {
 
   protected void setupUIDefaults() {
     super.setupUIDefaults(PlatformHelper.getSystemForeground(), PlatformHelper.getSystemBackground());
-    appIcons.put("Rare.Tree.collapsedIcon", getResourceAsIcon("Rare.icon.collapsed"));
-    appIcons.put("Rare.Tree.expandedIcon", getResourceAsIcon("Rare.icon.expanded"));
   }
 
   @Override

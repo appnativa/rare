@@ -565,7 +565,7 @@ public class Rare extends aRare {
   private static void staticInitialize() {
     URLConnection.setFileNameMap(new MIMEMap());
     debugEnabled = isDebugBuild();
-    PlatformHelper.initialize();
+    PlatformHelper.setup();
   }
 
   private String getApplicationRoot() {

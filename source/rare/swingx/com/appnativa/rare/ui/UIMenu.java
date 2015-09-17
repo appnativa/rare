@@ -1,14 +1,33 @@
 /*
- * @(#)UIMenu.java   2011-12-04
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iWeakReference;
+import com.appnativa.rare.spot.MenuBar;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.spot.SPOTSet;
+
 import java.awt.event.ActionListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,19 +37,14 @@ import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iWeakReference;
-import com.appnativa.rare.spot.MenuBar;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.spot.SPOTSet;
-
 /**
  * A class representing a top-level menu
  *
  * @author Don DeCoteau
  */
 public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener {
-  static ArrayList<iWeakReference> visibleMenus=new ArrayList<iWeakReference>();
+  static ArrayList<iWeakReference> visibleMenus = new ArrayList<iWeakReference>();
+
   /**
    * Constructs a new instance
    */
@@ -108,7 +122,8 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
     this();
     this.contextWidget = context;
     configure(menus, false);
-    if(addTextItems) {
+
+    if (addTextItems) {
       MenuUtils.addTextActions(this, false, false);
     }
   }
@@ -132,25 +147,30 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   }
 
   public static void closeVisibleMenus() {
-    int len=visibleMenus.size();
-    if(len>0) {
-      ArrayList<iWeakReference> list=new ArrayList<iWeakReference>(visibleMenus);
-      for(iWeakReference ref: list) {
+    int len = visibleMenus.size();
+
+    if (len > 0) {
+      ArrayList<iWeakReference> list = new ArrayList<iWeakReference>(visibleMenus);
+
+      for (iWeakReference ref : list) {
         UIMenu m = (UIMenu) ref.get();
-        if(m!=null && m.menuItem!=null) {
+
+        if ((m != null) && (m.menuItem != null)) {
           m.setVisible(false);
         }
       }
     }
   }
+
   @Override
   public void setVisible(boolean b) {
-    
     super.setVisible(b);
-    if(menuItem!=null) {
-      ((JMenu)menuItem).getPopupMenu().setVisible(false);
+
+    if (menuItem != null) {
+      ((JMenu) menuItem).getPopupMenu().setVisible(false);
     }
   }
+
   /**
    * Adds the specified component as a new menu item
    *
@@ -178,7 +198,6 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
    * @param menu the menu to copy to
    */
   public void copyTo(JPopupMenu menu) {
-    
     List<RenderableDataItem> items = getItems();
     int                      len   = (items == null)
                                      ? 0
@@ -208,6 +227,7 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
     visibleMenus.add(Platform.createWeakReference(this));
     menuWillBecomeInvisible();
+
     final iWidget ctx = getContextWidget();
 
     if (ctx instanceof iListHandler) {
@@ -221,26 +241,31 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
       });
     }
   }
-  
+
   void removeFromVisibleList() {
-    synchronized (visibleMenus) {
+    synchronized(visibleMenus) {
       visibleMenus.add(Platform.createWeakReference(this));
-      int len=visibleMenus.size();
-      for(int i=0;i<len;i++) {
-        iWeakReference ref=visibleMenus.get(i);
-        if(ref.get()==this) {
+
+      int len = visibleMenus.size();
+
+      for (int i = 0; i < len; i++) {
+        iWeakReference ref = visibleMenus.get(i);
+
+        if (ref.get() == this) {
           visibleMenus.remove(i);
           ref.clear();
+
           break;
         }
       }
     }
   }
-  
+
   @Override
   public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
     menuWillBecomeVisible();
-    synchronized (visibleMenus) {
+
+    synchronized(visibleMenus) {
       visibleMenus.add(Platform.createWeakReference(this));
     }
   }
@@ -278,12 +303,11 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
     }
   }
 
-
   @Override
   protected void removeNativeItem(UIMenuItem mi) {
-  	if(mi!=null && mi.getMenuItem()!=null) {
-  		menuItem.remove(getMenuItem());
-  	}
+    if ((mi != null) && (mi.getMenuItem() != null)) {
+      menuItem.remove(getMenuItem());
+    }
   }
 
   @Override
@@ -295,11 +319,12 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   protected boolean hasParentMenu() {
     return (menuItem != null) && (getParentMenu() != null);
   }
+
   static class JMenuEx extends JMenu {
     public JMenuEx() {
       this("");
     }
-    
+
     public JMenuEx(String text) {
       super(text);
     }

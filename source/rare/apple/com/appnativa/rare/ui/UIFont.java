@@ -91,7 +91,7 @@ public class UIFont {
   /*-[
     NSMutableAttributedString* s=(NSMutableAttributedString*)astring;
     if(length==-1) {
-      length=s.length;
+      length=(int)s.length;
     }
     NSRange range=NSMakeRange(offset,length);
     #if TARGET_OS_IPHONE

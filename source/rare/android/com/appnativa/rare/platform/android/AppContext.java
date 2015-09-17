@@ -605,8 +605,6 @@ public class AppContext extends aAppContext {
     appIcons.put("Rare.Tree.closedIcon", createImageIcon(r, "drawable/are_icon_folderclosed"));
     appIcons.put("Rare.Tree.OpenIcon", createImageIcon(r, "drawable/rare_icon_folderopen"));
     appIcons.put("Rare.Tree.leafIcon", createImageIcon(r, "drawable/rare_icon_page"));
-    appIcons.put("Rare.Tree.expandedIcon", createImageIcon(r, "drawable/rare_icon_expanded"));
-    appIcons.put("Rare.Tree.collapsedIcon", createImageIcon(r, "drawable/rare_icon_collapsed"));
   }
 
   @Override

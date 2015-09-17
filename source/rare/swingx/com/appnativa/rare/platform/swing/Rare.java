@@ -1,57 +1,36 @@
 /*
- * @(#)Rare.java   2012-03-17
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing;
 
-import java.awt.AWTEvent;
-import java.awt.EventQueue;
-import java.awt.Toolkit;
-import java.awt.event.AWTEventListener;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLConnection;
-import java.security.Policy;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.swing.Action;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.tree.ExpandVetoException;
-
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.converters.aConverter;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.exception.AbortOperationException;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iFunctionHandler;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iResourceFinder;
-import com.appnativa.rare.converters.aConverter;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.exception.AbortOperationException;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.net.iURLConnection;
@@ -88,11 +67,50 @@ import com.appnativa.util.CharScanner;
 import com.appnativa.util.OrderedProperties;
 import com.appnativa.util.Streams.ISO88591Reader;
 
+import java.awt.AWTEvent;
+import java.awt.EventQueue;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
+import java.awt.event.KeyEvent;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+
+import java.net.URL;
+import java.net.URLConnection;
+
+import java.security.Policy;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import javax.swing.Action;
+import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.tree.ExpandVetoException;
+
 /**
  *
  * @author Don DeCoteau
  */
-public class Rare extends aRare implements AWTEventListener{
+public class Rare extends aRare implements AWTEventListener {
   static final String    resourcePath = "com/appnativa/rare/resources/drawable";
   static boolean         anApplet;
   static boolean         debuggingEnabled;
@@ -266,7 +284,8 @@ public class Rare extends aRare implements AWTEventListener{
 
         return null;
       }
-      if(cvt!=null) {
+
+      if (cvt != null) {
         dataConverters.put(cls, cvt);
       }
     }
@@ -439,10 +458,13 @@ public class Rare extends aRare implements AWTEventListener{
     if (appContext.isEmbeddedInstance()) {
       fontAdjusted = true;
     }
-    String s=app.desktopIconDensity.getValue();
-    if(s!=null) {
-      ImageHelper.defaultIconDensity=s;
+
+    String s = app.desktopIconDensity.getValue();
+
+    if (s != null) {
+      ImageHelper.defaultIconDensity = s;
     }
+
     MainWindow mw = app.getMainWindow();
 
     if (!fontAdjusted &&!mw.font.spot_hasValue() && app.autoAdjustFontSize.booleanValue()) {
@@ -574,7 +596,10 @@ public class Rare extends aRare implements AWTEventListener{
   }
 
   protected void handleFatalEexception(final Throwable e) {
-    if(e==null) return;
+    if (e == null) {
+      return;
+    }
+
     try {
       if (!(e instanceof AbortOperationException)) {
         final ErrorInformation ei =
@@ -592,14 +617,12 @@ public class Rare extends aRare implements AWTEventListener{
 
           Platform.invokeLater(r);
         }
-      }
-      else {
+      } else {
         e.printStackTrace();
       }
     } catch(Throwable ex) {
       e.printStackTrace();
     }
-
   }
 
   @Override
@@ -820,28 +843,29 @@ public class Rare extends aRare implements AWTEventListener{
           windowManager.getWorkspaceViewer().requestFocus();
         }
       }
-      inactivityTimeout=Platform.getUIDefaults().getInt("Rare.inactivityTimeout",0);
-      if(inactivityTimeout>0) {
+
+      inactivityTimeout = Platform.getUIDefaults().getInt("Rare.inactivityTimeout", 0);
+
+      if (inactivityTimeout > 0) {
         try {
           java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<Object>() {
             @Override
             public Object run() {
               Toolkit.getDefaultToolkit().addAWTEventListener(Rare.this,
-                  AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
+                      AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
               Platform.invokeLater(new Runnable() {
-                
                 @Override
                 public void run() {
                   checkIfInactive();
-                  
                 }
               }, inactivityTimeout);
+
               return null;
             }
           });
-        } catch (SecurityException e) {
+        } catch(SecurityException e) {
           throw new RuntimeException(e);
-        }        
+        }
       }
     }
 
@@ -1031,7 +1055,7 @@ public class Rare extends aRare implements AWTEventListener{
   public static class NullViewer extends aContainer {
     public NullViewer(iPlatformAppContext app) {
       super(null);
-      appContext    = app;
+      appContext = app;
     }
 
     @Override
@@ -1104,7 +1128,6 @@ public class Rare extends aRare implements AWTEventListener{
         }
       }
 
-
       if (Platform.isInitialized() && Platform.getAppContext().isShuttingDown()) {
         return;
       }
@@ -1114,6 +1137,7 @@ public class Rare extends aRare implements AWTEventListener{
 
         return;
       }
+
       final iWidget w = Platform.getContextRootViewer();
 
       if (!Platform.isUIThread()) {
@@ -1133,38 +1157,40 @@ public class Rare extends aRare implements AWTEventListener{
   public static boolean isWebStart() {
     return webContext;
   }
+
   protected boolean applicationPaused;
-  protected long lastActionTime;
-  protected int inactivityTimeout;
-  
+  protected long    lastActionTime;
+  protected int     inactivityTimeout;
+
   protected void checkIfInactive() {
-    long time=System.currentTimeMillis();
-    if(lastActionTime+inactivityTimeout<time) {
-      if(!applicationPaused) {
-        applicationPaused=true;
+    long time = System.currentTimeMillis();
+
+    if (lastActionTime + inactivityTimeout < time) {
+      if (!applicationPaused) {
+        applicationPaused = true;
         fireApplicationPaused();
       }
-    }
-    else {
-      int timeleft=(int)(time-lastActionTime);
+    } else {
+      int timeleft = (int) (time - lastActionTime);
+
       Platform.invokeLater(new Runnable() {
-        
         @Override
         public void run() {
           checkIfInactive();
-          
         }
-      }, inactivityTimeout-timeleft);
+      }, inactivityTimeout - timeleft);
     }
   }
-  
+
   protected void resumeApplication() {
-    lastActionTime=System.currentTimeMillis();
-    if(applicationPaused) {
-      applicationPaused=false;
+    lastActionTime = System.currentTimeMillis();
+
+    if (applicationPaused) {
+      applicationPaused = false;
       fireApplicationResumed();
     }
   }
+
   @Override
   public void eventDispatched(AWTEvent event) {
     resumeApplication();

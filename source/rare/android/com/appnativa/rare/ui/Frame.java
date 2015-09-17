@@ -22,14 +22,12 @@ package com.appnativa.rare.ui;
 
 import android.content.Context;
 import android.content.res.Configuration;
-
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.animation.Animation;
-
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
@@ -47,14 +45,13 @@ import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iTarget;
-
 import com.jgoodies.forms.layout.FormLayout;
 
 /**
  *
  * @author Don DeCoteau
  */
-public class Frame extends Container implements iWindow {
+public class Frame extends Container implements iWindow,View.OnSystemUiVisibilityChangeListener {
   boolean                  closed = false;
   DialogEx                 dialogWindow;
   WindowPane               rootPane;
@@ -102,6 +99,9 @@ public class Frame extends Container implements iWindow {
       }
 
       target = new WindowTarget(Platform.getAppContext(), targetName, this, true);
+    }
+    else {
+      win.getDecorView().setOnSystemUiVisibilityChangeListener(this);
     }
 
     initRootPaneLayoutParams();
@@ -673,6 +673,14 @@ public class Frame extends Container implements iWindow {
       }
 
       super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+  }
+
+  @Override
+  public void onSystemUiVisibilityChange(int visibility) {
+    if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) { //The system bars are visible
+    }
+    else {
     }
   }
 }

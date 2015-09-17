@@ -1,12 +1,30 @@
 /*
- * @(#)UIEventHelper.java   2011-11-19
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.PlatformImpl;
+import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.iPlatformComponent;
 
 import java.awt.Point;
 import java.awt.Window;
@@ -15,12 +33,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.SwingUtilities;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.PlatformImpl;
-import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.iPlatformComponent;
 
 public final class EventHelper {
   public static int getClickCount(Object source, Object motionEvent) {
@@ -112,19 +124,19 @@ public final class EventHelper {
   }
 
   public static float getScaleCurrentSpan(Object sgd) {
-    return ((ScaleGestureDetector)sgd).getCurrentSpan();
+    return ((ScaleGestureDetector) sgd).getCurrentSpan();
   }
 
   public static float getScaleFocusX(Object sgd) {
-    return ((ScaleGestureDetector)sgd).getFocusX();
+    return ((ScaleGestureDetector) sgd).getFocusX();
   }
 
   public static float getScaleFocusY(Object sgd) {
-    return ((ScaleGestureDetector)sgd).getFocusY();
+    return ((ScaleGestureDetector) sgd).getFocusY();
   }
 
   public static float getScalePreviousSpan(Object sgd) {
-    return ((ScaleGestureDetector)sgd).getPreviousSpan();
+    return ((ScaleGestureDetector) sgd).getPreviousSpan();
   }
 
   public static int getWhich(Object keyEvent) {
@@ -207,10 +219,12 @@ public final class EventHelper {
   }
 
   public static com.appnativa.rare.ui.event.MouseEvent createMouseEvent(Object source, java.awt.event.MouseEvent e) {
-    int m=0;
-    if(e.isPopupTrigger()) {
-      m=com.appnativa.rare.ui.event.MouseEvent.LONG_PRESS;
+    int m = 0;
+
+    if (e.isPopupTrigger()) {
+      m = com.appnativa.rare.ui.event.MouseEvent.LONG_PRESS;
     }
-    return new com.appnativa.rare.ui.event.MouseEvent(source,e,m);
+
+    return new com.appnativa.rare.ui.event.MouseEvent(source, e, m);
   }
 }

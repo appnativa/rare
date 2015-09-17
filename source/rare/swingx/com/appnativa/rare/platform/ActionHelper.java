@@ -1,12 +1,38 @@
 /*
- * @(#)ActionHelper.java   2009-07-26
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.FocusedAction;
+import com.appnativa.rare.ui.UIAction;
+import com.appnativa.rare.ui.aFocusedAction;
+import com.appnativa.rare.ui.dnd.iTransferSupport;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.widget.aWidget;
+import com.appnativa.rare.widget.iWidget;
 
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -15,8 +41,11 @@ import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+
 import java.beans.PropertyChangeListener;
+
 import java.lang.ref.WeakReference;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,20 +61,6 @@ import javax.swing.TransferHandler;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.FocusedAction;
-import com.appnativa.rare.ui.UIAction;
-import com.appnativa.rare.ui.aFocusedAction;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.dnd.iTransferSupport;
-import com.appnativa.rare.widget.aWidget;
-import com.appnativa.rare.widget.iWidget;
 
 /**
  * Portions of the code are from the PasswordStore tutorial which have the following copyright:
@@ -132,23 +147,27 @@ public final class ActionHelper {
   }
 
   public static void clearFocusedComponentReferences() {
-    if(CUT_INSTANCE!=null) {
+    if (CUT_INSTANCE != null) {
       CUT_INSTANCE.update(null);
     }
-    if(COPY_INSTANCE!=null) {
+
+    if (COPY_INSTANCE != null) {
       COPY_INSTANCE.update(null);
     }
-    if(PASTE_INSTANCE!=null) {
+
+    if (PASTE_INSTANCE != null) {
       PASTE_INSTANCE.update(null);
     }
-    if(SELECT_ALL_INSTANCE!=null) {
+
+    if (SELECT_ALL_INSTANCE != null) {
       SELECT_ALL_INSTANCE.update(null);
     }
-    if(DELETE_INSTANCE!=null) {
+
+    if (DELETE_INSTANCE != null) {
       DELETE_INSTANCE.update(null);
     }
   }
-  
+
   public static void disposeReferences(Iterator<WeakReference<UIAction>> it) {
     UIAction                a;
     WeakReference<UIAction> r;
@@ -730,9 +749,10 @@ public final class ActionHelper {
       }
 
       if (component != null) {
-        Clipboard clipboard = getClipboard();
-        TransferHandler th = component.getTransferHandler();
-        if(th!=null) {
+        Clipboard       clipboard = getClipboard();
+        TransferHandler th        = component.getTransferHandler();
+
+        if (th != null) {
           th.exportToClipboard(component, clipboard, action);
         }
       }
@@ -848,14 +868,15 @@ public final class ActionHelper {
       Clipboard          clipboard = getClipboard();
       iPlatformComponent component = getFocusedComponent();
       JComponent         jc        = (component == null)
-              ? null
-              : component.getView();
+                                     ? null
+                                     : component.getView();
 
       if (jc instanceof iTransferSupport) {
         ((iTransferSupport) component).performPaste();
       } else {
         TransferHandler th = component.getTransferHandler();
-        if(th!=null) {
+
+        if (th != null) {
           th.importData(component.getView(), clipboard.getContents(null));
         }
       }

@@ -1048,7 +1048,7 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
       name = v.getName();
 
       if (name == null) {
-        name = "TabPane_" + Integer.toHexString(tpv.hashCode());
+        name = "TabPane_" + Integer.toHexString((int)tpv.hashCode());
       }
 
       name = name + ".tab." + Integer.toString(count.getAndIncrement());

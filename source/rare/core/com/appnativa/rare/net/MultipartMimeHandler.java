@@ -37,7 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * A JavaMail-based multi-part MIME document handler
+ * A multi-part MIME document handler
  *
  * @author Don DeCoteau
  */
@@ -192,25 +192,4 @@ public class MultipartMimeHandler implements iMultipartMimeHandler {
       return n;
     }
   }
-//public static void main(String args[]) {
-//  try {
-//    java.net.CookieHandler.setDefault(new com.appnativa.rare.Java15Helper.CookieManager());
-//    java.net.URL u=new java.net.URL("http://localhost:8080/hub/main/util/patients/select/825835.json");
-//    JavaURLConnection conn=new JavaURLConnection(u.openConnection(),"drdroid:cerner");
-//    com.appnativa.util.Streams.streamToString(conn.getInputStream());
-//    //System.out.println(Streams.streamToString(conn.getInputStream()));
-//    u=new java.net.URL("http://localhost:8080/hub/main/imaging/document/1008527294.html");
-//    conn=new JavaURLConnection(u.openConnection(),"drdroid:cerner");
-//    MultipartMimeHandler mh=new MultipartMimeHandler();
-//    iMultipart p=mh.createPart(conn.getInputStream(),conn.getContentType());
-//    while(p!=null) {
-//      System.out.println(p.getContentType());
-//      System.out.println(com.appnativa.util.Streams.streamToString(p.getInputStream()));
-//      System.out.println("***************************");
-//      p=p.nextPart();
-//    }
-//  }catch(Throwable e) {
-//    e.printStackTrace();
-//  }
-//}
 }

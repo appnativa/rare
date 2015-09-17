@@ -28,6 +28,7 @@ import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Viewer;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.iPlatformListHandler;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.table.MultiDataItemTableModel;
@@ -157,6 +158,8 @@ public class TableViewer extends aTableViewer {
       tableHandler = new TreeTableComponent(list, tcfg);
       tableModel   = ((TreeTableComponent) tableHandler).getTableModel();
       treeHandler  = ((TreeTableComponent) tableHandler).getTreeHandler();
+      ((TreeTableComponent) tableHandler).setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
+          new PainterUtils.TwistyIcon(dataComponent,true));
       treeHandler.setIndentBy(tcfg.indentBy.intValue());
       ((TreeTableComponent) tableHandler).setExpandAll(tcfg.expandAll.booleanValue());
       ((TreeTableComponent) tableHandler).setExpandableColumn(tcfg.expandableColumn.intValue());

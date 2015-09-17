@@ -236,7 +236,7 @@ public abstract class aUIBackgroundPainter extends aUIPlatformPainter implements
   public int hashCode() {
     int hash = 5;
 
-    hash = 29 * hash + toString().hashCode();
+    hash = 29 * hash + (int)toString().hashCode();
 
     return hash;
   }

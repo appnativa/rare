@@ -1,12 +1,28 @@
 /*
- * @(#)TableUI.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.plaf;
+
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.iTableModel;
+import com.appnativa.rare.ui.table.TableView;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -24,10 +40,6 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.iTableModel;
-import com.appnativa.rare.ui.table.TableView;
 
 public class BasicTableExUI extends BasicTableUI {
   int            reorderingRow = -1;
@@ -169,13 +181,16 @@ public class BasicTableExUI extends BasicTableUI {
     int                columnWidth;
     int                span;
     RenderableDataItem item;
-    iTableModel        tm = (iTableModel) table.getModel();
-    boolean showvlines=table.getShowVerticalLines();
+    iTableModel        tm         = (iTableModel) table.getModel();
+    boolean            showvlines = table.getShowVerticalLines();
+
     if (table instanceof TableView) {
-      ((TableView)table).isShowVerticalLinesEx();
+      ((TableView) table).isShowVerticalLinesEx();
     }
+
     if (table.getComponentOrientation().isLeftToRight()) {
-      int lvc=getLastVisibleColumn(cm);
+      int lvc = getLastVisibleColumn(cm);
+
       for (int row = rMin; row <= rMax; row++) {
         cMin     = getMinColummnStart(row, cMin, tm, cm);
         cellRect = table.getCellRect(row, cMin, true);
@@ -190,15 +205,17 @@ public class BasicTableExUI extends BasicTableUI {
 
           item           = tm.getItemAt(row, aColumn.getModelIndex());
           cellRect.width = columnWidth;
-          if(showvlines && column!=lvc) {
-            cellRect.width-= columnMargin;
+
+          if (showvlines && (column != lvc)) {
+            cellRect.width -= columnMargin;
           }
-          span           = item.getColumnSpan();
+
+          span = item.getColumnSpan();
 
           if (span == -1) {
             span = cm.getColumnCount() - column;
           } else {
-            span = Math.min(span, (cMax - column)+1);
+            span = Math.min(span, (cMax - column) + 1);
 
             if (span == 0) {
               span = 1;
@@ -208,7 +225,7 @@ public class BasicTableExUI extends BasicTableUI {
           if (aColumn != draggedColumn) {
             for (int i = 1; i < span; i++) {
               aColumn        = cm.getColumn(column + i);
-              cellRect.width += aColumn.getWidth()+columnMargin;
+              cellRect.width += aColumn.getWidth() + columnMargin;
             }
 
             paintCell(g, cellRect, row, column);
@@ -441,12 +458,14 @@ public class BasicTableExUI extends BasicTableUI {
 
     return cMin;
   }
-  private int getLastVisibleColumn( TableColumnModel cm) {
-    int len=cm.getColumnCount();
 
-    for (int i = len-1; i>=0; i--) {
-      TableColumn        tc   = cm.getColumn(i);
-      if(tc.getWidth()!=0) {
+  private int getLastVisibleColumn(TableColumnModel cm) {
+    int len = cm.getColumnCount();
+
+    for (int i = len - 1; i >= 0; i--) {
+      TableColumn tc = cm.getColumn(i);
+
+      if (tc.getWidth() != 0) {
         return i;
       }
     }

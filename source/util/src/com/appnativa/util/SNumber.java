@@ -4397,33 +4397,38 @@ public final class SNumber extends Number implements Comparable, Cloneable {
     }
 
     out.ensureCapacity(fsize + msize + cl + 1);
-
+    char[] A = out.A;
     if (msize > 0) {
-      getChars(mantissa, msize, out.A);
+      getChars(mantissa, msize, A);
     }
 
     if (fsize > 0) {
       if ((mantissa == 0) && (fraction < 0)) {
-        out.A[msize++] = MINUS_SIGN;
+        A[msize++] = MINUS_SIGN;
       }
 
-      out.A[msize] = DECIMAL_POINT;
+      A[msize] = DECIMAL_POINT;
 
       if (cl > 0) {
         int i = 0;
 
         while(i < cl) {
-          out.A[++msize] = ZERO_DIGIT;
+          A[++msize] = ZERO_DIGIT;
           i++;
         }
       }
 
       out._length = fsize + msize + 1;
-      getChars(frac, out._length, out.A);
+      getChars(frac, out._length, A);
 
       if (cl < 0) {
         out._length += cl;
       }
+      cl=out._length;
+      while(cl>0 && A[cl-1]=='0') {
+        cl--;
+      }
+      out._length = cl;
     } else {
       out._length = msize;
     }

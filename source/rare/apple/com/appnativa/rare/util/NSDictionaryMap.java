@@ -116,7 +116,7 @@ public class NSDictionaryMap extends AbstractMap {
   private static native Object createDictionary(Object proxy)
   /*-[
     NSDictionary* d=(NSDictionary*)proxy;
-    int size=d.count;
+    int size=(int)d.count;
     if(size<1) {
         size=10;
     }

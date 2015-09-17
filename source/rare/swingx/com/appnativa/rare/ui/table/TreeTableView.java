@@ -1,17 +1,24 @@
 /*
- * @(#)TreeTableView.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.table;
-
-import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.CheckListManager;
@@ -26,7 +33,12 @@ import com.appnativa.rare.ui.tree.iExpansionHandler;
 import com.appnativa.rare.ui.tree.iTree;
 import com.appnativa.rare.ui.tree.iTreeItem;
 
-public class TreeTableView extends TableView implements iTree{
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+public class TreeTableView extends TableView implements iTree {
   protected int                indentBy              = ScreenUtils.platformPixels(16);
   protected boolean            showRootHandles       = true;
   protected boolean            showRoot              = true;
@@ -46,18 +58,17 @@ public class TreeTableView extends TableView implements iTree{
 
   public TreeTableView() {
     super();
-    setTreeIcons(Platform.getResourceAsIcon("Rare.Tree.expandedIcon"),
-                 Platform.getResourceAsIcon("Rare.Tree.collapsedIcon"));
     setMouseOverideListener(createOverrideListener());
   }
 
   @Override
   public boolean canChangeSelection(int rowIndex, int columnIndex, boolean toggle, boolean extend) {
-
     iTreeItem ti = getTreeItem(getItemAt(rowIndex));
-    if(ti==null) {
+
+    if (ti == null) {
       return super.canChangeSelection(rowIndex, columnIndex, toggle, extend);
     }
+
     if (!ti.getData().isSelectable()) {
       return false;
     }
@@ -81,7 +92,7 @@ public class TreeTableView extends TableView implements iTree{
 
   @Override
   public iPlatformRenderingComponent prepareRendererForReuse(iPlatformRenderingComponent rc, int row, int col) {
-    rc=super.prepareRendererForReuse(rc, row, col);
+    rc = super.prepareRendererForReuse(rc, row, col);
 
     iPlatformIcon indicator = null;
     int           depth     = 0;
@@ -117,6 +128,7 @@ public class TreeTableView extends TableView implements iTree{
     }
 
     setTreeInfoForRow(rc, indicator, depth);
+
     return rc;
   }
 

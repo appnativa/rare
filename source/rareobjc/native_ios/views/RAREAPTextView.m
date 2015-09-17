@@ -114,7 +114,7 @@
 -(BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
   RARETextAreaView* tv=(RARETextAreaView*)self.sparView;
   if(tv->changeListener_) {
-    if(![tv->changeListener_ textChangingWithId:tv withInt:range.location withInt:(int)(range.location+range.location) withJavaLangCharSequence: text]) {
+    if(![tv->changeListener_ textChangingWithId:tv withInt:(int)range.location withInt:(int)(range.location+range.location) withJavaLangCharSequence: text]) {
       return NO;
     }
   }

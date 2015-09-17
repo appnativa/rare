@@ -1,12 +1,34 @@
 /*
- * @(#)JButtonEx.java   2009-12-18
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,16 +39,6 @@ import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToolTip;
-
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -111,13 +123,16 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
 
   @Override
   public Icon getDisabledIcon() {
-    Icon icon=super.getDisabledIcon();
-    if(icon==null) {
-      Icon ic=getIcon();
-      if(ic instanceof iPlatformIcon) {
-        icon=((iPlatformIcon)ic).getDisabledVersion();
+    Icon icon = super.getDisabledIcon();
+
+    if (icon == null) {
+      Icon ic = getIcon();
+
+      if (ic instanceof iPlatformIcon) {
+        icon = ((iPlatformIcon) ic).getDisabledVersion();
       }
     }
+
     return icon;
   }
 
@@ -140,11 +155,14 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
 
     size.width  = d.width;
     size.height = d.height;
-    if(drawArrow) {
-      size.width+=16;
-      String s=getText();
-      if(s!=null && s.length()>0) {
-        size.width+=4;
+
+    if (drawArrow) {
+      size.width += 16;
+
+      String s = getText();
+
+      if ((s != null) && (s.length() > 0)) {
+        size.width += 4;
       }
     }
   }
@@ -155,15 +173,20 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
 
     size.width  = d.width;
     size.height = d.height;
-    if(drawArrow) {
-      size.width+=16;
-      String s=getText();
-      if(s!=null && s.length()>0) {
-        size.width+=4;
+
+    if (drawArrow) {
+      size.width += 16;
+
+      String s = getText();
+
+      if ((s != null) && (s.length() > 0)) {
+        size.width += 4;
       }
     }
   }
+
   private boolean drawArrow;
+
   public boolean isDrawArrow() {
     return drawArrow;
   }
@@ -230,6 +253,7 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
   @Override
   protected void paintComponent(Graphics g) {
     graphics = SwingGraphics.fromGraphics(g, this, graphics);
+
     iPlatformComponentPainter cp = getComponentPainter();
 
     if (cp != null) {

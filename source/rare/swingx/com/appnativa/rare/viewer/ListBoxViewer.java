@@ -1,19 +1,24 @@
 /*
- * @(#)ListBoxViewer.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.viewer;
-
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.JList;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -34,6 +39,13 @@ import com.appnativa.rare.ui.iToolBar;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.widget.iWidget;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.JList;
+
 /**
  *  A widget that allows a user to select one or more choices from a
  *  scrollable list of items.
@@ -41,6 +53,7 @@ import com.appnativa.rare.widget.iWidget;
  *  @author Don DeCoteau
  */
 public class ListBoxViewer extends aListViewer {
+
   /** action to select the next row */
   protected static Action selectNextRow = new AbstractAction("selectNextRow") {
     @Override
@@ -84,6 +97,7 @@ public class ListBoxViewer extends aListViewer {
       }
     }
   };
+
   /**
    * Constructs a new instance
    */
@@ -263,14 +277,13 @@ public class ListBoxViewer extends aListViewer {
 
     listModel = new DataItemListModel();
 
-    ListView list = getAppContext().getComponentCreator().getList(this, cfg);
-    ActionMap am = list.getList().getActionMap();
+    ListView  list = getAppContext().getComponentCreator().getList(this, cfg);
+    ActionMap am   = list.getList().getActionMap();
 
     am.put("Rare.origSelectNextRow", am.get("selectNextRow"));
     am.put("Rare.origSelectPreviousRow", am.get("selectPreviousRow"));
     am.put("selectNextRow", selectNextRow);
     am.put("selectPreviousRow", selectPreviousRow);
-
     dataComponent = formComponent = new ScrollPanePanel(list);
     SwingHelper.configureScrollPane(this, list, cfg.getScrollPane());
     list.setItemRenderer(new ListItemRenderer(list, true));

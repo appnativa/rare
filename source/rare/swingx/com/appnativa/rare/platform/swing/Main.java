@@ -1,35 +1,28 @@
 /*
- * @(#)Main.java   2011-12-27
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-
-import javax.imageio.ImageIO;
-
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
 import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.util.MacUtils;
@@ -40,22 +33,43 @@ import com.appnativa.util.CharScanner;
 import com.appnativa.util.OrderedProperties;
 import com.appnativa.util.SNumber;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
+import javax.imageio.ImageIO;
+
 /**
  * The main application
  *
  * @author Don DeCoteau
  */
 public class Main extends Rare {
-
   static {
     try {
       System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
-    }
-    catch(Throwable ignore){}
+    } catch(Throwable ignore) {}
   }
+
   public Main() {
     super();
   }
+
   /**
    * Constructs a new instance
    */
@@ -91,6 +105,7 @@ public class Main extends Rare {
         ignoreStartupException(null, e);
       }
     }
+
     try {
       OrderedProperties props = new OrderedProperties();
 
@@ -140,17 +155,18 @@ public class Main extends Rare {
       }
     }
   }
+
   protected void embedInitialize(URL url, Application app) throws Exception {
-    commandLineArgs=Collections.EMPTY_LIST;
-    info=new StartupInfo(JavaURLConnection.toExternalForm(url), null, null, false, false, commandLineArgs);
-    if(app==null) {
+    commandLineArgs = Collections.EMPTY_LIST;
+    info            = new StartupInfo(JavaURLConnection.toExternalForm(url), null, null, false, false, commandLineArgs);
+
+    if (app == null) {
       createApplicationObject(new URL[] { url }, info.local);
-    }
-    else {
+    } else {
       setupApplicationObject(url, app, "text/x-sdf");
-      
     }
   }
+
   @Override
   public void exit() {
     super.exit();
@@ -158,6 +174,7 @@ public class Main extends Rare {
 
   public static void main(String[] args) {
     Main m = new Main(args);
+
     m.start();
   }
 
@@ -320,7 +337,7 @@ public class Main extends Rare {
         mime = "text/x-rml";
       }
 
-      if (mime.startsWith(iConstants.SDF_MIME_TYPE)|| mime.startsWith(iConstants.RML_MIME_TYPE)) {
+      if (mime.startsWith(iConstants.SDF_MIME_TYPE) || mime.startsWith(iConstants.RML_MIME_TYPE)) {
         sdf = true;
       } else if (file.endsWith(".sdf") || file.endsWith(".rml")) {
         sdf = true;

@@ -1692,7 +1692,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
         s = s.substring(n + 1);
       }
 
-      s = "a" + s + "_" + Integer.toHexString(hashCode());
+      s = "a" + s + "_" + Integer.toHexString((int)hashCode());
     }
 
     iViewer v = isDesignMode()

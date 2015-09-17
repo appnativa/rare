@@ -32,7 +32,7 @@ import com.appnativa.rare.ui.painter.PaintBucket;
 import java.util.Comparator;
 import java.util.List;
 
-public interface iTableComponent /*extends iPlatformComponent */ {
+public interface iTableComponent  {
   public enum GridViewType { VERTICAL_WRAP, HORIZONTAL_WRAP }
 
   public enum TableType {

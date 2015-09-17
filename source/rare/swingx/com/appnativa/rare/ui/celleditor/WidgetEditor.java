@@ -1,12 +1,33 @@
 /*
- * @(#)WidgetEditor.java   2009-06-19
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.celleditor;
+
+import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.iActionable;
+import com.appnativa.rare.ui.iPlatformCellEditingComponent;
+import com.appnativa.rare.viewer.FormViewer;
+import com.appnativa.rare.widget.iWidget;
 
 import java.awt.Component;
 
@@ -16,25 +37,17 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.tree.TreeCellEditor;
 
-import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.iActionable;
-import com.appnativa.rare.ui.iPlatformCellEditingComponent;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.viewer.FormViewer;
-import com.appnativa.rare.widget.iWidget;
-
 /**
  * A generic widget-based cell editor
  *
  * @author Don DeCoteau
  */
-public class WidgetEditor extends AbstractCellEditor implements iPlatformCellEditingComponent, TreeCellEditor, iActionListener {
+public class WidgetEditor extends AbstractCellEditor
+        implements iPlatformCellEditingComponent, TreeCellEditor, iActionListener {
   Component       lastContainer;
   iWidget         theWidget;
   Widget          widgetCfg;
-  private boolean returnFocusContainer=true;
+  private boolean returnFocusContainer = true;
 
   /**
    * Creates a new instance of WidgetEditor
@@ -54,21 +67,22 @@ public class WidgetEditor extends AbstractCellEditor implements iPlatformCellEdi
   @Override
   public void actionPerformed(ActionEvent e) {
     stopCellEditing();
-
   }
 
   @Override
   public void cancelCellEditing() {
     super.cancelCellEditing();
-      resetFocus();
+    resetFocus();
   }
 
   @Override
   public boolean stopCellEditing() {
-    boolean stop=super.stopCellEditing();
-    if(stop) {
+    boolean stop = super.stopCellEditing();
+
+    if (stop) {
       resetFocus();
     }
+
     return stop;
   }
 
@@ -79,6 +93,7 @@ public class WidgetEditor extends AbstractCellEditor implements iPlatformCellEdi
 
     lastContainer = null;
   }
+
   @Override
   public Object clone() {
     iWidget w = FormViewer.createWidget(theWidget.getContainerViewer(), widgetCfg);
@@ -104,7 +119,6 @@ public class WidgetEditor extends AbstractCellEditor implements iPlatformCellEdi
     if (theWidget instanceof iActionable) {
       ((iActionable) theWidget).addActionListener(this);
     }
-
   }
 
   public Component getCellEditorComponent(JComponent component, Object value, boolean isSelected, int row) {

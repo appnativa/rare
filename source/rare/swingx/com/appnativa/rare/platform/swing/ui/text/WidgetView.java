@@ -1,40 +1,24 @@
 /*
- * @(#)WidgetView.java   2009-05-07
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
-
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Enumeration;
-
-import javax.swing.ButtonModel;
-import javax.swing.ComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPasswordField;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListModel;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.Document;
-import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.View;
-import javax.swing.text.html.FormView;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.Option;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
@@ -70,7 +54,38 @@ import com.appnativa.rare.widget.RadioButtonWidget;
 import com.appnativa.rare.widget.TextAreaWidget;
 import com.appnativa.rare.widget.TextFieldWidget;
 import com.appnativa.rare.widget.iWidget;
+
 import com.jgoodies.forms.layout.CellConstraints;
+
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+
+import java.io.StringReader;
+
+import java.util.ArrayList;
+import java.util.Enumeration;
+
+import javax.swing.ButtonModel;
+import javax.swing.ComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPasswordField;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.View;
+import javax.swing.text.html.FormView;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.Option;
 
 /**
  * FormView that supports Rare widgets
@@ -78,7 +93,6 @@ import com.jgoodies.forms.layout.CellConstraints;
  * @author Don DeCoteau
  */
 public class WidgetView extends FormView {
-
   iContainer           parent;
   protected int        maxIsPreferred;
   protected JComponent sComponent;
@@ -110,7 +124,7 @@ public class WidgetView extends FormView {
                     : a.getBounds();
 
       if (r.height > 0) {
-        p.paint(this.getContainer(), (Graphics2D)g, r.x - 6, r.y - 4, r.width, r.height, true, iPainter.HORIZONTAL);
+        p.paint(this.getContainer(), (Graphics2D) g, r.x - 6, r.y - 4, r.width, r.height, true, iPainter.HORIZONTAL);
       }
     }
   }
@@ -197,7 +211,7 @@ public class WidgetView extends FormView {
     boolean  is_sdf = false;
 
     if ((cls != null) && (cls.indexOf('{') != -1)) {
-      DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+      DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
       is_sdf = true;
     } else {
       cfg.templateName.setValue((cls != null)
@@ -225,14 +239,17 @@ public class WidgetView extends FormView {
     HTML.Tag     t     = (HTML.Tag) attr.getAttribute(StyleConstants.NameAttribute);
     Object       model = attr.getAttribute(StyleConstants.ModelAttribute);
     iWidget      w     = null;
-    View p=getParent();
-    while(p!=null && !(p instanceof iGroupView) ) {
-      p=p.getParent();
+    View         p     = getParent();
+
+    while((p != null) &&!(p instanceof iGroupView)) {
+      p = p.getParent();
     }
-    if(p instanceof iGroupView) {
-      iContainer con=((iGroupView)p).getViewer();
-      if(con!=parent && con.getWidgetType()==iWidget.WidgetType.GroupBox) {
-        parent=con;
+
+    if (p instanceof iGroupView) {
+      iContainer con = ((iGroupView) p).getViewer();
+
+      if ((con != parent) && (con.getWidgetType() == iWidget.WidgetType.GroupBox)) {
+        parent = con;
       }
     }
 
@@ -270,7 +287,7 @@ public class WidgetView extends FormView {
           boolean  is_sdf = false;
 
           if ((cls != null) && (cls.indexOf('{') != -1)) {
-            DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+            DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
             is_sdf = true;
           } else {
             cfg.templateName.setValue((cls != null)
@@ -320,25 +337,29 @@ public class WidgetView extends FormView {
         return sComponent;
       }
     } catch(Exception ex) {
-    	Platform.ignoreException((String) getAttribute(attr, HTML.Attribute.CLASS), ex);
+      Platform.ignoreException((String) getAttribute(attr, HTML.Attribute.CLASS), ex);
     }
 
     return null;
   }
 
   private iWidget createTextAreaWidget(iContainer parent, TextArea cfg) {
-    TextAreaWidget w=new TextAreaWidget(parent);
+    TextAreaWidget w = new TextAreaWidget(parent);
+
     w.configure(cfg);
+
     return null;
   }
 
   protected iWidget createCustom(String cls, AttributeSet attr) throws Exception {
     String name  = (String) getAttribute(attr, HTML.Attribute.NAME);
     String value = (String) getAttribute(attr, HTML.Attribute.VALUE);
-    if(cls.indexOf('{')==-1) {
-      cls+="{}";
+
+    if (cls.indexOf('{') == -1) {
+      cls += "{}";
     }
-    Widget cfg   = (Widget) DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), null, "text/x-sdf",null);
+
+    Widget cfg = (Widget) DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), null, "text/x-sdf", null);
 
     setupConfiguration(cfg, attr, false, true);
 
@@ -360,15 +381,16 @@ public class WidgetView extends FormView {
     String   name = (String) attr.getAttribute(HTML.Attribute.NAME);
     int      len  = model.getSize();
     GroupBox gb   = new GroupBox();
+
     gb.name.setValue(name);
 
     Button cfg;
 
     if ((cls != null) && (cls.indexOf('{') != -1)) {
       try {
-        cfg = (Button) DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), null, "text/x-sdf",null);
+        cfg = (Button) DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), null, "text/x-sdf", null);
       } catch(Exception ex) {
-      	Platform.ignoreException("createGroupBox", ex);
+        Platform.ignoreException("createGroupBox", ex);
 
         return null;
       }
@@ -462,9 +484,11 @@ public class WidgetView extends FormView {
     float      alignY = 0.75f;
     boolean    actionSet;
     boolean    is_sdf = ((cls != null) && (cls.indexOf('{') != -1));
-    if(value!=null) {
-      value=parent.expandString(value, false);
+
+    if (value != null) {
+      value = parent.expandString(value, false);
     }
+
     if (type.equals("submit") || type.equals("reset")) {
       if ((name == null) || (name.length() == 0)) {
         name = type;
@@ -481,7 +505,7 @@ public class WidgetView extends FormView {
       PushButton cfg = new PushButton();
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
       }
 
       if (type.equals("submit")) {
@@ -507,7 +531,6 @@ public class WidgetView extends FormView {
         button.setModel((ButtonModel) model);
 
         if (!actionSet) {
-
           // button.addActionListener(this);
         }
       }
@@ -516,7 +539,7 @@ public class WidgetView extends FormView {
       PushButton cfg    = new PushButton();
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
       } else {
         cfg.templateName.setValue((cls != null)
                                   ? cls
@@ -549,7 +572,7 @@ public class WidgetView extends FormView {
       cfg.submitValue.setValue(CheckBox.CSubmitValue.value_property);
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
 
         if ((value != null) &&!cfg.value.spot_valueWasSet()) {
           cfg.value.setValue(value);
@@ -574,7 +597,7 @@ public class WidgetView extends FormView {
       cfg.submitValue.setValue(CheckBox.CSubmitValue.value_property);
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
 
         if ((value != null) &&!cfg.value.spot_valueWasSet()) {
           cfg.value.setValue(value);
@@ -590,9 +613,11 @@ public class WidgetView extends FormView {
       }
 
       setupConfiguration(cfg, attr, false, true);
-      if(name!=null && (!cfg.groupName.spot_valueWasSet() || cfg.groupName.getValue().length()==0)) {
+
+      if ((name != null) && (!cfg.groupName.spot_valueWasSet() || (cfg.groupName.getValue().length() == 0))) {
         cfg.groupName.setValue(name);
       }
+
       w = createRadioButtonWidget(parent, cfg);
       w.setAttribute("value", value);
       alignY = 0.7f;
@@ -604,7 +629,7 @@ public class WidgetView extends FormView {
         TextField cfg  = new TextField();
 
         if (is_sdf) {
-          DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+          DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
         } else {
           cfg.templateName.setValue((cls != null)
                                     ? cls
@@ -643,7 +668,7 @@ public class WidgetView extends FormView {
       PasswordField cfg  = new PasswordField();
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
       } else {
         cfg.templateName.setValue((cls != null)
                                   ? cls
@@ -680,7 +705,7 @@ public class WidgetView extends FormView {
       FileUploadField cfg = new FileUploadField();
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
       } else {
         cfg.templateName.setValue((cls != null)
                                   ? cls
@@ -708,7 +733,7 @@ public class WidgetView extends FormView {
       PushButton cfg    = new PushButton();
 
       if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
       } else {
         cfg.templateName.setValue((cls != null)
                                   ? cls
@@ -736,7 +761,7 @@ public class WidgetView extends FormView {
         } catch(Exception e) {}
       }
     } else if (type.equals("custom")) {
-      w=createCustom(cls, attr);
+      w = createCustom(cls, attr);
     } else if (type.equals("hidden")) {    // must be a button
       parent.getFormViewer().setSubmittAttribute(name, value);
     }
@@ -762,16 +787,21 @@ public class WidgetView extends FormView {
   }
 
   private iWidget createTextFieldWidget(iContainer parent, TextField cfg) {
-    TextFieldWidget w=new TextFieldWidget(parent);
+    TextFieldWidget w = new TextFieldWidget(parent);
+
     w.configure(cfg);
+
     return w;
   }
 
   private iWidget createRadioButtonWidget(iContainer parent, RadioButton cfg) {
-    RadioButtonWidget w=new RadioButtonWidget(parent);
+    RadioButtonWidget w = new RadioButtonWidget(parent);
+
     w.configure(cfg);
+
     return w;
   }
+
   protected iWidget createListBox(String name, String cls, ListModel model, AttributeSet attr) throws Exception {
     int     size = HTML.getIntegerAttributeValue(attr, HTML.Attribute.SIZE, 1);
     ListBox cfg  = new ListBox();
@@ -779,7 +809,7 @@ public class WidgetView extends FormView {
     cfg.submitValue.setValue(ListBox.CSubmitValue.selected_linked_data);
 
     if ((cls != null) && (cls.indexOf('{') != -1)) {
-      DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+      DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
     } else {
       cfg.templateName.setValue((cls != null)
                                 ? cls
@@ -815,17 +845,18 @@ public class WidgetView extends FormView {
       int        size = HTML.getIntegerAttributeValue(attr, HTML.Attribute.SIZE, 0);
       PushButton cfg  = new PushButton();
 
-      DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf",null);
+      DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
 
       ArrayList<RenderableDataItem> alist = new ArrayList<RenderableDataItem>(len);
-      int sel=-1;
+      int                           sel   = -1;
+
       for (int i = 0; i < len; i++) {
         o = (Option) model.getElementAt(i);
         s = o.getLabel();
         alist.add(new RenderableDataItem(s, o.getValue()));
 
         if (o.isSelected()) {
-          sel=i;
+          sel = i;
         }
       }
 
@@ -841,22 +872,23 @@ public class WidgetView extends FormView {
         cfg.bounds.width.setValue(size + "ch");
       }
 
-      PushButtonWidget w = (PushButtonWidget) FormViewer.createWidget(parent.getContainerViewer(),
-                             cfg);
+      PushButtonWidget w = (PushButtonWidget) FormViewer.createWidget(parent.getContainerViewer(), cfg);
 
       w.addAll(alist);
-      if(sel>-1) {
+
+      if (sel > -1) {
         w.setSelectedIndex(sel);
       }
+
       return w;
     }
 
     iWidget w = createCustom(cls, attr);
 
     if (w instanceof iListHandler) {
-      int            len  = model.getSize();
+      int          len  = model.getSize();
       iListHandler list = (iListHandler) w;
-      Option         o;
+      Option       o;
 
       for (int i = 0; i < len; i++) {
         o = (Option) model.getElementAt(i);
@@ -868,14 +900,13 @@ public class WidgetView extends FormView {
   }
 
   protected boolean setupConfiguration(Widget cfg, AttributeSet attr, boolean fixClick, boolean applyTemplate) {
-
     cfg.spot_setAllowInvalidAttributes(true);
 
     String tname = cfg.templateName.getValue();
 
     TemplateHandler.getInstance(parent, null).applyTemplate(cfg, tname);
 
-    String  value;
+    String value;
 
     if (attr != null) {
       if (attr.isDefined("required")) {
@@ -885,16 +916,21 @@ public class WidgetView extends FormView {
       if (attr.isDefined("disabled")) {
         cfg.enabled.setValue(false);
       }
-      for(Enumeration e=attr.getAttributeNames();e.hasMoreElements();) {
-        Object a=e.nextElement();
-        String name=a.toString();
-        name=WidgetListener.fromWebEventEx(name);
-        if(name==null) {
+
+      for (Enumeration e = attr.getAttributeNames(); e.hasMoreElements(); ) {
+        Object a    = e.nextElement();
+        String name = a.toString();
+
+        name = WidgetListener.fromWebEventEx(name);
+
+        if (name == null) {
           continue;
         }
-        a=attr.getAttribute(a);
+
+        a = attr.getAttribute(a);
+
         if (a != null) {
-          value=a.toString();
+          value = a.toString();
           cfg.setEventHandler(name, value);
         }
       }
@@ -914,14 +950,15 @@ public class WidgetView extends FormView {
       }
     }
 
-    return cfg.spot_getAttribute("onAction")!=null;
+    return cfg.spot_getAttribute("onAction") != null;
   }
 
   private void addToList(ListModel model, iListHandler lc) {
-    int     len = model.getSize();
-    Option  o;
-    Object  data;
-    String  value;
+    int    len = model.getSize();
+    Option o;
+    Object data;
+    String value;
+
     for (int i = 0; i < len; i++) {
       o     = (Option) model.getElementAt(i);
       value = o.getLabel();
@@ -932,7 +969,6 @@ public class WidgetView extends FormView {
 
       value = value.trim();
       data  = o.getValue();
-
       lc.add(new RenderableDataItem(value, data));
 
       if (o.isSelected()) {

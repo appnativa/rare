@@ -381,10 +381,10 @@ public class NinePatch implements iImageObserver {
       mHorizontalPatches = getRectangles(left.mFirst, top.mSecond);
       mVerticalPatches   = getRectangles(left.mSecond, top.mFirst);
     } else {
-      if (top.mFirst.size() > 0) {
+      if (((List)top.mFirst).size() > 0) {
         mHorizontalPatches = new ArrayList<UIRectangle>(0);
         mVerticalPatches   = getVerticalRectangles(top.mFirst);
-      } else if (left.mFirst.size() > 0) {
+      } else if (((List)left.mFirst).size() > 0) {
         mHorizontalPatches = getHorizontalRectangles(left.mFirst);
         mVerticalPatches   = new ArrayList<UIRectangle>(0);
       } else {

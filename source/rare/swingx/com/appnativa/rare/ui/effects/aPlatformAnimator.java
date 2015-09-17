@@ -1,14 +1,26 @@
 /*
- * @(#)aPlatformAnimator.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.effects;
 
-import java.util.concurrent.TimeUnit;
+import com.appnativa.rare.ui.iPlatformComponent;
 
 import org.jdesktop.core.animation.timing.Animator;
 import org.jdesktop.core.animation.timing.Animator.Builder;
@@ -20,7 +32,7 @@ import org.jdesktop.core.animation.timing.interpolators.AccelerationInterpolator
 import org.jdesktop.core.animation.timing.interpolators.LinearInterpolator;
 import org.jdesktop.swing.animation.timing.sources.SwingTimerTimingSource;
 
-import com.appnativa.rare.ui.iPlatformComponent;
+import java.util.concurrent.TimeUnit;
 
 public abstract class aPlatformAnimator extends aAnimator implements TimingTarget {
   static {
@@ -43,16 +55,17 @@ public abstract class aPlatformAnimator extends aAnimator implements TimingTarge
 
   @Override
   public void animate(iPlatformComponent c, Object postAnimateAction) {
-    this.component = c;
+    this.component         = c;
     this.postAnimateAction = postAnimateAction;
     start();
   }
 
   @Override
   public void begin(Animator source) {
-    if (component != null && component.isDisposed()) {
+    if ((component != null) && component.isDisposed()) {
       return;
     }
+
     if (component != null) {
       setAnimatingProperty(component, true);
     }
@@ -66,9 +79,10 @@ public abstract class aPlatformAnimator extends aAnimator implements TimingTarge
 
   @Override
   public void end(Animator source) {
-    if (component != null && component.isDisposed()) {
+    if ((component != null) && component.isDisposed()) {
       return;
     }
+
     if (component != null) {
       setAnimatingProperty(component, false);
     }
@@ -82,12 +96,10 @@ public abstract class aPlatformAnimator extends aAnimator implements TimingTarge
   }
 
   @Override
-  public void repeat(Animator source) {
-  }
+  public void repeat(Animator source) {}
 
   @Override
-  public void reverse(Animator source) {
-  }
+  public void reverse(Animator source) {}
 
   @Override
   public void stop() {
@@ -110,7 +122,7 @@ public abstract class aPlatformAnimator extends aAnimator implements TimingTarge
   @Override
   public void setAcceleration(float acceleration) {
     this.acceleration = acceleration;
-    animator = null;
+    animator          = null;
   }
 
   @Override
@@ -127,7 +139,7 @@ public abstract class aPlatformAnimator extends aAnimator implements TimingTarge
   @Override
   public void setDeceleration(float deceleration) {
     this.deceleration = deceleration;
-    animator = null;
+    animator          = null;
   }
 
   @Override
@@ -185,12 +197,12 @@ public abstract class aPlatformAnimator extends aAnimator implements TimingTarge
   }
 
   protected boolean isComponentDisposed() {
-    if ((component != null && component.isDisposed())) {
+    if (((component != null) && component.isDisposed())) {
       return true;
     }
+
     return false;
   }
 
-  protected void update(float fraction) {
-  }
+  protected void update(float fraction) {}
 }

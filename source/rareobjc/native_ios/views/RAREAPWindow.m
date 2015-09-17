@@ -39,7 +39,7 @@
 -(id)initWithFrame:(CGRect)frame {
   self=[super initWithFrame:frame];
   if(self) {
-    self.userInteractionEnabled=YES;
+     self.userInteractionEnabled=YES;
     enabled_=YES;
     alpha_=self.alpha;
     title_=@"";
@@ -47,6 +47,10 @@
     self.clipsToBounds=YES;
     self.rootViewController=[[RAREUIViewController alloc] initWithWindow: self];
   }
+  return self;
+}
+-(id)init {
+  self=[super init];
   return self;
 }
 -(void)setBackgroundColor:(UIColor *)backgroundColor {

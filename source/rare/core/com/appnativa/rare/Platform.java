@@ -114,7 +114,7 @@ public class Platform {
    * @param name
    *          the name for the file
    *
-   * @return a file handle
+   * @return a file handle or null if not supported
    */
   public static File createCacheFile(String name) {
     return platform.createCacheFile(name);

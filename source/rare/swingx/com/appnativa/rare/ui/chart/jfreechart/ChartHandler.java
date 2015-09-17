@@ -1,39 +1,77 @@
 /*
- * @(#)JFreeChartHandler.java   2009-07-25
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) SparseWare Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.chart.jfreechart;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.Stroke;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
-import javax.swing.JToolTip;
-import javax.swing.JViewport;
-import javax.swing.Scrollable;
-import javax.swing.border.Border;
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.EventHelper;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JToolTipEx;
+import com.appnativa.rare.platform.swing.ui.view.iView;
+import com.appnativa.rare.ui.Container;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIColorShade;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIFont;
+import com.appnativa.rare.ui.UIFontMetrics;
+import com.appnativa.rare.ui.UIImage;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.UIPopupMenu;
+import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.chart.ChartAxis;
+import com.appnativa.rare.ui.chart.ChartDataItem;
+import com.appnativa.rare.ui.chart.ChartDefinition;
+import com.appnativa.rare.ui.chart.ChartDefinition.ChartType;
+import com.appnativa.rare.ui.chart.PlotInformation;
+import com.appnativa.rare.ui.chart.PlotInformation.ShapeStyle;
+import com.appnativa.rare.ui.chart.aChartHandler;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.DefaultPieDatasetEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.PieCollection;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.PieLabelGenerator;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.PieToolTipLabelGenerator;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.RareBarPainter;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYAreaRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYAreaSplineRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYClusteredBarRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYLine3DRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYLineAndShapeRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYRangeAreaRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYRangeBarRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYSeriesCollectionEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYSplineRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYStackedAreaRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYStackedBarRendererEx;
+import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYToolTipLabelGenerator;
+import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformPaint;
+import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
+import com.appnativa.rare.ui.painter.iComponentPainter;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.viewer.aChartViewer;
+import com.appnativa.util.SNumber;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
@@ -80,58 +118,34 @@ import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 import org.jfree.util.ShapeUtilities;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.EventHelper;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JToolTipEx;
-import com.appnativa.rare.platform.swing.ui.view.iView;
-import com.appnativa.rare.ui.Container;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorShade;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIFont;
-import com.appnativa.rare.ui.UIFontMetrics;
-import com.appnativa.rare.ui.UIImage;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.UIPopupMenu;
-import com.appnativa.rare.ui.UIStroke;
-import com.appnativa.rare.ui.iImageObserver;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformPaint;
-import com.appnativa.rare.ui.chart.ChartAxis;
-import com.appnativa.rare.ui.chart.ChartDataItem;
-import com.appnativa.rare.ui.chart.ChartDefinition;
-import com.appnativa.rare.ui.chart.ChartDefinition.ChartType;
-import com.appnativa.rare.ui.chart.PlotInformation;
-import com.appnativa.rare.ui.chart.PlotInformation.ShapeStyle;
-import com.appnativa.rare.ui.chart.aChartHandler;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.DefaultPieDatasetEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.PieCollection;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.PieLabelGenerator;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.PieToolTipLabelGenerator;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.RareBarPainter;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYAreaRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYAreaSplineRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYClusteredBarRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYLine3DRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYLineAndShapeRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYRangeAreaRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYRangeBarRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYSeriesCollectionEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYSplineRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYStackedAreaRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYStackedBarRendererEx;
-import com.appnativa.rare.ui.chart.jfreechart.ChartHelper.XYToolTipLabelGenerator;
-import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
-import com.appnativa.rare.ui.painter.iComponentPainter;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.viewer.aChartViewer;
-import com.appnativa.util.SNumber;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
+
+import java.security.InvalidParameterException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import javax.swing.JToolTip;
+import javax.swing.JViewport;
+import javax.swing.Scrollable;
+import javax.swing.border.Border;
 
 /**
  * Chart Handler class for JFreeChart
@@ -150,16 +164,20 @@ public class ChartHandler extends aChartHandler {
   @Override
   public iPlatformComponent createChart(iPlatformComponent chartComponent, final ChartDefinition cd) {
     ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
+
     if (ci != null) {
       ci.dispose();
     }
+
     ci = new ChartInfo();
     cd.setChartHandlerInfo(ci);
 
-    ChartPanelEx chartPanel = (ChartPanelEx) ((chartComponent == null) ? null : chartComponent.getView());
+    ChartPanelEx chartPanel = (ChartPanelEx) ((chartComponent == null)
+            ? null
+            : chartComponent.getView());
 
     if (chartPanel == null) {
-      chartPanel = createChartPanel(null, cd);
+      chartPanel     = createChartPanel(null, cd);
       chartComponent = new Container(chartPanel);
 
       if (chartForeground != null) {
@@ -174,42 +192,47 @@ public class ChartHandler extends aChartHandler {
         chartComponent.setBackground(chartBackground);
       }
     }
+
     ci.popularSeriesDataAndCaluclateRanges(this, cd);
+
     JFreeChart chart = createCharts(chartPanel, cd);
 
     chartPanel.setChart(chart);
     chart.setAntiAlias(true);
     chart.setBackgroundPaint(null);
     chart.setBorderVisible(false);
+
     if (!cd.isAllowZooming()) {
       chartPanel.setRangeZoomable(false);
       chartPanel.setDomainZoomable(false);
     }
+
     ci.chart = chart;
     ChartHelper.setChartTitle(chart, cd.getTitle());
+
     if (cd.isShowLegends()) {
       LegendTitle l = new LegendTitle(chart.getPlot());
 
       l.setItemPaint(cd.getTextColor(legendLabelColor));
       l.setItemFont(cd.getTextFont(legendLabelFont));
 
-      switch (cd.getLegendSide()) {
-        case TOP:
+      switch(cd.getLegendSide()) {
+        case TOP :
           l.setPosition(RectangleEdge.TOP);
 
           break;
 
-        case BOTTOM:
+        case BOTTOM :
           l.setPosition(RectangleEdge.BOTTOM);
 
           break;
 
-        case LEFT:
+        case LEFT :
           l.setPosition(RectangleEdge.LEFT);
 
           break;
 
-        default:
+        default :
           l.setPosition(RectangleEdge.RIGHT);
 
           break;
@@ -220,38 +243,48 @@ public class ChartHandler extends aChartHandler {
 
     ChartFactory.getChartTheme().apply(chart);
     ((ChartInfo) cd.getChartHandlerInfo()).chartPanel = chartPanel;
-    if (cd.getSeriesCount() > 0 && chartPanel.getHeight() > 0) {
+
+    if ((cd.getSeriesCount() > 0) && (chartPanel.getHeight() > 0)) {
       chartPanel.updateTickmarks(chartPanel.getWidth(), chartPanel.getHeight());
     }
+
     return chartComponent;
   }
 
-  public LabelData[] createNonCategoryLabels(ChartDefinition cd, double width, NumberAxis axis, boolean domain, double widthDivisor) {
+  public LabelData[] createNonCategoryLabels(ChartDefinition cd, double width, NumberAxis axis, boolean domain,
+          double widthDivisor) {
     LabelData[] labels;
-    double startValue = axis.getLowerBound();
-    double endValue = axis.getUpperBound();
-    double increment = axis.getTickUnit().getSize();
+    double      startValue = axis.getLowerBound();
+    double      endValue   = axis.getUpperBound();
+    double      increment  = axis.getTickUnit().getSize();
+
     if (domain) {
       labels = createLabelData(cd, domain, width, startValue, endValue + increment, increment);
+
       if (labels.length > 0) {
         labels[labels.length - 1].label = "";
       }
     } else {
       labels = createNumericLabelsData(cd, width, startValue, endValue, increment, domain, widthDivisor);
     }
+
     return labels;
   }
 
   @Override
   public iPlatformComponent dataChanged(iPlatformComponent chartComponent, ChartDefinition cd) {
     ChartInfo info = (ChartInfo) cd.getChartHandlerInfo();
-    boolean show = true;
-    if (info.seriesData != null && !info.seriesData.isEmpty()) {
+    boolean   show = true;
+
+    if ((info.seriesData != null) &&!info.seriesData.isEmpty()) {
       show = info.seriesData.get(0).showPointLabels;
     }
+
     iPlatformComponent c = createChart(chartComponent, cd);
+
     info = (ChartInfo) cd.getChartHandlerInfo();
     info.setShowPointLabels(show);
+
     return c;
   }
 
@@ -273,30 +306,35 @@ public class ChartHandler extends aChartHandler {
     }
 
     ChartPanelEx cp = (ChartPanelEx) chartPanel.getView();
+
     return cp.getPlotAreaSize();
   }
 
   @Override
   public void itemChanged(iPlatformComponent chartComponent, ChartDefinition cd, ChartDataItem item) {
-    ChartInfo info = (ChartInfo) cd.getChartHandlerInfo();
+    ChartInfo  info = (ChartInfo) cd.getChartHandlerInfo();
     SeriesData data = info.updateSeries(cd, item);
-    Plot plot = info.chart.getPlot();
-    if (data == null || plot instanceof PiePlot) {
+    Plot       plot = info.chart.getPlot();
+
+    if ((data == null) || (plot instanceof PiePlot)) {
       createChart(chartComponent, cd);
+
       return;
     }
+
     int series = data.seriesIndex;
+
     try {
       if (plot instanceof XYPlot) {
-        XYPlot xyplot = (XYPlot) plot;
-        int sn = series;
+        XYPlot    xyplot = (XYPlot) plot;
+        int       sn     = series;
         XYDataset set;
 
         if (xyplot.getDatasetCount() == 1) {
           set = xyplot.getDataset(0);
         } else {
           set = xyplot.getDataset(series);
-          sn = 0;
+          sn  = 0;
         }
 
         if (set.getSeriesCount() > sn) {
@@ -310,7 +348,7 @@ public class ChartHandler extends aChartHandler {
           }
         }
       }
-    } catch (Exception e) {
+    } catch(Exception e) {
       Platform.ignoreException("can't update chart series", e);
       createChart(chartComponent, cd);
     }
@@ -370,13 +408,15 @@ public class ChartHandler extends aChartHandler {
 
   @Override
   public void setShowPlotValues(iPlatformComponent chartPanel, ChartDefinition cd) {
-    boolean show=cd.isShowPlotLabels();
+    boolean   show = cd.isShowPlotLabels();
     ChartInfo info = (ChartInfo) cd.getChartHandlerInfo();
+
     info.setShowPointLabels(show);
+
     Plot plot = info.chart.getPlot();
+
     if (plot instanceof XYPlot) {
       ((XYPlot) plot).getRenderer().setBaseItemLabelsVisible(show, true);
-
     } else if (plot instanceof PiePlot) {
       PiePlot p = (PiePlot) plot;
 
@@ -386,7 +426,6 @@ public class ChartHandler extends aChartHandler {
         info.labelGenerator = p.getLabelGenerator();
         p.setLabelGenerator(null);
       }
-
     }
   }
 
@@ -419,17 +458,18 @@ public class ChartHandler extends aChartHandler {
   }
 
   @Override
-  public void updatesPending(iPlatformComponent chartComponent, ChartDefinition cd) {
-  }
+  public void updatesPending(iPlatformComponent chartComponent, ChartDefinition cd) {}
 
   protected ChartPanelEx createChartPanel(JFreeChart chart, final ChartDefinition cd) {
     ChartPanelEx cp = new ChartPanelEx(chart, cd.isScrollWheelZoomingAllowed()) {
       @Override
-      protected JPopupMenu createPopupMenu(boolean properties, boolean copy, boolean save, boolean print, boolean zoom) {
-        JPopupMenu menu;
+      protected JPopupMenu createPopupMenu(boolean properties, boolean copy, boolean save, boolean print,
+              boolean zoom) {
+        JPopupMenu   menu;
         aChartViewer cv = cd.getChartViewer();
 
-        menu = super.createPopupMenu(false, cd.getChartViewer().canCopy(), cv.canSave(), cv.canPrint(), cd.isAllowZooming());
+        menu = super.createPopupMenu(false, cd.getChartViewer().canCopy(), cv.canSave(), cv.canPrint(),
+                                     cd.isAllowZooming());
 
         UIPopupMenu sm = cv.getPopupMenu();
 
@@ -453,13 +493,14 @@ public class ChartHandler extends aChartHandler {
 
   protected JFreeChart createCharts(ChartPanel chartPanel, ChartDefinition cd) {
     List<DataSetValue> datasets = createDataSets(cd);
-    int len = datasets.size();
-    UIFont f = getAxisLabelFont(cd.getRangeAxis());
-    UIFontMetrics fm = UIFontMetrics.getMetrics(f);
+    int                len      = datasets.size();
+    UIFont             f        = getAxisLabelFont(cd.getRangeAxis());
+    UIFontMetrics      fm       = UIFontMetrics.getMetrics(f);
+
     tickSize = (int) fm.getHeight();
 
     if (cd.getChartType() == ChartType.PIE) {
-      PiePlot plot;
+      PiePlot       plot;
       PieCollection pie = (PieCollection) datasets.get(0).dataset;
 
       if (cd.isDraw3D()) {
@@ -473,22 +514,29 @@ public class ChartHandler extends aChartHandler {
       return new JFreeChart(null, getChartFont(), plot, false);
     }
 
-    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-    XYPlot xyplot = null;
-    NumberAxis yAxis = cd.isDraw3D() ? new NumberAxis3DEx(cd, true, cd.getRangeLabel()) : new NumberAxisEx(cd, false,
-        cd.getRangeLabel());
+    ChartInfo  ci     = (ChartInfo) cd.getChartHandlerInfo();
+    XYPlot     xyplot = null;
+    NumberAxis yAxis  = cd.isDraw3D()
+                        ? new NumberAxis3DEx(cd, true, cd.getRangeLabel())
+                        : new NumberAxisEx(cd, false, cd.getRangeLabel());
 
     yAxis.setAutoRangeIncludesZero(false);
     yAxis.setAutoRange(false);
+
     NumberAxis xAxis;
+
     if (ci.categoryDomain) {
       LabelData[] labels = ci.createLabelData(cd, fm, true);
-      xAxis = cd.isDraw3D() ? new NumberAxis3DEx(cd, true, cd.getDomainLabel()) : new NumberAxisEx(cd, labels, cd.getDomainLabel());
 
+      xAxis = cd.isDraw3D()
+              ? new NumberAxis3DEx(cd, true, cd.getDomainLabel())
+              : new NumberAxisEx(cd, labels, cd.getDomainLabel());
     } else {
-      xAxis = cd.isDraw3D() ? new NumberAxis3DEx(cd, true, cd.getDomainLabel()) : new NumberAxisEx(cd, true, cd.getDomainLabel());
-
+      xAxis = cd.isDraw3D()
+              ? new NumberAxis3DEx(cd, true, cd.getDomainLabel())
+              : new NumberAxisEx(cd, true, cd.getDomainLabel());
     }
+
     xAxis.setAutoRangeIncludesZero(false);
     xAxis.setAutoRange(false);
     xyplot = new XYPlotEx(null, xAxis, yAxis, null);
@@ -498,27 +546,29 @@ public class ChartHandler extends aChartHandler {
 
       xyplot.setDataset(i, (XYDataset) dv.dataset);
 
-      switch (dv.chartType) {
-        case SPLINE:
+      switch(dv.chartType) {
+        case SPLINE :
           xyplot.setRenderer(i, new XYSplineRendererEx(ci.seriesData));
 
           break;
 
-        case LINE:
-          xyplot
-              .setRenderer(i, cd.isDraw3D() ? new XYLine3DRendererEx(ci.seriesData) : new XYLineAndShapeRendererEx(ci.seriesData));
+        case LINE :
+          xyplot.setRenderer(i, cd.isDraw3D()
+                                ? new XYLine3DRendererEx(ci.seriesData)
+                                : new XYLineAndShapeRendererEx(ci.seriesData));
 
           break;
 
-        case BAR: {
+        case BAR : {
           XYClusteredBarRendererEx renderer = new XYClusteredBarRendererEx(ci.seriesData);
 
           renderer.setShadowVisible(false);
           xyplot.setRenderer(i, renderer);
         }
-          break;
 
-        case STACKED_BAR: {
+        break;
+
+        case STACKED_BAR : {
           StackedXYBarRenderer renderer = new XYStackedBarRendererEx(0.10, ci.seriesData);
 
           renderer.setDrawBarOutline(false);
@@ -526,19 +576,19 @@ public class ChartHandler extends aChartHandler {
           xyplot.setRenderer(i, renderer);
         }
 
-          break;
+        break;
 
-        case RANGE_AREA:
+        case RANGE_AREA :
           xyplot.setRenderer(i, new XYRangeAreaRendererEx(ci.seriesData));
 
           break;
 
-        case RANGE_BAR:
+        case RANGE_BAR :
           xyplot.setRenderer(i, new XYRangeBarRendererEx(ci.seriesData));
 
           break;
 
-        case STACKED_AREA:
+        case STACKED_AREA :
           XYStackedAreaRendererEx renderer = new XYStackedAreaRendererEx(ci.seriesData);
 
           renderer.setOutline(false);
@@ -546,8 +596,8 @@ public class ChartHandler extends aChartHandler {
 
           break;
 
-        case SPLINE_AREA:
-        case AREA:
+        case SPLINE_AREA :
+        case AREA :
           XYItemRenderer r;
 
           if (dv.chartType == ChartType.SPLINE_AREA) {
@@ -560,10 +610,11 @@ public class ChartHandler extends aChartHandler {
 
           break;
 
-        default:
+        default :
           throw new InvalidParameterException("Unsupported chart type");
       }
     }
+
     customizeXYPlot(chartPanel, cd, xyplot);
 
     JFreeChart chart = new JFreeChart(null, getChartFont(), xyplot, false);
@@ -572,44 +623,48 @@ public class ChartHandler extends aChartHandler {
   }
 
   protected List<DataSetValue> createDataSets(ChartDefinition cd) {
-    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
+    ChartInfo        ci         = (ChartInfo) cd.getChartHandlerInfo();
     List<SeriesData> seriesData = ci.seriesData;
-    int len = (seriesData == null) ? 0 : seriesData.size();
-    ChartType ct;
+    int              len        = (seriesData == null)
+                                  ? 0
+                                  : seriesData.size();
+    ChartType        ct;
 
     if (len == 0) {
       ct = cd.getChartType();
-      switch (ct) {
-        case PIE:
+
+      switch(ct) {
+        case PIE :
           return Arrays.asList(new DataSetValue(ct, new DefaultPieDatasetEx()));
 
-        case RANGE_BAR:
-        case RANGE_AREA:
-        case STACKED_BAR:
-        case STACKED_AREA:
-        case AREA:
-        case BAR:
-        case LINE:
-        case SPLINE:
-        case SPLINE_AREA: {
+        case RANGE_BAR :
+        case RANGE_AREA :
+        case STACKED_BAR :
+        case STACKED_AREA :
+        case AREA :
+        case BAR :
+        case LINE :
+        case SPLINE :
+        case SPLINE_AREA : {
           return Arrays.asList(new DataSetValue(ct, new XYSeriesCollectionEx()));
         }
 
-        default:
+        default :
           throw new InvalidParameterException("Unsupported chart type:" + ct.toString());
       }
     }
 
-    boolean allSameType = areAllTheSameType(cd);
-    List<DataSetValue> list = new ArrayList<DataSetValue>(len);
-    XYSeriesCollectionEx xysc = null;
+    boolean              allSameType = areAllTheSameType(cd);
+    List<DataSetValue>   list        = new ArrayList<DataSetValue>(len);
+    XYSeriesCollectionEx xysc        = null;
+
     for (int i = 0; i < len; i++) {
       SeriesData data = seriesData.get(i);
+
       ct = data.chartType;
 
-      switch (ct) {
-
-        case PIE:
+      switch(ct) {
+        case PIE :
           list.add(new DataSetValue(ct, ChartHelper.createPieDataset(cd)));
 
           if (!allSameType) {
@@ -618,32 +673,37 @@ public class ChartHandler extends aChartHandler {
 
           break;
 
-        case RANGE_BAR:
-        case RANGE_AREA:
+        case RANGE_BAR :
+        case RANGE_AREA :
           XYSeriesCollectionEx rxysc = new XYSeriesCollectionEx(true);
+
           list.add(new DataSetValue(ct, rxysc));
           rxysc.addSeries(ChartHelper.populateXYSeries(null, data));
+
           break;
-        case STACKED_BAR:
-        case STACKED_AREA:
-        case AREA:
-        case BAR:
-        case LINE:
-        case SPLINE:
-        case SPLINE_AREA: {
-          if (xysc == null || !allSameType) {
+
+        case STACKED_BAR :
+        case STACKED_AREA :
+        case AREA :
+        case BAR :
+        case LINE :
+        case SPLINE :
+        case SPLINE_AREA : {
+          if ((xysc == null) ||!allSameType) {
             xysc = new XYSeriesCollectionEx();
             list.add(new DataSetValue(ct, xysc));
           }
+
           xysc.addSeries(ChartHelper.populateXYSeries(null, data));
 
           break;
         }
 
-        default:
+        default :
           throw new InvalidParameterException("Unsupported chart type:" + ct.toString());
       }
     }
+
     return list;
   }
 
@@ -665,9 +725,7 @@ public class ChartHandler extends aChartHandler {
             public void imageLoaded(UIImage image) {
               try {
                 plot.setBackgroundImage(image.getImage());
-              } catch (Exception ignore) {
-              }
-
+              } catch(Exception ignore) {}
             }
           };
 
@@ -691,29 +749,33 @@ public class ChartHandler extends aChartHandler {
     if (bg != null) {
       plot.setBackgroundPaint(ChartHelper.getPaint(bg));
     }
+
     plot.setInsets(new RectangleInsets(12, 12, 12, 12));
   }
 
   protected void customizeSeriesAttributes(ChartPanel chartPanel, ChartDefinition cd, Plot plot, boolean multiset) {
-    List<RenderableDataItem> rows = cd.getSeries();
-    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-    List<SeriesData> seriesData = ci.seriesData;
-    int len = (seriesData == null) ? 0 : seriesData.size();
+    List<RenderableDataItem> rows       = cd.getSeries();
+    ChartInfo                ci         = (ChartInfo) cd.getChartHandlerInfo();
+    List<SeriesData>         seriesData = ci.seriesData;
+    int                      len        = (seriesData == null)
+            ? 0
+            : seriesData.size();
 
     if (len == 0) {
       return;
     }
 
-    ChartDataItem di;
-    Paint p = null;
-    iPainter painter;
-    BasicStroke stroke = null;
-    BasicStroke ostroke = null;
-    RareBarPainter barPainter = null;
+    ChartDataItem    di;
+    Paint            p = null;
+    iPainter         painter;
+    BasicStroke      stroke     = null;
+    BasicStroke      ostroke    = null;
+    RareBarPainter   barPainter = null;
     AbstractRenderer r;
-    Object o;
-    UIColor c;
-    PlotInformation pi = cd.getPlotInformation();
+    Object           o;
+    UIColor          c;
+    PlotInformation  pi = cd.getPlotInformation();
+
     if (pi != null) {
       float lt = pi.getLineThickness();
       float ot = pi.getOutlineThickness();
@@ -723,7 +785,9 @@ public class ChartHandler extends aChartHandler {
       }
 
       if (ot > 1) {
-        ostroke = (ot == lt) ? stroke : new BasicStroke(ot);
+        ostroke = (ot == lt)
+                  ? stroke
+                  : new BasicStroke(ot);
       }
     }
 
@@ -731,21 +795,26 @@ public class ChartHandler extends aChartHandler {
 
     for (int i = 0; i < len; i++) {
       SeriesData data = seriesData.get(i);
+
       di = (ChartDataItem) rows.get(data.seriesIndex);
 
-      if (di == null || di.isEmpty()) {
+      if ((di == null) || di.isEmpty()) {
         continue;
       }
-      p = null;
 
-      o = ((XYPlot) plot).getRenderer(multiset ? i : 0);
+      p = null;
+      o = ((XYPlot) plot).getRenderer(multiset
+                                      ? i
+                                      : 0);
 
       if (!(o instanceof AbstractRenderer)) {
         continue;
       }
+
       UIColor fc = data.fillColor;
       UIColor oc = data.outlineColor;
-      r = (AbstractRenderer) o;
+
+      r       = (AbstractRenderer) o;
       painter = di.getComponentPainter();
 
       if (painter == null) {
@@ -755,7 +824,7 @@ public class ChartHandler extends aChartHandler {
           painter = ((UIColorShade) c).getBackgroundPainter();
 
           if (painter instanceof UISimpleBackgroundPainter) {
-            p = painter.getBackgroundColor();
+            p       = painter.getBackgroundColor();
             painter = null;
           }
         } else {
@@ -773,7 +842,7 @@ public class ChartHandler extends aChartHandler {
             painter = ((UIColorShade) c).getBackgroundPainter();
 
             if (painter instanceof UISimpleBackgroundPainter) {
-              p = painter.getBackgroundColor();
+              p       = painter.getBackgroundColor();
               painter = null;
             }
           } else {
@@ -798,13 +867,16 @@ public class ChartHandler extends aChartHandler {
           }
 
           BarRenderer xr = (BarRenderer) r;
+
           xr.setItemMargin(0);
           xr.setBarPainter(barPainter);
           p = ChartHelper.getPaint(painter);
         } else {
           iPlatformPaint pp = painter.getPaint(50, 50);
 
-          p = (pp == null) ? null : pp.getPaint();
+          p = (pp == null)
+              ? null
+              : pp.getPaint();
         }
       }
 
@@ -816,46 +888,63 @@ public class ChartHandler extends aChartHandler {
         p = getDefaultColor(i);
       }
 
-      n = multiset ? 0 : i;
+      n = multiset
+          ? 0
+          : i;
       r.setSeriesPaint(n, p);
 
       if (r instanceof XYAreaSplineRendererEx) {
         r.setSeriesFillPaint(n, p);
       }
+
       float lt = getSeriesLineThickness(di, -1);
+
       if (lt != -1) {
         r.setSeriesStroke(n, new BasicStroke(lt));
       } else if (stroke != null) {
         r.setSeriesStroke(n, stroke);
       }
+
       lt = getSeriesOutlineLineThickness(di, -1);
+
       if (lt != -1) {
         r.setSeriesOutlineStroke(n, ostroke);
-
       } else if (ostroke != null) {
         r.setSeriesOutlineStroke(n, ostroke);
       }
+
       if (r instanceof XYLineAndShapeRenderer) {
-        ShapeStyle ss = getSeriesShapeStyle(pi, di);
+        ShapeStyle             ss       = getSeriesShapeStyle(pi, di);
         XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r;
-        switch (ss) {
-          case FILLED:
+
+        switch(ss) {
+          case FILLED :
             renderer.setBaseShapesVisible(true);
             renderer.setBaseShapesFilled(true);
             renderer.setUseFillPaint(true);
-            renderer.setSeriesFillPaint(n, fc == null ? p : fc.getPaint());
+            renderer.setSeriesFillPaint(n, (fc == null)
+                                           ? p
+                                           : fc.getPaint());
+
             break;
 
-          case OUTLINED:
+          case OUTLINED :
             renderer.setBaseShapesVisible(true);
             renderer.setUseOutlinePaint(true);
             renderer.setDrawOutlines(true);
-            renderer.setSeriesOutlinePaint(n, oc == null ? p : oc.getPaint());
+            renderer.setSeriesOutlinePaint(n, (oc == null)
+                                              ? p
+                                              : oc.getPaint());
+
             break;
 
-          case FILLED_AND_OUTLINED:
-            renderer.setSeriesOutlinePaint(n, oc == null ? p : oc.getPaint());
-            renderer.setSeriesFillPaint(n, fc == null ? UIColor.WHITE.getPaint() : fc.getPaint());
+          case FILLED_AND_OUTLINED :
+            renderer.setSeriesOutlinePaint(n, (oc == null)
+                                              ? p
+                                              : oc.getPaint());
+            renderer.setSeriesFillPaint(n, (fc == null)
+                                           ? UIColor.WHITE.getPaint()
+                                           : fc.getPaint());
             renderer.setBaseShapesVisible(true);
             renderer.setDrawOutlines(true);
             renderer.setBaseShapesFilled(true);
@@ -864,11 +953,12 @@ public class ChartHandler extends aChartHandler {
 
             break;
 
-          default:
+          default :
             renderer.setBaseShapesVisible(false);
 
             break;
         }
+
         if (renderer.getBaseShapesVisible()) {
           renderer.setSeriesShape(n, getDefaultShape(i));
         }
@@ -877,11 +967,11 @@ public class ChartHandler extends aChartHandler {
   }
 
   protected void customizeXYLineAndShapeRenderer(ChartDefinition cd, XYPlot plot, PlotInformation pi) {
-
     AbstractXYItemRenderer renderer = (AbstractXYItemRenderer) plot.getRenderer();
 
     if (renderer instanceof XYLineAndShapeRenderer) {
       XYLineAndShapeRenderer xrenderer = (XYLineAndShapeRenderer) renderer;
+
       if (pi != null) {
         ShapeStyle fs = pi.getShapeStyle();
 
@@ -889,21 +979,22 @@ public class ChartHandler extends aChartHandler {
           fs = pi.getShapeStyleEx();
         }
 
-        switch (fs) {
-          case FILLED:
+        switch(fs) {
+          case FILLED :
             xrenderer.setBaseShapesVisible(true);
             xrenderer.setBaseShapesFilled(true);
             xrenderer.setUseFillPaint(true);
+
             break;
 
-          case OUTLINED:
+          case OUTLINED :
             xrenderer.setBaseShapesVisible(true);
             xrenderer.setDrawOutlines(true);
             xrenderer.setUseOutlinePaint(true);
 
             break;
 
-          case FILLED_AND_OUTLINED:
+          case FILLED_AND_OUTLINED :
             xrenderer.setBaseShapesVisible(true);
             xrenderer.setDrawOutlines(true);
             xrenderer.setBaseShapesFilled(true);
@@ -912,12 +1003,13 @@ public class ChartHandler extends aChartHandler {
 
             break;
 
-          default:
+          default :
             xrenderer.setBaseShapesVisible(false);
 
             break;
         }
       }
+
       if (xrenderer.getBaseShapesVisible()) {
         xrenderer.setBaseShape(getDefaultShape(0));
       }
@@ -927,10 +1019,12 @@ public class ChartHandler extends aChartHandler {
 
     renderer.setBaseItemLabelsVisible(cd.isShowPlotLabels());
     lg = new XYToolTipLabelGenerator(((ChartInfo) cd.getChartHandlerInfo()).seriesData);
+
     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
 
     renderer.setBaseItemLabelGenerator(lg);
     rangeAxis.setUpperMargin(0.25);
+
     if (cd.isShowToolTips()) {
       renderer.setBaseToolTipGenerator((XYToolTipLabelGenerator) lg);
     }
@@ -943,32 +1037,42 @@ public class ChartHandler extends aChartHandler {
     plot.clearRangeMarkers();
     plot.clearDomainMarkers();
 
-    PlotOrientation po = cd.isVertical() ? PlotOrientation.VERTICAL : PlotOrientation.HORIZONTAL;
+    PlotOrientation po = cd.isVertical()
+                         ? PlotOrientation.VERTICAL
+                         : PlotOrientation.HORIZONTAL;
 
     plot.setOrientation(po);
-    boolean showGrid = pi == null ? true : pi.isShowGridLines();
+
+    boolean showGrid = (pi == null)
+                       ? true
+                       : pi.isShowGridLines();
+
     if (showGrid) {
-      Color c = getGridColor(pi);
+      Color    c      = getGridColor(pi);
       UIStroke stroke = getGridStroke(pi);
+
       plot.setRangeGridlinePaint(c);
       plot.setDomainGridlinePaint(c);
+
       Stroke s = SwingHelper.getStroke(stroke);
 
       plot.setRangeGridlineStroke(s);
       plot.setDomainGridlineStroke(s);
-    }
-    else {
+    } else {
       plot.setRangeGridlinesVisible(false);
       plot.setDomainGridlinesVisible(false);
     }
+
     if (pi != null) {
       Color c = pi.getBorderColor();
+
       if (c != null) {
         plot.setOutlinePaint(c);
       }
     }
 
     int angle = cd.getDomainAxis().getAngle();
+
     if ((angle != 0) && (angle != 180)) {
       plot.getDomainAxis().setLabelAngle(((angle) / 180f) * Math.PI);
     } else {
@@ -984,31 +1088,36 @@ public class ChartHandler extends aChartHandler {
     }
 
     List<ChartDataItem> markers = cd.getRangeMarkers();
-    int len = (markers == null) ? 0 : markers.size();
+    int                 len     = (markers == null)
+                                  ? 0
+                                  : markers.size();
 
     for (int i = 0; i < len; i++) {
       plot.addRangeMarker(ChartHelper.createIntervalMarker(markers.get(i)));
     }
 
     markers = cd.getDomainMarkers();
-    len = (markers == null) ? 0 : markers.size();
+    len     = (markers == null)
+              ? 0
+              : markers.size();
 
-    IntervalMarker marker;
-    ChartAxis.TimeUnit tm = cd.getDomainAxis().getTimeUnit();
-    boolean time = cd.isDateTimeType();
+    IntervalMarker     marker;
+    ChartAxis.TimeUnit tm   = cd.getDomainAxis().getTimeUnit();
+    boolean            time = cd.isDateTimeType();
 
     customizeAxis(cd, cd.getRangeAxis(), (NumberAxis) plot.getRangeAxis());
-
     customizeAxis(cd, cd.getDomainAxis(), (NumberAxis) plot.getDomainAxis());
 
     for (int i = 0; i < len; i++) {
-      marker = time ? ChartHelper.createIntervalMarker(markers.get(i), tm) : ChartHelper.createIntervalMarker(markers.get(i));
+      marker = time
+               ? ChartHelper.createIntervalMarker(markers.get(i), tm)
+               : ChartHelper.createIntervalMarker(markers.get(i));
       plot.addDomainMarker(marker);
     }
+
     customizeXYLineAndShapeRenderer(cd, plot, pi);
     customizeSeriesAttributes(chartPanel, cd, plot, plot.getDatasetCount() > 1);
     plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-
   }
 
   protected Axis getAxis(ChartDefinition cd, boolean range) {
@@ -1033,25 +1142,26 @@ public class ChartHandler extends aChartHandler {
     Shape s;
 
     index = index % 4;
-    while (markers.size() <= index) {
-      switch (index) {
-        case 0:
-          
+
+    while(markers.size() <= index) {
+      switch(index) {
+        case 0 :
           s = new RoundRectangle2D.Double(-3, -3, 6, 6, 6, 6);
+
           break;
 
-        case 1:
+        case 1 :
           s = new Rectangle2D.Double(-3, -3, 6, 6);
 
           break;
 
-        case 2: {
+        case 2 : {
           s = ShapeUtilities.createDiamond(4);
 
           break;
         }
 
-        default: {
+        default : {
           s = ShapeUtilities.createUpTriangle(4);
         }
       }
@@ -1118,21 +1228,28 @@ public class ChartHandler extends aChartHandler {
   }
 
   protected void setLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd, boolean range) {
-    Axis a = getAxis(cd, range);
-    int angle = range ? cd.getRangeAxis().getAngle() : cd.getDomainAxis().getAngle();
+    Axis a     = getAxis(cd, range);
+    int  angle = range
+                 ? cd.getRangeAxis().getAngle()
+                 : cd.getDomainAxis().getAngle();
 
     if (a != null) {
-      float ang=(float) Math.toRadians(angle);
-      if(!SNumber.isEqual(ang, a.getLabelAngle())) {
+      float ang = (float) Math.toRadians(angle);
+
+      if (!SNumber.isEqual(ang, a.getLabelAngle())) {
         a.setLabelAngle(ang);
+
         LabelData[] labels = null;
+
         if (a instanceof NumberAxisEx) {
           labels = ((NumberAxisEx) a).categoryLabels;
         } else if (a instanceof NumberAxis3DEx) {
           labels = ((NumberAxis3DEx) a).categoryLabels;
         }
+
         if (labels != null) {
           UIFont f = getAxisLabelFont(cd.getRangeAxis());
+
           remeasureLabels(labels, UIFontMetrics.getMetrics(f), angle);
         }
       }
@@ -1141,8 +1258,10 @@ public class ChartHandler extends aChartHandler {
 
   private void customizeAxis(ChartDefinition cd, ChartAxis ai, NumberAxis axis) {
     customizeAxisEx(cd, ai, axis);
-    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-    double[] bounds = null;
+
+    ChartInfo ci     = (ChartInfo) cd.getChartHandlerInfo();
+    double[]  bounds = null;
+
     if (cd.getSeriesCount() > 0) {
       if (ai.isRangeAxis()) {
         bounds = ci.yAxisValues;
@@ -1150,14 +1269,16 @@ public class ChartHandler extends aChartHandler {
         bounds = ci.xAxisValues;
       }
     }
+
     if (bounds != null) {
       axis.setLowerBound(bounds[0]);
       axis.setUpperBound(bounds[1]);
       axis.setTickUnit(new NumberTickUnit(bounds[2]));
     } else {
-      RenderableDataItem u = ai.getUpperBounds();
-      RenderableDataItem l = ai.getLowerBounds();
-      double inc = ai.getIncrement();
+      RenderableDataItem u   = ai.getUpperBounds();
+      RenderableDataItem l   = ai.getLowerBounds();
+      double             inc = ai.getIncrement();
+
       if (u != null) {
         axis.setUpperBound(u.doubleValue());
       }
@@ -1170,12 +1291,11 @@ public class ChartHandler extends aChartHandler {
         axis.setTickUnit(new NumberTickUnit(inc));
       }
     }
-    axis.setVisible(ai.isVisible());
 
+    axis.setVisible(ai.isVisible());
   }
 
   private void customizeAxisEx(ChartDefinition cd, ChartAxis ai, Axis axis) {
-
     axis.setLabelPaint(getAxisTitleColor(ai));
     axis.setTickLabelPaint(getAxisLabelColor(ai));
     axis.setLabelFont(getAxisTitleFont(ai));
@@ -1192,14 +1312,16 @@ public class ChartHandler extends aChartHandler {
     customizeBasicPlot(plot, pi);
 
     List<RenderableDataItem> rows = cd.getSeries();
-    int len = (rows == null) ? 0 : rows.size();
-    ChartDataItem di;
-    iComponentPainter bp;
-    Paint p = null;
+    int                      len  = (rows == null)
+                                    ? 0
+                                    : rows.size();
+    ChartDataItem            di;
+    iComponentPainter        bp;
+    Paint                    p = null;
 
     if (len > 0) {
       rows = rows.get(0).getItems();
-      len = rows.size();
+      len  = rows.size();
     }
 
     for (int i = 0; i < len; i++) {
@@ -1212,7 +1334,9 @@ public class ChartHandler extends aChartHandler {
         p = di.getBackground();
       } else if (bp.getBackgroundPainter() != null) {
         pp = bp.getBackgroundPainter().getPaint(100, 100);
-        p = (pp == null) ? null : pp.getPaint();
+        p  = (pp == null)
+             ? null
+             : pp.getPaint();
       }
 
       if (p == null) {
@@ -1230,14 +1354,18 @@ public class ChartHandler extends aChartHandler {
     plot.setLabelOutlinePaint(null);
     plot.setLabelShadowPaint(null);
 
-    UIColor fg = cd.getTextColor(plotLabelColor);
-    UIFont font = cd.getTextFont(plotLabelFont);
+    UIColor fg   = cd.getTextColor(plotLabelColor);
+    UIFont  font = cd.getTextFont(plotLabelFont);
 
     plot.setLabelFont(font);
     plot.setLabelPaint(fg);
-    if(cd.isShowPlotLabels()) {
-      String format=pi==null ? null : pi.getLabelsFormat();
-      plot.setLabelGenerator(new PieLabelGenerator(cd,format));
+
+    if (cd.isShowPlotLabels()) {
+      String format = (pi == null)
+                      ? null
+                      : pi.getLabelsFormat();
+
+      plot.setLabelGenerator(new PieLabelGenerator(cd, format));
     }
 
     if (cd.isShowToolTips()) {
@@ -1247,7 +1375,9 @@ public class ChartHandler extends aChartHandler {
 
   boolean areAllTheSameType(ChartDefinition cd) {
     List<RenderableDataItem> rows = cd.getSeries();
-    int len = (rows == null) ? 0 : rows.size();
+    int                      len  = (rows == null)
+                                    ? 0
+                                    : rows.size();
 
     if (len == 0) {
       return true;
@@ -1257,7 +1387,7 @@ public class ChartHandler extends aChartHandler {
 
     for (int i = 0; i < len; i++) {
       ChartDataItem series = (ChartDataItem) rows.get(i);
-      ChartType ct = getSeriesChartType(cd, series);
+      ChartType     ct     = getSeriesChartType(cd, series);
 
       if (oct == null) {
         oct = ct;
@@ -1269,21 +1399,30 @@ public class ChartHandler extends aChartHandler {
     return true;
   }
 
-  public static List refreshTicks(LabelData[] labels, TextAnchor anchor, TextAnchor rotationAnchor, double width, double angle) {
+  public static List refreshTicks(LabelData[] labels, TextAnchor anchor, TextAnchor rotationAnchor, double width,
+                                  double angle) {
     Tick tick;
-    int len = labels == null ? 0 : labels.length;
-    List result = new ArrayList(len == 0 ? 1 : len);
-    int mod = getLabelsMod(labels, (float) width, LABELS_PADDING);
+    int  len    = (labels == null)
+                  ? 0
+                  : labels.length;
+    List result = new ArrayList((len == 0)
+                                ? 1
+                                : len);
+    int  mod    = getLabelsMod(labels, (float) width, LABELS_PADDING);
+
     for (int i = 0; i < len; i++) {
       LabelData l = labels[i];
 
-      if (mod == 0 || i % mod == 0) {
+      if ((mod == 0) || (i % mod == 0)) {
         tick = new NumberTick(new Double(l.position), l.label, anchor, rotationAnchor, angle);
       } else {
-        tick = new NumberTick(TickType.MINOR, new Double(l.position), "", TextAnchor.TOP_CENTER, TextAnchor.CENTER, 0.0);
+        tick = new NumberTick(TickType.MINOR, new Double(l.position), "", TextAnchor.TOP_CENTER, TextAnchor.CENTER,
+                              0.0);
       }
+
       result.add(tick);
     }
+
     return result;
   }
 
@@ -1296,14 +1435,15 @@ public class ChartHandler extends aChartHandler {
     protected SwingGraphics             graphics;
     protected boolean                   shapedBorder;
     protected AffineTransform           transform;
-    private boolean                     trackWidth      = false;
-    private boolean                     trackHeight     = false;
-    boolean                             checkSize       = true;
+    private boolean                     trackWidth  = false;
+    private boolean                     trackHeight = false;
+    boolean                             checkSize   = true;
     double[]                            xAxisValues;
     double[]                            yAxisValues;
 
     protected ChartPanelEx(JFreeChart chart, boolean wheelscroll) {
       super(chart);
+
       if (wheelscroll) {
         addMouseWheelListener(this);
       }
@@ -1330,7 +1470,7 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     public void getMinimumSize(UIDimension size) {
-      size.width = 0;
+      size.width  = 0;
       size.height = 0;
     }
 
@@ -1341,7 +1481,7 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     public void getPreferredSize(UIDimension size, int maxWidth) {
-      size.width = 0;
+      size.width  = 0;
       size.height = 0;
     }
 
@@ -1349,7 +1489,9 @@ public class ChartHandler extends aChartHandler {
     public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
       int size = visibleRect.width / 4;
 
-      return (size < 10) ? 10 : size;
+      return (size < 10)
+             ? 10
+             : size;
     }
 
     @Override
@@ -1416,11 +1558,10 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     public void paint(Graphics g) {
-      if (getWidth() > 16 && getHeight() > 16) {
+      if ((getWidth() > 16) && (getHeight() > 16)) {
         paintComponentCalled = false;
 
-        Graphics2D g2 = (Graphics2D) g;
-
+        Graphics2D      g2 = (Graphics2D) g;
         AffineTransform tx = g2.getTransform();
 
         if (transform != null) {
@@ -1442,9 +1583,9 @@ public class ChartHandler extends aChartHandler {
     public void paintComponent(Graphics g) {
       paintComponentCalled = true;
 
-      iPlatformComponentPainter cp = getComponentPainter();
-      float height = getHeight();
-      float width = getWidth();
+      iPlatformComponentPainter cp     = getComponentPainter();
+      float                     height = getHeight();
+      float                     width  = getWidth();
 
       if (cp != null) {
         cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);
@@ -1456,7 +1597,7 @@ public class ChartHandler extends aChartHandler {
     @Override
     public void restoreAutoBounds() {
       super.restoreAutoBounds();
-      rangeZoomScale = 1;
+      rangeZoomScale  = 1;
       domainZoomScale = 1;
     }
 
@@ -1492,21 +1633,27 @@ public class ChartHandler extends aChartHandler {
 
     public UIDimension getPlotAreaSize() {
       Rectangle2D r = getScreenDataArea();
+
       return new UIDimension(r.getWidth(), r.getHeight());
     }
 
     public void updateTickmarks(int width, int height) {
       NumberAxis a = getNumberAxis(getChart().getPlot(), true);
+
       if (a instanceof NumberAxisEx) {
         ((NumberAxisEx) a).updateTickMarks(width, height);
       }
+
       if (a instanceof NumberAxis3DEx) {
         ((NumberAxis3DEx) a).updateTickMarks(width, height);
       }
+
       a = getNumberAxis(getChart().getPlot(), false);
+
       if (a instanceof NumberAxisEx) {
         ((NumberAxisEx) a).updateTickMarks(width, height);
       }
+
       if (a instanceof NumberAxis3DEx) {
         ((NumberAxis3DEx) a).updateTickMarks(width, height);
       }
@@ -1561,9 +1708,9 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     protected void paintChildren(Graphics g) {
-      iPlatformComponentPainter cp = getComponentPainter();
-      float height = getHeight();
-      float width = getWidth();
+      iPlatformComponentPainter cp     = getComponentPainter();
+      float                     height = getHeight();
+      float                     width  = getWidth();
 
       if (!paintComponentCalled && (cp != null)) {
         cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);
@@ -1577,7 +1724,7 @@ public class ChartHandler extends aChartHandler {
     }
 
     private void zoomChartAxis(boolean increase) {
-      int width = getMaximumDrawWidth() - getMinimumDrawWidth();
+      int width  = getMaximumDrawWidth() - getMinimumDrawWidth();
       int height = getMaximumDrawHeight() - getMinimumDrawWidth();
 
       if (increase) {
@@ -1589,14 +1736,19 @@ public class ChartHandler extends aChartHandler {
 
     NumberAxis getNumberAxis(Plot p, boolean range) {
       if (p instanceof XYPlot) {
-        ValueAxis a = range ? ((XYPlot) p).getRangeAxis() : ((XYPlot) p).getDomainAxis();
+        ValueAxis a = range
+                      ? ((XYPlot) p).getRangeAxis()
+                      : ((XYPlot) p).getDomainAxis();
+
         if (a instanceof NumberAxis) {
           return (NumberAxis) a;
         }
       }
+
       return null;
     }
   }
+
 
   protected static class DataSetValue {
     public ChartType chartType;
@@ -1604,9 +1756,10 @@ public class ChartHandler extends aChartHandler {
 
     DataSetValue(ChartType ct, Object set) {
       chartType = ct;
-      dataset = set;
+      dataset   = set;
     }
   }
+
 
   static class ChartInfo extends aChartInfo {
     JFreeChart chart;
@@ -1620,9 +1773,9 @@ public class ChartHandler extends aChartHandler {
     /**
      * Constructs a new instance
      */
-    ChartInfo() {
-    }
+    ChartInfo() {}
   }
+
 
   class ChartMouseHandler implements ChartMouseListener {
     ChartDefinition chartDefinition;
@@ -1634,8 +1787,9 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     public void chartMouseClicked(ChartMouseEvent event) {
-      ChartEntity e = event.getEntity();
+      ChartEntity   e    = event.getEntity();
       ChartDataItem item = itemFromEntity(chartDefinition, e, true);
+
       if (item != null) {
         chartDefinition.mouseClicked(EventHelper.createMouseEvent(event.getSource(), event.getTrigger()), item);
       }
@@ -1644,14 +1798,16 @@ public class ChartHandler extends aChartHandler {
     @Override
     public void chartMouseMoved(ChartMouseEvent event) {
       if ((chartDefinition.getMouseHandler() != null) && chartDefinition.getMouseHandler().wantsMouseMoveEvents()) {
-        ChartEntity e = event.getEntity();
+        ChartEntity   e    = event.getEntity();
         ChartDataItem item = itemFromEntity(chartDefinition, e, true);
+
         if (item != null) {
           chartDefinition.mouseMoved(EventHelper.createMouseEvent(event.getSource(), event.getTrigger()), item);
         }
       }
     }
   }
+
 
   class NumberAxis3DEx extends NumberAxis3D {
     ChartDefinition chartDefinition;
@@ -1667,26 +1823,36 @@ public class ChartHandler extends aChartHandler {
 
     public NumberAxis3DEx(ChartDefinition cd, boolean domain, String label) {
       super(label);
-      this.domain = domain;
+      this.domain          = domain;
       this.chartDefinition = cd;
-      ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-      boolean fixed = domain ? ci.xIncrementFixed : ci.yIncrementFixed;
+
+      ChartInfo ci    = (ChartInfo) cd.getChartHandlerInfo();
+      boolean   fixed = domain
+                        ? ci.xIncrementFixed
+                        : ci.yIncrementFixed;
+
       if (!fixed) {
         tickUpdater = new TickUpdater(domain);
       }
+
       setMinorTickMarksVisible(true);
       setTickMarkOutsideLength(5);
     }
 
     public NumberAxis3DEx(ChartDefinition cd, LabelData[] labels, String label) {
       super(label);
-      this.domain = true;
+      this.domain          = true;
       this.chartDefinition = cd;
-      ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-      boolean fixed = domain ? ci.xIncrementFixed : ci.yIncrementFixed;
+
+      ChartInfo ci    = (ChartInfo) cd.getChartHandlerInfo();
+      boolean   fixed = domain
+                        ? ci.xIncrementFixed
+                        : ci.yIncrementFixed;
+
       if (!fixed) {
         tickUpdater = new TickUpdater(domain);
       }
+
       this.categoryLabels = labels;
       setTickMarkOutsideLength(5);
       setMinorTickMarksVisible(true);
@@ -1694,24 +1860,34 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     public double getLabelAngle() {
-      return zeroAngle ? 0 : super.getLabelAngle();
+      return zeroAngle
+             ? 0
+             : super.getLabelAngle();
     }
 
     @Override
     public List refreshTicks(Graphics2D g2, AxisState state, Rectangle2D dataArea, RectangleEdge edge) {
       if (chartDefinition.getSeriesCount() == 0) {
-        ChartAxis ai = domain ? chartDefinition.getDomainAxis() : chartDefinition.getRangeAxis();
-        if (ai.getUpperBounds() == null && ai.getLowerBounds() == null) {
+        ChartAxis ai = domain
+                       ? chartDefinition.getDomainAxis()
+                       : chartDefinition.getRangeAxis();
+
+        if ((ai.getUpperBounds() == null) && (ai.getLowerBounds() == null)) {
           return new ArrayList(0);
         }
       }
+
       List result = null;
+
       if (RectangleEdge.isTopOrBottom(edge)) {
         result = refreshTicksHorizontal(g2, dataArea, edge);
       } else if (RectangleEdge.isLeftOrRight(edge)) {
         result = refreshTicksVertical(g2, dataArea, edge);
       }
-      return result == null ? new ArrayList(0) : result;
+
+      return (result == null)
+             ? new ArrayList(0)
+             : result;
     }
 
     @Override
@@ -1727,10 +1903,11 @@ public class ChartHandler extends aChartHandler {
     }
 
     @Override
-    protected AxisState drawLabel(String label, Graphics2D g2, Rectangle2D plotArea, Rectangle2D dataArea, RectangleEdge edge,
-        AxisState state) {
+    protected AxisState drawLabel(String label, Graphics2D g2, Rectangle2D plotArea, Rectangle2D dataArea,
+                                  RectangleEdge edge, AxisState state) {
       try {
         zeroAngle = true;
+
         return super.drawLabel(label, g2, plotArea, dataArea, edge, state);
       } finally {
         zeroAngle = false;
@@ -1741,8 +1918,8 @@ public class ChartHandler extends aChartHandler {
     protected Rectangle2D getLabelEnclosure(Graphics2D g2, RectangleEdge edge) {
       try {
         zeroAngle = true;
-        return super.getLabelEnclosure(g2, edge);
 
+        return super.getLabelEnclosure(g2, edge);
       } finally {
         zeroAngle = false;
       }
@@ -1750,13 +1927,14 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     protected List refreshTicksHorizontal(Graphics2D g2, Rectangle2D dataArea, RectangleEdge edge) {
-      double width = dataArea.getWidth();
+      double     width = dataArea.getWidth();
       TextAnchor anchor, rotationAnchor;
-      double angle = 0.0;
+      double     angle = 0.0;
+
       if (isVerticalTickLabels()) {
-        anchor = TextAnchor.CENTER_RIGHT;
+        anchor         = TextAnchor.CENTER_RIGHT;
         rotationAnchor = TextAnchor.CENTER_RIGHT;
-        angle = getLabelAngle();
+        angle          = getLabelAngle();
         // if (edge == RectangleEdge.TOP) {
         // angle = Math.PI / 2.0;
         // } else {
@@ -1764,52 +1942,60 @@ public class ChartHandler extends aChartHandler {
         // }
       } else {
         if (edge == RectangleEdge.TOP) {
-          anchor = TextAnchor.BOTTOM_CENTER;
+          anchor         = TextAnchor.BOTTOM_CENTER;
           rotationAnchor = TextAnchor.BOTTOM_CENTER;
         } else {
-          anchor = TextAnchor.TOP_CENTER;
+          anchor         = TextAnchor.TOP_CENTER;
           rotationAnchor = TextAnchor.TOP_CENTER;
         }
       }
-      LabelData[] labels = categoryLabels != null ? categoryLabels : createNonCategoryLabels(chartDefinition, width, this, domain,
-          tickSize);
+
+      LabelData[] labels = (categoryLabels != null)
+                           ? categoryLabels
+                           : createNonCategoryLabels(chartDefinition, width, this, domain, tickSize);
+
       return ChartHandler.refreshTicks(labels, anchor, rotationAnchor, width, angle);
     }
 
     @Override
     protected List refreshTicksVertical(Graphics2D g2, Rectangle2D dataArea, RectangleEdge edge) {
-      double width = dataArea.getHeight();
-
+      double     width = dataArea.getHeight();
       TextAnchor anchor;
       TextAnchor rotationAnchor;
-      double angle = 0.0;
+      double     angle = 0.0;
+
       if (isVerticalTickLabels()) {
         if (edge == RectangleEdge.LEFT) {
-          anchor = TextAnchor.BOTTOM_CENTER;
+          anchor         = TextAnchor.BOTTOM_CENTER;
           rotationAnchor = TextAnchor.BOTTOM_CENTER;
-          angle = -Math.PI / 2.0;
+          angle          = -Math.PI / 2.0;
         } else {
-          anchor = TextAnchor.BOTTOM_CENTER;
+          anchor         = TextAnchor.BOTTOM_CENTER;
           rotationAnchor = TextAnchor.BOTTOM_CENTER;
-          angle = Math.PI / 2.0;
+          angle          = Math.PI / 2.0;
         }
+
         angle = getLabelAngle();
       } else {
         if (edge == RectangleEdge.LEFT) {
-          anchor = TextAnchor.CENTER_RIGHT;
+          anchor         = TextAnchor.CENTER_RIGHT;
           rotationAnchor = TextAnchor.CENTER_RIGHT;
         } else {
-          anchor = TextAnchor.CENTER_LEFT;
+          anchor         = TextAnchor.CENTER_LEFT;
           rotationAnchor = TextAnchor.CENTER_LEFT;
         }
+
         angle = getLabelAngle();
       }
-      LabelData[] labels = categoryLabels != null ? categoryLabels : createNonCategoryLabels(chartDefinition, width, this, domain,
-          tickSize);
-      return ChartHandler.refreshTicks(labels, anchor, rotationAnchor, width, angle);
 
+      LabelData[] labels = (categoryLabels != null)
+                           ? categoryLabels
+                           : createNonCategoryLabels(chartDefinition, width, this, domain, tickSize);
+
+      return ChartHandler.refreshTicks(labels, anchor, rotationAnchor, width, angle);
     }
   }
+
 
   class NumberAxisEx extends NumberAxis {
     ChartDefinition chartDefinition;
@@ -1825,26 +2011,36 @@ public class ChartHandler extends aChartHandler {
 
     public NumberAxisEx(ChartDefinition cd, boolean domain, String label) {
       super(label);
-      this.domain = domain;
+      this.domain          = domain;
       this.chartDefinition = cd;
-      ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-      boolean fixed = domain ? ci.xIncrementFixed : ci.yIncrementFixed;
+
+      ChartInfo ci    = (ChartInfo) cd.getChartHandlerInfo();
+      boolean   fixed = domain
+                        ? ci.xIncrementFixed
+                        : ci.yIncrementFixed;
+
       if (!fixed) {
         tickUpdater = new TickUpdater(domain);
       }
+
       setMinorTickMarksVisible(true);
       setTickMarkOutsideLength(5);
     }
 
     public NumberAxisEx(ChartDefinition cd, LabelData[] labels, String label) {
       super(label);
-      this.domain = true;
+      this.domain          = true;
       this.chartDefinition = cd;
-      ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-      boolean fixed = domain ? ci.xIncrementFixed : ci.yIncrementFixed;
+
+      ChartInfo ci    = (ChartInfo) cd.getChartHandlerInfo();
+      boolean   fixed = domain
+                        ? ci.xIncrementFixed
+                        : ci.yIncrementFixed;
+
       if (!fixed) {
         tickUpdater = new TickUpdater(domain);
       }
+
       this.categoryLabels = labels;
       setTickMarkOutsideLength(5);
       setMinorTickMarksVisible(true);
@@ -1852,24 +2048,34 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     public double getLabelAngle() {
-      return zeroAngle ? 0 : super.getLabelAngle();
+      return zeroAngle
+             ? 0
+             : super.getLabelAngle();
     }
 
     @Override
     public List refreshTicks(Graphics2D g2, AxisState state, Rectangle2D dataArea, RectangleEdge edge) {
       if (chartDefinition.getSeriesCount() == 0) {
-        ChartAxis ai = domain ? chartDefinition.getDomainAxis() : chartDefinition.getRangeAxis();
-        if (ai.getUpperBounds() == null && ai.getLowerBounds() == null) {
+        ChartAxis ai = domain
+                       ? chartDefinition.getDomainAxis()
+                       : chartDefinition.getRangeAxis();
+
+        if ((ai.getUpperBounds() == null) && (ai.getLowerBounds() == null)) {
           return new ArrayList(0);
         }
       }
+
       List result = null;
+
       if (RectangleEdge.isTopOrBottom(edge)) {
         result = refreshTicksHorizontal(g2, dataArea, edge);
       } else if (RectangleEdge.isLeftOrRight(edge)) {
         result = refreshTicksVertical(g2, dataArea, edge);
       }
-      return result == null ? new ArrayList(0) : result;
+
+      return (result == null)
+             ? new ArrayList(0)
+             : result;
     }
 
     @Override
@@ -1885,10 +2091,11 @@ public class ChartHandler extends aChartHandler {
     }
 
     @Override
-    protected AxisState drawLabel(String label, Graphics2D g2, Rectangle2D plotArea, Rectangle2D dataArea, RectangleEdge edge,
-        AxisState state) {
+    protected AxisState drawLabel(String label, Graphics2D g2, Rectangle2D plotArea, Rectangle2D dataArea,
+                                  RectangleEdge edge, AxisState state) {
       try {
         zeroAngle = true;
+
         return super.drawLabel(label, g2, plotArea, dataArea, edge, state);
       } finally {
         zeroAngle = false;
@@ -1899,8 +2106,8 @@ public class ChartHandler extends aChartHandler {
     protected Rectangle2D getLabelEnclosure(Graphics2D g2, RectangleEdge edge) {
       try {
         zeroAngle = true;
-        return super.getLabelEnclosure(g2, edge);
 
+        return super.getLabelEnclosure(g2, edge);
       } finally {
         zeroAngle = false;
       }
@@ -1908,12 +2115,14 @@ public class ChartHandler extends aChartHandler {
 
     @Override
     protected List refreshTicksHorizontal(Graphics2D g2, Rectangle2D dataArea, RectangleEdge edge) {
-      double width = dataArea.getWidth();
+      double     width = dataArea.getWidth();
       TextAnchor anchor, rotationAnchor;
-      double angle = 0.0;
+      double     angle = 0.0;
+
       if (isVerticalTickLabels()) {
-        anchor = TextAnchor.CENTER_RIGHT;
+        anchor         = TextAnchor.CENTER_RIGHT;
         rotationAnchor = TextAnchor.CENTER_RIGHT;
+
         if (edge == RectangleEdge.TOP) {
           angle = Math.PI / 2.0;
         } else {
@@ -1921,53 +2130,60 @@ public class ChartHandler extends aChartHandler {
         }
       } else {
         if (edge == RectangleEdge.TOP) {
-          anchor = TextAnchor.BOTTOM_CENTER;
+          anchor         = TextAnchor.BOTTOM_CENTER;
           rotationAnchor = TextAnchor.BOTTOM_CENTER;
         } else {
-          anchor = TextAnchor.TOP_CENTER;
+          anchor         = TextAnchor.TOP_CENTER;
           rotationAnchor = TextAnchor.TOP_CENTER;
         }
       }
-      LabelData[] labels = categoryLabels != null ? categoryLabels : createNonCategoryLabels(chartDefinition, width, this, domain,
-          tickSize);
+
+      LabelData[] labels = (categoryLabels != null)
+                           ? categoryLabels
+                           : createNonCategoryLabels(chartDefinition, width, this, domain, tickSize);
+
       if (labels.length > 1) {
         width -= labels[0].width;
       }
+
       return ChartHandler.refreshTicks(labels, anchor, rotationAnchor, width, angle);
     }
 
     @Override
     protected List refreshTicksVertical(Graphics2D g2, Rectangle2D dataArea, RectangleEdge edge) {
-      double width = dataArea.getHeight();
-
+      double     width = dataArea.getHeight();
       TextAnchor anchor;
       TextAnchor rotationAnchor;
-      double angle = 0.0;
+      double     angle = 0.0;
+
       if (isVerticalTickLabels()) {
         if (edge == RectangleEdge.LEFT) {
-          anchor = TextAnchor.BOTTOM_CENTER;
+          anchor         = TextAnchor.BOTTOM_CENTER;
           rotationAnchor = TextAnchor.BOTTOM_CENTER;
-          angle = -Math.PI / 2.0;
+          angle          = -Math.PI / 2.0;
         } else {
-          anchor = TextAnchor.BOTTOM_CENTER;
+          anchor         = TextAnchor.BOTTOM_CENTER;
           rotationAnchor = TextAnchor.BOTTOM_CENTER;
-          angle = Math.PI / 2.0;
+          angle          = Math.PI / 2.0;
         }
       } else {
         if (edge == RectangleEdge.LEFT) {
-          anchor = TextAnchor.CENTER_RIGHT;
+          anchor         = TextAnchor.CENTER_RIGHT;
           rotationAnchor = TextAnchor.CENTER_RIGHT;
         } else {
-          anchor = TextAnchor.CENTER_LEFT;
+          anchor         = TextAnchor.CENTER_LEFT;
           rotationAnchor = TextAnchor.CENTER_LEFT;
         }
       }
-      LabelData[] labels = categoryLabels != null ? categoryLabels : createNonCategoryLabels(chartDefinition, width, this, domain,
-          tickSize);
-      return ChartHandler.refreshTicks(labels, anchor, rotationAnchor, width, angle);
 
+      LabelData[] labels = (categoryLabels != null)
+                           ? categoryLabels
+                           : createNonCategoryLabels(chartDefinition, width, this, domain, tickSize);
+
+      return ChartHandler.refreshTicks(labels, anchor, rotationAnchor, width, angle);
     }
   }
+
 
   class TickUpdater {
     boolean updatingTickMarks;
@@ -1980,21 +2196,30 @@ public class ChartHandler extends aChartHandler {
     }
 
     protected void updateTickMarks(ChartDefinition chartDefinition, NumberAxis axis, int width, int height) {
-      if (updatingTickMarks || (oldHeight == height && oldWidth == width)) {
+      if (updatingTickMarks || ((oldHeight == height) && (oldWidth == width))) {
         return;
       }
+
       updatingTickMarks = true;
-      oldHeight = height;
-      oldWidth = width;
+      oldHeight         = height;
+      oldWidth          = width;
+
       ChartInfo ci = (ChartInfo) chartDefinition.getChartHandlerInfo();
+
       try {
         if ((domain && ci.xIncrementFixed) || (!domain && ci.yIncrementFixed)) {
           return;
         }
-        double range[] = domain ? ci.xAxisValues : ci.yAxisValues;
-        if (range != null) {
 
-          double increment = calculateIncrement(domain ? width : height, tickSize, range[0], range[1], range[2]);
+        double range[] = domain
+                         ? ci.xAxisValues
+                         : ci.yAxisValues;
+
+        if (range != null) {
+          double increment = calculateIncrement(domain
+                  ? width
+                  : height, tickSize, range[0], range[1], range[2]);
+
           if (!SNumber.isEqual(increment, axis.getTickUnit().getSize())) {
             axis.setTickUnit(new NumberTickUnit(increment));
           }
@@ -2004,5 +2229,4 @@ public class ChartHandler extends aChartHandler {
       }
     }
   }
-
 }

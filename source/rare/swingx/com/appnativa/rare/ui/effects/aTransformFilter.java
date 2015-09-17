@@ -1,13 +1,24 @@
 /*
- * @(#)aTransformFilter.java   2008-10-01
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.effects;
-
 
 /*
 Copyright 2006 Jerry Huxtable
@@ -24,7 +35,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -80,11 +90,10 @@ public abstract class aTransformFilter extends aBufferedImageOp {
    */
   protected Rectangle transformedSpace;
 
-
   @Override
   public BufferedImage filter(BufferedImage src, BufferedImage dst) {
-    final int            width     = src.getWidth();
-    final int            height    = src.getHeight();
+    final int width  = src.getWidth();
+    final int height = src.getHeight();
 
     originalSpace    = new Rectangle(0, 0, width, height);
     transformedSpace = new Rectangle(0, 0, width, height);
@@ -92,12 +101,13 @@ public abstract class aTransformFilter extends aBufferedImageOp {
 
     if (dst == null) {
       ColorModel dstCM = src.getColorModel();
+
       dst = new BufferedImage(dstCM,
                               dstCM.createCompatibleWritableRaster(transformedSpace.width, transformedSpace.height),
                               dstCM.isAlphaPremultiplied(), null);
     }
 
-    final int[]          inPixels  = getRGB(src, 0, 0, width, height, null);
+    final int[] inPixels = getRGB(src, 0, 0, width, height, null);
 
     if (interpolation == NEAREST_NEIGHBOUR) {
       return filterPixelsNN(dst, width, height, inPixels, transformedSpace);
@@ -109,8 +119,10 @@ public abstract class aTransformFilter extends aBufferedImageOp {
     final int   srcHeight1 = height - 1;
     final int   outWidth   = transformedSpace.width;
     final int   outHeight  = transformedSpace.height;
-    final int[] outPixels = allocator==null ? new int[outWidth] : allocator.newIntArray(outWidth,true);
-    int   outX, outY;
+    final int[] outPixels  = (allocator == null)
+                             ? new int[outWidth]
+                             : allocator.newIntArray(outWidth, true);
+    int         outX, outY;
 
     outX = transformedSpace.x;
     outY = transformedSpace.y;
@@ -128,7 +140,6 @@ public abstract class aTransformFilter extends aBufferedImageOp {
         int   nw, ne, sw, se;
 
         if ((srcX >= 0) && (srcX < srcWidth1) && (srcY >= 0) && (srcY < srcHeight1)) {
-
           // Easy case, all corners are in the image
           int i = srcWidth * srcY + srcX;
 
@@ -137,7 +148,6 @@ public abstract class aTransformFilter extends aBufferedImageOp {
           sw = inPixels[i + srcWidth];
           se = inPixels[i + srcWidth + 1];
         } else {
-
           // Some of the corners are off the image
           nw = getPixel(inPixels, srcX, srcY, srcWidth, srcHeight);
           ne = getPixel(inPixels, srcX + 1, srcY, srcWidth, srcHeight);
@@ -196,8 +206,10 @@ public abstract class aTransformFilter extends aBufferedImageOp {
     final int   srcHeight = height;
     final int   outWidth  = transformedSpace.width;
     final int   outHeight = transformedSpace.height;
-    int   outX, outY, srcX, srcY;
-    final int[] outPixels = allocator==null ? new int[outWidth] : allocator.newIntArray(outWidth,true);
+    int         outX, outY, srcX, srcY;
+    final int[] outPixels = (allocator == null)
+                            ? new int[outWidth]
+                            : allocator.newIntArray(outWidth, true);
 
     outX = transformedSpace.x;
     outY = transformedSpace.y;
@@ -279,6 +291,7 @@ public abstract class aTransformFilter extends aBufferedImageOp {
 
     return pixels[y * width + x];
   }
+
   private iAllocator allocator;
 
   /**
@@ -294,7 +307,8 @@ public abstract class aTransformFilter extends aBufferedImageOp {
   public void setAllocator(iAllocator allocator) {
     this.allocator = allocator;
   }
+
   public static interface iAllocator {
-    int[] newIntArray(int size,boolean canbeLarger);
+    int[] newIntArray(int size, boolean canbeLarger);
   }
 }

@@ -1,13 +1,24 @@
 /*
- * @(#)ImageMath.java   2008-10-01
- * 
- * Copyright (c) appNativa Inc. All rights reserved.
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Use is subject to license terms.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
+ *
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.effects;
-
 
 /*
 Copyright 2006 Jerry Huxtable
@@ -49,7 +60,6 @@ public class ImageMath {
    * The value of two pi as a float.
    */
   public final static float TWO_PI = (float) Math.PI * 2.0f;
-
   // Catmull-Rom splines
   private final static float m00 = -0.5f;
   private final static float m01 = 1.5f;
@@ -76,7 +86,6 @@ public class ImageMath {
    * @return the output value
    */
   public static float bias(float a, float b) {
-
 //  return (float)Math.pow(a, Math.log(b) / Math.log(0.5));
     return a / ((1.0f / b - 2) * (1.0f - a) + 1);
   }
@@ -321,7 +330,6 @@ public class ImageMath {
    * @return the output value
    */
   public static float gain(float a, float b) {
-
 /*
     float p = (float)Math.log(1.0 - b) / (float)Math.log(0.5);
 
@@ -509,7 +517,6 @@ public class ImageMath {
       }
 
       in[j] = i + (j - out[i]) / (out[i + 1] - out[i]);
-
 //    in[j] = ImageMath.clamp( in[j], 0, length-1 );
     }
 

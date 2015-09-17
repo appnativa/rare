@@ -1,12 +1,36 @@
 /*
- * @(#)ScrollPaneEx.java   2010-07-01
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.iScrollerSupport;
+import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -22,23 +46,11 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.iScrollerSupport;
-import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 /**
  *
  * @author Don DeCoteau
  */
-public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,iScrollerSupport{
+public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView, iScrollerSupport {
   protected SwingGraphics             graphics;
   protected int                       preferredSizemaxWidth;
   protected boolean                   adjustPrefSizeForHiddenHoriz = true;
@@ -50,7 +62,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   protected boolean                   extendVerticalScrollbar;
   protected JViewportEx               rowFooter;
   protected boolean                   shapedBorder;
-  private UIScrollingEdgePainter scrollingEdgePainter=null;//UIScrollingEdgePainter.getInstance();
+  private UIScrollingEdgePainter      scrollingEdgePainter = null;    //UIScrollingEdgePainter.getInstance();
 
   /**
    * Creates a new instance of ScrollPaneEx
@@ -72,9 +84,9 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
     setLayout(new ScrollPaneLayoutEx());
     setViewportBorder(BorderUtils.EMPTY_BORDER);
     SwingHelper.configureScrollPaneCornerFromUIProperty(this, Platform.getUIDefaults().get("Rare.ScrollPane.urCorner"),
-        ScrollPaneLayoutEx.RARE_SCROLLBAR_UR_CORNER);
+            ScrollPaneLayoutEx.RARE_SCROLLBAR_UR_CORNER);
     SwingHelper.configureScrollPaneCornerFromUIProperty(this, Platform.getUIDefaults().get("Rare.ScrollPane.lrCorner"),
-        ScrollPaneLayoutEx.RARE_SCROLLBAR_LR_CORNER);
+            ScrollPaneLayoutEx.RARE_SCROLLBAR_LR_CORNER);
     setBorder(BorderUtils.EMPTY_BORDER);
   }
 
@@ -97,23 +109,30 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
     JViewportEx hvp = getRowHeaderColumnHeader();
     JViewportEx fvp = getRowFooterColumnHeader();
     ;
-    if ((hvp != null || fvp != null) && columnHeader != null) {
+
+    if (((hvp != null) || (fvp != null)) && (columnHeader != null)) {
       int h = 0;
+
       if (hvp != null) {
         h = Math.max(hvp.getPreferredSize().height, h);
       }
+
       if (fvp != null) {
         h = Math.max(fvp.getPreferredSize().height, h);
       }
+
       h = Math.max(columnHeader.getPreferredSize().height, h);
       ((JViewportEx) columnHeader).setPreferredHeight(h);
+
       if (hvp != null) {
         hvp.setPreferredHeight(h);
       }
+
       if (fvp != null) {
         fvp.setPreferredHeight(h);
       }
     }
+
     super.doLayout();
   }
 
@@ -138,6 +157,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   @Override
   public UIPoint getContentOffset() {
     Point p = getViewport().getViewPosition();
+
     return new UIPoint(p.x, p.y);
   }
 
@@ -145,7 +165,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   public java.awt.Component getCorner(String key) {
     if (key.startsWith("HORIZONTAL") || key.startsWith("VERTICAL")) {
       return getCorner(key);
-    } else if (!key.startsWith("RARE_") || !(getLayout() instanceof ScrollPaneLayoutEx)) {
+    } else if (!key.startsWith("RARE_") ||!(getLayout() instanceof ScrollPaneLayoutEx)) {
       return super.getCorner(key);
     }
 
@@ -173,15 +193,15 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   public void getMinimumSize(UIDimension size) {
     Dimension d = getMinimumSize();
 
-    size.width = d.width;
+    size.width  = d.width;
     size.height = d.height;
   }
 
   @Override
   public Dimension getPreferredSize() {
-    Dimension d = super.getPreferredSize();
-    java.awt.Component v = getViewport().getView();
-    Dimension vd = null;
+    Dimension          d  = super.getPreferredSize();
+    java.awt.Component v  = getViewport().getView();
+    Dimension          vd = null;
 
     if (v != null) {
       if (isAdjustPrefSizeForHiddenHoriz() && (getHorizontalScrollBarPolicy() == HORIZONTAL_SCROLLBAR_NEVER)) {
@@ -212,8 +232,8 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
 
     Dimension d = getPreferredSize();
 
-    size.width = d.width;
-    size.height = d.height;
+    size.width            = d.width;
+    size.height           = d.height;
     preferredSizemaxWidth = 0;
   }
 
@@ -222,18 +242,26 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   }
 
   protected JViewportEx getRowFooterColumnHeader() {
-    Component c = rowFooter == null ? null : rowFooter.getView();
+    Component c = (rowFooter == null)
+                  ? null
+                  : rowFooter.getView();
+
     if (c instanceof ScrollPaneEx) {
       return (JViewportEx) ((ScrollPaneEx) c).getColumnHeader();
     }
+
     return null;
   }
 
   protected JViewportEx getRowHeaderColumnHeader() {
-    Component c = rowHeader == null ? null : rowHeader.getView();
+    Component c = (rowHeader == null)
+                  ? null
+                  : rowHeader.getView();
+
     if (c instanceof ScrollPaneEx) {
       return (JViewportEx) ((ScrollPaneEx) c).getColumnHeader();
     }
+
     return null;
   }
 
@@ -243,11 +271,11 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   }
 
   public boolean hasScrollPaneRowFooter() {
-    return (rowFooter != null && rowFooter.getView() instanceof ScrollPaneEx);
+    return ((rowFooter != null) && (rowFooter.getView() instanceof ScrollPaneEx));
   }
 
   public boolean hasScrollPaneRowHeader() {
-    return (rowHeader != null && rowHeader.getView() instanceof ScrollPaneEx);
+    return ((rowHeader != null) && (rowHeader.getView() instanceof ScrollPaneEx));
   }
 
   public boolean hasValue() {
@@ -273,24 +301,26 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
 
   @Override
   public boolean isAtBottomEdge() {
-    int y=getViewport().getViewPosition().y;
-    return getViewport().getViewSize().height-y<=getViewport().getExtentSize().height;
+    int y = getViewport().getViewPosition().y;
+
+    return getViewport().getViewSize().height - y <= getViewport().getExtentSize().height;
   }
 
   @Override
   public boolean isAtLeftEdge() {
-    return getViewport().getViewPosition().x==0;
+    return getViewport().getViewPosition().x == 0;
   }
 
   @Override
   public boolean isAtRightEdge() {
-    int x=getViewport().getViewPosition().x;
-    return getViewport().getViewSize().width-x<=getViewport().getExtentSize().width;
+    int x = getViewport().getViewPosition().x;
+
+    return getViewport().getViewSize().width - x <= getViewport().getExtentSize().width;
   }
 
   @Override
   public boolean isAtTopEdge() {
-    return getViewport().getViewPosition().y==0;
+    return getViewport().getViewPosition().y == 0;
   }
 
   public boolean isExtendHorizontalScrollbar() {
@@ -300,47 +330,53 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   public boolean isExtendVerticalScrollbar() {
     return extendVerticalScrollbar;
   }
-  
+
   @Override
   public void scrollToLeftEdge() {
     JViewport vp = getViewport();
-    Point p=vp.getViewPosition();
-    if(p.x!=0) {
-      p.x=0;
+    Point     p  = vp.getViewPosition();
+
+    if (p.x != 0) {
+      p.x = 0;
       vp.setViewPosition(p);
     }
   }
+
   @Override
   public void scrollToRightEdge() {
     JViewport vp = getViewport();
-    Point p=vp.getViewPosition();
-    int x=Math.max(vp.getViewSize().width-vp.getExtentSize().width,0);
-    if(p.x!=x) {
-      p.x=x;
+    Point     p  = vp.getViewPosition();
+    int       x  = Math.max(vp.getViewSize().width - vp.getExtentSize().width, 0);
+
+    if (p.x != x) {
+      p.x = x;
       vp.setViewPosition(p);
     }
   }
-  
+
   @Override
   public void scrollToTopEdge() {
     JViewport vp = getViewport();
-    Point p=vp.getViewPosition();
-    if(p.y!=0) {
-      p.y=0;
+    Point     p  = vp.getViewPosition();
+
+    if (p.y != 0) {
+      p.y = 0;
       vp.setViewPosition(p);
     }
   }
+
   @Override
   public void scrollToBottomEdge() {
     JViewport vp = getViewport();
-    Point p=vp.getViewPosition();
-    int y=Math.max(vp.getViewSize().height-vp.getExtentSize().height,0);
-    if(p.y!=y) {
-      p.y=y;
+    Point     p  = vp.getViewPosition();
+    int       y  = Math.max(vp.getViewSize().height - vp.getExtentSize().height, 0);
+
+    if (p.y != y) {
+      p.y = y;
       vp.setViewPosition(p);
     }
   }
-  
+
   @Override
   public boolean isOpaque() {
     if ((componentPainter != null) && componentPainter.isBackgroundPaintEnabled()) {
@@ -377,16 +413,18 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
 
     if (cp != null) {
       float height = getHeight();
-      float width = getWidth();
+      float width  = getWidth();
 
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, true);
     }
-    if(scrollingEdgePainter!=null) {
+
+    if (scrollingEdgePainter != null) {
       JViewport vp = getViewport();
+
       scrollingEdgePainter.paint(graphics, vp.getX(), vp.getY(), vp.getWidth(), vp.getHeight(), true);
-      scrollingEdgePainter.paint(graphics, vp.getX(), 0, vp.getWidth(), vp.getY()+vp.getHeight(), false);
+      scrollingEdgePainter.paint(graphics, vp.getX(), 0, vp.getWidth(), vp.getY() + vp.getHeight(), false);
     }
-}
+  }
 
   @Override
   protected void paintComponent(Graphics g) {
@@ -394,7 +432,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
 
     if (cp != null) {
       float height = getHeight();
-      float width = getWidth();
+      float width  = getWidth();
 
       cp.paint(graphics, 0, 0, width, height, iPainter.HORIZONTAL, false);
     }
@@ -404,8 +442,10 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
 
   @Override
   public boolean requestFocusInWindow() {
-    JViewport v = this.getViewport();
-    java.awt.Component c = (v == null) ? null : v.getView();
+    JViewport          v = this.getViewport();
+    java.awt.Component c = (v == null)
+                           ? null
+                           : v.getView();
 
     if (c != null) {
       return c.requestFocusInWindow();
@@ -427,6 +467,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
       columnFooter = new JViewportEx();
       add(columnFooter, ScrollPaneLayoutEx.RARE_COLUMN_FOOTER);
     }
+
     columnFooter.setView(view);
   }
 
@@ -449,18 +490,18 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
       return;
     }
 
-    ScrollPaneLayoutEx l = (ScrollPaneLayoutEx) getLayout();
-    java.awt.Component old = null;
-    boolean found = false;
+    ScrollPaneLayoutEx l     = (ScrollPaneLayoutEx) getLayout();
+    java.awt.Component old   = null;
+    boolean            found = false;
 
     if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_UR_CORNER)) {
-      old = l._urCorner;
+      old   = l._urCorner;
       found = true;
     } else if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_LR_CORNER)) {
-      old = l._lrCorner;
+      old   = l._lrCorner;
       found = true;
     } else if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_LL_CORNER)) {
-      old = l._llCorner;
+      old   = l._llCorner;
       found = true;
     }
 
@@ -527,17 +568,16 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
       rowFooter = new JViewportEx();
       add(rowFooter, ScrollPaneLayoutEx.RARE_ROW_FOOTER);
     }
+
     rowFooter.setView(view);
   }
 
   @Override
-  public void setTransformEx(AffineTransform tx) {
-  }
+  public void setTransformEx(AffineTransform tx) {}
 
   @Override
   public void setScrollingEdgePainter(UIScrollingEdgePainter painter) {
-    scrollingEdgePainter=painter;
-    
+    scrollingEdgePainter = painter;
   }
 
   @Override
@@ -547,26 +587,33 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
 
   @Override
   public void moveUpDown(boolean up, boolean block) {
-    move(getVerticalScrollBar(),up,block);
+    move(getVerticalScrollBar(), up, block);
   }
- 
-  protected void move(JScrollBar sb,boolean up, boolean block) {
+
+  protected void move(JScrollBar sb, boolean up, boolean block) {
     int d;
-    if(block) {
-      d=sb.getBlockIncrement(up ? 1 : -1);
+
+    if (block) {
+      d = sb.getBlockIncrement(up
+                               ? 1
+                               : -1);
+    } else {
+      d = sb.getUnitIncrement(up
+                              ? 1
+                              : -1);
     }
-    else {
-      d=sb.getUnitIncrement(up ? 1 : -1);
+
+    if (!up) {
+      d = -d;
     }
-    if(!up) {
-      d=-d;
-    }
-    int n=sb.getValue()+d;
-    sb.setValue(n); 
+
+    int n = sb.getValue() + d;
+
+    sb.setValue(n);
   }
 
   @Override
   public void moveLeftRight(boolean left, boolean block) {
-    move(getHorizontalScrollBar(),left,block);
+    move(getHorizontalScrollBar(), left, block);
   }
 }

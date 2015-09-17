@@ -24,6 +24,8 @@
 -(id)initWithFrame:(CGRect)frame {
   self=[super initWithFrame:frame];
   if(self) {
+    self.opaque=NO;
+    self.backgroundColor=nil;
   }
   return self;
 }
@@ -51,7 +53,7 @@
 -(id)init {
   self=[super init];
   if(self) {
-    
+    self.backgroundColor=nil;
   }
   return self;
 }
@@ -96,10 +98,6 @@
   }
   canceled_=NO;
 }
-//-(void) setVisible: (BOOL) visible {
-//  if(self.hidden==visible) {
-//  }
-//}
 
 -(BOOL)isOpaque {
   return NO;

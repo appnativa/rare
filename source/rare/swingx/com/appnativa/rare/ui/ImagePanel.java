@@ -1,21 +1,24 @@
 /*
- * @(#)ImagePanel.java   2012-02-23
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) 2007-2009 appNativa Inc. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui;
-
-import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-
-import javax.swing.Timer;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
@@ -26,6 +29,15 @@ import com.appnativa.rare.ui.effects.iAnimatorListener;
 import com.appnativa.rare.ui.effects.iAnimatorValueListener;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.widget.iWidget;
+
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+
+import javax.swing.Timer;
 
 public class ImagePanel extends aImagePanel {
   MouseHandler             mouseHandler;
@@ -55,30 +67,29 @@ public class ImagePanel extends aImagePanel {
   @Override
   protected void handleSizeChangeAnimation(final BoundsChanger bc) {
     ValueRangeAnimator a = new ValueRangeAnimator(0f, 1f);
-    a.addValueListener(new iAnimatorValueListener() {
 
+    a.addValueListener(new iAnimatorValueListener() {
       @Override
       public void valueChanged(iPlatformAnimator animator, float value) {
-        destBounds.x = bc.getX(value);
-        destBounds.y = bc.getY(value);
-        destBounds.width = bc.getWidth(value);
+        destBounds.x      = bc.getX(value);
+        destBounds.y      = bc.getY(value);
+        destBounds.width  = bc.getWidth(value);
         destBounds.height = bc.getHeight(value);
         repaint();
       }
     });
     a.addListener(new iAnimatorListener() {
-
       @Override
       public void animationStarted(iPlatformAnimator animator) {
         if (animateSizeChangeListener != null) {
           animateSizeChangeListener.animationStarted(animator);
         }
       }
-
       @Override
       public void animationEnded(iPlatformAnimator animator) {
         destBounds.setBounds(bc.to);
         animatingSizeChange = false;
+
         if (animateSizeChangeListener != null) {
           animateSizeChangeListener.animationEnded(animator);
         }
@@ -96,6 +107,7 @@ public class ImagePanel extends aImagePanel {
   @Override
   public void setMovingOnlyAllowedWhenToLarge(boolean allowed) {
     super.setMovingOnlyAllowedWhenToLarge(allowed);
+
     if (allowed) {
       setupMouseHandler();
     }
@@ -104,6 +116,7 @@ public class ImagePanel extends aImagePanel {
   @Override
   public void setZoomingAllowed(boolean allowed) {
     super.setZoomingAllowed(allowed);
+
     if (allowed) {
       setupMouseHandler();
     }
@@ -118,7 +131,7 @@ public class ImagePanel extends aImagePanel {
     ((ImageView) view).add(c.getView());
   }
 
- @Override
+  @Override
   protected void imageLoaded() {
     repaint();
     transformedImage = null;
@@ -156,7 +169,6 @@ public class ImagePanel extends aImagePanel {
       view.addMouseMotionListener(mouseHandler);
       view.addMouseWheelListener(mouseHandler);
     }
-
   }
 
   static class ImageView extends JPanelEx {
@@ -173,17 +185,19 @@ public class ImagePanel extends aImagePanel {
     }
   }
 
+
   class MouseHandler extends MouseAdapter implements MouseWheelListener {
     float           lastX;
     float           lastY;
     float           startX;
     float           startY;
-    protected float slop = Platform.isTouchDevice() ? 10 : 4;
+    protected float slop = Platform.isTouchDevice()
+                           ? 10
+                           : 4;
     UIPoint         pt   = new UIPoint();
 
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
-
       if ((e.getClickCount() > 1) && zoomingAllowed) {
         setMousePoint(e);
         zoomOnPoint(pt.x, pt.y);
@@ -196,6 +210,7 @@ public class ImagePanel extends aImagePanel {
         if (!movingAllowed && movingAllowedWhenToLarge && isImageFitted()) {
           return;
         }
+
         float lx = lastX;
         float ly = lastY;
 
@@ -229,6 +244,7 @@ public class ImagePanel extends aImagePanel {
     void setMousePoint(java.awt.event.MouseEvent e) {
       pt.x = e.getX();
       pt.y = e.getY();
+
       if (rotation != 0) {
         Utils.transformPoint(pt, rotation, getWidth(), getHeight());
       }
@@ -244,24 +260,28 @@ public class ImagePanel extends aImagePanel {
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
       center = false;
+
       if (timer == null) {
         int timeout = Platform.getUIDefaults().getInt("Rare.Pointer.mouseWheelTimeout", 300);
-        timer = new Timer(timeout, new ActionListener() {
 
+        timer = new Timer(timeout, new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
             checkPinchZoom();
           }
         });
       }
+
       if (!timer.isRunning()) {
         firePropertyChange(PROPERTY_PINCHZOOM, Boolean.FALSE, Boolean.TRUE);
         timer.start();
       }
-      lastPinchZoom = System.currentTimeMillis();
-      float scroll = -e.getWheelRotation();
 
-      float scale = theScale + (scroll / 100);
+      lastPinchZoom = System.currentTimeMillis();
+
+      float scroll = -e.getWheelRotation();
+      float scale  = theScale + (scroll / 100);
+
       setScale(scale, true);
     }
   }

@@ -293,7 +293,7 @@ array_type_t get_array_type(NSString *type) {
   id v;
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (![JSCocoaFFIArgument unboxJSValueRef:value toObject:&v inContext:ctx]) {
       *hadException = YES;
       return nil;
@@ -312,7 +312,7 @@ array_type_t get_array_type(NSString *type) {
   IOSIntArray *array = [IOSIntArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceIntAtIndex:i withInt:0];
     }
@@ -339,7 +339,7 @@ array_type_t get_array_type(NSString *type) {
   IOSShortArray *array = [IOSShortArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceShortAtIndex:i withShort:0];
     }
@@ -366,7 +366,7 @@ array_type_t get_array_type(NSString *type) {
   IOSLongArray *array = [IOSLongArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceLongAtIndex:i withLong:0];
     }
@@ -393,7 +393,7 @@ array_type_t get_array_type(NSString *type) {
   IOSDoubleArray *array = [IOSDoubleArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceDoubleAtIndex:i withDouble:0];
     }
@@ -420,7 +420,7 @@ array_type_t get_array_type(NSString *type) {
   IOSFloatArray *array = [IOSFloatArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceFloatAtIndex:i withFloat:0];
     }
@@ -447,7 +447,7 @@ array_type_t get_array_type(NSString *type) {
   IOSByteArray *array = [IOSByteArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceByteAtIndex:i withByte:0];
     }
@@ -474,7 +474,7 @@ array_type_t get_array_type(NSString *type) {
   IOSCharArray *array = [IOSCharArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceCharAtIndex:i withChar:0];
     }
@@ -501,7 +501,7 @@ array_type_t get_array_type(NSString *type) {
   IOSBooleanArray *array = [IOSBooleanArray arrayWithLength:length];
   for (int i = 0; i < length; i++) {
     JSValueRef value = JSObjectGetPropertyAtIndex(ctx, object, i, &exception);
-    if (exception) return NO;
+    if (exception) return nil;
     if (!value || JSValueIsNull(ctx, value) || JSValueIsUndefined(ctx, value)) {
       [array replaceBooleanAtIndex:i withBoolean:NO];
     }

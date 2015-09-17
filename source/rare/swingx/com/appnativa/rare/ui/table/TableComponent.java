@@ -1,29 +1,24 @@
 /*
- * @(#)TableComponent.java
+ * Copyright appNativa Inc. All Rights Reserved.
  *
- * Copyright (c) appNativa. All rights reserved.
+ * This file is part of the Real-time Application Rendering Engine (RARE).
  *
- * Use is subject to license terms.
+ * RARE is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
 
 package com.appnativa.rare.ui.table;
-
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Locale;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.ActionHelper;
@@ -59,6 +54,24 @@ import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.FilterableList;
 import com.appnativa.util.iFilterableList;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+
+import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Locale;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
+
 public class TableComponent extends Container implements iTableComponent, iScrollerSupport {
   protected final static int[]                          EMPTY_INTS = new int[0];
   protected int                                         sortColumn = -1;
@@ -77,11 +90,14 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   protected static AbstractAction                       nextEditableCellAction;
   protected static AbstractAction                       enterKeyActionNextRow;
   protected static AbstractAction                       enterKeyAction;
+
   static {
     selectPreviousRow = new AbstractAction("selectPreviousRow") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object o = (e == null) ? null : e.getSource();
+        Object o = (e == null)
+                   ? null
+                   : e.getSource();
 
         if (o instanceof JTable) {
           JTable table = (JTable) o;
@@ -92,8 +108,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
             return;
           }
 
-          int row = table.getSelectedRow();
-          TableViewer tv = (TableViewer) Platform.getWidgetForComponent(table);
+          int         row = table.getSelectedRow();
+          TableViewer tv  = (TableViewer) Platform.getWidgetForComponent(table);
+
           if (tv.getSelectionModelGroup() != null) {
             iListHandler comp = tv.getSelectionModelGroup().selectPreviousRow(row, table.getSelectionModel());
 
@@ -115,7 +132,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     selectNextRow = new AbstractAction("selectNextRow") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object o = (e == null) ? null : e.getSource();
+        Object o = (e == null)
+                   ? null
+                   : e.getSource();
 
         if (o instanceof JTable) {
           JTable table = (JTable) o;
@@ -126,8 +145,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
             return;
           }
 
-          int row = table.getSelectedRow();
-          TableViewer tv = (TableViewer) Platform.getWidgetForComponent(table);
+          int         row = table.getSelectedRow();
+          TableViewer tv  = (TableViewer) Platform.getWidgetForComponent(table);
+
           if (tv.getSelectionModelGroup() != null) {
             iListHandler comp = tv.getSelectionModelGroup().selectNextRow(row, table.getSelectionModel());
 
@@ -149,7 +169,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     previousEditableCellAction = new AbstractAction("Rare.previousEditableCellAction") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object o = (e == null) ? null : e.getSource();
+        Object o = (e == null)
+                   ? null
+                   : e.getSource();
 
         if (o instanceof JTable) {
           movetoPreviousEditableCell((JTable) o);
@@ -159,7 +181,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     nextEditableCellAction = new AbstractAction("Rare.nextEditableCellAction") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object o = (e == null) ? null : e.getSource();
+        Object o = (e == null)
+                   ? null
+                   : e.getSource();
 
         if (o instanceof JTable) {
           movetoNextEditableCell((JTable) o);
@@ -171,7 +195,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
       public void actionPerformed(ActionEvent e) {
         enterKeyAction.actionPerformed(e);
 
-        Object o = (e == null) ? null : e.getSource();
+        Object o = (e == null)
+                   ? null
+                   : e.getSource();
 
         if (o instanceof JTable) {
           JTable table = (JTable) o;
@@ -183,7 +209,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
           }
 
           int orow = table.getSelectedRow();
-          int row = orow + 1;
+          int row  = orow + 1;
 
           if (row >= table.getRowCount()) {
             row = 0;
@@ -202,7 +228,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     enterKeyAction = new AbstractAction("Rare.enterKeyAction") {
       @Override
       public void actionPerformed(ActionEvent e) {
-        Object o = (e == null) ? null : e.getSource();
+        Object o = (e == null)
+                   ? null
+                   : e.getSource();
 
         if (o instanceof TableView) {
           TableView table = (TableView) o;
@@ -214,11 +242,14 @@ public class TableComponent extends Container implements iTableComponent, iScrol
           }
 
           int row = table.getSelectedRow();
+
           if (row == -1) {
             return;
           }
+
           RenderableDataItem item = table.getItemAt(row);
-          if (!item.isEnabled() || !item.isSelectable()) {
+
+          if (!item.isEnabled() ||!item.isSelectable()) {
             return;
           }
 
@@ -275,16 +306,17 @@ public class TableComponent extends Container implements iTableComponent, iScrol
       tableHeader.dispose();
     }
 
-    tableStyle = null;
-    tableModel = null;
+    tableStyle  = null;
+    tableModel  = null;
     tableHeader = null;
-    tableView = null;
-    tableStyle = null;
+    tableView   = null;
+    tableStyle  = null;
   }
 
   @Override
   public UIRectangle getCellRect(int row, int column, boolean includeMargin) {
     Rectangle r = tableView.getCellRect(row, column, includeMargin);
+
     return new UIRectangle(r.x, r.y, r.width, r.height);
   }
 
@@ -334,14 +366,19 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   @Override
   protected void getMinimumSizeEx(UIDimension size) {
     tableHeader.getMinimumSize(size);
+
     int rc = tableView.getMinimumVisibleRowCount();
+
     if (rc == 0) {
       rc = 1;
     }
+
     int rh = tableView.getRowHeight();
+
     if (rh == 0) {
       rh = FontUtils.getDefaultLineHeight();
     }
+
     if (tableHeader.isVisible()) {
       size.height += rc * rh;
     } else {
@@ -365,11 +402,10 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-
     Dimension d = view.getPreferredSize();
 
-    size.width = d.width;
-    size.width += 16;
+    size.width  = d.width;
+    size.width  += 16;
     size.height = d.height;
   }
 
@@ -441,6 +477,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   @Override
   public UIRectangle getViewRect() {
     Rectangle r = tableView.getViewport().getViewRect();
+
     return new UIRectangle(r.x, r.y, r.width, r.height);
   }
 
@@ -456,15 +493,17 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
   @Override
   public PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket def) {
-    if (!focusPainted || !tableView.isFocusOwner() || ((SwingGraphics) g).getSwingComponent() != view) {
+    if (!focusPainted ||!tableView.isFocusOwner() || ((SwingGraphics) g).getSwingComponent() != view) {
       return null;
     }
 
-    return (focusPaint == null) ? def : focusPaint;
+    return (focusPaint == null)
+           ? def
+           : focusPaint;
   }
 
   protected void initialize(TableView table, Table cfg) {
-    tableView = table;
+    tableView   = table;
     tableHeader = table.getHeader();
     tableHeader.setTableComponent(this);
     tableView.setAutoSizeRows(cfg.autoSizeRowsToFit.booleanValue());
@@ -491,28 +530,28 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
     int autoResizeMode;
 
-    switch (cfg.autoResizeMode.intValue()) {
-      case Table.CAutoResizeMode.none:
+    switch(cfg.autoResizeMode.intValue()) {
+      case Table.CAutoResizeMode.none :
         autoResizeMode = JTable.AUTO_RESIZE_OFF;
 
         break;
 
-      case Table.CAutoResizeMode.resize_last_column:
+      case Table.CAutoResizeMode.resize_last_column :
         autoResizeMode = JTable.AUTO_RESIZE_LAST_COLUMN;
 
         break;
 
-      case Table.CAutoResizeMode.resize_next_column:
+      case Table.CAutoResizeMode.resize_next_column :
         autoResizeMode = JTable.AUTO_RESIZE_NEXT_COLUMN;
 
         break;
 
-      case Table.CAutoResizeMode.resize_subsequent_columns:
+      case Table.CAutoResizeMode.resize_subsequent_columns :
         autoResizeMode = JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
 
         break;
 
-      default:
+      default :
         autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS;
 
         break;
@@ -532,8 +571,9 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
     table.setAutoResizeMode(autoResizeMode);
     createTableModel();
+
     ActionMap am = table.getActionMap();
-    InputMap im = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    InputMap  im = table.getInputMap(JTable.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
     am.put("Rare.origSelectNextRow", am.get("selectNextRow"));
     am.put("Rare.origSelectPreviousRow", am.get("selectPreviousRow"));
@@ -542,35 +582,38 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
     boolean changeTabKey = cfg.tabKeyAction.intValue() != Table.CTabKeyAction.next_cell;
 
-    switch (cfg.enterKeyAction.intValue()) {
-      case Table.CEnterKeyAction.both:
+    switch(cfg.enterKeyAction.intValue()) {
+      case Table.CEnterKeyAction.both :
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enterKeyActionNextRow.getValue(Action.NAME));
         am.put(enterKeyActionNextRow.getValue(Action.NAME), enterKeyActionNextRow);
 
         break;
 
-      case Table.CEnterKeyAction.action_event:
+      case Table.CEnterKeyAction.action_event :
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enterKeyAction.getValue(Action.NAME));
         am.put(enterKeyAction.getValue(Action.NAME), enterKeyAction);
 
         break;
 
-      case Table.CEnterKeyAction.next_row:
+      case Table.CEnterKeyAction.next_row :
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "selectNextRow");
 
         break;
 
-      default:
+      default :
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "none");
 
         break;
     }
+
     boolean tableeditable = false;
-    SPOTSet columns = cfg.columns;
-    int len = columns.size();
+    SPOTSet columns       = cfg.columns;
+    int     len           = columns.size();
+
     for (int i = 0; i < len; i++) {
       if (((ItemDescription) columns.getEx(i)).editable.booleanValue()) {
         tableeditable = true;
+
         break;
       }
     }
@@ -666,6 +709,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     if ((col < 0) || (col > getColumnCount())) {
       return;
     }
+
     tableHeader.setColumnIcon(col, icon);
   }
 
@@ -731,7 +775,6 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   @Override
   public void moveUpDown(boolean up, boolean block) {
     getScrollPane().moveUpDown(up, block);
-
   }
 
   @Override
@@ -781,6 +824,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   @Override
   public void setGridViewType(GridViewType type) {
     tableHeader.setGridViewType(type);
+
     if (type == GridViewType.HORIZONTAL_WRAP) {
       tableView.getScrollPane().setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
       tableView.getScrollPane().setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -822,8 +866,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     tableView.setShowDivider(tableStyle.showHorizontalLines);
   }
 
-  public void setShowLastItemBorder(boolean show) {
-  }
+  public void setShowLastItemBorder(boolean show) {}
 
   @Override
   public void setShowVerticalLines(boolean show) {
@@ -840,6 +883,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   @Override
   public void setStyle(TableStyle style) {
     tableStyle = style;
+
     if (style.headerCellPainter != null) {
       tableHeader.setHeaderCellPainter(style.headerCellPainter);
     }
@@ -873,9 +917,11 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     if (style.headerBottomMarginColor != null) {
       tableHeader.setBottomMarginColor(style.headerBottomMarginColor);
     }
+
     if (tablePainter != null) {
       tablePainter.setLineStroke(SwingHelper.getStroke(tableStyle.gridLineStroke));
     }
+
     JTable table = getTableView().getJTable();
 
     table.getTableHeader().setReorderingAllowed(style.columnReorderingAllowed);
@@ -887,7 +933,8 @@ public class TableComponent extends Container implements iTableComponent, iScrol
         ((ListItemRenderer) getItemRenderer()).setHandlesSelection(true);
       }
     }
-    if (tableType != null && tableType != TableType.MAIN) {
+
+    if ((tableType != null) && (tableType != TableType.MAIN)) {
       getItemRenderer().setSelectionPainted(tableStyle.rowHeaderFooterSelectionPainted);
     }
   }
@@ -913,7 +960,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
   public void sizeColumnToFit(int col) {
     Column c = getColumnAt(col);
-    int w = tableHeader.calculateColumnWidth(tableModel, col, c, Short.MAX_VALUE, new UIDimension(), SizeType.FIT);
+    int    w = tableHeader.calculateColumnWidth(tableModel, col, c, Short.MAX_VALUE, new UIDimension(), SizeType.FIT);
 
     c.setWidth(w);
     tableHeader.updateColumnModel(col);
@@ -944,7 +991,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
   @Override
   public void sort(int col, boolean descending, boolean useLinkedData) {
-    sortColumn = col;
+    sortColumn      = col;
     this.descending = descending;
     tableModel.sort(col, descending, useLinkedData);
     tableHeader.setSortColumn(col, descending);
@@ -955,15 +1002,14 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   }
 
   public void sortEx(int col, boolean descending, boolean useLinkedData) {
-    sortColumn = col;
+    sortColumn      = col;
     this.descending = descending;
     tableModel.sort(col, descending, useLinkedData);
     tableHeader.setSortColumn(col, descending);
   }
 
   @Override
-  public void stopEditing() {
-  }
+  public void stopEditing() {}
 
   protected static boolean isHorizontalScollEnabled(Table cfg) {
     if (cfg.autoResizeMode.intValue() == Table.CAutoResizeMode.none) {
@@ -990,8 +1036,8 @@ public class TableComponent extends Container implements iTableComponent, iScrol
       col = table.getSelectedColumn();
     }
 
-    int orow = row;
-    int ocol = col;
+    int orow   = row;
+    int ocol   = col;
     int rcount = table.getRowCount();
     int ccount = table.getColumnCount();
 
@@ -1013,12 +1059,11 @@ public class TableComponent extends Container implements iTableComponent, iScrol
         }
 
         if (table.isCellEditable(row, col)) {
-
           table.setRowSelectionInterval(row, row);
           table.setColumnSelectionInterval(col, col);
 
           TableViewer tv = (TableViewer) Platform.getWidgetForComponent(table);
-          Rectangle r = table.getCellRect(row, col, true);
+          Rectangle   r  = table.getCellRect(row, col, true);
 
           if (tv == null) {
             table.scrollRectToVisible(r);
@@ -1028,7 +1073,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
           break;
         }
-      } while (true);
+      } while(true);
     }
   }
 
@@ -1045,8 +1090,8 @@ public class TableComponent extends Container implements iTableComponent, iScrol
       col = table.getSelectedColumn();
     }
 
-    int orow = row;
-    int ocol = col;
+    int orow   = row;
+    int ocol   = col;
     int rcount = table.getRowCount();
     int ccount = table.getColumnCount();
 
@@ -1073,7 +1118,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
           break;
         }
-      } while (true);
+      } while(true);
     }
   }
 
@@ -1104,7 +1149,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
   @Override
   public boolean isMainTable() {
-    return tableType == null || tableType == TableType.MAIN;
+    return (tableType == null) || (tableType == TableType.MAIN);
   }
 
   @Override
@@ -1122,42 +1167,62 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     if (tableStyle == null) {
       return false;
     }
+
     if (!tableView.getItemRenderer().isSelectionPainted()) {
       return false;
     }
-    if (tableType == null || tableType == TableType.MAIN) {
+
+    if ((tableType == null) || (tableType == TableType.MAIN)) {
       return true;
     }
+
     return tableStyle.rowHeaderFooterSelectionPainted;
   }
 
   protected void multiTableSizeRowsTtFit(int rMin, int rMax) {
-    boolean needSizeToFitCall = tableView.needSizeToFitCall;
-    MultiTableTableComponent mt = (MultiTableTableComponent) ((TableViewer) getWidget()).getTableComponent();
-    MultiDataItemTableModel tm = (MultiDataItemTableModel) mt.getModel();
-    TableComponent tc = (TableComponent) mt.getRowHeaderTable();
-    TableView htable = tc == null ? null : tc.getTableView();
+    boolean                  needSizeToFitCall = tableView.needSizeToFitCall;
+    MultiTableTableComponent mt                =
+      (MultiTableTableComponent) ((TableViewer) getWidget()).getTableComponent();
+    MultiDataItemTableModel  tm                = (MultiDataItemTableModel) mt.getModel();
+    TableComponent           tc                = (TableComponent) mt.getRowHeaderTable();
+    TableView                htable            = (tc == null)
+            ? null
+            : tc.getTableView();
+
     tc = (TableComponent) mt.getRowFooterTable();
-    TableView ftable = tc == null ? null : tc.getTableView();
+
+    TableView ftable = (tc == null)
+                       ? null
+                       : tc.getTableView();
+
     if (htable != null) {
       if (!needSizeToFitCall) {
         needSizeToFitCall = htable.needSizeToFitCall;
       }
+
       htable.needSizeToFitCall = false;
     }
+
     if (ftable != null) {
       if (!needSizeToFitCall) {
         needSizeToFitCall = ftable.needSizeToFitCall;
       }
+
       ftable.needSizeToFitCall = false;
     }
+
     tableView.needSizeToFitCall = false;
+
     if (needSizeToFitCall) {
       int len = tm.getRowCount();
+
       rMax = Math.min(len, rMax + 1);
+
       for (int i = rMin; i < rMax; i++) {
         RenderableDataItem rowItem = tm.getRow(i);
-        int h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, i, tm.getColumnsEx(), false, getRowHeight());
+        int                h       = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, i, tm.getColumnsEx(),
+                                       false, getRowHeight());
+
         h += 4;
         rowItem.setHeight(h);
       }
@@ -1169,88 +1234,125 @@ public class TableComponent extends Container implements iTableComponent, iScrol
    * called on the main table
    */
   protected int getMultiTableRowHeight(int row) {
-    boolean needSizeToFitCall = tableView.needSizeToFitCall;
-    MultiTableTableComponent mt = (MultiTableTableComponent) ((TableViewer) getWidget()).getTableComponent();
-    MultiDataItemTableModel tm = (MultiDataItemTableModel) mt.getModel();
-    TableComponent tc = (TableComponent) mt.getRowHeaderTable();
-    TableView htable = tc == null ? null : tc.getTableView();
+    boolean                  needSizeToFitCall = tableView.needSizeToFitCall;
+    MultiTableTableComponent mt                =
+      (MultiTableTableComponent) ((TableViewer) getWidget()).getTableComponent();
+    MultiDataItemTableModel  tm                = (MultiDataItemTableModel) mt.getModel();
+    TableComponent           tc                = (TableComponent) mt.getRowHeaderTable();
+    TableView                htable            = (tc == null)
+            ? null
+            : tc.getTableView();
+
     tc = (TableComponent) mt.getRowFooterTable();
-    TableView ftable = tc == null ? null : tc.getTableView();
+
+    TableView ftable = (tc == null)
+                       ? null
+                       : tc.getTableView();
+
     if (htable != null) {
       if (!needSizeToFitCall) {
         needSizeToFitCall = htable.needSizeToFitCall;
       }
+
       htable.needSizeToFitCall = false;
     }
+
     if (ftable != null) {
       if (!needSizeToFitCall) {
         needSizeToFitCall = ftable.needSizeToFitCall;
       }
+
       ftable.needSizeToFitCall = false;
     }
+
     tableView.needSizeToFitCall = false;
+
     if (needSizeToFitCall) {
       int len = tm.getRowCount();
+
       for (int i = 0; i < len; i++) {
         RenderableDataItem rowItem = tm.getRow(i);
+
         rowItem.setHeight(0);
       }
+
       if (htable != null) {
         htable.resizeAndRepaint();
       }
+
       if (ftable != null) {
         htable.resizeAndRepaint();
       }
+
       tableView.resizeAndRepaint();
     }
+
     RenderableDataItem rowItem = tm.getRow(row);
-    int h = rowItem.getHeight();
+    int                h       = rowItem.getHeight();
 
     if (h < 1) {
       h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, row, tm.getColumnsEx(), false, getRowHeight());
       h += 4;
       rowItem.setHeight(h);
     }
+
     return h;
   }
-  protected void  setMultiTableRowSizes() {
-    MultiTableTableComponent mt = (MultiTableTableComponent) ((TableViewer) getWidget()).getTableComponent();
-    MultiDataItemTableModel tm = (MultiDataItemTableModel) mt.getModel();
-    TableComponent tc = (TableComponent) mt.getRowHeaderTable();
-    TableView htable = tc == null ? null : tc.getTableView();
-    TableView table = getTableView();
+
+  protected void setMultiTableRowSizes() {
+    MultiTableTableComponent mt     = (MultiTableTableComponent) ((TableViewer) getWidget()).getTableComponent();
+    MultiDataItemTableModel  tm     = (MultiDataItemTableModel) mt.getModel();
+    TableComponent           tc     = (TableComponent) mt.getRowHeaderTable();
+    TableView                htable = (tc == null)
+                                      ? null
+                                      : tc.getTableView();
+    TableView                table  = getTableView();
+
     tc = (TableComponent) mt.getRowFooterTable();
-    TableView ftable = tc == null ? null : tc.getTableView();
+
+    TableView ftable = (tc == null)
+                       ? null
+                       : tc.getTableView();
+
     if (htable != null) {
       htable.needSizeToFitCall = false;
       htable.setResizeRepaintBlocked(true);
     }
+
     if (ftable != null) {
       ftable.needSizeToFitCall = false;
       ftable.setResizeRepaintBlocked(true);
     }
+
     tableView.needSizeToFitCall = false;
+
     int len = tm.getRowCount();
+
     for (int i = 0; i < len; i++) {
       RenderableDataItem rowItem = tm.getRow(i);
-      int h = rowItem.getHeight();
+      int                h       = rowItem.getHeight();
 
       if (h < 1) {
-        h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm,i, tm.getColumnsEx(), false, getRowHeight());
+        h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, i, tm.getColumnsEx(), false, getRowHeight());
         h += 4;
         rowItem.setHeight(h);
       }
-      table.setRowHeight(i,h);
+
+      table.setRowHeight(i, h);
+
       if (ftable != null) {
         ftable.setRowHeight(i, h);
       }
-      if (htable != null ) {
+
+      if (htable != null) {
         htable.setRowHeight(i, h);
       }
     }
+
     if (ftable != null) {
       ftable.setResizeRepaintBlocked(false);
     }
+
     if (htable != null) {
       htable.setResizeRepaintBlocked(false);
     }
