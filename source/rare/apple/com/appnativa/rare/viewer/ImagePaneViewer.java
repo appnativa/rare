@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -23,7 +23,7 @@ package com.appnativa.rare.viewer;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.spot.ImagePane;
 import com.appnativa.rare.ui.ImagePanel;
-import com.appnativa.rare.ui.iPlatformImagePanel;
+import com.appnativa.rare.ui.aImagePanel;
 
 /**
  * A viewer that displays and image and provides tools
@@ -53,7 +53,7 @@ public class ImagePaneViewer extends aImagePaneViewer {
   public void setUseSpinner(boolean spinner) {}
 
   @Override
-  protected iPlatformImagePanel createPanel(ImagePane cfg) {
+  protected aImagePanel createPanel(ImagePane cfg) {
     ImagePanel ip = new ImagePanel(Platform.isIOS());
 
     ip.setWidget(this);

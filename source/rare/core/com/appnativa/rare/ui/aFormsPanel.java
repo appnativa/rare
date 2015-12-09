@@ -213,7 +213,12 @@ public abstract class aFormsPanel extends XPContainer implements iFormsPanel {
   @Override
   public void remove(iPlatformComponent c) {
     super.remove(c);
-    getFormLayout().removeLayoutComponent(c);
+    if(c!=null) {
+      FormLayout l = getFormLayout();
+      if(l!=null) {
+        l.removeLayoutComponent(c);
+      }
+    }
   }
 
   @Override
@@ -498,14 +503,8 @@ public abstract class aFormsPanel extends XPContainer implements iFormsPanel {
   }
 
   @Override
-  public void revalidate() {
-    getFormLayout().invalidateCaches();
-    super.revalidate();
-  }
-
-  @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    getFormLayout().getMinimumSize(this, size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    getFormLayout().getMinimumSize(this, size,maxWidth);
   }
 
   @Override

@@ -34,18 +34,33 @@ public class UISound {
   }
 
   public void play() {
-    PlatformHelper.playSound(this);
+    if(platformSound!=null) {
+      PlatformHelper.playSound(platformSound);
+    }
   }
 
   public void pause() {
-    PlatformHelper.pauseSound(this);
+    if(platformSound!=null) {
+      PlatformHelper.pauseSound(platformSound);
+    }
   }
 
   public void resume() {
-    PlatformHelper.resumeSound(this);
+    if(platformSound!=null) {
+      PlatformHelper.resumeSound(platformSound);
+    }
+  }
+  
+  public void dispose() {
+    if(platformSound!=null) {
+      PlatformHelper.disposeOfSound(platformSound);
+    }
+    platformSound=null;
   }
 
   public void setVolume(int percent) {
-    platformSound = PlatformHelper.setVolume(this, percent);
+    if(platformSound!=null) {
+      platformSound = PlatformHelper.setVolume(platformSound, percent);
+    }
   }
 }

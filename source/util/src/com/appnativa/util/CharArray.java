@@ -3229,14 +3229,7 @@ startSearchForFirstChar:
 
     return this;
   }
-
-  /*
-   * For IOS porting
-   */
-  public String sequenceDescription() {
-    return toString();
-  }
-
+  
   /**
    * Converts to a string representing the data in this character array.
    *

@@ -46,6 +46,7 @@ public class GradientDrawableEx extends GradientDrawable {
     this.orientation = orientation;
   }
 
+  @Override
   public void draw(Canvas canvas) {
     Rect bounds = getBounds();
 
@@ -92,18 +93,20 @@ public class GradientDrawableEx extends GradientDrawable {
     this.centered = centered;
   }
 
+  @Override
   public void setGradientRadius(float gradientRadius) {
     super.setGradientRadius(gradientRadius);
     radiusSet = true;
   }
 
+  @Override
   public void setGradientType(int gradient) {
     super.setGradientType(gradient);
     radial = gradient == RADIAL_GRADIENT;
   }
 
   public void setMagnitude(int magnitude) {
-    this.magnitude = ((float) magnitude) / 100f;
+    this.magnitude = (magnitude) / 100f;
     setUseLevel(true);
     setLevel(magnitude * 100);
   }

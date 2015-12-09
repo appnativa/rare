@@ -94,7 +94,7 @@ public abstract class aPlatformImpl extends aPlatform {
 
   @Override
   public Object createChartHandler() {
-    return createObject("com.appnativa.rare.ui.chart.coreplot.ChartHandler");
+    return Platform.createObject("com.appnativa.rare.ui.chart.coreplot.ChartHandler");
   }
 
   public boolean createDirectory(File file) {
@@ -103,17 +103,6 @@ public abstract class aPlatformImpl extends aPlatform {
 
   public iPlatformComponent createErrorComponent(iPlatformIcon icon, String message) {
     throw new UnsupportedOperationException("Not supported yet.");
-  }
-
-  @Override
-  public Object createObject(String className) {
-    try {
-      return PlatformHelper.loadClass(className).newInstance();
-    } catch(Exception e) {
-      Platform.ignoreException(null, e);
-
-      return null;
-    }
   }
 
   @Override

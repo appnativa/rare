@@ -20,68 +20,57 @@
 
 package com.appnativa.rare.widget;
 
+import java.io.IOException;
+import java.text.DecimalFormatSymbols;
+import java.text.Format;
+import java.text.ParseException;
+import java.util.Locale;
+import java.util.regex.Pattern;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.converters.Conversions;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.converters.Conversions;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
-import com.appnativa.rare.net.FormHelper;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.scripting.FunctionHelper;
-import com.appnativa.rare.spot.FileUploadField;
 import com.appnativa.rare.spot.Font;
 import com.appnativa.rare.spot.PasswordField;
+import com.appnativa.rare.spot.TextArea;
 import com.appnativa.rare.spot.TextField;
 import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.BorderPanel;
 import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.KeyboardReturnButtonType;
 import com.appnativa.rare.ui.KeyboardType;
-import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
-import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UISoundHelper;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.dnd.iTransferable;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.FocusEvent;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iActionable;
 import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iSpeechEnabler;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.dnd.iTransferable;
+import com.appnativa.rare.ui.event.FocusEvent;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.listener.iTextChangeListener;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
-import com.appnativa.rare.util.JSONHelper;
 import com.appnativa.rare.util.RegExpressionFormat;
 import com.appnativa.rare.util.StringFormat;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.spot.SPOTInteger;
 import com.appnativa.spot.SPOTPrintableString;
+import com.appnativa.util.CharArray;
 import com.appnativa.util.Helper;
 import com.appnativa.util.SNumber;
-import com.appnativa.util.Streams;
-
 import com.google.j2objc.annotations.WeakOuter;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Writer;
-
-import java.text.Format;
-import java.text.ParseException;
-
-import java.util.Locale;
-import java.util.regex.Pattern;
 
 public abstract class aTextFieldWidget extends aPlatformWidget implements iActionable {
   protected String displayWidget;
@@ -136,8 +125,13 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
   protected int                 visibleCharacters;
 
   /** the valid characters */
-  private String  validCharacters;
-  private boolean validateOnLostFocus;
+  protected String  validCharacters;
+  protected boolean validateOnLostFocus;
+  protected TextChangeListener textChangeListener;
+  protected KeyboardType keyboardType;
+
+  CharArray caNumTest;
+  char decmalChar;
 
   /**
    * Constructs a new instance
@@ -353,68 +347,6 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
     PlatformHelper.showVirtualKeyboard(this);
   }
 
-  @Override
-  public void writeHTTPContent(boolean first, Writer writer, String boundary) {
-    try {
-      if (widgetType != WidgetType.FileUploadField) {
-        super.writeHTTPContent(first, writer, boundary);
-      } else {
-        String name = getName();
-        String file = getText();
-
-        file = (file == null)
-               ? null
-               : file.trim();
-
-        if ((file != null) && (file.length() > 0) && (name != null)) {
-          File f = new File(file);
-
-          FormHelper.writeFile(first, writer, boundary, name, f, false);
-        }
-      }
-    } catch(IOException e) {
-      throw ApplicationException.runtimeException(e);
-    }
-  }
-
-  @Override
-  public boolean writeJSONValue(boolean first, Writer writer) {
-    if (widgetType != WidgetType.FileUploadField) {
-      return super.writeJSONValue(first, writer);
-    }
-
-    try {
-      String name = getHTTPFormName();
-      String file = getText();
-
-      file = (file == null)
-             ? null
-             : file.trim();
-
-      if ((file != null) && (file.length() > 0) && (name != null)) {
-        FileReader f = new FileReader(file);
-
-        if (!first) {
-          writer.write(",\n\t");
-        }
-
-        Writer w = JSONHelper.getWiter(writer);
-
-        JSONHelper.encode(name, writer);
-        writer.write(": \"");
-        Streams.readerToWriter(f, w, null);
-        w.flush();
-        writer.write('\"');
-
-        return true;
-      } else {
-        return false;
-      }
-    } catch(IOException e) {
-      throw ApplicationException.runtimeException(e);
-    }
-  }
-
   /**
    * Sets the position of the caret
    *
@@ -460,12 +392,26 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
     this.inputValidator = inputValidator;
   }
 
+  public void setChangeEventsEnabled(boolean enabled) {
+    textEditor.setChangeEventsEnabled(enabled);
+  }
+
   public void setKeyboardReturnButtonType(KeyboardReturnButtonType type, String text, boolean autoEnable) {}
 
-  public void setKeyboardType(KeyboardType type) {}
+  public void setKeyboardType(KeyboardType type) {
+    keyboardType=type;
+    if (type!=null && type!=KeyboardType.DEFAULT_TYPE && textChangeListener == null) {
+      textChangeListener = new TextChangeListener();
+      addTextChangeListener(textChangeListener);
+    }
+  }
 
   public void setMaxCharacters(int maxCharacters) {
     this.maxCharacters = maxCharacters;
+    if(textChangeListener==null) {
+      textChangeListener=new TextChangeListener();
+      addTextChangeListener(textChangeListener);
+    }
   }
 
   public void setMinCharacters(int minCharacters) {
@@ -494,6 +440,10 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
 
   public void setValidCharacters(String validCharacters) {
     this.validCharacters = validCharacters;
+    if(textChangeListener==null) {
+      textChangeListener=new TextChangeListener();
+      addTextChangeListener(textChangeListener);
+    }
   }
 
   @Override
@@ -688,9 +638,35 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
     } else {
       textEditor = createEditorAndComponents(getViewer(), cfg);
     }
-
+    if(cfg instanceof TextArea) {
+      if(cfg.fgColor.getValue()==null) {
+        dataComponent.setForeground(ColorUtils.getTextAreaForeground());
+      }
+      if(cfg.bgColor.getValue()==null) {
+        dataComponent.setBackground(ColorUtils.getTextAreaBackground());
+      }
+      if(!cfg.font.spot_hasValue()) {
+        dataComponent.setFont(FontUtils.getDefaultFont());
+      }
+      if(cfg.getBorders()==null) {
+        formComponent.setBorder(BorderUtils.getTextAreaBorder());
+      }
+    }
+    else {
+      if(cfg.fgColor.getValue()==null) {
+        dataComponent.setForeground(ColorUtils.getTextFieldForeground());
+      }
+      if(cfg.bgColor.getValue()==null) {
+        dataComponent.setBackground(ColorUtils.getTextFieldBackground());
+      }
+      if(!cfg.font.spot_hasValue()) {
+        dataComponent.setFont(FontUtils.getDefaultFont());
+      }
+      if(cfg.getBorders()==null) {
+        formComponent.setBorder(BorderUtils.getTextFieldBorder());
+      }
+    }
     configure(cfg, true, true, true, true);
-
     iPlatformComponent comp = dataComponent;
     iSpeechEnabler     sp   = getAppContext().getSpeechEnabler();
 
@@ -779,54 +755,6 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
     if (cfg instanceof PasswordField) {
       configurePasswordField((PasswordField) cfg);
     } else {
-      if (cfg instanceof FileUploadField) {
-        FileUploadField    fcfg = (FileUploadField) cfg;
-        UIComponentPainter cp   = new UIComponentPainter();
-
-        cp.setPainterHolder(PainterUtils.createButtonPaintHolder());
-
-        iActionComponent ac = PlatformHelper.createNakedButton(formComponent, false, 0);
-
-        ac.setText(fcfg.buttonText.getValue());
-        ac.setComponentPainter(cp);
-        ac.setBorder(BorderUtils.getButtonBorder(Platform.isTouchDevice()
-                ? 6
-                : 2));
-        s = fcfg.buttonIcon.getValue();
-
-        if (s != null) {
-          iPlatformIcon icon = getIcon(fcfg.buttonIcon);
-
-          if (icon != null) {
-            ac.setIcon(icon);
-          }
-        }
-
-        final String title = fcfg.dialogTitle.getValue();
-        final String exts  = fcfg.fileExtensions.getValue();
-
-        ac.addActionListener(new iActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            File f = PlatformHelper.getFile(formComponent, title, true, false, null, exts);
-
-            if (f != null) {
-              setValue(f.getAbsolutePath());
-            }
-          }
-        });
-
-        BorderPanel bp = new BorderPanel(this);
-
-        bp.setPadding(new UIInsets(0, 5, 0, 0));
-        bp.setRightView(ac);
-        bp.setCenterView(formComponent);
-        fileUploadButton = ac;
-        formComponent    = bp;
-        registerWithWidget(bp);
-        registerWithWidget(ac);
-      }
-
       configureGenericDnD(comp, cfg);
     }
   }
@@ -848,8 +776,8 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
   protected void createValidator(SPOTPrintableString format) {
     String s = format.getValue();
 
-    if ((s == null) || (s.length() == 0)) {
-      return;
+    if ((s != null) && (s.length() == 0)) {
+      s=null;
     }
 
     String type = format.spot_getAttribute("valueType");
@@ -862,9 +790,9 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
       inputValidator = Conversions.createNumberFormat(s, getAppContext().getAutoLocalizeNumberFormats());
       minValue       = getNumber(format.spot_getAttribute("minimum"));
       maxValue       = getNumber(format.spot_getAttribute("maximum"));
-    } else if (type.equalsIgnoreCase("regex")) {
+    } else if (type.equalsIgnoreCase("regex") && s!=null) {
       inputValidator = new RegExpressionFormat(Pattern.compile(s, Pattern.DOTALL));
-    } else {
+    } else if(s!=null){
       inputValidator = new StringFormat(s);
       s              = format.spot_getAttribute("minimum");
 
@@ -904,7 +832,7 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
       return;
     }
 
-    if (e.getID() == FocusEvent.FOCUS_LOST) {
+    if (e.wasFocusLost()) {
       verify();
 
       if (hadError) {
@@ -964,7 +892,7 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
       getDataComponent().addTextChangeListener(l);
     }
   }
-
+  
   public void addTextChangeListener(iTextChangeListener l) {
     textEditor.addTextChangeListener(l);
   }
@@ -976,7 +904,6 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
   protected void showError() {
     hadError = true;
 
-    String title = getAppContext().getResourceAsString("Rare.runtime.text.fieldInvalidFormatTitle");
     String s     = (errorMessage == null)
                    ? null
                    : expandString(errorMessage, false);
@@ -1000,7 +927,7 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
         w.setValue(s);
         UISoundHelper.errorSound();
       } else {
-        getAppContext().oneLineErrorMessage(title, s);
+        getWindow().setStatus(s);
       }
     }
   }
@@ -1024,10 +951,7 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
       s = Helper.expandString(getAppContext().getResourceAsString("Rare.runtime.text.fieldValueToBig"),
                               maxValue.toString());
     }
-
-    String title = getAppContext().getResourceAsString("Rare.runtime.text.fieldInvalidFormatTitle");
-
-    getAppContext().oneLineErrorMessage(title, s);
+    getWindow().setStatus(s);
   }
 
   protected boolean verify() {
@@ -1103,6 +1027,12 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
     if ((validCharacters != null) && (validCharacters.length() == 0)) {
       validCharacters = null;
     }
+    if(validCharacters!=null || maxCharacters>0) {
+      if(textChangeListener==null) {
+        textChangeListener=new TextChangeListener();
+        addTextChangeListener(textChangeListener);
+      }
+    }
   }
 
   protected Comparable getDate(String s) {
@@ -1124,7 +1054,86 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
            ? null
            : new SNumber(s);
   }
+  
+  protected boolean allowTextChange(Object source, int startIndex, int endIndex, CharSequence replacementString) {
+    if ((keyboardType != null) && (validCharacters == null) && (replacementString.length() > 0)) {
+      switch(keyboardType) {
+        case NUMBER_TYPE :
+          return isNumeric(replacementString.toString(),false);
+        case DECIMAL_TYPE:
+          if (caNumTest == null) {
+            caNumTest    = new CharArray();
+          }
+          CharArray ca=caNumTest;
+          String s=getValueAsString();
+          int len=s.length();
+          ca._length=0;
+          if(startIndex<=len) {
+            ca.append(s.substring(0,startIndex));
+          }
+          ca.append(replacementString.toString());
+          if(endIndex<len) {
+            ca.append(s.substring(endIndex));
+          }
+          return isNumeric(ca.A,ca._length,true);
+        default :
+          break;
+      }
+    }
 
+    return true;
+  }
+
+  protected boolean isNumeric(String value, boolean decimal) {
+    if (caNumTest == null) {
+      caNumTest    = new CharArray();
+      decmalChar = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+    }
+
+    caNumTest._length = 0;
+    caNumTest.append(value);
+
+    char    a[]          = caNumTest.A;
+    int     len          = caNumTest._length;
+    boolean foundDecimal = false;
+
+    for (int i = 0; i < len; i++) {
+      if (!Character.isDigit(a[i])) {
+        if (decimal) {
+          if (!foundDecimal && (a[i] == decmalChar)) {
+            continue;
+          }
+        }
+
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  protected boolean isNumeric(char[] a, int len, boolean decimal) {
+    if (decmalChar == 0) {
+      decmalChar = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+    }
+    boolean foundDecimal = false;
+
+    for (int i = 0; i < len; i++) {
+      if (!Character.isDigit(a[i])) {
+        if (decimal) {
+          if (!foundDecimal && (a[i] == decmalChar)) {
+            foundDecimal=true;
+            continue;
+          }
+        }
+
+        return false;
+      }
+    }
+
+    return true;
+  }
+ 
   @WeakOuter
   class TextChangeListener implements iTextChangeListener {
     @Override
@@ -1146,11 +1155,12 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
         }
       }
 
-      if ((getValidCharacters() != null) &&!Utils.isInValidSet(getValidCharacters(), replacementString, false)) {
+      if ((validCharacters != null) &&!Utils.isInValidSet(validCharacters, replacementString, false)) {
         return false;
       }
 
-      return true;
+      return allowTextChange(source, startIndex, endIndex, replacementString);
     }
   }
+ 
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -53,12 +53,10 @@ import com.appnativa.rare.ui.table.TableHelper;
 import com.appnativa.rare.ui.tree.iTreeItem;
 import com.appnativa.rare.viewer.aListViewer;
 import com.appnativa.util.IntList;
-
 import com.google.j2objc.annotations.Weak;
 import com.google.j2objc.annotations.WeakOuter;
 
 import java.beans.PropertyChangeEvent;
-
 import java.util.List;
 
 public abstract class aTableBasedView extends ParentView implements iActionListener, iDataModelListener, iListView {
@@ -102,7 +100,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected PaintBucket            lostFoucsSelectionPainter;
   protected int                    minRowHeight;
   protected int                    minVisibleRows;
-  protected int                    popupMenuIndex;
+  protected int                    popupMenuIndex = -1;
   protected PaintBucket            pressedPainter;
   protected int                    rightOffset;
   protected int                    rowHeight;
@@ -112,6 +110,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected boolean                singleClickAction;
   protected int                    visibleRows;
   protected boolean                keepSelectionVisible;
+  protected UIDimension            rowHeightCalSize;
+  private float oldWidth;
 
   protected aTableBasedView(Object nsview) {
     super(nsview);
@@ -127,8 +127,14 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   @Override
   public void setBounds(float x, float y, float w, float h) {
+    if(!fixedRowSize && oldWidth!=w) {
+      resetHeightInfo(0, listModel.size() - 1);
+    }
+    oldWidth=w;
     super.setBounds(x, y, w, h);
-
+    if(!fixedRowSize) {
+      repaintVisibleRows();
+    }
     if (keepSelectionVisible) {
       makeSelectionVisible();
     }
@@ -154,9 +160,63 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   @Override
   public abstract void addSelectionIndex(int index);
 
+  public abstract int getSelectedIndexCount();
+
+  public void setContextMenuIndex(MouseEvent e) {
+    if(popupMenuIndex!=-1) {
+      clearContextMenuIndex();
+    }
+    int n = rowAtPoint(e.getX(), e.getY());
+    if(n!=-1 && !isSelectable(n, -1,null)) {
+        n=-1;
+    }
+    popupMenuIndex=n;
+    if (n != -1) {
+      repaintRow(n);
+
+      if (isRowSelected(n)) {
+        int count = getSelectedIndexCount();
+
+        if (count > 1) {
+          n = getFirstVisibleIndex();
+
+          int l = getLastVisibleIndex();
+
+          for (int i = n; i <= l; i++) {
+            if (isRowSelected(i)) {
+              repaintRow(i);
+            }
+          }
+        }
+      }
+    }
+  }
+
   @Override
-  public void clearPopupMenuIndex() {
+  public void clearContextMenuIndex() {
+    int n = popupMenuIndex;
+
     popupMenuIndex = -1;
+
+    if (n != -1) {
+      removePressedHilight(n);
+
+      if (isRowSelected(n)) {
+        int count = getSelectedIndexCount();
+
+        if (count > 1) {
+          n = getFirstVisibleIndex();
+
+          int l = getLastVisibleIndex();
+
+          for (int i = n; i <= l; i++) {
+            if (isRowSelected(i)) {
+              repaintRow(i);
+            }
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -217,7 +277,14 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   public abstract void refreshItems();
 
+  @Override
   public abstract void repaintRow(int index);
+
+  public abstract void repaintVisibleRows();
+
+  protected abstract void removePressedHilight(int index);
+
+  protected abstract void reloadVisibleRows();
 
   public void repaintRow(RenderableDataItem item) {
     int n = listModel.indexOf(item);
@@ -429,6 +496,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     showDivider = show;
   }
 
+  @Override
   public void setShowLastDivider(boolean show) {
     showLastDivider = show;
   }
@@ -482,7 +550,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size,float maxWidth) {
     int h  = TableHelper.getMinimumListHeight(Component.findFromView(this), minVisibleRows, rowHeight);
     int ch = ScreenUtils.toPlatformPixels(1, component, true);
 
@@ -491,26 +559,26 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   }
 
   @Override
-  public int getPopupMenuIndex() {
+  public int getContextMenuIndex() {
     return popupMenuIndex;
   }
 
-  @Override
-  public float getPreferredHeight(int row) {
-    return getRowHeight();
+  public int getRowHeight(int row, float maxWidth) {
+    int rh=getRowHeight();
+    if(fixedRowSize) {
+      return rh;
+    }
+    UIDimension size=rowHeightCalSize;
+    if(size==null) {
+      size=rowHeightCalSize=new UIDimension();
+    }
+    TableHelper.calculateItemSize(component, itemRenderer, itemRenderer.getItemDescription(), listModel.get(row), row, null, size, (int) maxWidth, rh);
+    rh=(int)Math.ceil(size.height);
+    if(rh<effectiveMinRowHeight) {
+      rh=effectiveMinRowHeight;
+    }
+    return rh;
   }
-
-  @Override
-  public void getPreferredSize(UIDimension size, float maxWidth) {
-    int h = TableHelper.getPreferredListHeight(Component.findFromView(this), Math.max(minVisibleRows, visibleRows),
-              rowHeight, getRowCount());
-    int ch = ScreenUtils.toPlatformPixels(1, component, true);
-    int w  = ch * 5;
-
-    size.width  = Math.max(w, size.width);
-    size.height = Math.max(h, size.height);
-  }
-
   public int getRowCount() {
     return (listModel != null)
            ? listModel.size()
@@ -742,22 +810,35 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
         componentPainter.paint(g, rect.x, rect.y, rect.width, height, iPainter.UNKNOWN);
       }
 
-      float sx = getSelectionPaintStartX(rect.x);
-      float ex = getSelectionPaintEndX(rect.x + rect.width);
+      PaintBucket pb = getBackgroundPaint((popupMenuIndex == -1)
+              ? isPressed()
+              : false, isSelected());
+      float       sx = getSelectionPaintStartX(rect.x);
+      float       ex = getSelectionPaintEndX(rect.x + rect.width);
 
-      if (isPressed()) {
-        PaintBucket pb = itemRenderer.getPressedPaint();
+      if (pb != null) {
+        UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, pb);
+      }
+    }
 
-        if (pb != null) {
-          UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, pb);
-        }
-      } else if (!editing && isSelected()) {
-        PaintBucket pb = itemRenderer.getSelectionPaintForExternalPainter(false);
+    PaintBucket getBackgroundPaint(boolean pressed, boolean selected) {
+      PaintBucket pb = null;
 
-        if (pb != null) {
-          UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, pb);
+      if (popupMenuIndex != -1) {
+        if ((popupMenuIndex == row) || (selected && isRowSelected(popupMenuIndex))) {
+          pb = itemRenderer.getAutoHilightPaint();
         }
       }
+
+      if (pb == null) {
+        if (pressed) {
+          pb = itemRenderer.getPressedPaint();
+        } else if (!editing && selected) {
+          pb = itemRenderer.getSelectionPaintForExternalPainter(false);
+        }
+      }
+
+      return pb;
     }
 
     public void showRowEditingComponent(iPlatformComponent component, boolean animate) {}
@@ -794,6 +875,11 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
       this.row    = row;
       this.column = col;
       clearVisualState();
+    }
+
+    @Override
+    public boolean isMouseTransparent() {
+      return true;
     }
 
     @Override

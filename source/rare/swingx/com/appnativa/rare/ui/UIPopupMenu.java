@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -81,18 +81,30 @@ public class UIPopupMenu extends UIMenu {
    */
   @Override
   public void show(iPlatformComponent owner, int x, int y) {
-    JPopupMenu p = getPopupMenu();
-    iWidget    w = this.getContextWidget();
+    boolean m = modal;
 
-    if (w == null) {
-      w = Platform.findWidgetForComponent(owner);
+    if (!m) {
+      m = ScreenUtils.isSmallScreen() || Platform.getUIDefaults().getBoolean("Rare.PopupMenu.showModal", false);
     }
 
-    if (owner == null) {
-      owner = w.getContainerComponent();
-    }
+    if (m) {
+      show(contextWidget, owner, true);
+    } else {
+      JPopupMenu p = getPopupMenu();
 
-    p.show(owner.getView(), x, y);
+      if (owner == null) {
+        iWidget w = this.getContextWidget();
+
+        if (w == null) {
+          w = Platform.getWindowViewer();
+        }
+
+        owner = w.getContainerComponent();
+      }
+
+      invokingWidget = owner.getWidget();
+      p.show(owner.getView(), x, y);
+    }
   }
 
   /**

@@ -26,7 +26,6 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.text.HTMLCharSequence;
 
 /*-[
@@ -39,8 +38,7 @@ import com.appnativa.rare.ui.text.HTMLCharSequence;
  * @author Don DeCoteau
  */
 public class TextFieldView extends aTextEditorView {
-  private boolean marginSet;
-
+  protected boolean marginSet;
   public TextFieldView() {
     this(createProxy());
   }
@@ -70,25 +68,16 @@ public class TextFieldView extends aTextEditorView {
   public void setBorder(iPlatformBorder b) {
     super.setBorder(b);
 
-    if ((b != null) &&!b.canUseMainLayer()) {
-      setBackgroundColorEx(null);
-      setPaintHandlerEnabled(true);
-
-      if ((componentPainter != null) &&!componentPainter.isBackgroundPaintEnabled()) {
-        setBackgroundColor(UIColor.WHITE);
-      }
-    }
   }
 
   @Override
-  public void setComponentPainter(iPlatformComponentPainter cp) {
-    super.setComponentPainter(cp);
+  public void borderChanged(iPlatformBorder newBorder) {
+    super.borderChanged(newBorder);
 
-    if ((cp != null) && (cp.getBorder() != null)) {
-      UIInsets in = cp.getBorder().getBorderInsets(null);
-
-      in.addInsets(2, 2, 2, 2);
-      setMargin(in);
+    if (newBorder == null) {
+      setMargin(2, 2, 2, 2);
+    } else {
+      setMargin(newBorder.getBorderInsets(null));
     }
   }
 
@@ -130,7 +119,8 @@ public class TextFieldView extends aTextEditorView {
    ]-*/
   ;
 
-  public native void setMargin(int top, int right, int bottom, int left)
+  @Override
+  public native void setMargin(float top, float right, float bottom, float left)
   /*-[
     marginSet_=YES;
     [((RAREAPTextField*)proxy_) setInsetsWithTop: top right: right bottom: bottom left: left];
@@ -200,15 +190,36 @@ public class TextFieldView extends aTextEditorView {
   public native int getSelectionEnd()
   /*-[
     NSRange r=((RAREAPTextField*)proxy_).selectedRangeEx;
-    return (int)(r.location+r.length);
-  ]-*/
+    if(r.length==0 && r.location==0) {
+      int n=[self getTextLength];
+      if(n<cursorPosition_) {
+        cursorPosition_=n;
+      }
+      return cursorPosition_;
+    }
+    else {
+      cursorPosition_=(int)r.location;
+      return (int)(r.location+r.length);
+    }
+   ]-*/
   ;
 
   @Override
   public native int getSelectionStart()
   /*-[
-    return (int)((RAREAPTextField*)proxy_).selectedRangeEx.location;
-  ]-*/
+    NSRange r=((RAREAPTextField*)proxy_).selectedRangeEx;
+    if(r.length==0 && r.location==0) {
+      int n=[self getTextLength];
+      if(n<cursorPosition_) {
+        cursorPosition_=n;
+      }
+      return cursorPosition_;
+    }
+    else {
+      cursorPosition_=(int)r.location;
+      return cursorPosition_;
+    }
+   ]-*/
   ;
 
   @Override
@@ -241,7 +252,6 @@ public class TextFieldView extends aTextEditorView {
   @Override
   protected native void setForegroundColorEx(UIColor fg)
   /*-[
-    foregroundColor_=fg;
     if(fg) {
       ((RAREAPTextField*)proxy_).textColor=[fg getAPColor];
     }
@@ -254,6 +264,12 @@ public class TextFieldView extends aTextEditorView {
     f.allowsEditingTextAttributes=NO;
     [f setEditable:YES];
     return f;
+  ]-*/
+  ;
+
+  public native void setSuggestionsEnabled(boolean enabled)
+  /*-[
+    ((RAREAPTextField*)proxy_).autocorrectionType = enabled ? UITextAutocorrectionTypeYes : UITextAutocorrectionTypeNo;
   ]-*/
   ;
 }

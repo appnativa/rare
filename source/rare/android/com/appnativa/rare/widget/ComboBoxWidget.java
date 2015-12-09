@@ -51,6 +51,7 @@ public class ComboBoxWidget extends aComboBoxWidget {
     super(parent);
   }
 
+  @Override
   protected aComboBoxComponent createModelAndComponents(ComboBox cfg) {
     ComboBoxComponent cb = new ComboBoxComponent(this);
 
@@ -60,6 +61,7 @@ public class ComboBoxWidget extends aComboBoxWidget {
     return cb;
   }
 
+  @Override
   protected iComboBox getComboBox() {
     return (iComboBox) getDataComponent();
   }

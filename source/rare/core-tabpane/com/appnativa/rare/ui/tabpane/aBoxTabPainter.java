@@ -54,8 +54,8 @@ public abstract class aBoxTabPainter extends aPlatformTabPainter {
     sb.append("Rare.TabPane.");
 
     int         sblen = sb.length();
-    PaintBucket pb    = (PaintBucket) getUIDefaults(sb, sblen, false, "tabPainter");
-    PaintBucket spb   = (PaintBucket) getUIDefaults(sb, sblen, false, "selectedTabPainter");
+    PaintBucket pb    = (PaintBucket) getUIDefaults(sb, sblen, false, "normalPainter");
+    PaintBucket spb   = (PaintBucket) getUIDefaults(sb, sblen, false, "selectionPainter");
 
     if (spb == null) {
       spb = createDefaultSelectedPainter();
@@ -136,6 +136,7 @@ public abstract class aBoxTabPainter extends aPlatformTabPainter {
 
     if (fg != null) {
       tabBorderColor = fg;
+      borderPainted=true;
     }
   }
 

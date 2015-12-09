@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -23,11 +23,13 @@ package com.appnativa.rare.ui;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.scripting.Functions;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.border.UIEmptyBorder;
 import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iPopupMenuListener;
@@ -35,6 +37,8 @@ import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.ui.renderer.aListItemRenderer;
+import com.appnativa.rare.util.ListHelper;
 import com.appnativa.rare.widget.iWidget;
 
 import java.util.List;
@@ -49,6 +53,9 @@ public class PopupList implements iPopupMenuListener, iActionListener {
   protected iPlatformComponentPainter popupPainter;
   private iPlatformBorder             border;
   private boolean                     menuStyle;
+  protected String                    cancelButtonText;
+  private int                         defaultRowHeight;
+  private EventListenerList           listenerList;
 
   public PopupList(iWidget context) {
     contextWidget = context;
@@ -56,14 +63,44 @@ public class PopupList implements iPopupMenuListener, iActionListener {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    currentPopup.hidePopup();
+    int row=listHandler.getSelectedIndex();
+    final Object o=listHandler.getSelection();
+    listHandler.clearSelection();
+    ListHelper.flashHilight(listHandler, row, true, 3, new Runnable() {
+      
+      @Override
+      public void run() {
+        if (actionListener != null) {
+          actionListener.actionPerformed(new ActionEvent(o));
+        } else if (o instanceof UIMenuItem) {
+          ((UIMenuItem) o).fire(contextWidget);
+        }
+        currentPopup.hidePopup();
+      }
+    });
+  }
 
-    RenderableDataItem item = listHandler.getSelectedItem();
+  /**
+   * Adds a popup menu listener
+   *
+   * @param l
+   *          the listener to add
+   */
+  public void addPopupMenuListener(iPopupMenuListener l) {
+    if (l != null) {
+      getEventListenerList().add(iPopupMenuListener.class, l);
+    }
+  }
 
-    if (actionListener != null) {
-      actionListener.actionPerformed(new ActionEvent(listHandler.getSelection()));
-    } else if (item instanceof UIMenuItem) {
-      ((UIMenuItem) item).fire(contextWidget);
+  /**
+   * Removes a popup menu listener
+   *
+   * @param l
+   *          the listener to remove
+   */
+  public void removePopupMenuListener(iPopupMenuListener l) {
+    if ((l != null) && (listenerList != null)) {
+      listenerList.remove(iPopupMenuListener.class, l);
     }
   }
 
@@ -83,17 +120,30 @@ public class PopupList implements iPopupMenuListener, iActionListener {
       listHandler.dispose();
     }
 
+    if (listenerList != null) {
+      listenerList.clear();
+    }
+
     border       = null;
     popupPainter = null;
     currentPopup = null;
     listHandler  = null;
+    listenerList = null;
   }
 
   @Override
-  public void popupMenuCanceled(ExpansionEvent e) {}
+  public void popupMenuCanceled(ExpansionEvent e) {
+    if (listenerList != null) {
+      Utils.firePopupCanceledEvent(listenerList, e);
+    }
+  }
 
   @Override
   public void popupMenuWillBecomeInvisible(ExpansionEvent e) {
+    if (listenerList != null) {
+      Utils.firePopupEvent(listenerList, e, false);
+    }
+
     Platform.invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -103,7 +153,11 @@ public class PopupList implements iPopupMenuListener, iActionListener {
   }
 
   @Override
-  public void popupMenuWillBecomeVisible(ExpansionEvent e) {}
+  public void popupMenuWillBecomeVisible(ExpansionEvent e) {
+    if (listenerList != null) {
+      Utils.firePopupEvent(listenerList, e, true);
+    }
+  }
 
   public void showModalPopup(boolean showCloseButton) {
     currentPopup = createPopup(true, showCloseButton);
@@ -135,11 +189,29 @@ public class PopupList implements iPopupMenuListener, iActionListener {
     listHandler.addActionListener(this);
     actionListener = l;
     listHandler.setVisibleRowCount(visibleRowCount);
+
+    int rh  = getDefaultRowHeight();
+    int len = items.size();
+
+    for (int i = 0; i < len; i++) {
+      rh = Math.max(rh, listHandler.getPreferredHeight(i));
+    }
+
+    listHandler.setRowHeight(rh + UIScreen.PLATFORM_PIXELS_2);
     this.menuStyle = menuStyle;
   }
 
   public void setMenuItems(UIPopupMenu menu) {
     setItems(menu.getItems(), null, true, menu.size());
+  }
+
+  protected int getDefaultRowHeight() {
+    if (defaultRowHeight == 0) {
+      defaultRowHeight = UIScreen.toPlatformPixelHeight(PlatformHelper.getDefaultRowHeight(),
+              Platform.getWindowViewer().getComponent(), 100, false);
+    }
+
+    return defaultRowHeight;
   }
 
   public void setPopupPainter(iPlatformComponentPainter popupPainter) {
@@ -182,13 +254,30 @@ public class PopupList implements iPopupMenuListener, iActionListener {
 
     p.setPopupOwner(contextWidget.getContainerComponent());
 
-    if (showCloseButton) {
-      iActionComponent a = PlatformHelper.createNakedButton(p.getWindowPane(), false, 0);
-      String           s = Platform.getResourceAsString("Rare.runtime.text.popupMenu.cancel");
+    iActionComponent a = null;
+    String           s = null;
 
-      a.setIconGap(UIScreen.platformPixels(4));
+    if (showCloseButton) {
+      a = PlatformHelper.createNakedButton(p.getWindowPane(), false, 0);
+      s = cancelButtonText;
+
+      if ((s == null) || (s.length() == 0)) {
+        s = Platform.getResourceAsString("Rare.runtime.text.popupMenu.cancel");
+
+        UIFont f = a.getFont();
+
+        a.setFont(f.deriveFont(UIFont.BOLD, f.getSize() + 2));
+      } else {
+        if (!s.startsWith("<html>")) {
+          int wrap = Platform.getUIDefaults().getInt("Rare.PopupMenu.titleCharacterWrapCount", 40);
+
+          s = Functions.htmlWordWrap(s, wrap, true);
+        }
+      }
+
       a.setText(s);
-      a.setAlignment(HorizontalAlign.CENTER, VerticalAlign.CENTER);
+      a.setIconGap(UIScreen.platformPixels(4));
+      a.setAlignment(HorizontalAlign.LEFT, VerticalAlign.CENTER);
       a.setIconPosition(IconPosition.RIGHT_JUSTIFIED);
       a.setIcon(Platform.getResourceAsIcon("Rare.icon.close"));
       a.setBackground(ColorUtils.getBackground());
@@ -199,10 +288,6 @@ public class PopupList implements iPopupMenuListener, iActionListener {
         }
       });
       a.setForeground(listHandler.getListComponent().getForeground());
-
-      UIFont f = a.getFont();
-
-      a.setFont(f.deriveFont(UIFont.BOLD, f.getSize() + 2));
       a.setBorder(TitlePane.getTitlePaneBorder());
       a.putClientProperty(iConstants.RARE_MIN_HEIGHT_PROPERTY, "1.5ln");
       p.getWindowPane().setTitileBar(a);
@@ -225,7 +310,7 @@ public class PopupList implements iPopupMenuListener, iActionListener {
 
   protected void setRenderingDefaults() {
     iPlatformComponent    list     = listHandler.getListComponent();
-    iPlatformItemRenderer renderer = listHandler.getItemRenderer();
+    iPlatformItemRenderer renderer = (aListItemRenderer) listHandler.getItemRenderer();
     UIProperties          p        = Platform.getUIDefaults();
     UIColor               c        = menuStyle
                                      ? p.getColor("Rare.PopupMenu.list.selectedForeground")
@@ -240,7 +325,7 @@ public class PopupList implements iPopupMenuListener, iActionListener {
                      : null;
 
     if (pb == null) {
-      pb = p.getPaintBucket("Rare.ComboBox.list.selectedBackground");
+      pb = renderer.getAutoHilightPaint();
     }
 
     if ((c != null) || (pb != null)) {
@@ -301,5 +386,21 @@ public class PopupList implements iPopupMenuListener, iActionListener {
         popupPainter.setBackgroundPainter(bp, false);
       }
     }
+  }
+
+  public String getCancelButtonText() {
+    return cancelButtonText;
+  }
+
+  public void setCancelButtonText(String cancelButtonText) {
+    this.cancelButtonText = cancelButtonText;
+  }
+
+  protected EventListenerList getEventListenerList() {
+    if (listenerList == null) {
+      listenerList = new EventListenerList();
+    }
+
+    return listenerList;
   }
 }

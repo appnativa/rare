@@ -15,16 +15,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.tree;
 
 import android.annotation.SuppressLint;
+
 import android.content.Context;
+
 import android.view.MotionEvent;
 import android.view.View;
+
 import android.widget.Adapter;
+
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.ui.CheckListManager;
 import com.appnativa.rare.ui.RenderableDataItem;
@@ -103,16 +107,33 @@ public class TreeViewEx extends ListViewEx implements iTree {
     if (!toggleOnTwistyOnly && handleExpansion(ti, position, true)) {
       handled = true;
     }
-
-    if (!handled &&!parentItemsSelectable &&!ti.isLeaf()) {
-      handled = true;
-    }
-
     return handled
            ? true
            : super.performItemClick(view, position, id);
   }
 
+  @Override
+  protected boolean isSelectable(RenderableDataItem item) {
+    if (!super.isSelectable(item)) {
+      return false;
+    }
+
+    if (!parentItemsSelectable) {
+      iTreeItem ti = getTreeItem(item);
+
+      if ((ti != null) &&!ti.isLeaf()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+   @Override
+  public void dispose() {
+    super.dispose();
+    treeModel=null;
+  }
+   
   public void setAutoScrollOnExpansion(boolean autoScrollOnExpansion) {
     this.autoScrollOnExpansion = autoScrollOnExpansion;
   }
@@ -350,7 +371,7 @@ public class TreeViewEx extends ListViewEx implements iTree {
       }
     }
   }
-
+  
   @Override
   protected void toggleCheckedState(int row) {
     RenderableDataItem item = listModel.get(row);

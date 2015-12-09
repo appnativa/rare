@@ -58,6 +58,7 @@ import javax.swing.text.html.StyleSheet;
 import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.ui.text.HTMLEditorKitEx.HTMLDocumentEx;
 import com.appnativa.rare.scripting.Functions;
+import com.appnativa.rare.ui.UIFont;
 import com.appnativa.util.CharArray;
 
 /**
@@ -129,43 +130,78 @@ public class BasicHTMLEx {
       ((HTMLDocument) doc).setBase((URL) base);
     }
 
-    boolean center;
+    int flags=0;
 
     if (c instanceof JLabel) {
-      center = ((JLabel) c).getHorizontalAlignment() == SwingConstants.CENTER;
+      flags = ((JLabel) c).getHorizontalAlignment() == SwingConstants.CENTER ? 0x01 : 0;
     } else if (c instanceof AbstractButton) {
-      center = ((AbstractButton) c).getHorizontalAlignment() == SwingConstants.CENTER;
-    } else {
-      center = false;
+      flags = ((AbstractButton) c).getHorizontalAlignment() == SwingConstants.CENTER? 0x01 : 0;
     }
 
     if (html == null) {
       html = "";
     }
-
     Reader r;
 
     if (html.startsWith("<html>")) {
       r = new StringReader(html);
     } else {
+      Font f=c.getFont();
+      if(f instanceof UIFont) {
+        UIFont font=(UIFont)f;
+        if(font.isStrikeThrough()) {
+          flags|=0x02;
+        }
+        if(font.isUnderline()) {
+          flags|=0x04;
+        }
+      }
+      String prefix=null;
+      String suffix=null;
+      switch(flags) {
+        case 0x01:
+          prefix="<center>";
+          suffix="</center>";
+          break;
+        case 0x02:
+          prefix="<s>";
+          suffix="</s>";
+          break;
+        case 0x03:
+          prefix="<center><s>";
+          suffix="</s></center>";
+          break;
+        case 0x04:
+          prefix="<u>";
+          suffix="</u>";
+          break;
+        case 0x05:
+          prefix="<center><u>";
+          suffix="</u></center>";
+          break;
+        case 0x06:
+          prefix="<u><s>";
+          suffix="</s></u>";
+          break;
+        case 0x07:
+          prefix="<center><u><s>";
+          suffix="</s></u></center>";
+          break;
+          default:
+            break;
+      }
       if (html.indexOf('\n') != -1) {
-        String prefix = center
-                        ? "<center>"
-                        : null;
-        String suffix = center
-                        ? "</center>"
-                        : null;
-
         r = new StringReader(Functions.tokenToHTMLBreak(html, "\n", true, prefix, suffix, -1));
       } else {
         CharArray ca = new CharArray(html.length() + 25);
 
         ca.append("<html><body>");
-
-        if (center) {
-          ca.append("<center>").append(html).append("</center>");
-        } else {
-          ca.append(html);
+        if (prefix!=null) {
+          ca.append(prefix);
+        }
+        ca.append(html);
+        if(suffix!=null) {
+          ca.append(suffix);
         }
 
         ca.append("</body></html>");

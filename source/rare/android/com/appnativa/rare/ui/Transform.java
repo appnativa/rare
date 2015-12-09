@@ -29,7 +29,7 @@ public class Transform extends Matrix implements iTransform {
     super();
   }
 
-  public Transform(Transform tx) {
+  public Transform(Matrix tx) {
     super(tx);
   }
 

@@ -30,7 +30,8 @@ import com.appnativa.rare.platform.PlatformHelper;
 public class UISoundHelper {
   static UISound success;
   static UISound error;
-
+  static boolean errorLoadedTried;
+  static boolean successLoadedTried;
   public UISoundHelper() {}
 
   public static void beep() {
@@ -38,15 +39,16 @@ public class UISoundHelper {
   }
 
   public static void errorSound() {
-    if (error == null) {
-      String s = Platform.getResourceAsString("Rare.sound.error");
+    if (error == null && !errorLoadedTried) {
+      String s = Platform.getUIDefaults().getString("Rare.sound.error");
 
       if (s == null) {
         s = "rare_raw_error_beep";
       }
-
+      errorLoadedTried=true;
       try {
         error = Platform.getAppContext().getSound(s);
+        error.setVolume(25);
       } catch(Exception e) {
         Platform.ignoreException(null, e);
       }
@@ -55,23 +57,29 @@ public class UISoundHelper {
     if (error != null) {
       error.play();
     }
+    else {
+      PlatformHelper.beep();
+    }
   }
 
   public static void successSound() {
-    if (success == null) {
-      String s = Platform.getResourceAsString("Rare.sound.success");
+    if (success == null && !successLoadedTried) {
+      String s = Platform.getUIDefaults().getString("Rare.sound.success");
+      if (s == null) {
+        s = "rare_raw_success_sound";
+      }
 
-      if (s != null) {
-        try {
-          success = Platform.getAppContext().getSound(s);
-        } catch(Exception e) {
-          Platform.ignoreException(null, e);
-        }
+      try {
+        successLoadedTried=true;
+        success = Platform.getAppContext().getSound(s);
+        success.setVolume(25);
+      } catch(Exception e) {
+        Platform.ignoreException(null, e);
       }
     }
 
     if (success != null) {
-      error.play();
+      success.play();
     }
   }
 }

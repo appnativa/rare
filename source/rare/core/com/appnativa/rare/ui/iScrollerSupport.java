@@ -50,4 +50,6 @@ public interface iScrollerSupport {
   void moveUpDown(boolean up, boolean block);
 
   void moveLeftRight(boolean left, boolean block);
+  
+  void setContentOffset(float x, float y);
 }

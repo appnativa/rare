@@ -50,6 +50,7 @@ public class MenuBarViewer extends aMenuBarViewer {
     super(parent);
   }
 
+  @Override
   public void createMenu(Menu menu) {}
 
   /**
@@ -69,18 +70,22 @@ public class MenuBarViewer extends aMenuBarViewer {
     return v;
   }
 
+  @Override
   public boolean handleMenuItemSeleceted(MenuItem menu) {
     return false;
   }
 
+  @Override
   public void menuClosed(Menu menu) {}
 
+  @Override
   public void menuWillBecomeVisible(Menu menu) {}
 
   public Menu getMenuBar() {
     return (Menu) menuBar;
   }
 
+  @Override
   public boolean isNativeActionBar() {
     return false;
   }
@@ -91,6 +96,7 @@ public class MenuBarViewer extends aMenuBarViewer {
    * @param cfg the configuration
    * @return the menu bar component
    */
+  @Override
   protected iMenuBarComponent createMenuBarAndComponents(MenuBar cfg) {
     ActionBar ab = new ActionBar(this, cfg);
 

@@ -37,7 +37,6 @@ import java.util.Map;
 public class EventBase extends EventObject {
   protected boolean             consumed;
   protected boolean             failureEvent;
-  protected int                 id;
   protected Object              nativeEvent;
   private static Object         fakeSource = new Object();
   protected Map<String, String> queryMap;
@@ -48,12 +47,6 @@ public class EventBase extends EventObject {
   public EventBase(Object source) {
     super(fakeSource);
     source_ = source;
-  }
-
-  public EventBase(Object source, int id) {
-    super(fakeSource);
-    source_ = source;
-    this.id = id;
   }
 
   public EventBase(Object source, Object nativeEvent) {
@@ -96,10 +89,6 @@ public class EventBase extends EventObject {
     return (c == null)
            ? null
            : Platform.findWidgetForComponent(c);
-  }
-
-  public int getID() {
-    return id;
   }
 
   public Object getNativeEvent() {

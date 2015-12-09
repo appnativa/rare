@@ -15,17 +15,27 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.exception.ExpandVetoException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iWeakReference;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.exception.ExpandVetoException;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.scripting.MultiScript;
 import com.appnativa.rare.scripting.ScriptingEvent;
@@ -34,6 +44,7 @@ import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.ChangeEvent;
+import com.appnativa.rare.ui.event.EventBase;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.FlingEvent;
 import com.appnativa.rare.ui.event.FocusEvent;
@@ -42,6 +53,7 @@ import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.event.RotationEvent;
 import com.appnativa.rare.ui.event.ScaleEvent;
+import com.appnativa.rare.ui.event.ScaleEvent.Type;
 import com.appnativa.rare.ui.event.TextChangeEvent;
 import com.appnativa.rare.ui.event.WindowEvent;
 import com.appnativa.rare.ui.event.iActionListener;
@@ -60,18 +72,6 @@ import com.appnativa.rare.ui.listener.iTextChangeListener;
 import com.appnativa.rare.ui.listener.iViewListener;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharScanner;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import java.text.ParseException;
-
-import java.util.Collections;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * This class is responsible for invoking scripts for triggered events. It
@@ -201,6 +201,37 @@ public abstract class aWidgetListener
   }
 
   /**
+   * Merges the events in the specified map with
+   * the current event map
+   *
+   * @param map the map to merge
+   */
+  public void mergeEvents(Map map) {
+    Iterator it;
+    Entry    e;
+    String   event, code;
+    Object   o;
+
+    it = map.entrySet().iterator();
+
+    while(it.hasNext()) {
+      e     = (Entry) it.next();
+      event = (String) e.getKey();
+      o     = e.getValue();
+
+      if (o instanceof String) {
+        code = (String) o;
+
+        if ((code == null) || (code.length() == 0)) {
+          continue;
+        }
+      }
+
+      setEventHandler(event, o, true);
+    }
+  }
+
+  /**
    * Creates an event map from the specified attributes
    *
    * @param attributes
@@ -208,8 +239,8 @@ public abstract class aWidgetListener
    *
    * @return a map of events and their associated script functions
    */
-  public static Map createEventMap(Map<String, String> attributes) {
-    HashMap<String, String> map = null;
+  public static Map createEventMap(Map<String, Object> attributes) {
+    HashMap<String, Object> map = null;
 
     if ((attributes != null) && (attributes.size() > 0)) {
       String           code;
@@ -225,24 +256,38 @@ public abstract class aWidgetListener
           continue;
         }
 
-        code = attributes.get(attribute);
+        Object o = attributes.get(attribute);
 
-        if ((code != null) && (code.length() > 0)) {
-          if (map == null) {
-            map = new HashMap<String, String>();
-          }
+        if (o instanceof String) {
+          code = o.toString();
 
-          if (code.startsWith("on") && (code.indexOf('(') == -1)) {
-            String s = attributes.get(code);
-
-            if (s != null) {
-              code = s;
+          if ((code != null) && (code.length() > 0)) {
+            if (map == null) {
+              map = new HashMap();
             }
+
+            if (code.startsWith("on") && (code.indexOf('(') == -1)) {
+              Object oo = attributes.get(code);
+
+              if (o != null) {
+                o = oo;
+              }
+            } else {
+              o = processEventString(code);
+            }
+
+            map.put(event, code);
           } else {
-            code = processEventString(code);
+            o = null;
+          }
+        }
+
+        if (o != null) {
+          if (map == null) {
+            map = new HashMap();
           }
 
-          map.put(event, code);
+          map.put(event, o);
         }
       }
     }
@@ -489,7 +534,7 @@ public abstract class aWidgetListener
 
     if (e == null) {
       if (NO_EVENT == null) {
-        NO_EVENT = new EventObject(Platform.getContextRootViewer());
+        NO_EVENT = new EventBase(Platform.getContextRootViewer());
       }
 
       e = NO_EVENT;
@@ -599,7 +644,7 @@ public abstract class aWidgetListener
     if (code != null) {
       if (e == null) {
         if (NO_EVENT == null) {
-          NO_EVENT = new EventObject(Platform.getWindowViewer(w).getDataComponent());
+          NO_EVENT = new EventBase(Platform.getWindowViewer(w).getDataComponent());
         }
 
         e = NO_EVENT;
@@ -625,20 +670,23 @@ public abstract class aWidgetListener
   }
 
   @Override
-  public void focusChanged(Object view, boolean hasFocus, Object oldView) {
+  public void focusChanged(Object view, boolean hasFocus, Object oldView, boolean temporary) {
     FocusEvent         e;
     iPlatformComponent c = getSource(view);
 
     if (hasFocus && isEnabled(iConstants.EVENT_FOCUS)) {
-      e = new FocusEvent(c, FocusEvent.FOCUS_GAINED);
+      e = new FocusEvent(c, true);
       execute(iConstants.EVENT_FOCUS, e);
     } else if (!hasFocus && isEnabled(iConstants.EVENT_BLUR)) {
-      iPlatformComponent oc        = (oldView == null)
-                                     ? null
-                                     : getSource(view);
-      boolean            temporary = (oc != null) && (Platform.getWindowViewer(c) != Platform.getWindowViewer(oc));
+      iPlatformComponent oc = (oldView == null)
+                              ? null
+                              : getSource(view);
 
-      e = new FocusEvent(c, FocusEvent.FOCUS_GAINED, temporary, oc);
+      if (!temporary) {
+        temporary = (oc != null) && (Platform.getWindowViewer(c) != Platform.getWindowViewer(oc));
+      }
+
+      e = new FocusEvent(c, false, temporary, oc);
       execute(iConstants.EVENT_BLUR, e);
     }
   }
@@ -667,9 +715,7 @@ public abstract class aWidgetListener
     Throwable t     = runInline(createRunner(event, e));
 
     if (t != null) {
-      theWidget.getAppContext().getDefaultExceptionHandler().handleException(t);
-      theWidget.getAppContext().getDefaultExceptionHandler().ignoreException(event, t);
-      UISoundHelper.errorSound();
+      throw ApplicationException.runtimeException(t);
     }
   }
 
@@ -696,8 +742,7 @@ public abstract class aWidgetListener
     }
 
     if (t != null) {
-      theWidget.getAppContext().getDefaultExceptionHandler().ignoreException("itemWillCollapse", t);
-      UISoundHelper.errorSound();
+      throw ApplicationException.runtimeException(t);
     }
   }
 
@@ -714,8 +759,7 @@ public abstract class aWidgetListener
     }
 
     if (t != null) {
-      theWidget.getAppContext().getDefaultExceptionHandler().ignoreException("itemWillExpand", t);
-      UISoundHelper.errorSound();
+      throw ApplicationException.runtimeException(t);
     }
   }
 
@@ -782,14 +826,13 @@ public abstract class aWidgetListener
 
     if (e.isPopupTrigger() && isEnabled(iConstants.EVENT_CONTEXTMENU)) {
       evaluate(iConstants.EVENT_CONTEXTMENU, e, false);
+    } else if (e.getClickCount() > 1) {
+      if (isEnabled(iConstants.EVENT_DOUBLECLICK)) {
+        execute(iConstants.EVENT_DOUBLECLICK, e);
+      }
     } else if (isEnabled(iConstants.EVENT_CLICK)) {
       if (Platform.isTouchDevice() || PlatformHelper.isMouseClick(p, mousePressedTime, e)) {
         execute(iConstants.EVENT_CLICK, e);
-      }
-    } else if (isEnabled(iConstants.EVENT_DOUBLECLICK)) {
-      if ((e.getClickCount() == 2)
-          && (Platform.isTouchDevice() || PlatformHelper.isMouseClick(p, mousePressedTime, e))) {
-        execute(iConstants.EVENT_DOUBLECLICK, e);
       }
     }
   }
@@ -829,7 +872,26 @@ public abstract class aWidgetListener
 
   @Override
   public void onScaleEvent(Object view, int type, Object sgd, float factor) {
-    ScaleEvent e = new ScaleEvent(view, sgd, type, factor);
+    ScaleEvent.Type t;
+
+    switch(type) {
+      case iGestureListener.SCALE_BEGIN :
+        t = Type.SCALE_BEGIN;
+
+        break;
+
+      case iGestureListener.SCALE_END :
+        t = Type.SCALE_END;
+
+        break;
+
+      default :
+        t = Type.SCALE;
+
+        break;
+    }
+
+    ScaleEvent e = new ScaleEvent(view, sgd, t, factor);
 
     evaluate(iConstants.EVENT_SCALE, e, false);
   }
@@ -946,14 +1008,14 @@ public abstract class aWidgetListener
       // firing arter a close (close is
       // processed inline to allow for
       // vetoing)
-      execute(iConstants.EVENT_CHANGE, new EventObject(target));
+      execute(iConstants.EVENT_CHANGE, new EventBase(target));
     }
   }
 
   @Override
   public void tabClosed(iTabDocument target) {
     if (isEnabled(iConstants.EVENT_CLOSED)) {
-      execute(iConstants.EVENT_CLOSED, new EventObject(target));
+      execute(iConstants.EVENT_CLOSED, new EventBase(target));
     }
   }
 
@@ -963,14 +1025,14 @@ public abstract class aWidgetListener
   @Override
   public void tabOpened(iTabDocument target) {
     if (isEnabled(iConstants.EVENT_OPENED)) {
-      execute(iConstants.EVENT_OPENED, new EventObject(target));
+      execute(iConstants.EVENT_OPENED, new EventBase(target));
     }
   }
 
   @Override
   public void tabWillClose(iTabDocument target) {
     if (isEnabled(iConstants.EVENT_WILL_CLOSE)) {
-      scriptHandler.runTask(createRunner(iConstants.EVENT_WILL_CLOSE, new EventObject(target)));
+      scriptHandler.runTask(createRunner(iConstants.EVENT_WILL_CLOSE, new EventBase(target)));
     }
   }
 

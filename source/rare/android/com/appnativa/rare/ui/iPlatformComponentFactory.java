@@ -21,10 +21,8 @@
 package com.appnativa.rare.ui;
 
 import android.view.View;
-
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -137,7 +135,7 @@ public interface iPlatformComponentFactory extends iComponentFactory {
    *
    * @return the view
    */
-  ListView getList(iWidget context, ListBox cfg);
+  ListViewEx getList(iWidget context, ListBox cfg);
 
   /**
    * Gets a password text field component

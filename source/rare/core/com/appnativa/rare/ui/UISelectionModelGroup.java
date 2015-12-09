@@ -20,12 +20,14 @@
 
 package com.appnativa.rare.ui;
 
-import com.appnativa.rare.ui.event.ItemChangeEvent;
-import com.appnativa.rare.ui.event.iItemChangeListener;
-import com.appnativa.util.IdentityArrayList;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.appnativa.rare.ui.event.ItemChangeEvent;
+import com.appnativa.rare.ui.event.iItemChangeListener;
+import com.appnativa.rare.viewer.TableViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.IdentityArrayList;
 
 /**
  *
@@ -81,6 +83,16 @@ public class UISelectionModelGroup {
       di = comp.get(i);
 
       if ((di != null) && di.isSelectable()) {
+        if(comp.isTabular()) {
+          iWidget w=comp.getListComponent().getWidget();
+          if(w instanceof TableViewer) {
+            TableViewer table=(TableViewer) w;
+            iTreeHandler th=table.getTreeHandler();
+            if(th !=null && !th.isParentItemsSelectable() && !th.isLeafItem(i)) {
+              continue;
+            }
+          }
+        }
         return i;
       }
     }
@@ -107,6 +119,16 @@ public class UISelectionModelGroup {
       di = comp.get(i);
 
       if ((di != null) && di.isSelectable()) {
+        if(comp.isTabular()) {
+          iWidget w=comp.getListComponent().getWidget();
+          if(w instanceof TableViewer) {
+            TableViewer table=(TableViewer) w;
+            iTreeHandler th=table.getTreeHandler();
+            if(th !=null && !th.isParentItemsSelectable() && !th.isLeafItem(i)) {
+              continue;
+            }
+          }
+        }
         return i;
       }
     }
@@ -124,7 +146,7 @@ public class UISelectionModelGroup {
   }
 
   public static void selectNextRow(iListHandler comp, int row) {
-    int pos = findNextSelectable(comp, row + 1, -1);
+    int pos = row==-1 ? 0 : findNextSelectable(comp, row + 1, -1);
 
     if (pos != -1) {
       comp.setSelectedIndex(pos);
@@ -194,7 +216,7 @@ public class UISelectionModelGroup {
   }
 
   public static void selectPreviousRow(iListHandler comp, int row) {
-    int pos = findPreviousSelectable(comp, 0, row);
+    int pos = row==-1 ? comp.getItemCount()-1 : findPreviousSelectable(comp, 0, row);
 
     if (pos != -1) {
       comp.setSelectedIndex(pos);

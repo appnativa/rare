@@ -68,7 +68,7 @@ import java.util.HashMap;
  * </pre>
  *
  * @author Don Decoteau
- * @see FunctionCallbackChainner
+ * @see FunctionCallbackChainer
  */
 public class FunctionCallbackWaiter {
   protected HashMap<Object, CallbackResult> resultsMap = new HashMap<Object, FunctionCallbackWaiter.CallbackResult>(3);

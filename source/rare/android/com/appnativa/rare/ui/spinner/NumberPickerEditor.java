@@ -21,7 +21,6 @@
 package com.appnativa.rare.ui.spinner;
 
 import android.content.Context;
-
 import android.widget.NumberPicker;
 
 import com.appnativa.rare.ui.ActionComponent;
@@ -112,6 +111,10 @@ public class NumberPickerEditor implements iSpinnerEditor, NumberPicker.OnValueC
 
   public void setForeground(UIColor color) {}
 
+  @Override
+  public void selectAll() {
+  }
+
   public void setValue(Object value) {
     if (value instanceof Number) {
       editorView.setValue(((Number) value).intValue());
@@ -153,5 +156,9 @@ public class NumberPickerEditor implements iSpinnerEditor, NumberPicker.OnValueC
   @Override
   public Object removeSelectedData(boolean returnData) {
     return null;
+  }
+
+  @Override
+  public void selectField() {
   }
 }

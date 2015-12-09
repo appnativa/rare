@@ -71,12 +71,14 @@ public class SpacerView extends View implements iPainterSupport, iComponentView 
     }
   }
 
+  @Override
   public void dispose() {
     if (bitmap != null) {
       bitmap.recycle();
     }
   }
 
+  @Override
   public void draw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -104,6 +106,7 @@ public class SpacerView extends View implements iPainterSupport, iComponentView 
     requestLayout();
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
@@ -126,6 +129,7 @@ public class SpacerView extends View implements iPainterSupport, iComponentView 
     return bitmap;
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
@@ -144,12 +148,14 @@ public class SpacerView extends View implements iPainterSupport, iComponentView 
     return this;
   }
 
+  @Override
   protected void onDraw(Canvas canvas) {
     if (bitmap != null) {
       canvas.drawBitmap(bitmap, 0, 0, null);
     }
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     int w = (width < 0)
             ? 0

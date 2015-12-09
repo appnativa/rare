@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
@@ -26,6 +26,8 @@ import android.graphics.Canvas;
 
 import android.util.AttributeSet;
 
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 
 import android.webkit.WebSettings;
@@ -33,6 +35,7 @@ import android.webkit.WebView;
 
 import com.appnativa.rare.platform.android.ui.iComponentView;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
@@ -46,6 +49,7 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
   Boolean                   saveUseZoomControls;
   protected AndroidGraphics graphics;
   boolean                   disposed;
+  protected float           enabledAlpha = 1;
 
   public WebViewEx(Context context) {
     super(context);
@@ -59,10 +63,7 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
     super(context, attrs, defStyle);
   }
 
-  public WebViewEx(Context context, AttributeSet attrs, int defStyle, boolean privateBrowsing) {
-    super(context, attrs, defStyle, privateBrowsing);
-  }
-
+  @Override
   public void draw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -79,6 +80,7 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
     graphics.clear();
   }
 
+  @Override
   public void dispose() {
     disposed = true;
     removeAllViews();
@@ -94,6 +96,7 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
     super.onConfigurationChanged(getContext().getResources().getConfiguration());
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
@@ -103,18 +106,66 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
     getSettings().setBuiltInZoomControls(use);
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     return super.getSuggestedMinimumHeight();
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     return super.getSuggestedMinimumWidth();
   }
 
+  @Override
+  public void setAlpha(float alpha) {
+    enabledAlpha = alpha;
+    super.setAlpha(alpha);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+
+    if (enabled) {
+      super.setAlpha(enabledAlpha * ColorUtils.getDisabledAplhaPercent());
+    } else {
+      super.setAlpha(0.5f);
+    }
+  }
+
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent ev) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchTouchEvent(ev);
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchKeyEvent(event);
+  }
+
+  @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchGenericMotionEvent(event);
+  }
+
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
 
@@ -125,6 +176,7 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
 
@@ -146,11 +198,13 @@ public class WebViewEx extends WebView implements iPainterSupport, iComponentVie
     }
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

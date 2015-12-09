@@ -689,7 +689,7 @@ public class ScreenUtils {
 
   public static float getDefaultIconDensity() {
     if (iconDensity == 0) {
-      String s = Platform.getUIDefaults().getString("Rare.net.defaultIconDensity");
+      String s = Platform.getUIDefaults().getString("Rare.defaultIconDensity");
 
       do {
         if (s == null) {

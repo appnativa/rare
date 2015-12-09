@@ -20,16 +20,14 @@
 
 package com.appnativa.rare.ui.calendar;
 
+import java.util.Calendar;
+
 import com.appnativa.rare.platform.apple.ui.view.DatePickerView;
 import com.appnativa.rare.platform.apple.ui.view.DatePickerView.iUpdateListener;
 import com.appnativa.rare.ui.Container;
-import com.appnativa.rare.ui.event.WindowEvent;
-import com.appnativa.rare.ui.event.iWindowListener;
 import com.appnativa.rare.ui.iPlatformComponent;
 
-import java.util.Calendar;
-
-public class DateViewManager extends aDateViewManager implements iUpdateListener, iWindowListener {
+public class DateViewManager extends aDateViewManager implements iUpdateListener {
   protected DatePickerView  picker;
   protected iUpdateListener updateListener;
 
@@ -50,7 +48,7 @@ public class DateViewManager extends aDateViewManager implements iUpdateListener
 
     endDate.setTimeInMillis(startTime);
 
-    if (okButton == null) {
+    if (okButton == null && !isShowingDialog()) {
       fireEvent();
     }
   }
@@ -60,18 +58,8 @@ public class DateViewManager extends aDateViewManager implements iUpdateListener
     date.setTimeInMillis(time);
     stringValue = null;
 
-    if (okButton == null) {
+    if (okButton == null && !isShowingDialog()) {
       fireEvent();
-    }
-  }
-
-  @Override
-  public void windowEvent(WindowEvent e) {
-    if (e.getType() == WindowEvent.Type.Closed) {
-      if (dialog != null) {
-        dialog.disposeOfWindow();
-        dialog = null;
-      }
     }
   }
 

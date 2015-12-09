@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
@@ -51,7 +51,7 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
     super(parent);
   }
 
-  @Override
+   @Override
   public void setKeyboardReturnButtonType(KeyboardReturnButtonType type, String text, boolean autoEnable) {
     final aTextEditorView tv = (aTextEditorView) getDataView();
 
@@ -64,6 +64,8 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
 
   @Override
   public void setKeyboardType(KeyboardType type) {
+    super.setKeyboardType(type);
+
     final aTextEditorView tv = (aTextEditorView) getDataView();
 
     if (type == null) {
@@ -125,6 +127,9 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
 
     if (s != null) {
       tv.setSpellcheck(!s.equals("false"));
+    }
+    if(!cfg.allowDefaultSuggestions.booleanValue()) {
+      tv.setSuggestionsEnabled(false);
     }
   }
 

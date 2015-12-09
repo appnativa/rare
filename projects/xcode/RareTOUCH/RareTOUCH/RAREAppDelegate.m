@@ -59,12 +59,12 @@
   NSString* server=@"http://192.168.1.50";
   NSString* demo;
   NSArray *arguments;
-//  demo= @"/apps/covergirls/coverflow_view.sdf";
+  //demo= @"/apps/covergirls/coverflow_view.sdf";
   demo= @"/demos/medical/Medical-android/assets/application.rml";
-//  demo= @"//demos/mail/Mail-android/assets/application.rml";
-  // demo= @"//xhrdemos/tests/application.rml";
-   arguments=[NSArray arrayWithObject:[NSString stringWithFormat:@"%@%@",server,demo]];
-//  arguments = [NSArray arrayWithObject: @"lib:assets/application.rml"];
+  //demo= @"/demos/mail/Mail-android/assets/application.rml";
+  demo= @"//xhrdemos/tests/application.rml";
+  arguments=[NSArray arrayWithObject:[NSString stringWithFormat:@"%@%@",server,demo]];
+  //arguments = [NSArray arrayWithObject: @"lib:assets/application.rml"];
   
   
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{

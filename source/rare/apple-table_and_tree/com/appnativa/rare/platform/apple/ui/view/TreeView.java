@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -72,6 +72,7 @@ public class TreeView extends TableView implements iTree {
   protected boolean            toggleOnTwistyOnly;
   protected aDataItemTreeModel treeModel;
   protected int                twistyMarginOfError;
+  protected boolean            parentItemsSelectable = true;
 
   public TreeView() {
     this(createTreeProxy());
@@ -280,6 +281,16 @@ public class TreeView extends TableView implements iTree {
   @Override
   public void setToggleOnTwistyOnly(boolean twistyOnly) {
     this.toggleOnTwistyOnly = twistyOnly;
+  }
+
+  @Override
+  public void setParentItemsSelectable(boolean parentItemsSelectable) {
+    this.parentItemsSelectable = parentItemsSelectable;
+  }
+
+  @Override
+  public boolean isParentItemsSelectable() {
+    return parentItemsSelectable;
   }
 
   public void setTreeIcons(iPlatformIcon expaneded, iPlatformIcon collapsed) {
@@ -531,6 +542,8 @@ public class TreeView extends TableView implements iTree {
       if ((x > sx - twistyMarginOfError) && (x < (sx + indicatorWidth + twistyMarginOfError))) {
         return handleExpansion(ti, row, true);
       }
+    } else if (!ti.isLeaf()) {
+      handleExpansion(ti, row, true);
     }
 
     return false;
@@ -604,27 +617,13 @@ public class TreeView extends TableView implements iTree {
     return false;
   }
 
-  @Override
-  protected void itemSelected(int index) {
-    if (!toggleOnTwistyOnly) {
-      RenderableDataItem item = listModel.get(index);
-      iTreeItem          ti   = getTreeItem(item);
-
-      if ((ti != null) &&!ti.isLeaf()) {
-        handleExpansion(ti, index, true);
-      }
-    }
-
-    super.itemSelected(index);
-  }
-
   protected void loadIcons() {
     if (collapsedIcon == null) {
-      collapsedIcon = new PainterUtils.TwistyIcon(getComponent(),true);
+      collapsedIcon = new PainterUtils.TwistyIcon(getComponent(), true);
     }
 
     if (expandedIcon == null) {
-      expandedIcon = new PainterUtils.TwistyIcon(getComponent(),false);
+      expandedIcon = new PainterUtils.TwistyIcon(getComponent(), false);
     }
 
     setTreeIcons(expandedIcon, collapsedIcon);
@@ -686,6 +685,40 @@ public class TreeView extends TableView implements iTree {
     }
 
     return (x > indent) && (x < indent + checkboxWidth + PAD_SIZE);
+  }
+
+  @Override
+  protected boolean isSelectable(int row, int col, RenderableDataItem item) {
+    return isSelectable(row, item, null);
+  }
+
+  @Override
+  protected boolean isSelectable(int row, RenderableDataItem item, iTreeItem ti) {
+    if (!selectable || (row < 0)) {
+      return false;
+    }
+
+    if (item == null) {
+      item = (ti == null)
+             ? listModel.get(row)
+             : ti.getData();
+    }
+
+    if (!item.isSelectable()) {
+      return false;
+    }
+
+    if (!parentItemsSelectable) {
+      if (ti == null) {
+        ti = getTreeItem(item);
+      }
+
+      if ((ti != null) &&!ti.isLeaf()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @Override

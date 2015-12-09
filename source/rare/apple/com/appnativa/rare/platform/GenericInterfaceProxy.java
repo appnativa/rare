@@ -22,14 +22,19 @@ package com.appnativa.rare.platform;
 
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iWorkerTask;
+import com.appnativa.rare.exception.ExpandVetoException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.ActionLink.iErrorHandler;
 import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.ui.effects.iAnimatorValueListener;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
+import com.appnativa.rare.ui.event.iExpandedListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
+import com.appnativa.rare.ui.event.iPopupMenuListener;
 import com.appnativa.util.iCancelable;
 import com.appnativa.util.iFilter;
 import com.appnativa.util.iStringConverter;
@@ -42,7 +47,7 @@ import java.util.EventObject;
  ]-*/
 public class GenericInterfaceProxy extends aInterfaceProxy
         implements iFunctionCallback, Runnable, iWorkerTask, iCancelable, iFilter, iErrorHandler, iStringConverter,
-                   Comparator, iActionListener, iChangeListener, iAnimatorValueListener {
+                   Comparator, iActionListener, iChangeListener, iAnimatorValueListener,iExpansionListener,iExpandedListener,iPopupMenuListener {
   public GenericInterfaceProxy() {}
 
   @Override
@@ -215,4 +220,53 @@ public class GenericInterfaceProxy extends aInterfaceProxy
   return (JavaLangException *)[self spar_callFunctionExWithId:fn withId: @[link, ex] ];
 ]-*/
   ;
+
+  @Override
+  public native void popupMenuCanceled(ExpansionEvent e) 
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
+
+  @Override
+  public native void popupMenuWillBecomeInvisible(ExpansionEvent e) 
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
+
+  @Override
+  public native void popupMenuWillBecomeVisible(ExpansionEvent e) 
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
+
+  @Override
+  public native void itemHasCollapsed(ExpansionEvent e) 
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
+
+  @Override
+  public native void itemHasExpanded(ExpansionEvent e) 
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
+
+  @Override
+  public native void itemWillCollapse(ExpansionEvent e) throws ExpandVetoException 
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
+
+  @Override
+  public native void itemWillExpand(ExpansionEvent e) throws ExpandVetoException
+  /*-[
+    NSObject* fn=[self spar_getFunctionObjectWithNSString:NSStringFromSelector(_cmd)] ;
+    [self spar_callFunctionExWithId:fn withId:@[e] ];
+  ]-*/;
 }

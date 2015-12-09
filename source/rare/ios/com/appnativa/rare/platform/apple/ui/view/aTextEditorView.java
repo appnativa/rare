@@ -15,20 +15,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.KeyboardReturnButtonType;
 import com.appnativa.rare.ui.KeyboardType;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIFontHelper;
+import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -41,39 +42,16 @@ import com.appnativa.rare.widget.iWidget;
 /*-[
  #import "APView+Component.h"
  ]-*/
-public abstract class aTextEditorView extends View implements iPlatformTextEditor {
+public abstract class aTextEditorView extends View implements iPlatformTextEditor, iTextChangeListener {
   protected iActionListener     actionListener;
   protected iTextChangeListener changeListener;
   protected int                 prefColumnWidth;
+  private boolean               changeEventsEnabled = true;
+  protected int  cursorPosition;
 
   public aTextEditorView(Object proxy) {
     super(proxy);
     setPrefColumnCount(1);
-
-    if (!Platform.getAppContext().isPlatformColorTheme()) {
-      UIFont f = Platform.getUIDefaults().getFont("Rare.TextField.font");
-
-      if (f == null) {
-        f = FontUtils.getDefaultFont();
-      }
-
-      setFont(f);
-
-      UIColor c = Platform.getUIDefaults().getColor("Rare.TextField.foreground");
-
-      if (c == null) {
-        c = UIColor.BLACK;
-      }
-
-      setForegroundColor(c);
-      c = Platform.getUIDefaults().getColor("Rare.TextField.background");
-
-      if (c == null) {
-        c = UIColor.WHITE;
-      }
-
-      setBackgroundColor(c);
-    }
   }
 
   @Override
@@ -88,6 +66,10 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
   @Override
   public void addTextChangeListener(iTextChangeListener changeListener) {
     getComponent().addTextChangeListener(changeListener);
+
+    if (this.changeListener == null) {
+      setTextChangeListener((Component) getComponent());
+    }
   }
 
   @Override
@@ -228,6 +210,11 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
   @Override
   public void underlineText() {}
 
+  @Override
+  public boolean usesForegroundColor() {
+    return true;
+  }
+  
   @Override
   public void setActionListener(iActionListener actionListener) {
     this.actionListener = actionListener;
@@ -411,6 +398,7 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
     } else {
       setText(HTMLCharSequence.checkSequence(data, getFontAlways()));
     }
+    cursorPosition=0;
   }
 
   public void setTextChangeListener(iTextChangeListener changeListener) {
@@ -447,13 +435,13 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
 
   @Override
   public iPlatformComponent getComponent() {
-    iPlatformComponent c = super.getComponent();
-
-    if (c == null) {
-      c = new ActionComponent(this);
+    if (component == null) {
+      component = new ActionComponent(this);
+      component.setForeground(UIColor.BLACK);;
+      component.setBackground(UIColor.WHITE);
     }
 
-    return c;
+    return component;
   }
 
   @Override
@@ -466,14 +454,15 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    super.getMinimumSize(size);
+  public void getMinimumSize(UIDimension size, float maxWidth) {
+    super.getMinimumSize(size, maxWidth);
 
     int width = getPrefColumnWidth();
 
     if (width > size.width) {
       size.width = width;
     }
+    Utils.adjustTextFieldSize(size);
   }
 
   @Override
@@ -485,6 +474,7 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
     if (width > size.width) {
       size.width = width;
     }
+    Utils.adjustTextFieldSize(size);
   }
 
   @Override
@@ -564,5 +554,53 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
     changeListener = null;
   }
 
+  @Override
+  public void setChangeEventsEnabled(boolean enabled) {
+    changeEventsEnabled = enabled;
+  }
+
+  @Override
+  public boolean textChanging(Object source, int startIndex, int endIndex, CharSequence replacementString) {
+    if (changeEventsEnabled && (changeListener != null)) {
+      return changeListener.textChanging(source, startIndex, endIndex, replacementString);
+    }
+
+    return true;
+  }
+
+  @Override
+  public boolean shouldStopEditing(Object source) {
+    if (changeEventsEnabled && (changeListener != null)) {
+      return changeListener.shouldStopEditing(source);
+    }
+
+    return true;
+  }
+  
+  public void setSuggestionsEnabled(boolean enabled) {
+  }
+
+  @Override
+  public void textChanged(Object source) {
+    if (changeEventsEnabled && (changeListener != null)) {
+      changeListener.textChanged(source);
+    }
+  }
+  protected void notifyTextChanged() {
+    if(changeEventsEnabled) {
+      Platform.invokeLater(new Runnable() {
+        
+        @Override
+        public void run() {
+          textChanged(aTextEditorView.this);
+          
+        }
+      },50);
+    }
+  }
   protected void enableChangeNotification() {}
+  
+  protected void saveCursorPosition() {
+    getSelectionStart();
+  }
 }

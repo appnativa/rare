@@ -1463,7 +1463,7 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
         if (bg.isSimpleColor()) {
           panel.setBackgroundColor(bg.getColor());
         } else {
-          panel.setBackgroundDrawable(bg.getDrawable());
+          panel.setBackground(bg.getDrawable());
         }
       }
     }

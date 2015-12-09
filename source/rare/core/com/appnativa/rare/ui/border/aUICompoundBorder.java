@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -286,6 +286,17 @@ public abstract class aUICompoundBorder extends aUIPlatformBorder {
     }
 
     return true;
+  }
+
+  @Override
+  public boolean isFocusAware() {
+    for (int i = 0; i < borders.length; i++) {
+      if ((borders[i] != null) &&!borders[i].isFocusAware()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   protected void paintOrClip(iPlatformGraphics g, float x, float y, float width, float height, boolean paint,

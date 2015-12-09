@@ -30,10 +30,10 @@ import java.util.Map;
 import javax.swing.plaf.UIResource;
 
 public class UIFont extends Font {
-  private float   relativeSize = 1f;
-  private float   baseSize;
-  private boolean strikeThrough;
-  private boolean underline;
+  protected float   relativeSize = 1f;
+  protected float   baseSize;
+  protected boolean strikeThrough;
+  protected boolean underline;
 
   public UIFont(Font font) {
     super(font);
@@ -45,9 +45,18 @@ public class UIFont extends Font {
     baseSize = getSize2D();
   }
 
+  public UIFont(Map<? extends AttributedCharacterIterator.Attribute, ?> attributes,boolean strikeThrough, boolean underline) {
+    super(attributes);
+    this.strikeThrough=strikeThrough;
+    this.underline=underline;
+    baseSize = getSize2D();
+  }
+
   public UIFont(UIFont font) {
     super(font);
     baseSize = getSize2D();
+    strikeThrough=font.strikeThrough;
+    underline=font.underline;
   }
 
   public UIFont(Font font, float rs) {
@@ -60,6 +69,8 @@ public class UIFont extends Font {
     super(font);
     relativeSize = rs;
     baseSize     = getSize2D();
+    strikeThrough=font.strikeThrough;
+    underline=font.underline;
   }
 
   public UIFont(Font font, float rs, float bs) {
@@ -77,6 +88,8 @@ public class UIFont extends Font {
     super(font);
     relativeSize = rs;
     baseSize     = bs;
+    strikeThrough=font.strikeThrough;
+    underline=font.underline;
   }
 
   private UIFont(String name, int style, float size, float bsize, float rs) {
@@ -97,13 +110,19 @@ public class UIFont extends Font {
   public UIFont deriveFont(float size) {
     float bs = (getSize2D() - baseSize + size);
 
-    return new UIFont(super.deriveFont(size), relativeSize, bs);
+    UIFont f=new UIFont(super.deriveFont(size), relativeSize, bs);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
   }
 
   public UIFont deriveFontSize(float size) {
     float bs = (getSize2D() - baseSize + size);
 
-    return new UIFont(super.deriveFont(size), relativeSize, bs);
+    UIFont f=new UIFont(super.deriveFont(size), relativeSize, bs);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
   }
 
   @Override
@@ -115,7 +134,11 @@ public class UIFont extends Font {
   public UIFont deriveFont(int style, float size) {
     float bs = (getSize2D() - baseSize + size);
 
-    return new UIFont(super.deriveFont(style, size), relativeSize, bs);
+    UIFont f= new UIFont(super.deriveFont(style, size), relativeSize, bs);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
+    
   }
 
   public UIFont deriveFontEx(float size2d, float nrs) {
@@ -123,7 +146,10 @@ public class UIFont extends Font {
       return this;
     }
 
-    return new UIFont(super.deriveFont(size2d), nrs, baseSize);
+    UIFont f= new UIFont(super.deriveFont(size2d), nrs, baseSize);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
   }
 
   public UIFont deriveItalic() {
@@ -135,7 +161,10 @@ public class UIFont extends Font {
       return this;
     }
 
-    return new UIFont(super.deriveFont(baseSize * nrs), nrs, baseSize);
+    UIFont f= new UIFont(super.deriveFont(baseSize * nrs), nrs, baseSize);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
   }
 
   public UIFontResource deriveRelativeUIResourceFont(float nrs) {
@@ -151,29 +180,32 @@ public class UIFont extends Font {
 
     a.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
 
-    return new UIFont(a);
+    return new UIFont(a,true,underline);
   }
 
-  public UIFont derive(boolean strikethrough, boolean underlined) {
+  public UIFont derive(boolean strikeThrough, boolean underline) {
     Map a = getAttributes();
 
-    if (strikethrough) {
+    if (strikeThrough) {
       a.put(TextAttribute.STRIKETHROUGH, TextAttribute.STRIKETHROUGH_ON);
     } else {
       a.remove(TextAttribute.STRIKETHROUGH);
     }
 
-    if (underlined) {
+    if (underline) {
       a.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
     } else {
       a.remove(TextAttribute.UNDERLINE);
     }
 
-    return new UIFont(a);
+    return new UIFont(a,strikeThrough,underline);
   }
 
   public UIFontResource deriveUIResourceFont(int style) {
-    return new UIFontResource(super.deriveFont(style), relativeSize, baseSize);
+    UIFontResource f= new UIFontResource(super.deriveFont(style), relativeSize, baseSize);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
   }
 
   public UIFontResource deriveUIResourceFont(float size2d, float nrs) {
@@ -181,7 +213,10 @@ public class UIFont extends Font {
       return (UIFontResource) this;
     }
 
-    return new UIFontResource(super.deriveFont(size2d), nrs, baseSize);
+    UIFontResource f= new UIFontResource(super.deriveFont(size2d), nrs, baseSize);
+    f.underline=underline;
+    f.strikeThrough=strikeThrough;
+    return f;
   }
 
   public UIFont deriveUnderline() {
@@ -189,7 +224,7 @@ public class UIFont extends Font {
 
     a.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
 
-    return new UIFont(a);
+    return new UIFont(a,strikeThrough,true);
   }
 
   public static final UIFont fromFont(Font font) {

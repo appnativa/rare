@@ -110,4 +110,9 @@ public class ScrollPanePanel extends XPContainer implements iScrollerSupport {
   public UIPoint getContentOffset() {
     return scrollSupport.getContentOffset();
   }
+
+  @Override
+  public void setContentOffset(float x, float y) {
+    scrollSupport.setContentOffset(x, y);
+  }
 }

@@ -15,14 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
 
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.iPlatformPath;
-import com.appnativa.util.SNumber;
 
 /**
  * A line border that supports non rectangular lines
@@ -92,7 +91,8 @@ public class UILineBorder extends aUILineBorder {
       return false;
     }
 
-    if (!SNumber.isEqual(arcHeight, arcWidth)) {
+    //if (!SNumber.isEqual(arcHeight, arcWidth)) {
+    if ((arcHeight > 0) || (arcWidth > 0)) {
       return false;
     }
 
@@ -103,6 +103,7 @@ public class UILineBorder extends aUILineBorder {
     return !noBottom &&!noTop &&!noLeft &&!noRight;
   }
 
+  @Override
   public float getPathWidth() {
     return thickness;
   }

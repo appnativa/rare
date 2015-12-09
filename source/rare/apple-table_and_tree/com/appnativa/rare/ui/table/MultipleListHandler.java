@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -24,8 +24,6 @@ import com.appnativa.rare.platform.apple.ui.ListSynchronizer;
 import com.appnativa.rare.platform.apple.ui.view.aPlatformTableBasedView;
 import com.appnativa.rare.ui.iListView;
 import com.appnativa.rare.ui.iPlatformListHandler;
-import com.appnativa.rare.ui.table.MultiTableTableComponent;
-import com.appnativa.rare.ui.table.aMultipleListHandler;
 
 public class MultipleListHandler extends aMultipleListHandler {
   ListSynchronizer listSynchronizer;

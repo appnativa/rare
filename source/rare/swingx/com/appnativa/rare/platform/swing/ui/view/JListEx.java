@@ -111,7 +111,7 @@ public class JListEx extends JList implements Autoscroll {
 
     return JToolTipEx.createNewToolTip(this, isOverlappingTooltip());
   }
-
+  
   public void setAlternatingRowColor(UIColor color) {
     alternatingRowColor = color;
   }
@@ -292,16 +292,15 @@ public class JListEx extends JList implements Autoscroll {
       return new Dimension(width, height);
     } else if (getModel().getSize() > 0) {
       int len = getModel().getSize();
-
-      if (len > visibleRowCount) {
-        len = visibleRowCount + 1;
+      if(visibleRowCount>1) {
+        len=Math.max(visibleRowCount+1, len);
       }
 
       int width = getPreferredSize().width;
       int height;
 
       if (fixedCellHeight > 0) {
-        height = fixedCellHeight * visibleRowCount;
+        height = fixedCellHeight * len;
       } else {
         Rectangle r = getCellBounds(0, len - 1);
 
@@ -451,11 +450,11 @@ public class JListEx extends JList implements Autoscroll {
         i++;
       }
 
-      if (r == null) {
+      if (i==0) {
         y = 0;
       } else {
         r = getCellBounds(i - 1, i - 1);
-        y = r.y + r.height;
+        y = r==null ? 0 : r.y + r.height;
       }
 
       i = count;

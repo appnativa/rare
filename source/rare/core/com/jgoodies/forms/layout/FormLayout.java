@@ -234,14 +234,7 @@ public class FormLayout {
    */
   private List rowSpecs;
 
-/**
-  * true if the forms contains a single populated column with
-  * all columns only spanning a single column
-  *  
-  * @see #initializeColAndRowComponentLists(iParentComponent)
- */
-  private boolean singleColumn;
-  /**
+ /**
    * true if the form has components that change height based on their width
    */
   boolean hasComponentsThatChangeHeightBasedOnWidth;
@@ -561,6 +554,7 @@ public class FormLayout {
   public LayoutInfo computeLayout(iParentComponent container, UIDimension size, UIInsets insets) {
     int   totalWidth  = UIScreen.snapToSize(size.width - insets.left - insets.right);
     int   totalHeight = UIScreen.snapToSize(size.height - insets.top - insets.bottom);
+    componentSizeCache.setMaxWidth(totalWidth<0 ? 0 : totalWidth);
 
     int[] x           = computeGridOrigins(container, totalWidth, (int)insets.left, colSpecs, colComponents,
                           colGroupIndices, minimumWidthMeasure, preferredWidthMeasure);
@@ -625,7 +619,6 @@ public class FormLayout {
     for (int i = 0; i < rlen; i++) {
       rowComponents[i] = new ArrayList();
     }
-    singleColumn=true;
     hasComponentsThatChangeHeightBasedOnWidth=false;
     int column=-1;
     int ocolumn=-1;
@@ -641,16 +634,10 @@ public class FormLayout {
         }
         column=constraints.gridX - 1;
         if(ocolumn!=column) {
-          if(ocolumn!=-1) {
-            singleColumn=false;
-          }
           ocolumn=column;
         }
         if (constraints.gridWidth == 1) {
           colComponents[column].add(component);
-        }
-        else {
-          singleColumn=false;
         }
 
         if (constraints.gridHeight == 1) {
@@ -739,6 +726,7 @@ public class FormLayout {
    */
   public void invalidatePreferredCache() {
     if (componentSizeCache != null) {
+      componentSizeCache.setMaxWidth(0);
       componentSizeCache.preferredSizes.clear();
     }
   }
@@ -792,7 +780,7 @@ public class FormLayout {
    public void calculateLayoutSize(iParentComponent container, float width, float height,UIDimension size) {
     size.setSize(width,height);
     initializeColAndRowComponentLists(container);
-    if(!singleColumn && hasComponentsThatChangeHeightBasedOnWidth) {
+    if(hasComponentsThatChangeHeightBasedOnWidth) {
       UIInsets insets = container.getInsets(null);
       LayoutInfo l = computeLayout(container, size, insets);
       int[] x=l.columnOrigins;
@@ -1313,11 +1301,11 @@ public class FormLayout {
     return new LayoutInfo(x, y);
   }
 
-  public UIDimension getMinimumSize(iParentComponent container, UIDimension size) {
+  public UIDimension getMinimumSize(iParentComponent container, UIDimension size, float maxWidth) {
     if (size == null) {
       size=new UIDimension();
     }
-    
+    componentSizeCache.setMaxWidth(maxWidth);
     computeLayoutSize(container, minimumWidthMeasure, minimumHeightMeasure,size);
 
 
@@ -1328,6 +1316,7 @@ public class FormLayout {
     if (size == null) {
       size=new UIDimension();
     }
+    componentSizeCache.setMaxWidth(maxWidth);
     if(maxWidth<1) {
       computeLayoutSize(container, preferredWidthMeasure, preferredHeightMeasure,size);
     }
@@ -2029,6 +2018,8 @@ public class FormLayout {
 
     /** Maps components to their preferred sizes. */
     private final Map preferredSizes;
+    /** the maximum width for a component */
+    private float maxWidth=0;
 
     /**
      * Constructs a <code>ComponentSizeCache</code>.
@@ -2053,6 +2044,7 @@ public class FormLayout {
     void invalidate() {
       minimumSizes.clear();
       preferredSizes.clear();
+      maxWidth=0;
     }
 
     void removeEntry(iPlatformComponent component) {
@@ -2072,7 +2064,7 @@ public class FormLayout {
       UIDimension size = (UIDimension) minimumSizes.get(component);
 
       if (size == null) {
-        size = component.getMinimumSize();
+        size = component.getMinimumSize(new UIDimension(),0);
         minimumSizes.put(component, size);
       }
 
@@ -2091,12 +2083,21 @@ public class FormLayout {
       UIDimension size = (UIDimension) preferredSizes.get(component);
 
       if (size == null) {
-        size = component.getPreferredSize(new UIDimension(),0);
+        size = component.getPreferredSize(new UIDimension(),maxWidth);
         preferredSizes.put(component, size);
       }
 
       return size;
     }
+
+    public void setMaxWidth(float maxWidth) {
+      if((int)maxWidth!=(int)this.maxWidth) {
+        this.maxWidth = maxWidth;
+        preferredSizes.clear();
+        minimumSizes.clear();
+      }
+    }
+
   }
 
 
@@ -2156,6 +2157,12 @@ public class FormLayout {
     @Override
     public int sizeOf(iPlatformComponent c) {
       return (int)cache.getPreferredSize(c).width;
+    }
+  }
+
+  public void setSizeMaxWidth(float maxWidth) {
+    if(componentSizeCache!=null) {
+        componentSizeCache.setMaxWidth(maxWidth);
     }
   }
 }

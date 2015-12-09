@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -96,7 +96,12 @@ public class NavigatorPanel extends aNavigatorPanel {
     }
 
     @Override
-    public UIDimension getPreferredSize(UIDimension size) {
+    protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+      super.getPreferredSizeEx(size, maxWidth);
+    }
+
+    @Override
+    protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
       iPlatformIcon icon = getIcon();
 
       if (size == null) {
@@ -104,8 +109,6 @@ public class NavigatorPanel extends aNavigatorPanel {
       }
 
       size.setSize(icon.getIconWidth() + 4, icon.getIconHeight() + 4);
-
-      return size;
     }
 
     @Override
@@ -229,12 +232,13 @@ public class NavigatorPanel extends aNavigatorPanel {
     }
 
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size, int maxWidth) {
       panel.getMinimumSize(size);
     }
 
-    public void getPreferredSize(UIDimension size) {
-      panel.getPreferredSize(size);
+    @Override
+    public void getPreferredSize(UIDimension size, int maxWidth) {
+      panel.getPreferredSize(size, maxWidth);
     }
 
     @Override

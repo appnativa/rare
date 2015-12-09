@@ -72,6 +72,7 @@ public class TextAreaWidget extends TextFieldWidget {
    */
   public Writer getWriter() {
     return new Writer() {
+      @Override
       public void write(char[] cbuf, int off, int len) throws IOException {
         if (getDataView() instanceof EditTextEx) {
           synchronized(TextAreaWidget.this) {
@@ -79,11 +80,14 @@ public class TextAreaWidget extends TextFieldWidget {
           }
         }
       }
+      @Override
       public void flush() throws IOException {}
+      @Override
       public void close() throws IOException {}
     };
   }
 
+  @Override
   protected void configureEx(TextField cfg) {
     super.configureEx(cfg);
     ((EditText) getDataView()).setVerticalScrollBarEnabled(true);
@@ -93,6 +97,7 @@ public class TextAreaWidget extends TextFieldWidget {
     }
   }
 
+  @Override
   protected iPlatformTextEditor createEditorAndComponents(iViewer viewer, TextField cfg) {
     EditTextEx e = (EditTextEx) getAppContext().getComponentCreator().getTextField(getViewer(), cfg);
 

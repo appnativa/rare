@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform;
@@ -27,9 +27,7 @@ import android.view.ScaleGestureDetector;
 import com.appnativa.rare.ui.UIPoint;
 
 public final class EventHelper {
-  public EventHelper() {
-    // TODO Auto-generated constructor stub
-  }
+  public EventHelper() {}
 
   public static int getClickCount(Object source, Object motionEvent) {
     return 1;
@@ -49,6 +47,35 @@ public final class EventHelper {
 
   public static int getKeyChar(Object keyEvent) {
     return ((KeyEvent) keyEvent).getUnicodeChar();
+  }
+
+  public static com.appnativa.rare.ui.event.KeyEvent.Type getKeyType(Object keyEvent) {
+    switch(((KeyEvent) keyEvent).getAction()) {
+      case KeyEvent.ACTION_DOWN :
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_DOWN;
+
+      case KeyEvent.ACTION_UP :
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_UP;
+
+      default :
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_UNKNOWN;
+    }
+  }
+
+  public static com.appnativa.rare.ui.event.MouseEvent.Type getMouseEventType(Object source, Object motionEvent) {
+    switch(((MotionEvent) motionEvent).getAction()) {
+      case MotionEvent.ACTION_DOWN :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_DOWN;
+
+      case MotionEvent.ACTION_UP :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_UP;
+
+      case MotionEvent.ACTION_MOVE :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_DRAG;
+
+      default :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_UNKNOWN;
+    }
   }
 
   public static int getKeyCode(Object keyEvent) {

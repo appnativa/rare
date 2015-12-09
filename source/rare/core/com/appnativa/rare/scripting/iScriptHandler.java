@@ -24,7 +24,6 @@ import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.aWindowViewer;
 import com.appnativa.rare.viewer.iFormViewer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.rare.widget.iWidget;
@@ -328,7 +327,7 @@ public interface iScriptHandler {
    *
    * @return the scripting window object for this handler
    */
-  aWindowViewer getWindowViewer();
+  WindowViewer getWindowViewer();
 
   /**
    * An interface to a Runnable for scripts

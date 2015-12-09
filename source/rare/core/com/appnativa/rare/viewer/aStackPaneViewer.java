@@ -15,16 +15,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.StackPane;
 import com.appnativa.rare.spot.Viewer;
@@ -33,27 +38,20 @@ import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.ViewerCreator;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iParentComponent;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.effects.TransitionAnimator;
 import com.appnativa.rare.ui.effects.aAnimator;
 import com.appnativa.rare.ui.effects.iAnimator.Direction;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.effects.iTransitionAnimator;
+import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.iParentComponent;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iWindowManager;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTPrintableString;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.IdentityArrayList;
-
-import java.net.MalformedURLException;
-
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * A viewer that treats a set of viewers as a stack (like cards). Only one
@@ -80,7 +78,7 @@ public abstract class aStackPaneViewer extends aContainer {
   protected boolean  reloadOnActivation;
 
   /**  */
-  private EventObject changeEvent = new EventObject(this);
+  private ChangeEvent changeEvent = new ChangeEvent(this);
 
   /** event listener list */
   protected EventListenerList   listenerList = new EventListenerList();
@@ -305,26 +303,6 @@ public abstract class aStackPaneViewer extends aContainer {
     }
 
     handleViewerConfigurationChanged(reset);
-  }
-
-  @Override
-  public void register() {
-    callaViewerRegister();
-
-    iWindowManager wm = (getAppContext() == null)
-                        ? null
-                        : getAppContext().getWindowManager();
-
-    if ((wm != null) && (paneTarget != null) && (wm.getTarget(paneTarget.getName()) != paneTarget)) {
-      iViewer v = paneTarget.getViewer();
-
-      if (v != null) {
-        v.setParent(this);
-        v.targetAcquired(paneTarget);
-      }
-    }
-
-    registerWidgets();
   }
 
   @Override
@@ -558,30 +536,6 @@ public abstract class aStackPaneViewer extends aContainer {
     }
 
     switchTo(-1, e, cb);
-  }
-
-  @Override
-  public void unregister(boolean disposing) {
-    super.unregister(disposing);
-
-    if (isDisposed()) {
-      return;
-    }
-
-    if (paneTarget != null) {
-      iWindowManager wm = (getAppContext() == null)
-                          ? null
-                          : getAppContext().getWindowManager();
-
-      if (wm != null) {
-        iViewer v = paneTarget.getViewer();
-
-        if (v != null) {
-          v.targetLost(paneTarget);
-          v.setParent(null);
-        }
-      }
-    }
   }
 
   @Override
@@ -832,7 +786,19 @@ public abstract class aStackPaneViewer extends aContainer {
 
     return null;
   }
-
+  
+   @Override
+  public iWidget getWidget(String name) {
+     if (entries != null) {    // null if we are disposing
+       for (StackEntry e : entries) {
+         if (e.theViewer != null && name.equals(e.theViewer.getName())) {
+           return e.theViewer;
+         }
+       }
+     }
+    return super.getWidget(name);
+  }
+   
   /**
    * Gets whether or not the viewer with the specified name has been
    * loaded/created.

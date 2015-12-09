@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -26,12 +26,11 @@ import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
-import com.appnativa.rare.ui.SimpleColorStateList;
 import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.iActionListener;
@@ -70,45 +69,26 @@ public class CustomButtonView extends View {
     super(uiview);
   }
 
+  @Override
   protected void checkForegroundColor() {
-    PainterHolder ph    = (componentPainter == null)
-                          ? null
-                          : componentPainter.getPainterHolder();
-    ButtonState   state = ButtonState.DEFAULT;
-    UIColor       fg    = null;
+    ButtonState state = Utils.getState(enabled, isPressed(), isSelected(), false);
+    UIColor     fg    = foregroundColor;
 
-    if (!enabled) {
-      state = isSelected()
-              ? ButtonState.DISABLED_SELECTED
-              : ButtonState.DISABLED;
-    } else {
-      if (isPressed()) {
-        state = isSelected()
-                ? ButtonState.PRESSED_SELECTED
-                : ButtonState.PRESSED;
-      } else if (isSelected()) {
-        state = ButtonState.SELECTED;
+    if (fg == null) {
+      PainterHolder ph = (componentPainter == null)
+                         ? null
+                         : componentPainter.getPainterHolder();
+
+      if (ph != null) {
+        fg = ph.getForeground(state);
       }
     }
-
-    if (ph != null) {
-      fg = ph.getForeground(state);
+    else {
+      fg = fg.getColor(state);
     }
 
     if (fg != null) {
       setForegroundColorEx(fg);
-    } else if (foregroundColor == ColorUtils.getForeground()) {
-      if (enabled) {
-        setForegroundColorEx(foregroundColor);
-      } else {
-        setForegroundColorEx(ColorUtils.getDisabledForeground());
-      }
-    } else if (foregroundColor instanceof UIColorShade) {
-      SimpleColorStateList csl = ((UIColorShade) foregroundColor).getColorStateList();
-
-      if (csl != null) {
-        setForegroundColorEx(csl.getColor(state));
-      }
     }
   }
 
@@ -123,6 +103,7 @@ public class CustomButtonView extends View {
     }
   }
 
+  @Override
   public void performClick() {
     actionPerformed();
   }
@@ -158,10 +139,12 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public void setChangeListener(iChangeListener l) {
     this.changeListener = l;
   }
 
+  @Override
   public native void setDisabledIcon(iPlatformIcon icon)
   /*-[
     ((RAREUIControl*)proxy_).disabledIcon=icon;
@@ -174,6 +157,7 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public native void setFont(UIFont font)
   /*-[
     font_ = font;
@@ -183,12 +167,14 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public native void setIcon(iPlatformIcon icon)
   /*-[
     ((RAREUIControl*)proxy_).icon=icon;
   ]-*/
   ;
 
+  @Override
   public native void setIconGap(int iconGap)
   /*-[
     ((RAREUIControl*)proxy_).iconGap=iconGap;
@@ -199,6 +185,7 @@ public class CustomButtonView extends View {
     return iconPosition;
   }
 
+  @Override
   public native void setIconPosition(IconPosition ip)
   /*-[
     if (ip == nil) {
@@ -209,12 +196,14 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public native void setMargin(float top, float right, float bottom, float left)
   /*-[
     [((RAREUIControl*)proxy_) setInsetsWithTop: top right: right bottom: bottom left: left];
   ]-*/
   ;
 
+  @Override
   public native void setPressedIcon(iPlatformIcon icon)
   /*-[
     ((RAREUIControl*)proxy_).pressedIcon=icon;
@@ -227,22 +216,26 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public native void setSelected(boolean selected)
   /*-[
     [((RAREUIControl*)proxy_) setSelected:selected];
    ]-*/
   ;
 
+  @Override
   public native void setSelectedIcon(iPlatformIcon icon)
   /*-[
     ((RAREUIControl*)proxy_).selectedIcon=icon;
   ]-*/
   ;
 
+  @Override
   public void setText(CharSequence text) {
     setTextEx(HTMLCharSequence.checkSequence(text, getFontAlways()));
   }
 
+  @Override
   public native void setTextAlignment(HorizontalAlign hal, VerticalAlign val)
   /*-[
     RAREUIControl* button=(RAREUIControl*)proxy_;
@@ -263,12 +256,19 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public native void setWordWrap(boolean wrap)
   /*-[
     [((RAREUIControl*)proxy_) setWrapText: wrap];
   ]-*/
   ;
 
+  @Override
+  public boolean usesForegroundColor() {
+    return true;
+  }
+
+  @Override
   public native iPlatformIcon getDisabledIcon()
   /*-[
     return ((RAREUIControl*)proxy_).disabledIcon;
@@ -281,6 +281,7 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   public native int getIconGap()
   /*-[
     return ((RAREUIControl*)proxy_).iconGap;
@@ -297,40 +298,46 @@ public class CustomButtonView extends View {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    getPreferredSize(size, 0);
+  public void getMinimumSize(UIDimension size, float maxWidth) {
+    getPreferredSize(size, maxWidth);
   }
 
+  @Override
   public native iPlatformIcon getPressedIcon()
   /*-[
     return ((RAREUIControl*)proxy_).pressedIcon;
   ]-*/
   ;
 
+  @Override
   public native iPlatformIcon getSelectedIcon()
   /*-[
     return ((RAREUIControl*)proxy_).selectedIcon;
   ]-*/
   ;
 
+  @Override
   public native String getText()
   /*-[
     return [((RAREUIControl*)proxy_) getText];
   ]-*/
   ;
 
+  @Override
   public native boolean isPressed()
   /*-[
     return [((RAREUIControl*)proxy_) isPressed];
   ]-*/
   ;
 
+  @Override
   public native boolean isSelected()
   /*-[
     return [((RAREUIControl*)proxy_) isSelected];
   ]-*/
   ;
 
+  @Override
   public native boolean isWordWrap()
   /*-[
     return [((RAREUIControl*)proxy_) isWrapText];
@@ -398,6 +405,7 @@ public class CustomButtonView extends View {
   ]-*/
   ;
 
+  @Override
   protected native void setForegroundColorEx(UIColor fg)
   /*-[
     if(fg) {

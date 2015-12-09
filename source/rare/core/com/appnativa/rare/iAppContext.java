@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare;
@@ -335,18 +335,6 @@ public interface iAppContext extends iExecutionHandler {
    * @param landscape true to lock in landscape mode; false to lock in portrait mode; null to lock in current orientation
    */
   void lockOrientation(Boolean landscape);
-
-  /**
-   * Displays a single line error message The value of the
-   * <code>popupOneLineMessage</code> flag will determine whether the message is
-   * displayed in a popup or on the status bar
-   *
-   * @param title
-   *          the message title
-   * @param message
-   *          the message text
-   */
-  void oneLineErrorMessage(String title, String message);
 
   /**
    * Opens a connection to the object referenced by the URL argument
@@ -862,6 +850,17 @@ public interface iAppContext extends iExecutionHandler {
   UIImageIcon getResourceAsIcon(String name);
 
   /**
+   * Adds a resource icon with the specified name
+   *
+   * @param name
+   *          the name of the icon
+   * @param icon the icon to add
+   *
+   * @return the previous resource icon with the specified name or null
+   */
+  UIImageIcon addResourceIcon(String name, UIImageIcon icon);
+
+  /**
    * Gets the resource icon with the specified name
    *
    * @param name
@@ -895,6 +894,12 @@ public interface iAppContext extends iExecutionHandler {
 
   /**
    * Returns the map of resource icons for the application
+   * that were defined in the resource icons properties
+   * of the application's configuration.
+   * 
+   * <p>
+   * <b>Note:</b> Resources managed but the runtime are not returned in this map.
+   * </p>
    *
    * @return the map of resource icons for the application
    */
@@ -1027,7 +1032,7 @@ public interface iAppContext extends iExecutionHandler {
    *
    * @return the main window viewer
    */
-  WindowViewer getTopWindowViewer();
+  WindowViewer getMainWindowViewer();
 
   boolean isChangeSelColorOnLostFocus();
 

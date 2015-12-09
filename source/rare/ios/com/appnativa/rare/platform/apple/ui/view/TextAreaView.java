@@ -49,6 +49,7 @@ public class TextAreaView extends aTextEditorView {
     setText(text);
   }
 
+  @Override
   public native void removeNativeBorder()
   /*-[
     ((RAREAPTextView*)proxy_).layer.borderWidth=0;
@@ -61,10 +62,17 @@ public class TextAreaView extends aTextEditorView {
   ]-*/
   ;
 
+  @Override
   public native void setAutoShowKeyboard(boolean show)
   /*-[
    [((RAREAPTextView*)proxy_) setAutoShowKeyboard: show];
    ]-*/
+  ;
+  
+  public native void setSuggestionsEnabled(boolean enabled)
+  /*-[
+    ((RAREAPTextView*)proxy_).autocorrectionType = enabled ? UITextAutocorrectionTypeYes : UITextAutocorrectionTypeNo;
+  ]-*/
   ;
 
   @Override
@@ -74,6 +82,7 @@ public class TextAreaView extends aTextEditorView {
   ]-*/
   ;
 
+  @Override
   public native void setFont(UIFont font)
   /*-[
      font_ = font;
@@ -91,6 +100,7 @@ public class TextAreaView extends aTextEditorView {
      ]-*/
   ;
 
+  @Override
   public void setText(CharSequence text) {
     setTextEx(HTMLCharSequence.checkSequence(text, getFontAlways()));
   }
@@ -107,6 +117,8 @@ public class TextAreaView extends aTextEditorView {
   public iPlatformComponent getComponent() {
     if (component == null) {
       component = new Component(this);
+      component.setForeground(UIColor.BLACK);;
+      component.setBackground(UIColor.WHITE);
     }
 
     return component;
@@ -128,17 +140,39 @@ public class TextAreaView extends aTextEditorView {
   public native int getSelectionEnd()
   /*-[
     NSRange r=((RAREAPTextView*)proxy_).selectedRangeEx;
-    return (int)(r.location+r.length);
+    if(r.length==0 && r.location==0) {
+      int n=[self getTextLength];
+      if(n<cursorPosition_) {
+        cursorPosition_=n;
+      }
+      return cursorPosition_;
+    }
+    else {
+      cursorPosition_=(int)r.location;
+      return (int)(r.location+r.length);
+    }
    ]-*/
   ;
 
   @Override
   public native int getSelectionStart()
   /*-[
-    return (int)((RAREAPTextView*)proxy_).selectedRangeEx.location;
+    NSRange r=((RAREAPTextView*)proxy_).selectedRangeEx;
+    if(r.length==0 && r.location==0) {
+      int n=[self getTextLength];
+      if(n<cursorPosition_) {
+        cursorPosition_=n;
+      }
+      return cursorPosition_;
+    }
+    else {
+      cursorPosition_=(int)r.location;
+      return cursorPosition_;
+    }
    ]-*/
   ;
 
+  @Override
   public native String getText()
   /*-[
     return [((RAREAPTextView*)proxy_) text];
@@ -170,6 +204,7 @@ public class TextAreaView extends aTextEditorView {
     container = null;
   }
 
+  @Override
   protected native void setForegroundColorEx(UIColor fg)
   /*-[
     if(fg) {

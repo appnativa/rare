@@ -22,28 +22,19 @@ package com.appnativa.rare.ui.renderer;
 
 import android.content.Context;
 
-import android.widget.TextView;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
 
 public class UITextAreaRenderer extends UILabelRenderer {
-  protected int     columnWidth;
   protected boolean linefeedWrap;
 
   public UITextAreaRenderer(Context context) {
     super(context);
     setWordWrap(true);
   }
-
-  public void setColumnWidth(int columnWidth) {
-    this.columnWidth = columnWidth;
-    ((TextView) view).setEms(columnWidth);
+  
+  @Override
+  public iPlatformRenderingComponent newCopy() {
+    return setupNewCopy(new UITextAreaRenderer(view.getContext()));
   }
-
-  /**
-   * Sets linefeed wrapping
-   *
-   * @param linefeedWrap true to wrap on line feeds false otherwise
-   */
-  public void setLinefeedWrap(boolean linefeedWrap) {
-    this.linefeedWrap = linefeedWrap;
-  }
+ 
 }

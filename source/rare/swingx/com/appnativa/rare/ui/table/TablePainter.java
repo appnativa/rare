@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -28,6 +28,8 @@ import com.appnativa.rare.ui.iTableModel;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.ui.renderer.aListItemRenderer;
+import com.appnativa.rare.viewer.TableViewer;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -83,8 +85,20 @@ public class TablePainter {
 
     setTableInformation(tableInformation, g, table);
 
-    PaintBucket pb =
-      table.getItemRenderer().getSelectionPaintForExternalPainter(tableComponent.getWidget().isFocusOwner());
+    iPlatformComponentPainter hcp             = null;
+    TableViewer               tv              = (TableViewer) tableComponent.getWidget();
+    aListItemRenderer         renderer        = table.getItemRenderer();
+    boolean                   hilightSelected = false;
+    int                       ci              = tv.isPopupMenuShowing()
+            ? tv.getContextMenuIndex()
+            : -1;
+
+    if (ci != -1) {
+      hcp             = renderer.getAutoHilightPaint().getCachedComponentPainter();
+      hilightSelected = table.isRowSelected(ci);
+    }
+
+    PaintBucket               pb         = renderer.getSelectionPaintForExternalPainter(tv.isFocusOwner());
     iPlatformComponentPainter cp         = (pb == null)
             ? null
             : pb.getCachedComponentPainter();
@@ -143,7 +157,9 @@ public class TablePainter {
     for (int row = rMin; row <= rMax; row++) {
       h = table.getRowHeight(row);
 
-      if ((cp != null) && table.isRowSelected(row)) {
+      if ((hcp != null) && ((ci == row) || (hilightSelected && table.isRowSelected(row)))) {
+        hcp.paint(table, g, sx, y, ex - sx, h - ph, true, iPainter.UNKNOWN);
+      } else if ((cp != null) && ((ci == row) || table.isRowSelected(row))) {
         cp.paint(table, g, sx, y, ex - sx, h - ph, true, iPainter.UNKNOWN);
       } else {
         if ((hiliteColor != null) && (row % 2 == 1)) {

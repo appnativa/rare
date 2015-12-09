@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.renderer;
@@ -52,8 +52,9 @@ import javax.swing.JLabel;
  * @author Don DeCoteau
  */
 public class UILabelRenderer extends ActionComponent implements Cloneable, iPlatformRenderingComponent {
-  private UIEmptyBorder    emptyBorder    = new UIEmptyBorder(2);
-  private UICompoundBorder compoundBorder = new UICompoundBorder(BorderUtils.EMPTY_BORDER, emptyBorder);
+  protected UIEmptyBorder    emptyBorder    = new UIEmptyBorder(2);
+  protected UICompoundBorder compoundBorder = new UICompoundBorder(BorderUtils.EMPTY_BORDER, emptyBorder);
+  protected float            columnWidth;
 
   public UILabelRenderer() {
     this(new LabelRenderer());
@@ -66,8 +67,12 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
 
   @Override
   public iPlatformRenderingComponent newCopy() {
-    final UILabelRenderer r = new UILabelRenderer();
+    return setupNewCopy(new UILabelRenderer());
+  }
 
+  protected iPlatformRenderingComponent setupNewCopy(UILabelRenderer r) {
+    r.columnWidth=columnWidth;
+    r.setWordWrap(isWordWrap());
     return Renderers.setupNewCopy(this, r);
   }
 
@@ -77,8 +82,8 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    super.getMinimumSizeEx(size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    super.getMinimumSizeEx(size, maxWidth);
 
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
 
@@ -89,6 +94,12 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
 
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    maxWidth += columnWidth;    //will only be set <=0
+
+    if (maxWidth < 0) {
+      maxWidth = 0;
+    }
+
     super.getPreferredSizeEx(size, maxWidth);
 
     Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
@@ -134,7 +145,22 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   }
 
   public void setColumnWidth(int width) {
-    ((JLabel) view).putClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE, width);
+    if (width <= 0) {
+      columnWidth = width;
+      ((JLabel) view).putClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE, null);
+    } else {
+      columnWidth = 0;
+      ((JLabel) view).putClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE, width);
+    }
+  }
+
+  @Override
+  public void putClientProperty(String key, Object value) {
+    super.putClientProperty(key, value);
+
+    if (key == iConstants.RARE_WIDTH_FIXED_VALUE) {
+      ((JLabel) view).putClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE, value);
+    }
   }
 
   @Override

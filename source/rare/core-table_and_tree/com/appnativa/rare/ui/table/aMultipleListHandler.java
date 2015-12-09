@@ -93,8 +93,8 @@ public abstract class aMultipleListHandler extends aListHandler implements iScro
   }
 
   @Override
-  public void clearPopupMenuIndex() {
-    mainHandler.clearPopupMenuIndex();
+  public void clearContextMenuIndex() {
+    mainHandler.clearContextMenuIndex();
   }
 
   @Override
@@ -195,8 +195,8 @@ public abstract class aMultipleListHandler extends aListHandler implements iScro
   }
 
   @Override
-  public int getPopupMenuIndex() {
-    return mainHandler.getPopupMenuIndex();
+  public int getContextMenuIndex() {
+    return mainHandler.getContextMenuIndex();
   }
 
   @Override
@@ -205,8 +205,8 @@ public abstract class aMultipleListHandler extends aListHandler implements iScro
   }
 
   @Override
-  public RenderableDataItem getPopupMenuItem() {
-    return mainHandler.getPopupMenuItem();
+  public RenderableDataItem getContextMenuItem() {
+    return mainHandler.getContextMenuItem();
   }
 
   @Override

@@ -40,7 +40,7 @@ public interface iTree {
    *
    * The default behavior is a double click toggles on non-touch devices and a single click on touch devices.
    *
-   * @param singleClickToggle true if the node is to be  toggled on a single click; false for adouble click
+   * @param singleClickToggle true if the node is to be  toggled on a single click; false for a double click
    */
   void setSingleClickToggle(boolean singleClickToggle);
 
@@ -53,6 +53,16 @@ public interface iTree {
    */
   void setToggleOnTwistyOnly(boolean twistyOnly);
 
+
+  /**
+   * Sets whether parent items are selectable.
+   * If false only leaf nodes will be selectable (the default is true)
+   *
+   * @param parentItemsSelectable true if parent nodes are selectable; false otherwise
+   */
+  void setParentItemsSelectable(boolean parentItemsSelectable);
+  
+  
   /**
    * Gets the margin of error for detecting touches on the twisty
    * when using a touch device. Touches extending from the right edge of the twisty
@@ -106,6 +116,15 @@ public interface iTree {
    * @return true if the node is toggled only when the twisty is clicked; false otherwise
    */
   boolean isToggleOnTwistyOnly();
+
+  
+  /**
+   * Gets whether  parent items are selectable.
+   * If false only leaf nodes will be selectable (the default is true)
+   *
+   * @return true if parent nodes are selectable; false otherwise
+   */
+  boolean isParentItemsSelectable();
 
   int getIndentBy();
 

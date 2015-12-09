@@ -15,68 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iFunctionCallback;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.swing.plaf.BasicListExUI;
-import com.appnativa.rare.platform.swing.ui.EmptyListSelectionModel;
-import com.appnativa.rare.platform.swing.ui.SelectiveListSelectionModel;
-import com.appnativa.rare.platform.swing.ui.aFlingMouseListener;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.spot.PushButton;
-import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.CheckListManager;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.PainterUtils;
-import com.appnativa.rare.ui.PainterUtils.GripperIcon;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIAction;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.UIStroke;
-import com.appnativa.rare.ui.aListHandler;
-import com.appnativa.rare.ui.dnd.RenderableDataItemTransferable;
-import com.appnativa.rare.ui.effects.ValueRangeAnimator;
-import com.appnativa.rare.ui.effects.iAnimatorListener;
-import com.appnativa.rare.ui.effects.iAnimatorValueListener;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.ChangeEvent;
-import com.appnativa.rare.ui.event.ItemChangeEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.event.iDataModelListener;
-import com.appnativa.rare.ui.event.iItemChangeListener;
-import com.appnativa.rare.ui.iListHandler.SelectionMode;
-import com.appnativa.rare.ui.iListHandler.SelectionType;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformListDataModel;
-import com.appnativa.rare.ui.iPlatformListView;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.iRenderingComponent;
-import com.appnativa.rare.ui.iScrollerSupport;
-import com.appnativa.rare.ui.iToolBar;
-import com.appnativa.rare.ui.renderer.ListItemRenderer;
-import com.appnativa.rare.ui.renderer.RendererContainer;
-import com.appnativa.rare.ui.renderer.UILabelRenderer;
-import com.appnativa.rare.ui.renderer.aListItemRenderer;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.aListViewer;
-import com.appnativa.rare.widget.PushButtonWidget;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.IntList;
-
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Point;
@@ -85,10 +30,10 @@ import java.awt.Stroke;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -104,11 +49,62 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
-import javax.swing.event.EventListenerList;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.swing.plaf.BasicListExUI;
+import com.appnativa.rare.platform.swing.ui.EmptyListSelectionModel;
+import com.appnativa.rare.platform.swing.ui.SelectiveListSelectionModel;
+import com.appnativa.rare.platform.swing.ui.aFlingMouseListener;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.ActionComponent;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.CheckListManager;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.PainterUtils;
+import com.appnativa.rare.ui.PainterUtils.GripperIcon;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIAction;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.aListHandler;
+import com.appnativa.rare.ui.iListHandler.SelectionMode;
+import com.appnativa.rare.ui.iListHandler.SelectionType;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformListDataModel;
+import com.appnativa.rare.ui.iPlatformListView;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.iRenderingComponent;
+import com.appnativa.rare.ui.iScrollerSupport;
+import com.appnativa.rare.ui.iToolBar;
+import com.appnativa.rare.ui.effects.ValueRangeAnimator;
+import com.appnativa.rare.ui.effects.iAnimatorListener;
+import com.appnativa.rare.ui.effects.iAnimatorValueListener;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.ItemChangeEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iDataModelListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
+import com.appnativa.rare.ui.event.iItemChangeListener;
+import com.appnativa.rare.ui.renderer.ListItemRenderer;
+import com.appnativa.rare.ui.renderer.RendererContainer;
+import com.appnativa.rare.ui.renderer.UILabelRenderer;
+import com.appnativa.rare.ui.renderer.aListItemRenderer;
+import com.appnativa.rare.viewer.aListViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.IntList;
 
 public class ListView extends ScrollPaneEx
         implements iPlatformListView, ListSelectionListener, MouseListener, MouseMotionListener, iDataModelListener,
@@ -164,7 +160,7 @@ public class ListView extends ScrollPaneEx
   private GripperIcon                 draggableIcon;
   private boolean                     draggingAllowed;
   private UIAction[]                  editActions;
-  private iFunctionCallback           editModeNotifier;
+  private iExpansionListener          editModeListener;
   private iToolBar                    editToolbar;
   private EditableGestureListener     editableGestureListener;
   private boolean                     editing;
@@ -175,6 +171,7 @@ public class ListView extends ScrollPaneEx
   private Point                       mousePressedPoint;
   private long                        mousePressedTime;
   private boolean                     keepSelectionVisible;
+  private iExpansionListener          rowEditModeListener;
   protected static Action             enterKeyAction = new AbstractAction("Rare.enterKeyAction") {
     @Override
     public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -242,6 +239,46 @@ public class ListView extends ScrollPaneEx
     disableChangeEvent = false;
   }
 
+  @Override
+  public synchronized void addFocusListener(FocusListener l) {
+    list.addFocusListener(l);
+  }
+
+  @Override
+  public synchronized void removeFocusListener(FocusListener l) {
+    list.removeFocusListener(l);
+  }
+
+  @Override
+  public synchronized void addMouseListener(MouseListener l) {
+    list.addMouseListener(l);
+  }
+
+  @Override
+  public synchronized void addMouseMotionListener(MouseMotionListener l) {
+    list.addMouseMotionListener(l);
+  }
+
+  @Override
+  public synchronized void removeMouseListener(MouseListener l) {
+    list.removeMouseListener(l);
+  }
+
+  @Override
+  public synchronized void removeMouseMotionListener(MouseMotionListener l) {
+    list.removeMouseMotionListener(l);
+  }
+
+  @Override
+  public synchronized void addKeyListener(KeyListener l) {
+    list.addKeyListener(l);
+  }
+
+  @Override
+  public synchronized void removeKeyListener(KeyListener l) {
+    list.removeKeyListener(l);
+  }
+
   protected void animateEditMode(final boolean in, final int distance, final boolean draggable) {
     if (in) {
       animator = ValueRangeAnimator.ofFloat(1f, 0f);
@@ -255,16 +292,15 @@ public class ListView extends ScrollPaneEx
       public void animationEnded(iPlatformAnimator animation) {
         animator = null;
 
+        if (!in && (editModeListener != null)) {
+          editModeListener.itemWillCollapse(new ExpansionEvent(this, ExpansionEvent.Type.WILL_COLLAPSE));
+        }
+
         if (!in) {
           stopEditingEx();
         } else if (draggable) {}
 
         animateX = 0;
-
-        if (editModeNotifier != null) {
-          editModeNotifier.finished(false, Platform.findWidgetForComponent(this));
-        }
-
         repaint();
       }
       @Override
@@ -320,8 +356,12 @@ public class ListView extends ScrollPaneEx
   }
 
   @Override
-  public void clearPopupMenuIndex() {
+  public void clearContextMenuIndex() {
     popupIndex = -1;
+  }
+
+  protected boolean isSelectable(RenderableDataItem item) {
+    return selectable && item.isEnabled() && item.isSelectable();
   }
 
   protected void clickCheck(MouseEvent e, boolean release) {
@@ -338,23 +378,36 @@ public class ListView extends ScrollPaneEx
     }
 
     if (release &&!PlatformHelper.isMouseClick(mousePressedPoint, mousePressedTime, e)) {
+      if (autoHilight && (hilightIndex != -1)) {
+        list.setSelectedIndex(hilightIndex);
+        fireActionForRow(hilightIndex, false);
+      }
+
       return;
     }
 
     int row = list.locationToIndex(e.getPoint());
 
-    if (row == -1) {
-      return;
-    }
+    list.setSelectedIndex(row);
 
+    if (row != -1) {
+      if (autoHilight) {
+        fireActionForRow(row, false);
+      } else {
+        fireActionForRow(row, e.getClickCount() > 1);
+      }
+    }
+  }
+
+  protected void fireActionForRow(int row, boolean dblClick) {
     RenderableDataItem item = getItemAt(row);
 
-    if (!item.isEnabled() ||!item.isSelectable()) {
+    if (!isSelectable(item)) {
       return;
     }
 
     if (actionListener != null) {
-      ActionEvent ae = new ActionEvent(list, (e.getClickCount() > 1)
+      ActionEvent ae = new ActionEvent(list, dblClick
               ? "dblClick"
               : "click");
 
@@ -371,7 +424,7 @@ public class ListView extends ScrollPaneEx
         stopEditingEx();
       }
     } else {
-      hideRowEditingComponentEx();
+      hideRowEditingComponent(false);
     }
   }
 
@@ -466,7 +519,12 @@ public class ListView extends ScrollPaneEx
 
   @Override
   public void focusGained(FocusEvent e) {
-    aListViewer        lv = (aListViewer) Platform.getWidgetForComponent(this);
+    aListViewer lv = (aListViewer) Platform.getWidgetForComponent(this);
+
+    if (lv == null) {
+      return;
+    }
+
     iPlatformComponent pc = lv.getContainerComponent();
 
     if (pc.isFocusPainted()) {
@@ -528,8 +586,8 @@ public class ListView extends ScrollPaneEx
     return editingRow;
   }
 
-  public iFunctionCallback getEditModeNotifier() {
-    return editModeNotifier;
+  public iExpansionListener getEditModeListener() {
+    return editModeListener;
   }
 
   @Override
@@ -550,6 +608,14 @@ public class ListView extends ScrollPaneEx
     return listModel.get(index);
   }
 
+  @Override
+  public void getMinimumSize(UIDimension size, int maxWidth) {
+    Dimension d = getMinimumSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+  }
+  
   @Override
   public aListItemRenderer getItemRenderer() {
     return itemRenderer;
@@ -574,7 +640,7 @@ public class ListView extends ScrollPaneEx
   }
 
   @Override
-  public int getPopupMenuIndex() {
+  public int getContextMenuIndex() {
     return popupIndex;
   }
 
@@ -585,11 +651,17 @@ public class ListView extends ScrollPaneEx
   public int getRowAtPoint(int x, int y) {
     Point p = new Point(x, y);
 
-    return list.locationToIndex(p);
+    return getRowAtPoint(p);
   }
 
   public int getRowAtPoint(Point p) {
-    return list.locationToIndex(p);
+    int n = list.locationToIndex(p);
+
+    if ((n != -1) &&!list.getCellBounds(n, n).contains(p)) {
+      return -1;
+    }
+
+    return n;
   }
 
   public Rectangle getRowBounds(int index) {
@@ -604,68 +676,6 @@ public class ListView extends ScrollPaneEx
     return (listModel == null)
            ? 0
            : listModel.size();
-  }
-
-  public iPlatformComponent getRowEditingComponent(int index) {
-    editingRow    = index;
-    lastEditedRow = index;
-    list.clearSelection();
-
-    ListSelectionModel sm = list.getSelectionModel();
-
-    if (!(sm instanceof EditingSelectionModel)) {
-      selectionModel = sm;
-
-      if (editingSelectionModel == null) {
-        editingSelectionModel = new EditingSelectionModel();
-      }
-
-      list.setSelectionModel(editingSelectionModel);
-    }
-
-    if (editingComponent == null) {
-      centerRowEditorVertically = Platform.getUIDefaults().getBoolean("Rare.List.centerDeleteButton", false);
-
-      WindowViewer w   = Platform.getWindowViewer();
-      PushButton   cfg = (PushButton) Platform.getWindowViewer().createConfigurationObject("PushButton",
-                           "Rare.List.deleteButton");
-
-      if (cfg.value.getValue() == null) {
-        cfg.value.setValue(Platform.getResourceAsString("Rare.action.delete"));
-      }
-
-      if (cfg.bgColor.getValue() == null) {
-        if (centerRowEditorVertically) {
-          cfg.bgColor.setValue("red,");
-          cfg.addBorder("line").spot_setAttribute("cornerArc", "4");
-          ;
-          cfg.addBorder("empty").spot_setAttribute("insets", "6,6,6,6");
-        } else {
-          cfg.bgColor.setValue("red");
-          cfg.addBorder("matte").spot_setAttribute("insets", "0,0,0,1");
-          cfg.addBorder("empty").spot_setAttribute("insets", "6,6,6,6");
-        }
-
-        cfg.fgColor.setValue("white");
-      }
-
-      PushButtonWidget pb = PushButtonWidget.create(w, cfg);
-
-      pb.addActionListener(new iActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          RenderableDataItemTransferable t  = new RenderableDataItemTransferable(listModel.get(editingRow));
-          aListViewer                    lv = (aListViewer) Component.fromView(ListView.this).getWidget();
-
-          hideRowEditingComponent(false);
-          lv.removeData(t);
-          updateActions();
-        }
-      });
-      editingComponent = pb.getDataComponent();
-    }
-
-    return editingComponent;
   }
 
   public int getRowHeight() {
@@ -724,35 +734,25 @@ public class ListView extends ScrollPaneEx
     }
 
     if (row > -1) {
+      if (rowEditModeListener != null) {
+        rowEditModeListener.itemWillCollapse(new ExpansionEvent(editingComponent, ExpansionEvent.Type.WILL_COLLAPSE));
+      }
+
       if (listRowWithEditor != null) {
         listRowWithEditor.hideRowEditingComponent(animate);
       }
 
       if (!animate) {
-        Rectangle r = list.getCellBounds(row, row);
+        if (lastEditedRow == row) {
+          Rectangle r = list.getCellBounds(row, row);
 
-        if (r != null) {
-          list.repaint(r);
+          if (r != null) {
+            list.repaint(r);
+          }
         }
 
         editingRow = -1;
       }
-    }
-  }
-
-  protected void hideRowEditingComponentEx() {
-    int row = editingRow;
-
-    if (row > -1) {
-      if ((selectionModel != null) && (list.getSelectionModel() != selectionModel)) {
-        list.setSelectionModel(selectionModel);
-      }
-
-      if (listRowWithEditor != null) {
-        listRowWithEditor.hideRowEditingComponent(false);
-      }
-
-      editingRow = -1;
     }
   }
 
@@ -803,7 +803,7 @@ public class ListView extends ScrollPaneEx
 
   @Override
   public boolean isFocusOwner() {
-    return list!=null && list.isFocusOwner();
+    return (list != null) && list.isFocusOwner();
   }
 
   @Override
@@ -878,57 +878,73 @@ public class ListView extends ScrollPaneEx
   }
 
   @Override
-  public void mouseDragged(MouseEvent e) {}
+  public void mouseDragged(MouseEvent e) {
+    int n = list.getSelectedIndex();
+
+    if (n != -1) {
+      list.clearSelection();
+    }
+
+    updateHilight(e);
+  }
 
   @Override
   public void mouseEntered(MouseEvent e) {}
 
   @Override
-  public void mouseExited(MouseEvent e) {}
+  public void mouseExited(MouseEvent e) {
+    if (hilightIndex != -1) {
+      int n = hilightIndex;
 
-  @Override
-  public void mouseMoved(MouseEvent e) {
-    int n = list.locationToIndex(e.getPoint());
-
-    if (n != hilightIndex) {
-      hilightIndex = n;
+      hilightIndex = -1;
+      ((aListItemRenderer) list.getCellRenderer()).setHilightIndex(-1);
       list.repaint(list.getCellBounds(n, n));
     }
   }
 
-  private boolean mousePopupCheck(MouseEvent e) {
-    if (!e.isConsumed() && e.isPopupTrigger() && (list != null) && list.isEnabled()) {
-      list.requestFocus();
+  protected void updateHilight(MouseEvent e) {
+    int n = getRowAtPoint(e.getPoint());
 
-      int row = list.locationToIndex(e.getPoint());
-
-      popupIndex = row;
-
-      if ((row == -1) || list.isSelectedIndex(row)) {
-        return true;
-      }
-
-      list.getSelectionModel().setSelectionInterval(row, row);
-
-      return true;
+    if ((n != -1) &&!listModel.get(n).isEnabled()) {
+      n = -1;
     }
 
-    return false;
+    int off = hilightIndex;
+
+    if (n != hilightIndex) {
+      hilightIndex = n;
+      ((aListItemRenderer) list.getCellRenderer()).setHilightIndex(n);
+
+      if (n != -1) {
+        list.repaint(list.getCellBounds(n, n));
+      }
+
+      if (off != -1) {
+        list.repaint(list.getCellBounds(off, off));
+      }
+    }
+  }
+
+  @Override
+  public void mouseMoved(MouseEvent e) {
+    updateHilight(e);
   }
 
   @Override
   public void mousePressed(MouseEvent e) {
-    if (!e.isPopupTrigger() && list.isEnabled()) {
-      mousePressedPoint = e.getLocationOnScreen();
-      mousePressedTime  = e.getWhen();
+    if (list.isEnabled() &&!e.isConsumed()) {
+      if (e.isPopupTrigger()) {
+        popupIndex = list.locationToIndex(e.getPoint());
+      } else {
+        mousePressedPoint = e.getLocationOnScreen();
+        mousePressedTime  = e.getWhen();
+        popupIndex        = -1;
+      }
     }
-
-    mousePopupCheck(e);
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    mousePopupCheck(e);
     clickCheck(e, true);
   }
 
@@ -1087,9 +1103,9 @@ public class ListView extends ScrollPaneEx
       hilightIndex     = -1;
 
       if (autoHilight) {
-        this.addMouseMotionListener(this);
+        list.addMouseMotionListener(this);
       } else {
-        this.removeMouseMotionListener(this);
+        list.removeMouseMotionListener(this);
       }
     }
   }
@@ -1161,6 +1177,12 @@ public class ListView extends ScrollPaneEx
   }
 
   @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    list.setEnabled(enabled);
+  }
+
+  @Override
   public void setEditingMode(EditingMode mode) {
     if (mode == null) {
       mode = EditingMode.NONE;
@@ -1219,16 +1241,16 @@ public class ListView extends ScrollPaneEx
     }
   }
 
-  public void setEditModeNotifier(iFunctionCallback editModeNotifier) {
-    this.editModeNotifier = editModeNotifier;
+  public void setEditModeListener(iExpansionListener l) {
+    this.editModeListener = l;
   }
 
   @Override
   public void setForeground(Color fg) {
     super.setForeground(fg);
 
-    if (list != null) {
-      list.setForeground(fg);
+    if ((listComponent != null) && (fg instanceof UIColor)) {
+      listComponent.setForeground((UIColor) fg);
     }
   }
 
@@ -1474,6 +1496,10 @@ public class ListView extends ScrollPaneEx
         list.setDragEnabled(false);
       }
 
+      if (editModeListener != null) {
+        editModeListener.itemWillExpand(new ExpansionEvent(this, ExpansionEvent.Type.WILL_EXPAND));
+      }
+
       if (actions == null) {
         if (deletingAllowed && editingSelectionAllowed) {
           actions    = new UIAction[2];
@@ -1533,10 +1559,6 @@ public class ListView extends ScrollPaneEx
         animateX = -distance;
         animateEditMode(true, -distance, draggable);
       } else {
-        if (editModeNotifier != null) {
-          editModeNotifier.finished(false, Platform.findWidgetForComponent(this));
-        }
-
         repaint();
       }
     }
@@ -1574,11 +1596,6 @@ public class ListView extends ScrollPaneEx
 
     list.setDragEnabled(dndDragEnabled);
     listModel.editModeClearMarks();
-
-    if (editModeNotifier != null) {
-      editModeNotifier.finished(true, Platform.findWidgetForComponent(this));
-    }
-
     repaint();
   }
 
@@ -1668,30 +1685,6 @@ public class ListView extends ScrollPaneEx
 
       for (int i = first; i <= last; i++) {
         setLinkedSelectionChecked(i, sm.isSelectedIndex(i));
-      }
-    }
-  }
-
-  public static void fireActionEvent(EventListenerList listenerList, ActionEvent ae) {
-    Object[] listeners = listenerList.getListenerList();
-
-    // Process the listeners last to first, notifying
-    // those that are interested in this event
-    for (int i = listeners.length - 2; i >= 0; i -= 2) {
-      if (listeners[i] == iActionListener.class) {
-        ((iActionListener) listeners[i + 1]).actionPerformed(ae);
-      }
-    }
-  }
-
-  public static void fireChangeEvent(EventListenerList listenerList, ChangeEvent e) {
-    Object[] listeners = listenerList.getListenerList();
-
-    // Process the listeners last to first, notifying
-    // those that are interested in this event
-    for (int i = listeners.length - 2; i >= 0; i -= 2) {
-      if (listeners[i] == iChangeListener.class) {
-        ((iChangeListener) listeners[i + 1]).stateChanged(e);
       }
     }
   }
@@ -1831,7 +1824,27 @@ public class ListView extends ScrollPaneEx
             listRowWithEditor.setBounds(r);
           }
 
-          listRowWithEditor.showRowEditingComponent(getRowEditingComponent(row), true, centerRowEditorVertically);
+          editingRow    = row;
+          lastEditedRow = row;
+          list.clearSelection();
+
+          ListSelectionModel sm = list.getSelectionModel();
+
+          if (!(sm instanceof EditingSelectionModel)) {
+            selectionModel = sm;
+
+            if (editingSelectionModel == null) {
+              editingSelectionModel = new EditingSelectionModel();
+            }
+
+            list.setSelectionModel(editingSelectionModel);
+          }
+
+          if (rowEditModeListener != null) {
+            rowEditModeListener.itemWillExpand(new ExpansionEvent(editingComponent, ExpansionEvent.Type.WILL_EXPAND));
+          }
+
+          listRowWithEditor.showRowEditingComponent(editingComponent, true, centerRowEditorVertically);
         }
       }
     }
@@ -2010,5 +2023,13 @@ public class ListView extends ScrollPaneEx
   @Override
   public iScrollerSupport getScrollerSupport() {
     return this;
+  }
+
+  public iExpansionListener getRowEditModeListener() {
+    return rowEditModeListener;
+  }
+
+  public void setRowEditModeListener(iExpansionListener l) {
+    this.rowEditModeListener = l;
   }
 }

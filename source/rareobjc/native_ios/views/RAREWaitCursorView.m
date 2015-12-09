@@ -22,6 +22,7 @@
 #import <com/appnativa/rare/ui/UIImage.h>
 #import <com/appnativa/rare/ui/painter/iPlatformComponentPainter.h>
 #import "com/appnativa/rare/platform/apple/ui/util/AppleGraphics.h"
+#import "RAREAPPopupWindow.h"
 
 @implementation RAREWaitCursorView {
   UIView* rectView;
@@ -124,17 +125,22 @@
 }
 -(void) dismiss {
   [spinner_ stopAnimating];
-  RARERootView* root=(RARERootView*)[(RAREAPApplication*)[UIApplication sharedApplication] getMainWindow].rootViewController.view;
-  if(!root.window) return;
-  [root removeViewFromGlass:self];
+  if(self.window) {
+    RAREAPPopupWindow *window= (RAREAPPopupWindow*) self.window;
+    RARERootView* root=(RARERootView*)window.rootViewController.view;
+    [root removeViewFromGlass:self];
+    [window disposeEx];
+  }
 }
 -(void) show {
   if(self.window) {
     self.window.hidden=NO;
     return;
   }
-  RARERootView* root=(RARERootView*)[(RAREAPApplication*)[UIApplication sharedApplication] getMainWindow].rootViewController.view;
-  if(!root.window) return;
+  RAREAPPopupWindow *window= [[RAREAPPopupWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  window.hidden=NO;
+  window.windowLevel=UIWindowLevelAlert;
+  RARERootView* root=(RARERootView*)window.rootViewController.view;
   [root addViewToGlass:self];
   [spinner_ startAnimating];
   if(delay_>0) {

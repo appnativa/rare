@@ -20,12 +20,11 @@
 
 package com.appnativa.rare.ui.effects;
 
-import com.appnativa.rare.platform.PlatformHelper;
+import java.util.Map;
+
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.util.SNumber;
-
-import java.util.Map;
 
 public abstract class aFadeAnimation extends aPlatformAnimator implements iTransitionSupport {
   protected iPlatformComponent inComponent;
@@ -70,9 +69,9 @@ public abstract class aFadeAnimation extends aPlatformAnimator implements iTrans
   @Override
   protected void clear() {
     if (inComponent != null) {
-      PlatformHelper.setComponentAlpha(inComponent, 1);
+      inComponent.setAlpha(1);
     } else if (component != null) {
-      PlatformHelper.setComponentAlpha(component, 1);
+      component.setAlpha(1);
     }
 
     outComponent = null;
@@ -133,7 +132,7 @@ public abstract class aFadeAnimation extends aPlatformAnimator implements iTrans
     }
 
     if ((inComponent != null) && (outComponent != null)) {
-      if (!PlatformHelper.setComponentAlpha(inComponent, value)) {
+      if (!inComponent.setAlpha(value)) {
         cancel();
 
         return;
@@ -141,14 +140,14 @@ public abstract class aFadeAnimation extends aPlatformAnimator implements iTrans
 
       inComponent.repaint();
 
-      if (PlatformHelper.setComponentAlpha(outComponent, endingAlpha - value)) {
+      if(outComponent.setAlpha(endingAlpha - value)) {
         outComponent.repaint();
       }
     } else {
       if (direction == Direction.FORWARD) {
-        PlatformHelper.setComponentAlpha(component, value);
+        component.setAlpha(value);
       } else {
-        PlatformHelper.setComponentAlpha(component, endingAlpha - value);
+        component.setAlpha(endingAlpha - value);
       }
 
       component.repaint();
@@ -175,7 +174,7 @@ public abstract class aFadeAnimation extends aPlatformAnimator implements iTrans
 
   @Override
   public void restoreComponent(iPlatformComponent comp) {
-    PlatformHelper.setComponentAlpha(comp, 1f);
+    comp.setAlpha(1f);
   }
 
   public float getStartingAlpha() {

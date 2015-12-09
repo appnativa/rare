@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -42,6 +42,7 @@ import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.spot.WidgetPane;
 import com.appnativa.rare.ui.event.iWindowListener;
+import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.util.MIMEMap;
 import com.appnativa.rare.viewer.ToolBarViewer;
@@ -57,6 +58,7 @@ import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.CharScanner;
 import com.appnativa.util.Helper;
 import com.appnativa.util.ObjectHolder;
+import com.appnativa.util.SNumber;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -72,6 +74,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -97,7 +100,7 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   protected URL              contextURL;
   protected UIFont           defaultFont;
   protected volatile boolean disposed;
-  protected iWindow          mainFrame;
+  protected iFrame           mainFrame;
   protected iPlatformMenuBar menuBar;
   protected iScriptHandler   scriptHandler;
 
@@ -106,6 +109,8 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   protected iTarget         workspaceTarget;
   private Runnable          aboutDialogRunner;
   private List<UIImageIcon> windowIcons;
+  private Widget            titleWidgetConfig;
+  private PaintBucket       windowPaintbucket;
 
   public aWindowManager(iPlatformAppContext app) {
     this.appContext = app;
@@ -245,7 +250,11 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     }
 
     if (cfg.bgColor.spot_hasValue()) {
-      ColorUtils.configureBackgroundPainter(getWindowViewer(), cfg.bgColor);
+      windowPaintbucket = ColorUtils.getPaintBucket(cfg.bgColor);
+
+      if (windowPaintbucket != null) {
+        windowPaintbucket.install(mainFrame.getComponent());
+      }
     } else if (cfg.decorated.booleanValue()) {
       mainFrame.getComponent().setBackground(ColorUtils.getBackground());
     }
@@ -361,18 +370,10 @@ public abstract class aWindowManager implements iPlatformWindowManager {
 
   @Override
   public iWindow createDialog(iWidget context, Map options) {
-    String otype = null;
-
     if (options == null) {
-      options = new HashMap();
+      options = Collections.EMPTY_MAP;
     }
-
-    otype = (String) options.put("windowtype", "dialog");
-
     iWindow w = createWindow(context, options);
-
-    options.put("windowtype", otype);
-
     return w;
   }
 
@@ -447,10 +448,6 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     tb.configure(cfg);
 
     return tb;
-  }
-
-  public static iToolBarHolder createToolBarHolder(iContainer viewer, SPOTSet toolbars) {
-    return null;
   }
 
   @Override
@@ -562,13 +559,6 @@ public abstract class aWindowManager implements iPlatformWindowManager {
 
       link.close();
     }
-  }
-
-  @Override
-  public iViewer createViewer(iWidget context, Viewer cfg, URL contextURL) {
-    String ct = Platform.getSPOTName(cfg.getClass());
-
-    return createViewer(context, ct, cfg, contextURL);
   }
 
   @Override
@@ -719,6 +709,13 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   }
 
   @Override
+  public iViewer createViewer(iWidget context, Viewer cfg, URL contextURL) {
+    String ct = Platform.getSPOTName(cfg.getClass());
+
+    return createViewer(context, ct, cfg, contextURL);
+  }
+
+  @Override
   public Widget createWidgetConfig(ActionLink link) {
     if (link.getViewerConfiguration() != null) {
       return link.getViewerConfiguration();
@@ -781,6 +778,144 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   }
 
   @Override
+  public iWindow createWindow(iWidget context, Map options) {
+    iPlatformAppContext app   = context.getAppContext();
+    boolean             modal = true;
+    String              type;
+    Object              o;
+
+    if (options == null) {
+      options = Collections.EMPTY_MAP;
+    }
+
+    o = options.get("modal");
+
+    if (o instanceof Boolean) {
+      modal = (Boolean) o;
+    } else if (o instanceof String) {
+      modal = SNumber.booleanValue((String) o);
+    }
+
+    type = (String) options.get("windowtype");
+
+    if (type == null) {
+      type = (String) options.get("dialog");
+
+      if ("false".equalsIgnoreCase(type)) {
+        type = "frame";
+      } else {
+        type = "dialog";
+      }
+    }
+
+    WindowType windowType;
+
+    try {
+      windowType = WindowType.valueOf(type.toUpperCase(Locale.US));
+    } catch(Exception e) {
+      windowType = WindowType.FRAME;
+    }
+
+    o = options.get("emulateMainWindow");
+
+    if (o == null) {
+      o = app.getUIDefaults().get("Rare.emulateMainWindow");
+    }
+
+    Frame   main        = (Frame) app.getWindowManager().getMainWindow().getComponent();
+    boolean emulate     = ((o == Boolean.TRUE) || "true".equals(o));
+    boolean decorated   = true;
+    boolean transparent = false;
+
+    if (emulate) {
+      decorated   = !main.isUndecorated();
+      transparent = main.isTransparent();
+    }
+
+    o = options.get("decorated");
+
+    if (o != null) {
+      decorated = "true".equals(o) || (o == Boolean.TRUE);
+
+      if (!emulate) {
+        transparent = !decorated;
+      }
+    }
+
+    o = options.get("opaque");
+
+    if (o != null) {
+      transparent = "false".equals(o) || (o == Boolean.FALSE);
+    }
+
+    iFrame             frame        = createFrame(context, windowType, modal, transparent, decorated);
+    iPlatformComponent comp         = frame.getComponent();
+    WindowViewer       parent       = Platform.getWindowViewer(context);
+    iScriptHandler     sh           = parent.getScriptHandler();
+    WindowViewer       windowViewer = new WindowViewer(appContext, frame.getTargetName(), frame, parent, sh);
+
+    frame.setWindowViewer(windowViewer);
+
+    Map map = WidgetListener.createEventMap(options);
+
+    if (map != null) {
+      windowViewer.setWidgetListener(new WidgetListener(windowViewer, map, windowViewer.getScriptHandler()));
+    }
+
+    if (emulate) {
+      if (windowPaintbucket != null) {
+        windowPaintbucket.install(comp);
+      }
+
+      if (titleWidgetConfig != null) {
+        iWidget w = aContainer.createWidget(windowViewer, titleWidgetConfig);
+
+        frame.setTitleWidget(w);
+      }
+    }
+
+    o = options.get("cpborder");
+
+    iPlatformBorder b = null;
+
+    if (o instanceof iPlatformBorder) {
+      b = (iPlatformBorder) o;
+    } else if (o != null) {
+      b = UIBorderHelper.createBorder(o.toString());
+    }
+
+    if (b != null) {
+      comp.setBorder(b);
+    }
+
+    String s = (String) options.get("status");
+
+    if ((s != null) && (s.length() > 0)) {
+      s = s.trim();
+
+      StatusBar sb = null;
+
+      if (SNumber.booleanValue((String) options.get("resizable"))
+          &&!"false".equalsIgnoreCase((String) options.get("resizeCorner"))) {
+        sb = new StatusBar();
+        sb.showMemoryUsage.setValue(false);
+        sb.showInsertOverwrite.setValue(false);
+        sb.showTime.setValue(false);
+        sb.showResizeCorner.setValue(true);
+      }
+
+      iStatusBar isb;
+
+      frame.setStatusBar(isb = createStatusBar(sb));
+      isb.showMessage(s);
+    }
+
+    frame.finishWindowSetup(options);
+
+    return frame;
+  }
+
+  @Override
   public iWindow createWindow(iWidget context, String target, String title) {
     return createWindowOrDialog(context, target, title, false, false);
   }
@@ -796,7 +931,9 @@ public abstract class aWindowManager implements iPlatformWindowManager {
       options.put("windowtype", "dialog");
     }
 
-    return createWindow(context, options);
+    iWindow win = createWindow(context, options);
+
+    return win;
   }
 
   @Override
@@ -828,380 +965,6 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     } else {
       mainFrame.disposeOfWindow();
     }
-  }
-
-  /**
-   * Handles an <code>HTTPException</code>
-   *
-   * @param e
-   *          the exception
-   */
-  public void handleException(HTTPException e) {
-    showErrorDialog(e);
-  }
-
-  /**
-   * Handles an <code>InvalidConfigurationException</code>
-   *
-   * @param e
-   *          the exception
-   */
-  public void handleException(InvalidConfigurationException e) {
-    showErrorDialog(e);
-  }
-
-  /**
-   * Handles an <code>IOException</code>
-   *
-   * @param e
-   *          the exception
-   */
-  public void handleException(IOException e) {
-    showErrorDialog(e);
-  }
-
-  /**
-   * Handles an <code>MalformedURLException</code>
-   *
-   * @param e
-   *          the exception
-   */
-  public void handleException(MalformedURLException e) {
-    showErrorDialog(e);
-  }
-
-  @Override
-  public void handleException(final Throwable e) {
-    WindowViewer w = Platform.getAppContext().getWindowViewer();
-
-    if (!Functions.isRunningInBackground()) {
-      handleExceptionEx(e);
-    } else {
-      w.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          handleExceptionEx(e);
-        }
-      });
-    }
-  }
-
-  @Override
-  public void hideWindow() {
-    mainFrame.hideWindow();
-  }
-
-  @Override
-  public void moveBy(float x, float y) {
-    mainFrame.moveBy(x, y);
-  }
-
-  @Override
-  public void moveTo(float x, float y) {
-    mainFrame.moveTo(x, y);
-  }
-
-  @Override
-  public WindowViewer openViewerWindow(ActionLink link, final Object viewerValue) {
-    final Map          opts      = link.getWindowOptions();
-    final WindowViewer w         = appContext.getWindowViewer();
-    final iWindow      win       = createWindow(getWorkspaceViewer(), opts);
-    final iContainer   winviewer = win.getViewer();
-
-    try {
-      winviewer.setContextURL(link.getURL(null));
-    } catch(MalformedURLException e) {
-      throw ApplicationException.runtimeException(e);
-    }
-
-    try {
-      ViewerCreator.createViewer(winviewer, link, new ViewerCreator.iCallback() {
-        @Override
-        public void viewerCreated(iWidget context, ActionLink link, iViewer viewer) {
-          appContext.getAsyncLoadStatusHandler().loadCompleted(context, link);
-          viewer.setParent(winviewer);
-
-          if (viewerValue != null) {
-            viewer.setValue(viewerValue);
-          }
-
-          setViewerEx(win.getTargetName(), winviewer, viewer);
-
-          String title = (String) ((opts == null)
-                                   ? null
-                                   : opts.get("title"));
-
-          if (title == null) {
-            title = viewer.getTitle();
-
-            if ((title != null) && (title.length() > 0)) {
-              win.setTitle(title);
-            }
-          }
-
-          win.showWindow();
-        }
-        @Override
-        public void errorHappened(iWidget context, ActionLink link, Exception e) {
-          appContext.getAsyncLoadStatusHandler().errorOccured(context, link, e);
-          w.handleException(e);
-        }
-        @Override
-        public void configCreated(iWidget context, ActionLink link, Viewer config) {}
-        @Override
-        public void startingOperation(iWidget context, ActionLink link) {
-          appContext.getAsyncLoadStatusHandler().loadStarted(context, link, null);
-        }
-      });
-    } catch(MalformedURLException e) {
-      throw new ApplicationException(e);
-    }
-
-    return (WindowViewer) winviewer;
-  }
-
-  @Override
-  public void pack() {}
-
-  @Override
-  public void registerTarget(String name, iTarget target) {
-    iTarget t = theTargets.get(name);
-
-    if (t == null) {
-      theTargets.put(name, target);
-    } else if (t != target) {
-      throw new ApplicationException(appContext.getResourceAsString("Rare.runtime.text.targetExists"), name);
-    }
-  }
-
-  @Override
-  public void registerViewer(String name, iViewer viewer) {
-    iWeakReference r = activeViewers.get(name);
-    iViewer        v = (iViewer) ((r == null)
-                                  ? null
-                                  : r.get());
-
-    if (v != viewer) {
-      activeViewers.put(name, PlatformHelper.createWeakReference(viewer));
-    }
-  }
-
-  @Override
-  public void removeTarget(String target) {
-    theTargets.remove(target);
-  }
-
-  @Override
-  public void removeWindowListener(iWindowListener l) {
-    mainFrame.removeWindowListener(l);
-  }
-
-  @Override
-  public void reset(boolean reloadViewers) {}
-
-  public Runnable runnableForActivateViewer(ActionLink link) {
-    return new ViewerActivator(link);
-  }
-
-  public Runnable runnableForActivateViewer(iWidget context, Viewer cfg, String target) {
-    return new ViewerActivator(context, cfg, target);
-  }
-
-  public void showAboutDialog() {
-    if (aboutDialogRunner != null) {
-      Platform.invokeLater(aboutDialogRunner);
-    }
-  }
-
-  @Override
-  public void showWindow() {
-    mainFrame.showWindow();
-  }
-
-  @Override
-  public void showWindow(int x, int y) {
-    mainFrame.showWindow(x, y);
-  }
-
-  @Override
-  public void toBack() {
-    mainFrame.toBack();
-  }
-
-  @Override
-  public void toFront() {
-    mainFrame.toFront();
-  }
-
-  @Override
-  public void unRegisterTarget(String name) {
-    removeTarget(name);
-  }
-
-  @Override
-  public void unRegisterViewer(String name) {
-    iWeakReference r = activeViewers.remove(name);
-
-    if (r != null) {
-      r.clear();
-    }
-  }
-
-  @Override
-  public void update() {
-    mainFrame.update();
-  }
-
-  public void setAboutDialogRunner(Runnable aboutDialogRunner) {
-    this.aboutDialogRunner = aboutDialogRunner;
-  }
-
-  @Override
-  public void setBounds(float x, float y, float width, float height) {
-    mainFrame.setBounds(x, y, width, height);
-  }
-
-  @Override
-  public void setCanClose(boolean can) {}
-
-  @Override
-  public void setContextURL(URL url) {
-    contextURL = url;
-  }
-
-  @Override
-  public void setDefaultFont(UIFont font) {
-    defaultFont = font;
-    UIFontHelper.setDefaultFont(font);
-  }
-
-  @Override
-  public void setLocation(float x, float y) {
-    mainFrame.setLocation(x, y);
-  }
-
-  @Override
-  public iPlatformMenuBar setMenuBar(iPlatformMenuBar mb) {
-    return mainFrame.setMenuBar(mb);
-  }
-
-  @Override
-  public float setRelativeFontSize(float size) {
-    return 1;
-  }
-
-  @Override
-  public void setResizable(boolean resizable) {}
-
-  /**
-   * @param scriptHandler
-   *          the scriptHandler to set
-   */
-  public void setScriptHandler(iScriptHandler scriptHandler) {
-    this.scriptHandler = scriptHandler;
-  }
-
-  @Override
-  public void setSize(float width, float height) {
-    mainFrame.setSize(width, height);
-  }
-
-  @Override
-  public void setStatus(String status) {
-    iStatusBar sb = getStatusBar();
-
-    if (sb != null) {
-      sb.setProgressStatus(status);
-    }
-  }
-
-  @Override
-  public iStatusBar setStatusBar(iStatusBar sb) {
-    return mainFrame.setStatusBar(sb);
-  }
-
-  @Override
-  public void setTitle(String title) {
-    mainFrame.setTitle(title);
-  }
-
-  @Override
-  public iToolBarHolder setToolBarHolder(iToolBarHolder tbh) {
-    return mainFrame.setToolBarHolder(tbh);
-  }
-
-  @Override
-  public iViewer setViewer(String target, iWidget context, iViewer viewer, Map options) {
-    iTarget t = null;
-
-    if ((target == null) || target.endsWith(iTarget.TARGET_NEW_WINDOW) || viewer.isWindowOnlyViewer()) {
-      viewer.showAsWindow(options);
-
-      return null;
-    }
-
-    if (target.equals(iTarget.TARGET_NULL)) {
-      return null;
-    }
-
-    if (target.endsWith(iTarget.TARGET_NEW_POPUP)) {
-      iPlatformComponent comp = (context == null)
-                                ? null
-                                : context.getDataComponent();
-
-      if (comp == null) {
-        comp = mainFrame.getComponent();
-      }
-
-      viewer.showAsPopup(comp, options);
-
-      return null;
-    }
-
-    if (target.endsWith(iTarget.TARGET_PARENT)) {
-      if (context != null) {
-        t = context.getParent().getTarget();
-      }
-    } else if (target.endsWith(iTarget.TARGET_SELF)) {
-      if (context != null) {
-        t = context.getViewer().getTarget();
-      }
-    } else if (target.equals(iTarget.TARGET_WORKSPACE)) {
-      t = workspaceTarget;
-    } else {
-      t = getTarget(target);
-    }
-
-    if (t == null) {
-      throw new RuntimeException(appContext.getResourceAsString("Rare.runtime.text.unknownTarget") + target);
-    }
-
-    return t.setViewer(viewer);
-  }
-
-  @Override
-  public iViewer setViewerEx(String target, iWidget context, iViewer viewer) {
-    iTarget t = null;
-
-    if (target.endsWith(iTarget.TARGET_SELF)) {
-      if (context != null) {
-        t = context.getViewer().getTarget();
-      }
-    } else {
-      t = getTarget(target);
-    }
-
-    if (t == null) {
-      throw new RuntimeException(appContext.getResourceAsString("Rare.runtime.text.unknownTarget") + target);
-    }
-
-    return t.setViewer(viewer);
-  }
-
-  @Override
-  public void setWindowIcons(List<UIImageIcon> icons) {
-    this.windowIcons = icons;
-    setWindowIconsEx(icons);
   }
 
   public Runnable getAboutDialogRunner() {
@@ -1243,23 +1006,13 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   }
 
   @Override
-  public iFrame getFrame(String name) {
-    return null;
-  }
-
-  @Override
-  public iFrame[] getFrames() {
-    return null;
+  public int getHeight() {
+    return mainFrame.getHeight();
   }
 
   @Override
   public UIDimension getInnerSize(UIDimension size) {
     return mainFrame.getInnerSize(size);
-  }
-
-  @Override
-  public int getHeight() {
-    return mainFrame.getHeight();
   }
 
   @Override
@@ -1442,14 +1195,397 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     return workspaceTarget.getViewer();
   }
 
+  /**
+   * Handles an <code>HTTPException</code>
+   *
+   * @param e
+   *          the exception
+   */
+  public void handleException(HTTPException e) {
+    showErrorDialog(e);
+  }
+
+  /**
+   * Handles an <code>InvalidConfigurationException</code>
+   *
+   * @param e
+   *          the exception
+   */
+  public void handleException(InvalidConfigurationException e) {
+    showErrorDialog(e);
+  }
+
+  /**
+   * Handles an <code>IOException</code>
+   *
+   * @param e
+   *          the exception
+   */
+  public void handleException(IOException e) {
+    showErrorDialog(e);
+  }
+
+  /**
+   * Handles an <code>MalformedURLException</code>
+   *
+   * @param e
+   *          the exception
+   */
+  public void handleException(MalformedURLException e) {
+    showErrorDialog(e);
+  }
+
   @Override
-  public boolean isDisposed() {
-    return scriptHandler == null;
+  public void handleException(final Throwable e) {
+    WindowViewer w = Platform.getAppContext().getWindowViewer();
+
+    if (!Functions.isRunningInBackground()) {
+      handleExceptionEx(e);
+    } else {
+      w.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          handleExceptionEx(e);
+        }
+      });
+    }
+  }
+
+  @Override
+  public void hideWindow() {
+    mainFrame.hideWindow();
   }
 
   public boolean isDesignMode() {
     return false;
   }
+
+  @Override
+  public boolean isDisposed() {
+    return scriptHandler == null;
+  }
+
+  @Override
+  public void moveBy(float x, float y) {
+    mainFrame.moveBy(x, y);
+  }
+
+  @Override
+  public void moveTo(float x, float y) {
+    mainFrame.moveTo(x, y);
+  }
+
+  @Override
+  public WindowViewer openViewerWindow(ActionLink link, final Object viewerValue) {
+    final Map          opts      = link.getWindowOptions();
+    final WindowViewer w         = appContext.getWindowViewer();
+    final iWindow      win       = createWindow(getWorkspaceViewer(), opts);
+    final iContainer   winviewer = win.getViewer();
+
+    try {
+      winviewer.setContextURL(link.getURL(null));
+    } catch(MalformedURLException e) {
+      throw ApplicationException.runtimeException(e);
+    }
+
+    try {
+      ViewerCreator.createViewer(winviewer, link, new ViewerCreator.iCallback() {
+        @Override
+        public void configCreated(iWidget context, ActionLink link, Viewer config) {}
+        @Override
+        public void errorHappened(iWidget context, ActionLink link, Exception e) {
+          appContext.getAsyncLoadStatusHandler().errorOccured(context, link, e);
+          w.handleException(e);
+        }
+        @Override
+        public void startingOperation(iWidget context, ActionLink link) {
+          appContext.getAsyncLoadStatusHandler().loadStarted(context, link, null);
+        }
+        @Override
+        public void viewerCreated(iWidget context, ActionLink link, iViewer viewer) {
+          appContext.getAsyncLoadStatusHandler().loadCompleted(context, link);
+          viewer.setParent(winviewer);
+
+          if (viewerValue != null) {
+            viewer.setValue(viewerValue);
+          }
+
+          setViewerEx(win.getTargetName(), winviewer, viewer);
+
+          String title = (String) ((opts == null)
+                                   ? null
+                                   : opts.get("title"));
+
+          if (title == null) {
+            title = viewer.getTitle();
+
+            if ((title != null) && (title.length() > 0)) {
+              win.setTitle(title);
+            }
+          }
+
+          win.showWindow();
+        }
+      });
+    } catch(MalformedURLException e) {
+      throw new ApplicationException(e);
+    }
+
+    return (WindowViewer) winviewer;
+  }
+
+  @Override
+  public void pack() {}
+
+  @Override
+  public void registerTarget(String name, iTarget target) {
+    iTarget t = theTargets.get(name);
+
+    if (t == null) {
+      theTargets.put(name, target);
+    } else if (t != target) {
+      throw new ApplicationException(appContext.getResourceAsString("Rare.runtime.text.targetExists"), name);
+    }
+  }
+
+  @Override
+  public void registerViewer(String name, iViewer viewer) {
+    iWeakReference r = activeViewers.get(name);
+    iViewer        v = (iViewer) ((r == null)
+                                  ? null
+                                  : r.get());
+
+    if (v != viewer) {
+      activeViewers.put(name, PlatformHelper.createWeakReference(viewer));
+
+      if (v != null) {
+          Platform.ignoreException(
+              Platform.getWindowViewer().getString("Rare.runtime.text.registeredViewerExists", name), null);
+      }
+    }
+  }
+
+  @Override
+  public void removeTarget(String target) {
+    theTargets.remove(target);
+  }
+
+  @Override
+  public void removeWindowListener(iWindowListener l) {
+    mainFrame.removeWindowListener(l);
+  }
+
+  @Override
+  public void reset(boolean reloadViewers) {}
+
+  public Runnable runnableForActivateViewer(ActionLink link) {
+    return new ViewerActivator(link);
+  }
+
+  public Runnable runnableForActivateViewer(iWidget context, Viewer cfg, String target) {
+    return new ViewerActivator(context, cfg, target);
+  }
+
+  public void setAboutDialogRunner(Runnable aboutDialogRunner) {
+    this.aboutDialogRunner = aboutDialogRunner;
+  }
+
+  @Override
+  public void setBounds(float x, float y, float width, float height) {
+    mainFrame.setBounds(x, y, width, height);
+  }
+
+  @Override
+  public void setCanClose(boolean can) {}
+
+  @Override
+  public void setContextURL(URL url) {
+    contextURL = url;
+  }
+
+  @Override
+  public void setDefaultFont(UIFont font) {
+    defaultFont = font;
+    UIFontHelper.setDefaultFont(font);
+  }
+
+  @Override
+  public void setLocation(float x, float y) {
+    mainFrame.setLocation(x, y);
+  }
+
+  @Override
+  public void setMenuBar(iPlatformMenuBar mb) {
+    mainFrame.setMenuBar(mb);
+  }
+
+  @Override
+  public float setRelativeFontSize(float size) {
+    return 1;
+  }
+
+  @Override
+  public void setResizable(boolean resizable) {}
+
+  /**
+   * @param scriptHandler
+   *          the scriptHandler to set
+   */
+  public void setScriptHandler(iScriptHandler scriptHandler) {
+    this.scriptHandler = scriptHandler;
+  }
+
+  @Override
+  public void setSize(float width, float height) {
+    mainFrame.setSize(width, height);
+  }
+
+  @Override
+  public void setStatus(String status) {
+    iStatusBar sb = getStatusBar();
+
+    if (sb != null) {
+      sb.setProgressStatus(status);
+    }
+  }
+
+  @Override
+  public void setStatusBar(iStatusBar sb) {
+    mainFrame.setStatusBar(sb);
+  }
+
+  @Override
+  public void setTitle(String title) {
+    mainFrame.setTitle(title);
+  }
+
+  @Override
+  public void setToolBarHolder(iToolBarHolder tbh) {
+    mainFrame.setToolBarHolder(tbh);
+  }
+
+  @Override
+  public iViewer setViewer(String target, iWidget context, iViewer viewer, Map options) {
+    iTarget t = null;
+
+    if ((target == null) || target.endsWith(iTarget.TARGET_NEW_WINDOW) || viewer.isWindowOnlyViewer()) {
+      viewer.showAsWindow(options);
+
+      return null;
+    }
+
+    if (target.equals(iTarget.TARGET_NULL)) {
+      return null;
+    }
+
+    if (target.endsWith(iTarget.TARGET_NEW_POPUP)) {
+      iPlatformComponent comp = (context == null)
+                                ? null
+                                : context.getDataComponent();
+
+      if (comp == null) {
+        comp = mainFrame.getComponent();
+      }
+
+      viewer.showAsPopup(comp, options);
+
+      return null;
+    }
+
+    if (target.endsWith(iTarget.TARGET_PARENT)) {
+      if (context != null) {
+        t = context.getParent().getTarget();
+      }
+    } else if (target.endsWith(iTarget.TARGET_SELF)) {
+      if (context != null) {
+        t = context.getViewer().getTarget();
+      }
+    } else if (target.equals(iTarget.TARGET_WORKSPACE)) {
+      t = workspaceTarget;
+    } else {
+      t = getTarget(target);
+    }
+
+    if (t == null) {
+      throw new RuntimeException(appContext.getResourceAsString("Rare.runtime.text.unknownTarget") + target);
+    }
+
+    return t.setViewer(viewer);
+  }
+
+  @Override
+  public iViewer setViewerEx(String target, iWidget context, iViewer viewer) {
+    iTarget t = null;
+
+    if (target.endsWith(iTarget.TARGET_SELF)) {
+      if (context != null) {
+        t = context.getViewer().getTarget();
+      }
+    } else {
+      t = getTarget(target);
+    }
+
+    if (t == null) {
+      throw new RuntimeException(appContext.getResourceAsString("Rare.runtime.text.unknownTarget") + target);
+    }
+
+    return t.setViewer(viewer);
+  }
+
+  @Override
+  public void setWindowIcons(List<UIImageIcon> icons) {
+    this.windowIcons = icons;
+    setWindowIconsEx(icons);
+  }
+
+  public void showAboutDialog() {
+    if (aboutDialogRunner != null) {
+      Platform.invokeLater(aboutDialogRunner);
+    }
+  }
+
+  @Override
+  public void showWindow() {
+    mainFrame.showWindow();
+  }
+
+  @Override
+  public void showWindow(int x, int y) {
+    mainFrame.showWindow(x, y);
+  }
+
+  @Override
+  public void toBack() {
+    mainFrame.toBack();
+  }
+
+  @Override
+  public void toFront() {
+    mainFrame.toFront();
+  }
+
+  @Override
+  public void unRegisterTarget(String name) {
+    removeTarget(name);
+  }
+
+  @Override
+  public void unRegisterViewer(String name,iViewer viewer) {
+    iWeakReference r = activeViewers.get(name);
+
+    if (r != null && r.get()==viewer) {
+      activeViewers.remove(name);
+      r.clear();
+    }
+  }
+  
+  @Override
+  public void update() {
+    mainFrame.update();
+  }
+
+  protected abstract iFrame createFrame(iWidget context, WindowType type, boolean modal, boolean transparent,
+          boolean decorated);
 
   protected void createScriptHandler(MainWindow cfg) {
     String type     = null;
@@ -1503,6 +1639,7 @@ public abstract class aWindowManager implements iPlatformWindowManager {
 
     scriptHandler = appContext.getScriptingManager().getRootHandler(appContext, getMainWindow(), type, location, code,
             false);
+    mainFrame.setWindowViewer(scriptHandler.getWindowViewer());
     scriptHandler.getWindowViewer().setContextURL(contextURL);
 
     Map map = aWidgetListener.createEventMap(cfg.spot_getAttributesEx());
@@ -1517,10 +1654,12 @@ public abstract class aWindowManager implements iPlatformWindowManager {
 
   protected iWidget createTitleWidget(MainWindow cfg) {
     if (!cfg.decorated.booleanValue()) {
-      ActionLink link = Utils.createLink(getViewer(), iTarget.TARGET_WORKSPACE, cfg.titlePane);
+      Widget wcfg = (Widget) cfg.titlePane.getValue();
 
-      if (link != null) {
-        return aContainer.createWidget(scriptHandler.getWindowViewer(), link);
+      if (wcfg != null) {
+        titleWidgetConfig = wcfg;
+
+        return aContainer.createWidget(scriptHandler.getWindowViewer(), wcfg);
       }
     }
 
@@ -1596,6 +1735,24 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     return false;
   }
 
+  protected String getViewerClassName(Viewer cfg) {
+    String s = (cfg == null)
+               ? null
+               : cfg.spot_getAttribute("viewerClass");
+
+    if (s != null) {
+      if (s.indexOf('.') == -1) {
+        s = Platform.RARE_PACKAGE_NAME + ".viewer." + s;
+
+        if (!s.endsWith("Viewer")) {
+          s += "Viewer";
+        }
+      }
+    }
+
+    return s;
+  }
+
   /**
    * Handles widget custom properties. The default behavior is to just attach
    * the properties to this widget
@@ -1668,34 +1825,24 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     showErrorDialog(e);
   }
 
-  protected abstract void showErrorDialog(Throwable e);
-
-  protected boolean supportsMultipleWindowIcons() {
-    return true;
-  }
-
   protected abstract void setWindowIconsEx(List<UIImageIcon> icons);
 
   protected void setWorkspaceViewer(iViewer v) {
     workspaceTarget.setViewer(v);
   }
 
-  protected String getViewerClassName(Viewer cfg) {
-    String s = (cfg == null)
-               ? null
-               : cfg.spot_getAttribute("viewerClass");
+  protected abstract void showErrorDialog(Throwable e);
 
-    if (s != null) {
-      if (s.indexOf('.') == -1) {
-        s = Platform.RARE_PACKAGE_NAME + ".viewer." + s;
+  protected boolean supportsMultipleWindowIcons() {
+    return true;
+  }
 
-        if (!s.endsWith("Viewer")) {
-          s += "Viewer";
-        }
-      }
-    }
+  public static iToolBarHolder createToolBarHolder(iContainer viewer, SPOTSet toolbars) {
+    return null;
+  }
 
-    return s;
+  public static enum WindowType {
+    FRAME, DIALOG, POPUP, POPUP_ORPHAN,
   }
 
   protected class ViewerActivator implements Runnable {

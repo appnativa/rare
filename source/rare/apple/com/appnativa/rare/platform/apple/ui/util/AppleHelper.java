@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.util;
@@ -23,14 +23,21 @@ package com.appnativa.rare.platform.apple.ui.util;
 import com.appnativa.rare.platform.apple.ui.view.ScrollBarView;
 import com.appnativa.rare.platform.apple.ui.view.ScrollView;
 import com.appnativa.rare.platform.apple.ui.view.View;
+import com.appnativa.rare.platform.apple.ui.view.aPlatformTableBasedView;
 import com.appnativa.rare.spot.ScrollPane;
+import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.BorderPanel;
 import com.appnativa.rare.ui.Container;
+import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.ScrollPanePanel;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.listener.WidgetScriptChangeListener;
 import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
+import com.appnativa.rare.ui.table.TableComponent;
+import com.appnativa.rare.viewer.FormViewer;
 import com.appnativa.rare.viewer.aViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTEnumerated;
@@ -44,10 +51,8 @@ public class AppleHelper {
 
     if ((val == ScrollPane.CVerticalScrollbar.show_as_needed) || (val == ScrollPane.CVerticalScrollbar.show_always)) {
       if (vertical) {
-        sv.setHasVerticalScrollBar(true);
         sb = sv.getVerticalScrollBar();
       } else {
-        sv.setHasHorizontalScrollBar(true);
         sb = sv.getHorizontalScrollBar();
       }
 
@@ -62,18 +67,18 @@ public class AppleHelper {
       }
     } else {
       if (vertical) {
-        sv.setHasVerticalScrollBar(false);
+        sv.setShowsVerticalScrollIndicator(false);
       } else {
-        sv.setHasHorizontalScrollBar(false);
+        sv.setShowsHorizontalScrollIndicator(false);
       }
     }
   }
 
-  public static iPlatformComponent configureScrollPane(iWidget lv, iPlatformComponent fc, final View view,
+  public static iPlatformComponent configureScrollPane(iWidget widget, iPlatformComponent fc, final View view,
           ScrollPane sp) {
     boolean scrollview = view.isScrollView();
 
-    if ((sp == null) && (lv instanceof iListHandler)) {
+    if ((sp == null) && (widget instanceof iListHandler)) {
       sp = DEFAULT_SCROLLPANE_CONFIG;
     }
 
@@ -91,8 +96,8 @@ public class AppleHelper {
       sv = new ScrollView();
     }
 
-    configureScrollBarView(lv, sv, sp.verticalScrollbar, true);
-    configureScrollBarView(lv, sv, sp.horizontalScrollbar, false);
+    configureScrollBarView(widget, sv, sp.verticalScrollbar, true);
+    configureScrollBarView(widget, sv, sp.horizontalScrollbar, false);
 
     if (sp.isAlwaysHidden()) {
       sv.setScrollEnabled(false);
@@ -102,6 +107,11 @@ public class AppleHelper {
 
     if (scrollview) {
       c = fc;
+
+      if ((view instanceof aPlatformTableBasedView)) {
+        sv.setScrollBarListeners((aPlatformTableBasedView) view);
+      }
+
       sv.unwrap();
     } else {
       Container cc = new ScrollPanePanel(sv);
@@ -114,6 +124,55 @@ public class AppleHelper {
 
     if (!wrapped && sv.hasHorizontalScrollBar()) {
       sv.setScrollingEdgePainter(UIScrollingEdgePainter.getInstance());
+    }
+
+    aViewer v = (aViewer) widget.getViewer();
+
+    if ((v != null) && (sp.hasColumnWidgets() || sp.hasRowWidgets())) {
+      Widget      wc;
+      iWidget     w;
+      BorderPanel bp = new BorderPanel();
+
+      bp.setUseCrossPattern(true);
+      bp.setCenterView(c);
+      wc = (Widget) sp.columnHeader.getValue();
+      w  = getWidget(widget, wc);
+
+      if (w != null) {
+        v.registerOrphanWidget(w);
+        bp.setTopView(w.getContainerComponent());
+        setScrollComponentView(fc, view, w.getContainerComponent(), Location.TOP);
+      }
+
+      wc = (Widget) sp.columnFooter.getValue();
+      w  = getWidget(widget, wc);
+
+      if (w != null) {
+        v.registerOrphanWidget(w);
+        bp.setBottomView(w.getContainerComponent());
+        setScrollComponentView(fc, view, w.getContainerComponent(), Location.BOTTOM);
+      }
+
+      wc = (Widget) sp.rowFooter.getValue();
+      w  = getWidget(widget, wc);
+
+      if (w != null) {
+        v.registerOrphanWidget(w);
+        bp.setRightView(w.getContainerComponent());
+        setScrollComponentView(fc, view, w.getContainerComponent(), Location.RIGHT);
+      }
+
+      wc = (Widget) sp.rowHeader.getValue();
+      w  = getWidget(widget, wc);
+
+      if (w != null) {
+        v.registerOrphanWidget(w);
+        bp.setLeftView(w.getContainerComponent());
+        setScrollComponentView(fc, view, w.getContainerComponent(), Location.LEFT);
+      }
+
+      bp.setScrollPaneCorners(v, sp);
+      c = bp;
     }
 
     return c;
@@ -140,11 +199,84 @@ public class AppleHelper {
     return sb;
   }
 
+  public static iWidget getWidget(iWidget context, Widget wc) {
+    if (wc == null) {
+      return null;
+    }
+
+    return FormViewer.createWidget(context.getContainerViewer(), wc);
+  }
+
   public static iPlatformComponent makeScrollPane(aViewer context, ScrollPane sp, iPlatformComponent content) {
     if (sp == null) {
       sp = DEFAULT_SCROLLPANE_CONFIG;
     }
 
     return configureScrollPane(context, content, content.getView(), sp);
+  }
+
+  private static iScrollerSupport getScrollView(iPlatformComponent pc) {
+    View             view = pc.getView();
+    iScrollerSupport c;
+
+    if (view instanceof iScrollerSupport) {
+      c = (iScrollerSupport) view;
+    } else {
+      c = new ScrollView();
+
+      Container cc = new ScrollPanePanel(c);
+
+      cc.add(pc, 0);
+    }
+
+    return c;
+  }
+
+  private static void setScrollComponentView(iPlatformComponent fc, View parent, iPlatformComponent child,
+          Location loc) {
+    switch(loc) {
+      case TOP :
+        if (fc instanceof TableComponent) {
+          ((TableComponent) fc).setHeaderView(getScrollView(child));
+        } else if (parent instanceof ScrollView) {
+          ((ScrollView) parent).setHeaderView(getScrollView(child));
+        } else if (parent instanceof aPlatformTableBasedView) {
+          ((aPlatformTableBasedView) parent).setHeaderView(getScrollView(child));
+        }
+
+        break;
+
+      case BOTTOM :
+        if (fc instanceof TableComponent) {
+          ((TableComponent) fc).setFooterView(getScrollView(child));
+        } else if (parent instanceof ScrollView) {
+          ((ScrollView) parent).setFooterView(getScrollView(child));
+        } else if (parent instanceof aPlatformTableBasedView) {
+          ((aPlatformTableBasedView) parent).setFooterView(getScrollView(child));
+        }
+
+        break;
+
+      case LEFT :
+        if (parent instanceof ScrollView) {
+          ((ScrollView) parent).setRowHeaderView(getScrollView(child));
+        } else if (parent instanceof aPlatformTableBasedView) {
+          ((aPlatformTableBasedView) parent).setRowHeaderView(getScrollView(child));
+        }
+
+        break;
+
+      case RIGHT :
+        if (parent instanceof ScrollView) {
+          ((ScrollView) parent).setRowFooterView(getScrollView(child));
+        } else if (parent instanceof aPlatformTableBasedView) {
+          ((aPlatformTableBasedView) parent).setRowFooterView(getScrollView(child));
+        }
+
+        break;
+
+      default :
+        break;
+    }
   }
 }

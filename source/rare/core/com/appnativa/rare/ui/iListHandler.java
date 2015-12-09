@@ -144,7 +144,7 @@ public interface iListHandler extends iFilterableList<RenderableDataItem> {
   /**
    * Clears the popup menu index
    */
-  void clearPopupMenuIndex();
+  void clearContextMenuIndex();
 
   /**
    * Clears the selection
@@ -398,18 +398,20 @@ public interface iListHandler extends iFilterableList<RenderableDataItem> {
   int getMinSelectionIndex();
 
   /**
-   * Returns the index of item that was clicked on to trigger the popup menu
+   * Returns the index of item that was clicked on to trigger the popup menu.
+   * This value is only available while the mouse is still pressed.
    *
    * @return the index of item that was clicked on to trigger the popup menu
    */
-  int getPopupMenuIndex();
+  int getContextMenuIndex();
 
   /**
-   * Returns the item that was clicked on to trigger the popup menu
+   * Returns the item that was clicked on to trigger the popup menu.
+   * This value is available while the mouse is still pressed.
    *
    * @return the item that was clicked on to trigger the popup menu
    */
-  RenderableDataItem getPopupMenuItem();
+  RenderableDataItem getContextMenuItem();
 
   /**
    * Gets the preferred height of the specified row
@@ -604,4 +606,6 @@ public interface iListHandler extends iFilterableList<RenderableDataItem> {
    * @param selectionMode the selection mode
    */
   void setSelectionMode(SelectionMode selectionMode);
+
+  public void repaintRow(int row);
 }

@@ -59,7 +59,7 @@ public class PickerView extends View {
   ;
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size,float maxWidth) {
     pickerHelper.getMinimumSize(size);
   }
 

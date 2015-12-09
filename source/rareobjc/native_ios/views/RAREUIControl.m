@@ -356,7 +356,6 @@
 - (CGSize)sizeThatFits:(CGSize)size {
   CGFloat width = insets_.left + insets_.right;
   CGFloat height = insets_.top + insets_.bottom;
-  size = CGSizeZero;
   if (titleLabel) {
     size = [titleLabel sizeThatFits:size];
     titleSize=size;
@@ -507,7 +506,9 @@
       if(centeredIconOffset!=0 && titleSize.width==0) {
         offset=centeredIconOffset;
       }
-      [ic paintWithRAREiPlatformGraphics:g withFloat:imageRect_.origin.x+offset withFloat:imageRect_.origin.y withFloat:rect->width_ withFloat:rect->height_];
+      CGFloat x=imageRect_.origin.x+offset;
+      CGFloat y=imageRect_.origin.y;
+      [ic paintWithRAREiPlatformGraphics:g withFloat:x withFloat:imageRect_.origin.y withFloat:rect->width_-x withFloat:rect->height_-y];
     }
   }
   [super drawRect:dirtyRect];

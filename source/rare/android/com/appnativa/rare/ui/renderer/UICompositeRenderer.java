@@ -43,13 +43,7 @@ public class UICompositeRenderer extends aCompositeRenderer {
     iPlatformRenderingComponent rc = (renderingComponent == null)
                                      ? new UILabelRenderer()
                                      : renderingComponent.newCopy();
-    UICompositeRenderer         cr = new UICompositeRenderer(rc);
-
-    cr.setIconPosition(iconPosition);
-    cr.backgroundSurface = backgroundSurface;
-    Renderers.setupNewCopy(this, cr);
-
-    return cr;
+    return setupNewCopy(new UICompositeRenderer(rc));
   }
 
   public void setBlockRequestLayout(boolean block) {

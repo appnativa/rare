@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -58,6 +58,7 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
   protected int                    visibleRowCount;
   private iPlatformComponent       calcComponent;
   private iPlatformItemRenderer    calcRenderer;
+  private UIDimension              calcPrefSize;
   protected int                    minVisibleRowCount;
 
   public aListHandler(iListView view) {
@@ -77,6 +78,11 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
   @Override
   public boolean isAtTopEdge() {
     return listView.getScrollerSupport().isAtTopEdge();
+  }
+
+  @Override
+  public void repaintRow(int row) {
+    listView.repaintRow(row);
   }
 
   @Override
@@ -122,6 +128,11 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
   @Override
   public UIPoint getContentOffset() {
     return listView.getScrollerSupport().getContentOffset();
+  }
+
+  @Override
+  public void setContentOffset(float x, float y) {
+    listView.getScrollerSupport().setContentOffset(x, y);
   }
 
   @Override
@@ -241,8 +252,8 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
   }
 
   @Override
-  public void clearPopupMenuIndex() {
-    listView.clearPopupMenuIndex();
+  public void clearContextMenuIndex() {
+    listView.clearContextMenuIndex();
   }
 
   @Override
@@ -394,7 +405,7 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
    * @return true if the component is the current focus owner; false otherwise
    */
   public static boolean focusEvent(iListHandler listComponent, FocusEvent e, boolean focusOwner) {
-    if (e.getID() == FocusEvent.FOCUS_GAINED) {
+    if (e.wasFocusGained()) {
       boolean hs = listComponent.hasSelection();
 
       if (!focusOwner && hs) {
@@ -965,13 +976,13 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
   }
 
   @Override
-  public int getPopupMenuIndex() {
-    return listView.getPopupMenuIndex();
+  public int getContextMenuIndex() {
+    return listView.getContextMenuIndex();
   }
 
   @Override
-  public RenderableDataItem getPopupMenuItem() {
-    final int n = getPopupMenuIndex();
+  public RenderableDataItem getContextMenuItem() {
+    final int n = getContextMenuIndex();
 
     return (n == -1)
            ? null
@@ -983,7 +994,16 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
     calcRenderer  = getItemRenderer();
     calcComponent = getListComponent();
 
-    return getRowHeight();
+    UIDimension size = calcPrefSize;
+
+    if (size == null) {
+      size         = new UIDimension();
+      calcPrefSize = size;
+    }
+
+    calculateRowSize(row, size);
+
+    return (int) size.height;
   }
 
   @Override

@@ -162,6 +162,15 @@ public abstract class aCheckBoxWidget extends aGroupableButton {
     return super.getHTTPFormValue();
   }
 
+  @Override
+  public Object getValue() {
+    if (isIndeterminate()) {
+      return null;
+    }
+
+    return isSelected();
+  }
+  
   /**
    * Gets the current state of the checkbox
    *
@@ -219,11 +228,9 @@ public abstract class aCheckBoxWidget extends aGroupableButton {
    * @return true if the checkbox is checked; false otherwise
    */
   public boolean isChecked() {
-    return (getState() == State.DESELECTED)
-           ? false
-           : true;
+    return isSelected();
   }
-
+ 
   /**
    * Returns whether the check box is selected by default
    *

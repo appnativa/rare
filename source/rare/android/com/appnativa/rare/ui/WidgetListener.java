@@ -15,13 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
-import android.annotation.SuppressLint;
+import java.util.Map;
 
+import android.annotation.SuppressLint;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -29,7 +30,6 @@ import android.view.View;
 import android.view.View.OnKeyListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
-
 import android.widget.AbsListView;
 
 import com.appnativa.rare.Platform;
@@ -37,6 +37,7 @@ import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.android.MainActivity;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.ui.event.ChangeEvent;
+import com.appnativa.rare.ui.event.EventBase;
 import com.appnativa.rare.ui.event.FlingEvent;
 import com.appnativa.rare.ui.event.FocusEvent;
 import com.appnativa.rare.ui.event.KeyEvent;
@@ -44,9 +45,6 @@ import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.event.ScaleEvent;
 import com.appnativa.rare.ui.event.iAndroidViewListener;
 import com.appnativa.rare.widget.iWidget;
-
-import java.util.EventObject;
-import java.util.Map;
 
 /**
  * This class is responsible for invoking scripts for triggered events. It
@@ -89,6 +87,18 @@ public class WidgetListener extends aWidgetListener
     scaleFlingTimeSlop = (i == null)
                          ? 300
                          : i;
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent e) {
+    //override because double tap fires a mouse release event
+    if (e.getClickCount() > 1) {
+      if (isEnabled(iConstants.EVENT_DOUBLECLICK)) {
+        execute(iConstants.EVENT_DOUBLECLICK, e);
+      }
+    } else {
+      super.mouseReleased(e);
+    }
   }
 
   public void onAttachedToWindow(View view) {
@@ -165,9 +175,7 @@ public class WidgetListener extends aWidgetListener
 
   public void onFocusChange(View view, boolean hasFocus) {
     if ((theWidget != null) &&!theWidget.getAppContext().isShuttingDown()) {
-      FocusEvent e = new FocusEvent(getSource(view), hasFocus
-              ? FocusEvent.FOCUS_GAINED
-              : FocusEvent.FOCUS_LOST);
+      FocusEvent e = new FocusEvent(getSource(view), hasFocus);
 
       execute(hasFocus
               ? iConstants.EVENT_FOCUS
@@ -230,7 +238,7 @@ public class WidgetListener extends aWidgetListener
   protected boolean pinchZoomHandlerScale(ScaleGestureDetector sgd) {
     if ((pinchZoom != null) && isEnabled(iConstants.EVENT_SCALE)) {
       if (pinchZoom.scale(sgd.getFocusX(), sgd.getFocusY(), sgd.getCurrentSpan() / baseSpan)) {
-        ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.SCALE, pinchZoom.getScale());
+        ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.Type.SCALE, pinchZoom.getScale());
         Object     o = evaluate(iConstants.EVENT_SCALE, e, false);
 
         if (o instanceof Boolean) {
@@ -246,7 +254,7 @@ public class WidgetListener extends aWidgetListener
 
   public boolean onScale(ScaleGestureDetector sgd) {
     if (isEnabled(iConstants.EVENT_SCALE) && pinchZoomHandlerScale(sgd)) {
-      ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.SCALE, pinchZoom.getScale());
+      ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.Type.SCALE, pinchZoom.getScale());
       Object     o = evaluate(iConstants.EVENT_SCALE, e, false);
 
       if (o instanceof Boolean) {
@@ -263,7 +271,7 @@ public class WidgetListener extends aWidgetListener
     if (isEnabled(iConstants.EVENT_SCALE)) {
       pinchZoomHandlerStart(sgd);
 
-      ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.SCALE_BEGIN, 1);
+      ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.Type.SCALE_BEGIN, 1);
       Object     o = evaluate(iConstants.EVENT_SCALE, e, false);
 
       if (o instanceof Boolean) {
@@ -281,7 +289,7 @@ public class WidgetListener extends aWidgetListener
       pinchZoom.scaleEnd(sgd.getFocusX(), sgd.getFocusY());
       scaleEndTime = sgd.getEventTime();
 
-      ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.SCALE_END, pinchZoom.getScale());
+      ScaleEvent e = new ScaleEvent(getSource(null), sgd, ScaleEvent.Type.SCALE_END, pinchZoom.getScale());
 
       evaluate(iConstants.EVENT_SCALE, e, false);
     }
@@ -335,7 +343,7 @@ public class WidgetListener extends aWidgetListener
         c = new Component(view);
       }
 
-      evaluate(iConstants.EVENT_RESIZE, new EventObject(c), false);
+      evaluate(iConstants.EVENT_RESIZE, new EventBase(c), false);
     }
   }
 

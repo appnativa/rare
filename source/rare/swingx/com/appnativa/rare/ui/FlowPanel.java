@@ -48,7 +48,7 @@ public class FlowPanel extends aFlowPanel {
     }
 
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size, int maxWidth) {
       FlowPanel p = (FlowPanel) Component.fromView(this);
 
       p.getMinimumSize(size);

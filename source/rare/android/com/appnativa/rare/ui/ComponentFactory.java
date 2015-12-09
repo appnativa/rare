@@ -20,19 +20,20 @@
 
 package com.appnativa.rare.ui;
 
-import android.content.Context;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.Map;
 
+import android.content.Context;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
-
 import android.util.Log;
-
 import android.view.Gravity;
 import android.view.View;
-
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -47,7 +48,6 @@ import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
 import com.appnativa.rare.platform.android.ui.view.ButtonViewEx;
 import com.appnativa.rare.platform.android.ui.view.CheckBoxView;
 import com.appnativa.rare.platform.android.ui.view.EditTextEx;
-import com.appnativa.rare.platform.android.ui.view.EditTextEx.EditorComponent;
 import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.platform.android.ui.view.LineView;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
@@ -86,15 +86,6 @@ import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.SNumber;
-
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-
-import java.lang.reflect.Constructor;
-
-import java.net.URL;
-
-import java.util.Map;
 
 /**
  *
@@ -196,7 +187,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
         h.setHyperlink(true);
 
-        if (cfg.buttonStyle.intValue() == PushButton.CButtonStyle.hyperlink_always_underline) {
+        if (cfg.buttonStyle.intValue() == PushButton.CButtonStyle.hyperlink_always_underline || !PlatformHelper.hasPointingDevice()) {
           h.setUnderlined(true);
         }
 
@@ -294,7 +285,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     e.setHorizontallyScrolling(false);
     e.setVerticalScrollBarEnabled(true);
 
-    return wrapEditText(e);
+    return e;
   }
 
   public static EditText getEditText(iWidget context, Widget cfg) {
@@ -328,7 +319,6 @@ public class ComponentFactory implements iPlatformComponentFactory {
     boolean ta = false;
 
     if (cfg instanceof TextArea) {
-      e  = wrapEditText(e);
       ta = true;
     }
 
@@ -359,7 +349,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     return new LineView(AppContext.getAndroidContext(), true);
   }
 
-  public ListView getList(iWidget context, ListBox cfg) {
+  public ListViewEx getList(iWidget context, ListBox cfg) {
     int        sm;
     ListViewEx list = new ListViewEx(AppContext.getAndroidContext());
 
@@ -467,6 +457,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
   protected static void configureEditText(EditText et, iSPOTElement keyboardType, iSPOTElement inputValidator,
           boolean multiline, boolean longMessage) {
+    
     String s  = keyboardType.spot_getAttribute("autoCapatilize");
     int    i  = et.getInputType();
     int    ii = i;
@@ -487,7 +478,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
       if ("true".equals(s)) {
         i |= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
       } else if ((i & InputType.TYPE_TEXT_FLAG_AUTO_CORRECT) != 0) {
-        i -= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        i ^= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
       }
     }
 
@@ -497,14 +488,8 @@ public class ComponentFactory implements iPlatformComponentFactory {
       if ("true".equals(s)) {
         i |= InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
       } else if ((i & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
-        i -= InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
+        i ^= InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
       }
-    }
-
-    s = keyboardType.spot_getAttribute("spellCheck");
-
-    if ((s == null) ||!"true".equals(s)) {
-      i |= InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
     }
 
     if ((inputValidator != null) && inputValidator.spot_hasValue()) {
@@ -541,25 +526,5 @@ public class ComponentFactory implements iPlatformComponentFactory {
     if (ii != i) {
       et.setInputType(i);
     }
-  }
-
-  private static EditTextEx wrapEditText(EditTextEx e) {
-    new EditorComponent(e);
-
-//  
-//    Container container=new ContainerPanel(e.getComponent());
-//    UIColor c=Platform.getUIDefaults().getColor("Rare.TextField.background");
-//    if(c==null) {
-//      c=UIColor.white;
-//    }
-//      container.setBackground(c);
-//    c=Platform.getUIDefaults().getColor("Rare.TextField.foreground");
-//    if(c==null) {
-//      c=UIColor.black;
-//    }
-//    e.setTextColor(c.getColor());
-//    e.setBackgroundDrawable(NullDrawable.getInstance());
-//    e.setContainer(container);
-    return e;
   }
 }

@@ -259,13 +259,15 @@ public class ProjectGenerator {
     if (bg != null) {
       sb.append("    Rare.background=Color|").append(bg).append('\n');
     }
-
-    if (fg != null) {
-      sb.append("    Rare.foreground=Color|").append(fg).append('\n');
+    if(fg==null) {
+      fg=UIColor.BLACK;
     }
 
     if (dfg != null) {
-      sb.append("    Rare.disabledForeground=Color|").append(dfg).append('\n');
+      sb.append("    Rare.foreground=Color|disabled=").append(dfg).append(";normal=").append(fg).append('\n');
+    }
+    else {
+      sb.append("    Rare.foreground=Color|").append(fg).append('\n');
     }
 
     if (lc != null) {

@@ -20,24 +20,22 @@
 
 package com.appnativa.rare.net;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.event.EventBase;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.UTF8Helper;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.util.EventObject;
 
 /**
  *
@@ -48,7 +46,7 @@ import java.util.EventObject;
 public class ScriptURLConnection extends URLConnection implements iURLConnection {
   private String      defaultCharset = "ISO-8859-1";
   private iWidget     contextWidget;
-  private EventObject eventObject;
+  private EventBase   eventObject;
   private String      mimeType;
   private int         readTimeout;
   private Object      returnValue;
@@ -120,7 +118,7 @@ public class ScriptURLConnection extends URLConnection implements iURLConnection
       mimeType = iConstants.TEXT_MIME_TYPE;
     }
 
-    eventObject = new EventObject(context);
+    eventObject = new EventBase(context);
   }
 
   @Override

@@ -45,4 +45,8 @@ public class UIPopupMenu extends UIMenu {
   public UIPopupMenu(iWidget context, SPOTSet menus, boolean addTextItems) {
     super(context, menus, addTextItems);
   }
+  
+  public void setHeader(iPlatformComponent c) {
+    
+  }
 }

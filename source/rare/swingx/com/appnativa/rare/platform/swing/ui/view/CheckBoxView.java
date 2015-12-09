@@ -20,21 +20,8 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.widget.aCheckBoxWidget.State;
-import com.appnativa.util.CharArray;
-import com.appnativa.util.xml.XMLUtils;
-
 import java.awt.AWTEvent;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -47,6 +34,22 @@ import java.awt.geom.AffineTransform;
 import javax.swing.DefaultButtonModel;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.widget.aCheckBoxWidget.State;
+import com.appnativa.util.CharArray;
+import com.appnativa.util.xml.XMLUtils;
 
 public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   protected static iPlatformIcon    deselectedIconDisabled_;
@@ -132,6 +135,15 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   public AffineTransform getTransformEx() {
     return transform;
   }
+  
+  @Override
+  public Color getForeground() {
+    Color c=super.getForeground();
+    if(c instanceof UIColor && !isEnabled()) {
+      c=((UIColor)c).getDisabledColor();
+    }
+    return c;
+  }
 
   @Override
   public void paint(Graphics g) {
@@ -197,22 +209,6 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
-  }
-
-  @Override
-  public void getMinimumSize(UIDimension size) {
-    Dimension d = getMinimumSize();
-
-    size.width  = d.width;
-    size.height = d.height;
-  }
-
-  @Override
-  public void getPreferredSize(UIDimension size, int maxWidth) {
-    Dimension d = getPreferredSize();
-
-    size.width  = d.width;
-    size.height = d.height;
   }
 
   @Override
@@ -320,7 +316,12 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
   }
 
   public State getState() {
-    return buttonState;
+    if(isTriState) {
+      return buttonState;
+    }
+    else {
+      return isSelected() ?State.SELECTED : State.DESELECTED;
+    }
   }
 
   @Override
@@ -482,5 +483,45 @@ public class CheckBoxView extends JCheckBox implements iPainterSupport, iView {
       return (stateMask & SELECTED) != 0;
       // }
     }
+  }
+  private static UIDimension size    = new UIDimension();
+
+  @Override
+  public Dimension getPreferredSize() {
+    if (size == null) {
+      size = new UIDimension();
+    }
+
+    Number num      = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
+    int    maxWidth = 0;
+
+    if ((num != null) && (num.intValue() > 0)) {
+      maxWidth = num.intValue();
+    }
+
+    getPreferredSize(size, maxWidth);
+
+    return new Dimension(size.intWidth(), size.intHeight());
+  }
+
+  @Override
+  public void getPreferredSize(UIDimension size, int maxWidth) {
+    Dimension d = super.getPreferredSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+    if (isFontSet() && getFont().isItalic()) {
+      if (getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) == null) {
+        size.width += 4;
+      }
+    }
+  }
+
+  @Override
+  public void getMinimumSize(UIDimension size, int maxWidth) {
+    Dimension d = super.getMinimumSize();
+
+    size.width  = d.width;
+    size.height = d.height;
   }
 }

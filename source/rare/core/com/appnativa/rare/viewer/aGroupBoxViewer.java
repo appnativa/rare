@@ -20,9 +20,14 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.Form;
 import com.appnativa.rare.spot.GroupBox;
@@ -37,28 +42,22 @@ import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.aAbsolutePanel;
 import com.appnativa.rare.ui.aFormsPanel;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.event.ItemChangeEvent;
 import com.appnativa.rare.ui.iCustomLayoutManager;
 import com.appnativa.rare.ui.iCustomLayoutManager.iConstraintsConverter;
 import com.appnativa.rare.ui.iFormsPanel;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.event.ItemChangeEvent;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.widget.LineWidget;
 import com.appnativa.rare.widget.aGroupableButton;
+import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.IntList;
 import com.appnativa.util.SNumber;
-
+import com.appnativa.util.json.JSONWriter;
 import com.jgoodies.forms.layout.CellConstraints;
-
-import java.io.IOException;
-import java.io.Writer;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * A widget that provides a visual grouping of other widgets.
@@ -553,17 +552,18 @@ public abstract class aGroupBoxViewer extends aContainer {
       iFormsPanel fp   = (iFormsPanel) dataComponent;
       int         rows = fp.getRowCount();
       int         cols = fp.getColumnCount();
-      iWidget     w;
+      aWidget     w;
 
       for (int r = 0; r < rows; r++) {
         for (int c = 0; c < cols; c++) {
-          iPlatformComponent pc = fp.getGridComponentAt(c, r);
+          iPlatformComponent pc = fp.getGridComponentAt(c+1, r+1);
 
-          w = (pc == null)
+          w = (aWidget) ((pc == null)
               ? null
-              : pc.getWidget();
+              : pc.getWidget());
 
-          if ((w != null) && w.requestFocus()) {
+          if ((w != null) && w.isFocusableInCurrentState()) {
+            w.requestFocus();
             return true;
           }
         }
@@ -572,7 +572,7 @@ public abstract class aGroupBoxViewer extends aContainer {
       return false;
     }
 
-    return true;
+    return super.requestFocus();
   }
 
   @Override
@@ -639,25 +639,18 @@ public abstract class aGroupBoxViewer extends aContainer {
   }
 
   @Override
-  public boolean writeJSONValue(boolean first, Writer writer) {
+  public void writeJSONValue(JSONWriter writer) {
     try {
       int     len = widgetList.size();
       iWidget a;
-
       for (int i = 0; i < len; i++) {
         a = widgetList.get(i);
 
         if (a.isSubmittable() && a.isValidForSubmission(true)) {
-          if (a.writeJSONValue(first, writer)) {
-            first = false;
-          }
+          a.writeJSONValue(writer);
         }
       }
-
-      writer.write("\n}");
-
-      return !first;
-    } catch(IOException e) {
+    } catch(Exception e) {
       throw ApplicationException.runtimeException(e);
     }
   }
@@ -714,6 +707,7 @@ public abstract class aGroupBoxViewer extends aContainer {
 
         if (e.isRejected()) {
           theValue = oldValue;
+          setToStringValue(null);
         }
       }
     }
@@ -789,11 +783,6 @@ public abstract class aGroupBoxViewer extends aContainer {
   }
 
   @Override
-  public Object getValue() {
-    return theValue;
-  }
-
-  @Override
   public int getWidgetCount() {
     return widgetList.size();
   }
@@ -846,6 +835,11 @@ public abstract class aGroupBoxViewer extends aContainer {
 
       for (int i = 0; i < len; i++) {
         a[i] = SNumber.parseIntegers(set.stringValueAt(i));
+        int alen=a[i].length;
+        for(int n=0;n<alen;n++) {
+          a[i][n]++;
+        }
+        
       }
     }
 
@@ -997,6 +991,22 @@ public abstract class aGroupBoxViewer extends aContainer {
         throw DataParser.invalidConfigurationException(getAppContext(), e, cfg);
       }
     }
+  }
+
+  @Override
+  public iWidget addWidget(Widget cfg) {
+    iWidget widget=addWidgetEx((iParentComponent) dataComponent, cfg, formLayout);
+    widget.setParent(this);
+    registerWidget(widget);
+
+    if (isRegistered() && (widget instanceof iViewer)) {
+      iViewer v = (iViewer) widget;
+
+      if (!v.isRegistered()) {
+        v.register();
+      }
+    }
+    return widget;
   }
 
   /**

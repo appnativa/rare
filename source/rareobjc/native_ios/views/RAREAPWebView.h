@@ -18,4 +18,6 @@
 
 -(void) setScaleToFit: (BOOL) scaleToFit;
 -(void) clearContents;
+-(void) setWindowProperty: (NSString*) property value: (NSObject*) value;
+
 @end

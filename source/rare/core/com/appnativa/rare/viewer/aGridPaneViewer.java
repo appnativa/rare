@@ -20,6 +20,11 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.CollapsibleInfo;
@@ -37,16 +42,10 @@ import com.appnativa.rare.ui.iFormsPanel;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.viewer.aGroupBoxViewer.ComponentCC;
-
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.RowSpec;
 import com.jgoodies.forms.layout.Sizes;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A viewer utilizing a table layout. Each cell in the grid is a region

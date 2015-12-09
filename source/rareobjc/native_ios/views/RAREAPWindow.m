@@ -82,11 +82,9 @@
 -(BOOL) isModal {
   return modal_;
 }
+
 -(void) setModal: (BOOL) modal {
   modal_=modal;
-  if(modal) {
-    self.windowLevel=UIWindowLevelAlert;
-  }
 }
 -(void) setContentView: (UIView*) view {
   if(self.rootViewController) {
@@ -251,8 +249,8 @@
   self.hidden=YES;
   if([self.rootViewController isKindOfClass:[RAREUIViewController class]]) {
       [((RAREUIViewController*)self.rootViewController) disposeEx];
-      self.rootViewController=nil;
   }
+  self.rootViewController=nil;
   windowListener_=nil;
   popupMenuListener_=nil;
   overlayWindow=nil;
@@ -278,18 +276,27 @@
   [self setNeedsDisplay];
 }
 -(void)setFrame:(CGRect)frame {
-  if(fixedSize.height==0) {
-    [super setFrame:frame];
+  if(fixedSize.height!=0) {
+    frame.size.width=fixedSize.width;
+    frame.size.height=fixedSize.height;
   }
+  [super setFrame:frame];
 }
 
 -(void) setVisible: (BOOL) visible {
   if(self.hidden==visible) {
     if( modal_ && visible) {
       if(visible) {
-        overlayWindow= [[RAREAPWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        CGRect frame=[UIScreen mainScreen].orientedBounds;
+        if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
+          CGFloat w=frame.size.width;
+          frame.size.width=frame.size.height;
+          frame.size.height=w;
+        }
+        overlayWindow= [[UIWindow alloc] initWithFrame:frame];
         overlayWindow.backgroundColor=(UIColor*)[RAREColorUtils DISABLED_TRANSPARENT_COLOR].getAPColor;
         overlayWindow.alpha=0;
+        overlayWindow.windowLevel=self.windowLevel;
         overlayWindow.hidden=NO;
         UIWindow *ow=overlayWindow;
         [UIView animateWithDuration:0.2 animations:^{

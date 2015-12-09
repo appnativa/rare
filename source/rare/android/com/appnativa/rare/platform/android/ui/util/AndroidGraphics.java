@@ -22,6 +22,7 @@ package com.appnativa.rare.platform.android.ui.util;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
@@ -33,7 +34,6 @@ import android.graphics.Region;
 import android.graphics.Shader;
 import android.graphics.Xfermode;
 import android.graphics.drawable.Drawable;
-
 import android.view.View;
 
 import com.appnativa.rare.ui.Component;
@@ -639,10 +639,19 @@ public class AndroidGraphics implements iPlatformGraphics {
     return paint.getStrokeWidth();
   }
 
+  @SuppressWarnings("deprecation")
   public iTransform getTransform() {
     if (this.transform == null) {
-      this.transform = new Transform();
-      graphics.getMatrix((Transform) transform);
+      if(view!=null) {
+        Matrix m=view.getMatrix();
+        if(m!=null) {
+          transform=new Transform(m);
+        }
+      }
+      else {
+        this.transform = new Transform();
+        graphics.getMatrix((Transform) transform);
+      }
     }
 
     return transform;

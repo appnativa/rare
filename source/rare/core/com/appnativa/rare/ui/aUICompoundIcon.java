@@ -205,9 +205,7 @@ public abstract class aUICompoundIcon extends aPlatformIcon implements Cloneable
           iconLocations[i].y = (iconHeight - ic.getIconHeight()) / 2;
         }
 
-        if (i > 0) {
-          n += gap;
-        }
+        n += gap;
       } else {
         iconLocations[i] = new UIPoint(0, n);
 
@@ -217,9 +215,7 @@ public abstract class aUICompoundIcon extends aPlatformIcon implements Cloneable
 
         n += ic.getIconHeight();
 
-        if (i > 0) {
-          n += gap;
-        }
+        n += gap;
       }
     }
 

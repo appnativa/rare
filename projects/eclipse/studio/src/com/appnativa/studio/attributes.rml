@@ -104,10 +104,6 @@ Set {
     value: "PasswordField{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.fileuploadfield"
-    value: "FileUploadField{}"
-  } [ converterClass="Configuration" ]
-  {
     name: "Studio.icon.toolbox.textarea"
     value: "TextArea{}"
   } [ converterClass="Configuration" ]

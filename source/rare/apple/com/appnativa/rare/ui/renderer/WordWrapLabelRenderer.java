@@ -35,6 +35,6 @@ public class WordWrapLabelRenderer extends UILabelRenderer {
 
   @Override
   public iPlatformRenderingComponent newCopy() {
-    return Renderers.setupNewCopy(this, new WordWrapLabelRenderer());
+    return setupNewCopy(new WordWrapLabelRenderer()); 
   }
 }

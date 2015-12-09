@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -28,6 +28,7 @@ import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.Applet;
 import com.appnativa.rare.platform.swing.ui.util.MacUtils;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JDialogEx;
 import com.appnativa.rare.platform.swing.ui.view.JFrameEx;
 import com.appnativa.rare.platform.swing.ui.view.PopupWindow;
 import com.appnativa.rare.scripting.iScriptHandler;
@@ -36,23 +37,28 @@ import com.appnativa.rare.spot.MenuBar;
 import com.appnativa.rare.spot.Rectangle;
 import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.viewer.MenuBarViewer;
+import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.iWidget;
 
+import java.awt.Dialog.ModalityType;
 import java.awt.Image;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-
+import java.awt.event.KeyEvent;
 import java.lang.reflect.Method;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.KeyStroke;
+import javax.swing.RootPaneContainer;
 import javax.swing.UIManager;
 
 /**
@@ -64,7 +70,7 @@ public class WindowManager extends aWindowManager {
     this(app, null);
   }
 
-  public WindowManager(final AppContext app, iWindow window) {
+  public WindowManager(final AppContext app, iFrame window) {
     super(app);
 
     if (window == null) {
@@ -153,20 +159,15 @@ public class WindowManager extends aWindowManager {
 
   @Override
   public iPopup createPopup(iWidget context) {
-    iPopup p = new PopupWindow((Window) mainFrame.getUIWindow(), context);
+    iWindow w = context.getWindow();
 
-    return p;
-  }
-
-  @Override
-  public iWindow createWindow(iWidget context, Map options) {
-    if (options == null) {
-      options = Collections.EMPTY_MAP;
+    if (w == null) {
+      w = mainFrame;
     }
 
-    Frame f = Frame.createFromOptions(context, null, options);
+    iPopup p = new PopupWindow((Window) w.getUIWindow(), context);
 
-    return f;
+    return p;
   }
 
   @Override
@@ -188,15 +189,24 @@ public class WindowManager extends aWindowManager {
     return ((Frame) mainFrame).getRootPaneContainer().getRootPane();
   }
 
-  protected iWindow createMainFrame() {
+  protected iFrame createMainFrame() {
     Frame ff;
 
     if (Applet.isRunningAsApplet()) {
       ff = ((AppContext) appContext).getApplet().getFrame();
     } else {
       JFrameEx f = new JFrameEx();
+      KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+      f.getRootPane().registerKeyboardAction(new ActionListener() {
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          ((AppContext)appContext).onEscapeKeyPressed();
 
-      ff = new Frame(appContext, f, f);
+        }
+      }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);    
+
+      ff = new Frame(appContext, f, f, WindowType.FRAME);
       f.addComponentListener(new ComponentAdapter() {
         Boolean oldWider = null;
         @Override
@@ -204,7 +214,7 @@ public class WindowManager extends aWindowManager {
           if (!isDisposed() && e.getComponent().isVisible()) {
             boolean wider = (getWidth() >= getHeight());
 
-            if ((oldWider == null) ||(!oldWider.booleanValue() == wider)) {
+            if ((oldWider == null) || (!oldWider.booleanValue() == wider)) {
               if (oldWider == null) {
                 oldWider = wider;
               } else {
@@ -233,7 +243,84 @@ public class WindowManager extends aWindowManager {
     return ff;
   }
 
-  void setMacFullScreenEnabled(boolean enabled) {}
+  @Override
+  protected Frame createFrame(iWidget context, WindowType type, boolean modal, boolean transparent, boolean decorated) {
+    WindowViewer parentv = context.getWindow();
+
+    if (parentv == null) {
+      parentv = (WindowViewer) Platform.getWindowViewer().getTop();
+    }
+
+    Window parent = (Window) parentv.getUIWindow();
+    Window win;
+
+    boolean undecorated = !decorated;
+    boolean trans = transparent;
+
+    if (decorated && Platform.getUIDefaults().getBoolean("Rare.Dialog.useRuntimeDecorations", false)) {
+      undecorated = true;
+      trans=true;
+    }
+    switch(type) {
+      case DIALOG :
+
+        JDialog d = new JDialogEx(parent, modal
+                                          ? ModalityType.APPLICATION_MODAL
+                                          : ModalityType.MODELESS);
+
+        d.setUndecorated(undecorated);
+
+        win = d;
+
+        break;
+
+      case POPUP : {
+        PopupWindow p = new PopupWindow(parent, context);
+
+        if (modal) {
+          p.setModal(true);
+        }
+
+        win = p;
+
+        break;
+      }
+
+      case POPUP_ORPHAN : {
+        PopupWindow p = new PopupWindow(context);
+
+        if (modal) {
+          p.setModal(true);
+        }
+
+        win = p;
+
+        break;
+      }
+
+      default :
+        JFrame f = new JFrameEx();
+
+        f.setUndecorated(!decorated);
+
+        win = f;
+
+        break;
+    }
+
+    if (trans) {
+      win.setBackground(ColorUtils.TRANSPARENT_COLOR);
+    }
+    final Frame frame      = new Frame(appContext, win, (RootPaneContainer) win, type);
+
+    String      targetName = "_new_window_" + Integer.toHexString(frame.hashCode());
+    frame.setTarget(new WindowTarget(Platform.getAppContext(), targetName, frame));
+    frame.transparent = transparent;
+    frame.modal       = modal;
+    frame.undecorated = !decorated;
+
+    return frame;
+  }
 
   @Override
   protected aWidgetListener createWidgetListener(iWidget widget, Map map, iScriptHandler scriptHandler) {

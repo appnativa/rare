@@ -31,7 +31,7 @@ public class ChromeTabPainter extends BasicTabPainter {
     setStartOffset(ScreenUtils.PLATFORM_PIXELS_4);
     cornerSize       = ScreenUtils.PLATFORM_PIXELS_6;
     textInsets.left  = 0;
-    textInsets.right = ScreenUtils.platformPixels(16);
+    textInsets.right = ScreenUtils.platformPixels(20);
   }
 
   @Override

@@ -43,9 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-
 import java.net.URL;
-
 import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +52,6 @@ public class Platform {
   public final static String RARE_PACKAGE_NAME      = "com.appnativa.rare";
   public final static String RARE_SPOT_PACKAGE_NAME = "com.appnativa.rare.spot";
   private static iPlatform   platform;
-  private static String      defaultPackage;
 
   /**
    * Opens the specified url using the platforms native web browser application.
@@ -129,15 +126,12 @@ public class Platform {
    * @return the new object or null if the object could not be created
    */
   public static Object createObject(String className) {
-    if ((className != null) && (className.indexOf('.') == -1)) {
-      defaultPackage = Platform.getUIDefaults().getString("Rare.class.defaultPackage");
-
-      if (defaultPackage != null) {
-        className = defaultPackage + "." + className;
-      }
+    try {
+      Class cls=loadClass(className);
+      return cls.newInstance();
+    } catch (Exception e) {
+      return null;
     }
-
-    return platform.createObject(className);
   }
 
   /**
@@ -346,13 +340,18 @@ public class Platform {
    * @throws ClassNotFoundException
    */
   public static Class loadClass(String className) throws ClassNotFoundException {
-    if ((className != null) && (className.indexOf('.') == -1)) {
-      defaultPackage = Platform.getUIDefaults().getString("Rare.class.defaultPackage");
+      String defaultPackage = Platform.getUIDefaults().getString("Rare.class.defaultPackage");
 
-      if (defaultPackage != null) {
-        className = defaultPackage + "." + className;
+      if (defaultPackage != null && !className.startsWith(defaultPackage)) {
+        String name=defaultPackage + "." + className;
+        try {
+          Class cls=platform.loadClass(name);
+          if(cls!=null) {
+            return cls;
+          }
+        }catch(Exception ignore){}
       }
-    }
+    
 
     return platform.loadClass(className);
   }
@@ -849,7 +848,7 @@ public class Platform {
    * @return the topmost window viewer
    */
   public static WindowViewer getWindowViewer() {
-    return platform.getAppContext().getTopWindowViewer();
+    return platform.getAppContext().getMainWindowViewer();
   }
 
   /**
@@ -1054,6 +1053,24 @@ public class Platform {
     return platform.isTouchableDevice();
   }
 
+  /**
+   * Checks to see if the device has a physical keyboard
+   * 
+   * @return true if it does; false otherwise
+   */
+  public static boolean hasPhysicalKeyboard(){
+    return platform.hasPhysicalKeyboard();
+  }
+  
+  /**
+   * Checks to see if the device has a physical pointing device
+   * 
+   * @return true if it does; false otherwise
+   */
+  public static boolean hasPointingDevice(){
+    return platform.hasPointingDevice();
+  }
+  
   /**
    * Checks to see if the current thread is the UI thread
    *

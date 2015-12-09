@@ -20,20 +20,28 @@
 
 package com.appnativa.rare.ui.renderer;
 
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+
 public class UITextAreaRenderer extends UILabelRenderer {
-  protected int     columnWidth;
   protected boolean linefeedWrap;
 
   public UITextAreaRenderer() {
     super();
+    setWordWrap(true);
   }
 
   /**
    * Sets linefeed wrapping
    *
-   * @param linefeedWrap true to wrap on line feeds false otherwise
+   * @param linefeedWrap
+   *          true to wrap on line feeds false otherwise
    */
   public void setLinefeedWrap(boolean linefeedWrap) {
     this.linefeedWrap = linefeedWrap;
+  }
+
+  @Override
+  public iPlatformRenderingComponent newCopy() {
+    return setupNewCopy(new UITextAreaRenderer());
   }
 }

@@ -78,7 +78,6 @@ public class ImageUtils {
     UIImage* img=[image getImage];
     NSData* data=png ? UIImagePNGRepresentation(img) : UIImageJPEGRepresentation(img,1.0);
     if(data) {
-      return [data base64Encoding];
       return [data base64EncodedStringWithOptions: kNilOptions];
     }
     else {

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
@@ -80,10 +80,14 @@ public abstract class aGroupableButton extends aPlatformWidget implements iActio
   }
 
   @Override
+  public void setActionListener(iActionListener al) {
+    addActionListener(al);
+  }
+
+  @Override
   public void addActionListener(iActionListener l) {
     iActionComponent b = (iActionComponent) dataComponent;
 
-    b.removeActionListener(l);
     b.addActionListener(l);
   }
 
@@ -91,7 +95,6 @@ public abstract class aGroupableButton extends aPlatformWidget implements iActio
   public void addChangeListener(iChangeListener l) {
     iActionComponent b = (iActionComponent) dataComponent;
 
-    b.removeChangeListener(l);
     b.addChangeListener(l);
   }
 
@@ -229,6 +232,10 @@ public abstract class aGroupableButton extends aPlatformWidget implements iActio
 
   @Override
   public Object getValue() {
+    if ((widgetType == WidgetType.CheckBox) || (widgetType == WidgetType.RadioButton)) {
+      return isSelected();
+    }
+
     return buttonText;
   }
 
@@ -409,20 +416,24 @@ public abstract class aGroupableButton extends aPlatformWidget implements iActio
 
   @Override
   public void setValue(Object value) {
-    CharSequence s;
-
-    if (value instanceof CharSequence) {
-      s = (CharSequence) value;
+    if (value instanceof Boolean) {
+      setSelected((Boolean) value);
     } else {
-      s = (value == null)
-          ? ""
-          : toString(this, value, null);
-    }
+      CharSequence s;
 
-    buttonText = s;
+      if (value instanceof CharSequence) {
+        s = (CharSequence) value;
+      } else {
+        s = (value == null)
+            ? ""
+            : toString(this, value, null);
+      }
 
-    if (showText) {
-      ((iActionComponent) dataComponent).setText(buttonText);
+      buttonText = s;
+
+      if (showText) {
+        ((iActionComponent) dataComponent).setText(buttonText);
+      }
     }
   }
 

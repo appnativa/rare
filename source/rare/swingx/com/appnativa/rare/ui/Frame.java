@@ -15,43 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.net.ActionLink;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JDialogEx;
-import com.appnativa.rare.platform.swing.ui.view.JFrameEx;
-import com.appnativa.rare.platform.swing.ui.view.JRootPaneEx;
-import com.appnativa.rare.platform.swing.ui.view.PopupWindow;
-import com.appnativa.rare.scripting.iScriptHandler;
-import com.appnativa.rare.spot.StatusBar;
-import com.appnativa.rare.ui.event.ExpansionEvent;
-import com.appnativa.rare.ui.event.FocusEvent;
-import com.appnativa.rare.ui.event.WindowEvent;
-import com.appnativa.rare.ui.event.iWindowListener;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.aContainer;
-import com.appnativa.rare.viewer.iContainer;
-import com.appnativa.rare.viewer.iTarget;
-import com.appnativa.rare.widget.PushButtonWidget;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.SNumber;
-
 import java.awt.BorderLayout;
-import java.awt.Dialog.ModalityType;
 import java.awt.Window;
 import java.awt.event.WindowListener;
-
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JButton;
@@ -62,15 +33,38 @@ import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.RootPaneContainer;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JRootPaneEx;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
+import com.appnativa.rare.ui.iWindowManager.iFrame;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.FocusEvent;
+import com.appnativa.rare.ui.event.WindowEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iWindowListener;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.viewer.iContainer;
+import com.appnativa.rare.viewer.iTarget;
+import com.appnativa.rare.widget.PushButtonWidget;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.SNumber;
+
 /**
  *
  * @author Don DeCoteau
  */
-public class Frame extends Container implements iWindow, WindowListener {
+public class Frame extends Container implements iFrame, WindowListener {
   protected int                 menuOffset            = 0;
   protected boolean             disposeOfNativeWindow = true;
-  boolean                       undecorated           = false;
-  boolean                       transparent           = false;
+  boolean                       undecorated;
+  boolean                       transparent;
+  boolean                       modal;
   protected iPlatformAppContext appContext;
   protected iPlatformMenuBar    menuBar;
   protected iStatusBar          statusBar;
@@ -80,20 +74,21 @@ public class Frame extends Container implements iWindow, WindowListener {
   protected Window              window;
   protected WindowViewer        windowViewer;
   private boolean               autoDispose;
-  private boolean               dialog;
   private boolean               locationSet;
   private JPanel                menuToolbarPanel;
-  private boolean               modal;
-  private boolean               popup;
   private RootPaneContainer     rootPaneContainer;
   private boolean               sizeSet;
   private OverlayContainer      overlayContainer;
+  private TitlePane             titlePane;
+  private WindowType            windowType;
+  private boolean               runtimeDecorations;
 
-  public Frame(iPlatformAppContext app, Window win, RootPaneContainer rpc) {
+  public Frame(iPlatformAppContext app, Window win, RootPaneContainer rpc, WindowType type) {
     super(rpc.getRootPane());
-    this.window       = win;
-    appContext        = app;
-    rootPaneContainer = rpc;
+    this.window            = win;
+    this.appContext        = app;
+    this.rootPaneContainer = rpc;
+    this.windowType        = type;
     rpc.getRootPane().putClientProperty("apple.awt.draggableWindowBackground", Boolean.FALSE);
     win.addWindowListener(this);
   }
@@ -132,7 +127,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public void close() {
     if (window != null) {
-      window.dispose();
+      window.dispatchEvent(new java.awt.event.WindowEvent(window, java.awt.event.WindowEvent.WINDOW_CLOSING));
     }
   }
 
@@ -144,7 +139,7 @@ public class Frame extends Container implements iWindow, WindowListener {
 
     if (w != null) {
       try {
-        w.removeWindowListener(this);
+        // w.removeWindowListener(this);
       } catch(Exception ignore) {}
 
       if (disposeOfNativeWindow) {
@@ -192,9 +187,57 @@ public class Frame extends Container implements iWindow, WindowListener {
     dispose();
   }
 
+  public void finishWindowSetup(Map options) {
+    if (titleWidget == null) {
+      boolean createTitle = false;
+
+      if (!undecorated) {
+        if (window instanceof JDialog) {
+          createTitle = ((JDialog) window).isUndecorated();
+        } else if (window instanceof JFrame) {
+          createTitle = ((JFrame) window).isUndecorated();
+        }
+      }
+
+      if (createTitle) {
+        JRootPane rp = rootPaneContainer.getRootPane();
+
+        if (rp instanceof JRootPaneEx) {
+          boolean show=Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
+          String s=options!=null ? (String)options.get("showCloseButton") : null;
+          if(s!=null) {
+            show=SNumber.booleanValue(s);
+          }
+          iActionListener l=null;
+          if(show) {
+            l= new iActionListener() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                windowViewer.close();
+              }
+            };
+          }
+          titlePane = TitlePane.createDialogTitle(windowViewer, l);
+          windowViewer.addWindowDragger(titlePane);
+          ((JRootPaneEx) rp).setTitlePane(titlePane.getJComponent());
+          runtimeDecorations=true;
+        }
+      }
+    }
+
+    String s = (String) options.get("keystrokes");
+
+    if (s != null) {
+      SwingHelper.configureKeystrokes(windowViewer, rootPaneContainer.getRootPane(), s,
+                                      JComponent.WHEN_IN_FOCUSED_WINDOW);
+    }
+
+    Utils.setupWindowOptions(this, options);
+  }
+
   @Override
-  public iWidget getWidget() {
-    return windowViewer;
+  public UIRectangle getBounds() {
+    return SwingHelper.setUIRectangle(null, window.getBounds());
   }
 
   @Override
@@ -315,10 +358,13 @@ public class Frame extends Container implements iWindow, WindowListener {
     return windowViewer;
   }
 
-  private aWidgetListener getWidgetListener() {
-    return (windowViewer == null)
-           ? null
-           : windowViewer.getWidgetListener();
+  @Override
+  public iWidget getWidget() {
+    return windowViewer;
+  }
+
+  public WindowType getWindowType() {
+    return windowType;
   }
 
   public WindowViewer getWindowViewer() {
@@ -341,19 +387,23 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   public boolean isDialog() {
-    return dialog;
+    return windowType == WindowType.DIALOG;
   }
 
   public boolean isPopup() {
-    return popup;
+    return windowType == WindowType.POPUP;
   }
 
   public boolean isTransparent() {
-    return undecorated;
+    return transparent;
   }
 
   public boolean isUndecorated() {
     return undecorated;
+  }
+
+  public boolean isUsesRuntimeDecorations() {
+    return runtimeDecorations;
   }
 
   @Override
@@ -429,11 +479,6 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   @Override
-  public UIRectangle getBounds() {
-    return SwingHelper.setUIRectangle(null, window.getBounds());
-  }
-
-  @Override
   public void setCanClose(boolean can) {
     if (windowViewer != null) {
       windowViewer.setCanClose(can);
@@ -442,9 +487,11 @@ public class Frame extends Container implements iWindow, WindowListener {
 
   @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
-    iParentComponent pc = (iParentComponent) Component.fromView((JComponent) rootPaneContainer.getContentPane());
+    JRootPane rp = rootPaneContainer.getRootPane();
 
-    pc.setComponentPainter(cp);
+    if (rp instanceof JRootPaneEx) {
+      ((JRootPaneEx)rp).setComponentPainter(cp);
+    }
   }
 
   public void setDefaultButton(PushButtonWidget widget) {
@@ -455,13 +502,25 @@ public class Frame extends Container implements iWindow, WindowListener {
     }
   }
 
+  public void setIcon(iPlatformIcon icon) {
+    if (titlePane != null) {
+      titlePane.setIcon(icon);
+    } else {
+      if (icon == null) {
+        window.setIconImage(null);
+      } else if (icon instanceof UIImageIcon) {
+        window.setIconImage(((UIImageIcon) icon).getImage().getImage());
+      }
+    }
+  }
+
   public void setLocation(int x, int y) {
     window.setLocation(x, y);
     locationSet = true;
   }
 
   @Override
-  public iPlatformMenuBar setMenuBar(iPlatformMenuBar mb) {
+  public void setMenuBar(iPlatformMenuBar mb) {
     iPlatformMenuBar omb = menuBar;
     JRootPane        rp  = rootPaneContainer.getRootPane();
 
@@ -491,35 +550,6 @@ public class Frame extends Container implements iWindow, WindowListener {
 
     menuBar = mb;
 
-    return omb;
-  }
-
-  private void setMenuOrToolBarComponent(JComponent c, boolean menu) {
-    if (c == null) {
-      if (menuToolbarPanel != null) {
-        BorderLayout bl = ((BorderLayout) menuToolbarPanel.getLayout());
-
-        c = (JComponent) bl.getLayoutComponent(menu
-                ? BorderLayout.BEFORE_FIRST_LINE
-                : BorderLayout.CENTER);
-
-        if (c != null) {
-          menuToolbarPanel.remove(c);
-        }
-      }
-    } else {
-      if (menuToolbarPanel == null) {
-        menuToolbarPanel = new JPanel(new BorderLayout());
-        menuToolbarPanel.setOpaque(false);
-        rootPaneContainer.getRootPane().getContentPane().add(menuToolbarPanel, BorderLayout.BEFORE_FIRST_LINE);
-      }
-
-      if (menu) {
-        menuToolbarPanel.add(c, BorderLayout.BEFORE_FIRST_LINE);
-      } else {
-        menuToolbarPanel.add(c, BorderLayout.CENTER);
-      }
-    }
   }
 
   public void setMovable(boolean movable) {}
@@ -547,9 +577,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   @Override
-  public iStatusBar setStatusBar(iStatusBar sb) {
-    iStatusBar osb = statusBar;
-
+  public void setStatusBar(iStatusBar sb) {
     statusBar = sb;
 
     if (rootPaneContainer.getRootPane() instanceof JRootPaneEx) {
@@ -559,8 +587,6 @@ public class Frame extends Container implements iWindow, WindowListener {
                        ? null
                        : sb.getComponent());
     }
-
-    return osb;
   }
 
   public void setTarget(iTarget target) {
@@ -569,6 +595,10 @@ public class Frame extends Container implements iWindow, WindowListener {
 
   @Override
   public void setTitle(String title) {
+    if (titlePane != null) {
+      titlePane.setTitle(title);
+    }
+
     if (window instanceof java.awt.Frame) {
       ((java.awt.Frame) window).setTitle(title);
     } else if (window instanceof java.awt.Dialog) {
@@ -590,9 +620,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   }
 
   @Override
-  public iToolBarHolder setToolBarHolder(iToolBarHolder tbh) {
-    iToolBarHolder otbh = toolbarHolder;
-
+  public void setToolBarHolder(iToolBarHolder tbh) {
     if (rootPaneContainer.getRootPane() instanceof JRootPaneEx) {
       BorderPanel bp = (BorderPanel) Component.fromView((JComponent) rootPaneContainer.getContentPane());
 
@@ -609,106 +637,6 @@ public class Frame extends Container implements iWindow, WindowListener {
 
     toolbarHolder = tbh;
 
-    return otbh;
-  }
-
-  protected void setupWindow(WindowViewer parent, Map options, boolean emulate) {
-    if (parent == null) {
-      parent = appContext.getWindowViewer();
-    }
-
-    Frame              main          = (Frame) appContext.getWindowManager().getMainWindow().getComponent();
-    iPlatformComponent mainComponent = main.getComponent();
-    iScriptHandler     sh            = parent.getScriptHandler();
-
-    windowViewer = new WindowViewer(appContext, target.getName(), this, parent, sh);
-    sh.setScriptingContext(windowViewer, null, null, null, true);
-
-    if (emulate) {
-      PaintBucket pb = (PaintBucket) mainComponent.getClientProperty(iConstants.RARE_PAINTBUCKET_PROPERTY);
-
-      pb.install(this);
-
-      ActionLink link = (ActionLink) mainComponent.getClientProperty(iConstants.RARE_WINDOW_TITLELINK);
-
-      if (link != null) {
-        iWidget w = aContainer.createWidget(windowViewer, link);
-
-        if (w != null) {
-          setTitleWidget(w);
-        }
-      }
-    }
-
-    if (options == null) {
-      return;
-    }
-
-    Object          o = options.get("cpborder");
-    iPlatformBorder b = null;
-
-    if (o instanceof iPlatformBorder) {
-      b = (iPlatformBorder) o;
-
-      if (o != null) {
-        b = UIBorderHelper.createBorder(o.toString());
-
-        if (b != null) {
-          setBorder(b);
-          // if ("true".equalsIgnoreCase((String)
-          // options.get("useborderforsizing"))) {
-          // WindowAdapter.makeWindowResizable(theWindow);
-          // }
-        }
-      }
-    }
-
-    String s = (String) options.get("status");
-
-    if ((s != null) && (s.length() > 0)) {
-      s = s.trim();
-
-      if (statusBar == null) {
-        StatusBar sb = null;
-
-        if (SNumber.booleanValue((String) options.get("resizable"))
-            &&!"false".equalsIgnoreCase((String) options.get("resizeCorner"))) {
-          sb = new StatusBar();
-          sb.showMemoryUsage.setValue(false);
-          sb.showInsertOverwrite.setValue(false);
-          sb.showTime.setValue(false);
-          sb.showResizeCorner.setValue(true);
-        }
-
-        setStatusBar(appContext.getWindowManager().createStatusBar(sb));
-      }
-
-      statusBar.showMessage(s);
-    }
-
-    s = (String) options.get("keystrokes");
-
-    if (s != null) {
-      SwingHelper.configureKeystrokes(parent, rootPaneContainer.getRootPane(), s, JComponent.WHEN_IN_FOCUSED_WINDOW);
-    }
-
-    Map map = WidgetListener.createEventMap(options);
-
-    if (map != null) {
-      windowViewer.setWidgetListener(new WidgetListener(windowViewer, map, windowViewer.getScriptHandler()));
-    }
-
-    Utils.setupWindowOptions(this, map);
-  }
-
-  public void setViewer(WindowViewer wv) {
-    windowViewer = wv;
-
-    if (wv != null) {
-      iParentComponent pc = (iParentComponent) Component.fromView((JComponent) rootPaneContainer.getContentPane());
-
-      pc.setWidget(wv);
-    }
   }
 
   @Override
@@ -787,7 +715,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public void windowActivated(java.awt.event.WindowEvent e) {
     if ((getWidgetListener() != null) && getWidgetListener().isEnabled(iConstants.EVENT_FOCUS)) {
-      FocusEvent fe = new FocusEvent(this, FocusEvent.FOCUS_GAINED, false);
+      FocusEvent fe = new FocusEvent(this, true, false);
 
       getWidgetListener().execute(iConstants.EVENT_FOCUS, fe);
     }
@@ -795,26 +723,24 @@ public class Frame extends Container implements iWindow, WindowListener {
 
   @Override
   public void windowClosed(java.awt.event.WindowEvent e) {
-    if ((listenerList != null) && listenerList.hasListeners(iWindowListener.class)) {
-      Utils.fireWindowEvent(listenerList, new WindowEvent(this, WindowEvent.Type.Closed));
-    }
+    Utils.fireWindowEvent(listenerList, this, WindowEvent.Type.Closed);
   }
 
   @Override
   public void windowClosing(java.awt.event.WindowEvent e) {
-    if ((listenerList != null) && listenerList.hasListeners(iWindowListener.class)) {
-      Utils.fireWindowEvent(listenerList, new WindowEvent(this, WindowEvent.Type.WillClose));
-    }
+    WindowEvent we = Utils.fireWindowEvent(listenerList, this, WindowEvent.Type.WillClose);
 
-    if ((windowViewer != null) && windowViewer.isClosingAllowed()) {
-      Window w = e.getWindow();
+    if ((we == null) ||!we.isConsumed()) {
+      if ((windowViewer != null) && windowViewer.isClosingAllowed()) {
+        Window w = e.getWindow();
 
-      w.removeWindowListener(this);
+        w.removeWindowListener(this);
 
-      if (Platform.getAppContext().getWindowManager().getMainWindow() == this) {
-        Platform.getAppContext().exit();
-      } else {
-        windowViewer.dispose();
+        if (Platform.getAppContext().getWindowManager().getMainWindow() == this) {
+          Platform.getAppContext().exit();
+        } else {
+          windowViewer.dispose();
+        }
       }
     }
   }
@@ -822,7 +748,7 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public void windowDeactivated(java.awt.event.WindowEvent e) {
     if ((getWidgetListener() != null) && getWidgetListener().isEnabled(iConstants.EVENT_BLUR)) {
-      FocusEvent fe = new FocusEvent(this, FocusEvent.FOCUS_LOST, false);
+      FocusEvent fe = new FocusEvent(this, false, false);
 
       getWidgetListener().execute(iConstants.EVENT_BLUR, fe);
     }
@@ -831,167 +757,62 @@ public class Frame extends Container implements iWindow, WindowListener {
   @Override
   public void windowDeiconified(java.awt.event.WindowEvent e) {
     if ((getWidgetListener() != null) && getWidgetListener().isEnabled(iConstants.EVENT_HAS_EXPANDED)) {
-      getWidgetListener().execute(iConstants.EVENT_HAS_EXPANDED, new ExpansionEvent(windowViewer));
+      getWidgetListener().execute(iConstants.EVENT_HAS_EXPANDED, new ExpansionEvent(windowViewer,ExpansionEvent.Type.HAS_EXPANDED));
     }
   }
 
   @Override
   public void windowIconified(java.awt.event.WindowEvent e) {
     if ((getWidgetListener() != null) && getWidgetListener().isEnabled(iConstants.EVENT_HAS_COLLAPSED)) {
-      getWidgetListener().execute(iConstants.EVENT_HAS_COLLAPSED, new ExpansionEvent(windowViewer));
+      getWidgetListener().execute(iConstants.EVENT_HAS_COLLAPSED, new ExpansionEvent(windowViewer,ExpansionEvent.Type.HAS_COLLAPSED));
     }
   }
 
   @Override
   public void windowOpened(java.awt.event.WindowEvent e) {
-    if ((listenerList != null) && listenerList.hasListeners(iWindowListener.class)) {
-      Utils.fireWindowEvent(listenerList, new WindowEvent(this, WindowEvent.Type.Opened));
-    }
+    Utils.fireWindowEvent(listenerList, this, WindowEvent.Type.Opened);
   }
 
-  public static Frame create(iWidget context, String title, String target, boolean modal, boolean decorated) {
-    Map map = new HashMap();
-
-    if (title != null) {
-      map.put("title", title);
-    }
-
-    map.put("modal", modal);
-    map.put("decorated", decorated);
-
-    return createFromOptions(context, target, map);
+  private aWidgetListener getWidgetListener() {
+    return (windowViewer == null)
+           ? null
+           : windowViewer.getWidgetListener();
   }
 
-  public static Frame createFromOptions(iWidget context, String targetName, Map options) {
-    iPlatformAppContext app    = context.getAppContext();
-    boolean             modal  = true;
-    boolean             dialog = false;
-    boolean             popup  = false;
-    String              type   = "frame";
-    Object              o;
-    WindowViewer        parentv = Platform.getWindowViewer(context);
+  private void setMenuOrToolBarComponent(JComponent c, boolean menu) {
+    if (c == null) {
+      if (menuToolbarPanel != null) {
+        BorderLayout bl = ((BorderLayout) menuToolbarPanel.getLayout());
 
-    if (parentv == null) {
-      parentv = (WindowViewer) Platform.getWindowViewer().getTop();
-    }
+        c = (JComponent) bl.getLayoutComponent(menu
+                ? BorderLayout.BEFORE_FIRST_LINE
+                : BorderLayout.CENTER);
 
-    Window parent = (Window) parentv.getUIWindow();
-
-    o = options.get("modal");
-
-    if (o instanceof Boolean) {
-      modal = (Boolean) o;
-    } else if (o instanceof String) {
-      modal = SNumber.booleanValue((String) o);
-    }
-
-    type = (String) options.get("windowtype");
-
-    if (type == null) {
-      type = "frame";
-    }
-
-    Window win;
-
-    o = options.get("emulatemainwindow");
-
-    if (o == null) {
-      o = app.getUIDefaults().get("Rare.emulateMainWindow");
-    }
-
-    boolean emulate     = ((o == Boolean.TRUE) || "true".equals(o));
-    boolean undecorated = false;
-    boolean transparent = false;
-
-    if (emulate) {
-      Frame main = (Frame) app.getWindowManager().getMainWindow().getComponent();
-
-      undecorated = main.isUndecorated();
-      transparent = main.isTransparent();
-    }
-
-    o = options.get("opaque");
-
-    if (o != null) {
-      transparent = "false".equals(o) || (o == Boolean.FALSE);
-    }
-
-    o = options.get("decorated");
-
-    if (o != null) {
-      undecorated = "false".equals(o) || (o == Boolean.FALSE);
-    }
-
-    if (type.equalsIgnoreCase("dialog")) {
-      dialog = true;
-
-      JDialog d = new JDialogEx(parent, modal
-                                        ? ModalityType.APPLICATION_MODAL
-                                        : ModalityType.MODELESS);
-
-      d.setBackground(ColorUtils.getBackground());
-      d.setUndecorated(undecorated);
-
-      if (transparent) {
-        d.setBackground(ColorUtils.TRANSPARENT_COLOR);
-      } else {
-        d.setBackground(ColorUtils.getBackground());
+        if (c != null) {
+          menuToolbarPanel.remove(c);
+        }
       }
-
-      win   = d;
-      popup = true;
-    } else if (type.equalsIgnoreCase("popup")) {
-      PopupWindow p = new PopupWindow(parent, context);
-
-      if (!transparent) {
-        p.setBackground(ColorUtils.getBackground());
-      }
-
-      if (modal) {
-        p.setModal(true);
-      }
-
-      win   = p;
-      popup = true;
-    } else if (type.equalsIgnoreCase("popup_orphan")) {
-      PopupWindow p = new PopupWindow(context);
-
-      if (!transparent) {
-        p.setBackground(ColorUtils.getBackground());
-      }
-
-      if (modal) {
-        p.setModal(true);
-      }
-
-      win = p;
     } else {
-      JFrame f = new JFrameEx();
-
-      f.setUndecorated(undecorated);
-
-      if (transparent) {
-        f.setBackground(ColorUtils.TRANSPARENT_COLOR);
-      } else {
-        f.setBackground(ColorUtils.getBackground());
+      if (menuToolbarPanel == null) {
+        menuToolbarPanel = new JPanel(new BorderLayout());
+        menuToolbarPanel.setOpaque(false);
+        rootPaneContainer.getRootPane().getContentPane().add(menuToolbarPanel, BorderLayout.BEFORE_FIRST_LINE);
       }
 
-      win = f;
+      if (menu) {
+        menuToolbarPanel.add(c, BorderLayout.BEFORE_FIRST_LINE);
+      } else {
+        menuToolbarPanel.add(c, BorderLayout.CENTER);
+      }
     }
+  }
 
-    if (targetName == null) {
-      targetName = "_new_window_" + Integer.toHexString(win.hashCode());
-    }
+  public void setWindowViewer(WindowViewer windowViewer) {
+    this.windowViewer = windowViewer;
 
-    Frame frame = new Frame(app, win, (RootPaneContainer) win);
+    iParentComponent pc = (iParentComponent) Component.fromView((JComponent) rootPaneContainer.getContentPane());
 
-    frame.target = new WindowTarget(app, targetName, frame);
-    frame.dialog = dialog;
-    frame.popup  = popup;
-    frame.modal  = modal;
-    frame.setupWindow(parentv, options, emulate);
-
-    return frame;
+    pc.setWidget(windowViewer);
   }
 
   OverlayContainer getOverlayContainer() {

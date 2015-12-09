@@ -44,7 +44,15 @@ public class UIImage extends aUIImage implements Cloneable {
   public UIImage(int width, int height) {
     this(ImageUtils.createCompatibleImage(width, height));
   }
-
+  
+  @Override
+  public Object clone() {
+    UIImage img = (UIImage) super.clone();
+    BufferedImage bi=getBufferedImage();
+    img.awtImage=ImageUtils.copyImage(bi);
+    return  img;
+  }
+  
   protected UIImage() {}
 
   @Override

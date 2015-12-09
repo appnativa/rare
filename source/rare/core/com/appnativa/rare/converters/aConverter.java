@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.converters;
 
+import java.io.IOException;
+import java.io.Reader;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.ui.RenderableDataItem;
@@ -29,9 +32,6 @@ import com.appnativa.util.FormatException;
 import com.appnativa.util.Helper;
 import com.appnativa.util.Streams;
 import com.appnativa.util.StringReaderEx;
-
-import java.io.IOException;
-import java.io.Reader;
 
 /**
  *
@@ -140,10 +140,7 @@ public abstract class aConverter implements iDataConverter {
   }
 
   public static void showRangeError(Comparable minValue, Comparable maxValue) {
-    iPlatformAppContext app   = Platform.getAppContext();
-    String              title = app.getResourceAsString("Rare.runtime.text.fieldInvalidFormatTitle");
-
-    app.oneLineErrorMessage(title, getRangeError(minValue, maxValue));
+    Platform.getAppContext().getWindowViewer().setStatus(getRangeError(minValue, maxValue));
   }
 
   public boolean supportFromString(String string, ConverterContext ctx) {

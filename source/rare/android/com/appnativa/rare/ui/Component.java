@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -114,6 +114,7 @@ public class Component extends aComponent
     useBorderInSizeCalculation = false;
   }
 
+  @Override
   public void addFocusListener(iFocusListener l) {
     super.addFocusListener(l);
     view.setOnFocusChangeListener(this);
@@ -124,6 +125,7 @@ public class Component extends aComponent
     getEventListenerList().add(View.OnFocusChangeListener.class, l);
   }
 
+  @Override
   public void addKeyListener(iKeyListener l) {
     super.addKeyListener(l);
     view.setOnKeyListener(this);
@@ -134,6 +136,7 @@ public class Component extends aComponent
     getEventListenerList().add(View.OnKeyListener.class, l);
   }
 
+  @Override
   public void addMouseListener(iMouseListener l) {
     super.addMouseListener(l);
     view.setOnTouchListener(this);
@@ -145,6 +148,7 @@ public class Component extends aComponent
     getEventListenerList().add(View.OnTouchListener.class, l);
   }
 
+  @Override
   public void addMouseMotionListener(iMouseMotionListener l) {
     super.addMouseMotionListener(l);
     view.setOnTouchListener(this);
@@ -158,10 +162,6 @@ public class Component extends aComponent
     if ((view instanceof iFlingSupport) && (l instanceof GestureDetector.OnGestureListener)) {
       ((iFlingSupport) view).setFlingGestureListener((GestureDetector.OnGestureListener) l);
     }
-  }
-
-  public void addViewListener(iViewListener l) {
-    super.addViewListener(l);
   }
 
   public void addViewListenerEx(iAndroidViewListener l) {
@@ -178,6 +178,7 @@ public class Component extends aComponent
     return ImageUtils.createImage(view);
   }
 
+  @Override
   public Component copy() {
     try {
       Class       cls = view.getClass();
@@ -200,14 +201,17 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public void dispatchEvent(com.appnativa.rare.ui.event.KeyEvent keyEvent) {
     view.dispatchKeyEvent((KeyEvent) keyEvent.getNativeEvent());
   }
 
+  @Override
   public void dispatchEvent(com.appnativa.rare.ui.event.MouseEvent mouseEvent) {
     view.onTouchEvent(((MotionEvent) mouseEvent.getNativeEvent()));
   }
 
+  @Override
   public void dispose() {
     try {
       if (view != null) {
@@ -321,6 +325,7 @@ public class Component extends aComponent
     revalidate();
   }
 
+  @Override
   public void onAttachedToWindow(View view) {
     if (listenerList == null) {
       return;
@@ -339,6 +344,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public void onDetachedFromWindow(View view) {
     if (listenerList == null) {
       return;
@@ -357,23 +363,26 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public boolean onDoubleTap(MotionEvent me) {
-    MouseEvent e         = new MouseEvent(this, me, 0);
+    return false;
+  }
+
+  @Override
+  public boolean onDoubleTapEvent(MotionEvent me) {
+    MouseEvent e         = new MouseEvent(this, me, 0, 2);
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
-        ((iMouseListener) listeners[i + 1]).mousePressed(e);
+        ((iMouseListener) listeners[i + 1]).mouseReleased(e);
       }
     }
 
     return false;
   }
 
-  public boolean onDoubleTapEvent(MotionEvent me) {
-    return false;
-  }
-
+  @Override
   public boolean onDown(MotionEvent me) {
     MouseEvent e         = new MouseEvent(this, me, 0);
     Object[]   listeners = listenerList.getListenerList();
@@ -387,10 +396,12 @@ public class Component extends aComponent
     return e.isConsumed();
   }
 
+  @Override
   public boolean onFling(MotionEvent me1, MotionEvent me2, float velocityX, float velocityY) {
     return true;
   }
 
+  @Override
   public void onFocusChange(View view, boolean hasFocus) {
     if (listenerList == null) {
       return;
@@ -405,6 +416,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public boolean onKey(View v, int keyCode, KeyEvent event) {
     if (listenerList == null) {
       return false;
@@ -440,10 +452,12 @@ public class Component extends aComponent
     return false;
   }
 
+  @Override
   public boolean onLongClick(View v) {
     return false;
   }
 
+  @Override
   public void onLongPress(MotionEvent me) {
     MouseEvent e         = null;
     Object[]   listeners = listenerList.getListenerList();
@@ -459,16 +473,20 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public boolean onScale(ScaleGestureDetector detector) {
     return false;
   }
 
+  @Override
   public boolean onScaleBegin(ScaleGestureDetector detector) {
     return false;
   }
 
+  @Override
   public void onScaleEnd(ScaleGestureDetector detector) {}
 
+  @Override
   public boolean onScroll(MotionEvent me1, MotionEvent me2, float distanceX, float distanceY) {
     MouseEvent e         = null;
     Object[]   listeners = listenerList.getListenerList();
@@ -486,12 +504,15 @@ public class Component extends aComponent
     return false;
   }
 
+  @Override
   public void onShowPress(MotionEvent e) {}
 
+  @Override
   public boolean onSingleTapConfirmed(MotionEvent e) {
     return false;
   }
 
+  @Override
   public boolean onSingleTapUp(MotionEvent me) {
     return false;
   }
@@ -509,6 +530,7 @@ public class Component extends aComponent
     return e.isConsumed();
   }
 
+  @Override
   public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
     if ((listenerList == null) || ((oldw == w) && (oldh == h))) {
       return;
@@ -529,6 +551,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public boolean onTouch(View view, MotionEvent me) {
     if (listenerList == null) {
       return false;
@@ -545,6 +568,8 @@ public class Component extends aComponent
     }
 
     if (crossPlatformMouseEventsEnabled) {
+      boolean consumed = false;
+
       try {
         if (view.getWindowToken() == null) {
           return true;
@@ -560,11 +585,11 @@ public class Component extends aComponent
               mouseOutside = true;
             }
           } else if (mouseOutside) {
-            mouseEntered(me);
+            consumed     = mouseEntered(me);
             mouseOutside = false;
           }
         } else if (me.getAction() == MotionEvent.ACTION_UP) {
-          mouseUp(me);
+          consumed = mouseUp(me);
         }
 
         if (gestureDetector == null) {
@@ -576,19 +601,20 @@ public class Component extends aComponent
           if (view instanceof AbsListView) {
             return gestureDetector.onTouchEvent(me);
           } else {
-            gestureDetector.onTouchEvent(me);
+            consumed = gestureDetector.onTouchEvent(me);
           }
         }
       } catch(Exception ignore) {
         Platform.ignoreException("Possible view hierarchy change while in event", ignore);
       }
 
-      return true;
+      return consumed;
     }
 
     return false;
   }
 
+  @Override
   public void onVisibilityChanged(View view, View changedView, int visibility) {
     if (listenerList == null) {
       return;
@@ -621,6 +647,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public void propertyChange(PropertyChangeEvent event) {
     String name = event.getPropertyName();
 
@@ -630,7 +657,7 @@ public class Component extends aComponent
       Drawable d = view.getBackground();
 
       if (!(d instanceof NullDrawable)) {
-        view.setBackgroundDrawable(NullDrawable.getInstance());
+        view.setBackground(NullDrawable.getInstance());
       }
 
       setPaddingFromBorder(view, border);
@@ -638,7 +665,7 @@ public class Component extends aComponent
       Drawable d = view.getBackground();
 
       if (!(d instanceof NullDrawable) || ((d != null) &&!d.isStateful())) {
-        view.setBackgroundDrawable(NullDrawable.getStatefulInstance());
+        view.setBackground(NullDrawable.getStatefulInstance());
       }
 
       PainterHolder   ph = componentPainter.getPainterHolder();
@@ -673,6 +700,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public void putClientProperty(String key, Object value) {
     super.putClientProperty(key, value);
 
@@ -703,6 +731,7 @@ public class Component extends aComponent
     remove(iAndroidViewListener.class, l);
   }
 
+  @Override
   public void repaint() {
     if (Platform.isUIThread()) {
       view.invalidate();
@@ -711,10 +740,12 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public void requestFocus() {
     view.requestFocus();
   }
 
+  @Override
   public void revalidate() {
     sizeCache.preferredDirty = true;
     sizeCache.minDirty       = true;
@@ -723,6 +754,7 @@ public class Component extends aComponent
       view.requestLayout();
     } else {
       Platform.invokeLater(new Runnable() {
+        @Override
         public void run() {
           if (view != null) {
             view.requestLayout();
@@ -767,6 +799,14 @@ public class Component extends aComponent
     }
   }
 
+  @Override
+  public boolean setAlpha(float alpha) {
+    view.setAlpha(alpha);
+
+    return true;
+  }
+
+  @Override
   public void setBackground(UIColor bg) {
     if (view instanceof iPainterSupport) {
       if ((bg == null) || (bg.getAlpha() == 0)) {
@@ -780,13 +820,14 @@ public class Component extends aComponent
       }
     } else {
       if ((bg != null) && (bg.getAlpha() > 0)) {
-        view.setBackgroundDrawable(bg.getDrawable());
+        view.setBackground(bg.getDrawable());
       } else {
-        view.setBackgroundDrawable(null);
+        view.setBackground(null);
       }
     }
   }
 
+  @Override
   public void setBorder(iPlatformBorder border) {
     this.border = border;
 
@@ -797,18 +838,20 @@ public class Component extends aComponent
 
       componentPainter.setBorder(border);
     } else {
-      view.setBackgroundDrawable((border == null)
-                                 ? NullDrawable.getInstance()
-                                 : border.getDrawable(view));
+      view.setBackground((border == null)
+                         ? NullDrawable.getInstance()
+                         : border.getDrawable(view));
     }
 
     revalidate();
   }
 
+  @Override
   public void setBounds(float x, float y, float w, float h) {
     setBounds(UIScreen.snapToPosition(x), UIScreen.snapToPosition(y), UIScreen.snapToSize(w), UIScreen.snapToSize(h));
   }
 
+  @Override
   public void setBounds(int x, int y, int w, int h) {
     sizeCache.minDirty             = true;
     sizeCache.minDirty             = true;
@@ -826,6 +869,7 @@ public class Component extends aComponent
     view.layout(x, y, x + w, y + h);
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     if (cp != componentPainter) {
       if (componentPainter != null) {
@@ -847,7 +891,7 @@ public class Component extends aComponent
                             : cp.getBorderAlways();
 
         if ((cp != null) && (cp.getPainterHolder() != null)) {
-          view.setBackgroundDrawable(NullDrawable.getStatefulInstance());
+          view.setBackground(NullDrawable.getStatefulInstance());
         }
 
         setPaddingFromBorder(view, b);
@@ -856,25 +900,42 @@ public class Component extends aComponent
       }
 
       if (cp != null) {
-        view.setBackgroundDrawable(new PainterDrawable(view, cp));
+        view.setBackground(new PainterDrawable(view, cp));
       } else {
         if (componentPainter != null) {
-          view.setBackgroundDrawable(null);
+          view.setBackground(null);
         }
       }
     }
   }
 
+  @Override
   public void setCursor(UICursor cursor) {}
 
   public void setEnabled(boolean enabled) {
-    view.setEnabled(enabled);
+    if (enabled != view.isEnabled()) {
+      view.setEnabled(enabled);
+
+      boolean                   setDisabled = true;
+
+      if (!(view instanceof TextView)) {
+        setDisabled = false;
+      }
+
+      if (setDisabled) {
+        view.refreshDrawableState();
+        view.requestLayout();
+      }
+      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled,enabled);
+    }
   }
 
+  @Override
   public void setFocusable(boolean focusable) {
     view.setFocusable(focusable);
   }
 
+  @Override
   public void setFont(UIFont f) {
     if (font != f) {
       font = f;
@@ -893,16 +954,13 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public void setForeground(UIColor fg) {
     fgColor = fg;
 
     if (fg != null) {
       if (view instanceof TextView) {
         fg.setTextColor((TextView) view);
-      }
-
-      if (componentPainter != null) {
-        componentPainter.setForegroundColor(fg);
       }
     }
   }
@@ -912,14 +970,16 @@ public class Component extends aComponent
     setBounds(UIScreen.snapToPosition(x), UIScreen.snapToPosition(y), getWidth(), getHeight());
   }
 
+  @Override
   public void setOpaque(boolean opaque) {
     super.setOpaque(opaque);
 
     if (!opaque) {
-      view.setBackgroundDrawable(NullDrawable.getInstance());
+      view.setBackground(NullDrawable.getInstance());
     }
   }
 
+  @Override
   public void setSelected(boolean selected) {
     view.setSelected(selected);
   }
@@ -929,6 +989,7 @@ public class Component extends aComponent
     setBounds(view.getLeft(), view.getTop(), width, height);
   }
 
+  @Override
   public void setVisible(boolean visible) {
     view.setVisibility(visible
                        ? View.VISIBLE
@@ -941,6 +1002,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public UIColor getBackgroundEx() {
     if (componentPainter != null) {
       return componentPainter.getBackgroundColor();
@@ -955,6 +1017,7 @@ public class Component extends aComponent
     return null;
   }
 
+  @Override
   public iPlatformBorder getBorder() {
     if (componentPainter != null) {
       return componentPainter.getBorder();
@@ -963,6 +1026,7 @@ public class Component extends aComponent
     return border;
   }
 
+  @Override
   public UIRectangle getBounds() {
     return new UIRectangle(view.getLeft(), view.getTop(), view.getWidth(), view.getHeight());
   }
@@ -981,10 +1045,12 @@ public class Component extends aComponent
     return null;
   }
 
+  @Override
   public UIFont getFontEx() {
     return font;
   }
 
+  @Override
   public UIColor getForeground() {
     if (fgColor == null) {
       ColorStateList csl = null;
@@ -1009,14 +1075,17 @@ public class Component extends aComponent
     return fgColor;
   }
 
+  @Override
   public UIColor getForegroundEx() {
     return fgColor;
   }
 
+  @Override
   public int getHeight() {
     return view.getHeight();
   }
 
+  @Override
   public UIPoint getLocationOnScreen(UIPoint pt) {
     if (pt == null) {
       pt = new UIPoint();
@@ -1100,10 +1169,12 @@ public class Component extends aComponent
     return pt;
   }
 
+  @Override
   public Object getNativeView() {
     return view;
   }
 
+  @Override
   public iParentComponent getParent() {
     if (view == null) {
       return null;
@@ -1127,6 +1198,7 @@ public class Component extends aComponent
     return (iParentComponent) o;
   }
 
+  @Override
   public UIDimension getSize(UIDimension size) {
     if (size == null) {
       size = new UIDimension();
@@ -1159,6 +1231,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   public View getView() {
     return view;
   }
@@ -1169,30 +1242,37 @@ public class Component extends aComponent
            : this;
   }
 
+  @Override
   public int getWidth() {
     return view.getWidth();
   }
 
+  @Override
   public int getX() {
     return view.getLeft();
   }
 
+  @Override
   public int getY() {
     return view.getTop();
   }
 
+  @Override
   public boolean hasBeenFocused() {
     return hadFocus;
   }
 
+  @Override
   public boolean hasChildren() {
     return (view instanceof ViewGroup) && ((ViewGroup) view).getChildCount() > 0;
   }
 
+  @Override
   public boolean hasHadInteraction() {
     return hadInteraction;
   }
 
+  @Override
   public boolean hasMouseListeners() {
     if (super.hasMouseListeners()) {
       return true;
@@ -1201,26 +1281,32 @@ public class Component extends aComponent
     return (listenerList != null) && (listenerList.getListenerCount(View.OnTouchListener.class) > 0);
   }
 
+  @Override
   public boolean isDisplayable() {
     return (view != null) && (view.getWindowToken() != null);
   }
 
+  @Override
   public boolean isEnabled() {
     return view.isEnabled();
   }
 
+  @Override
   public boolean isFocusOwner() {
     return view.isFocused();
   }
 
+  @Override
   public boolean isFocusable() {
     return view.isFocusable();
   }
 
+  @Override
   public boolean isPressed() {
     return view.isPressed();
   }
 
+  @Override
   public boolean isSelectable() {
     if (view instanceof Checkable) {
       return true;
@@ -1229,27 +1315,32 @@ public class Component extends aComponent
     return false;
   }
 
+  @Override
   public boolean isSelected() {
     return view.isSelected();
   }
 
+  @Override
   public boolean isShowing() {
     return (view != null) && view.isShown();
   }
 
+  @Override
   public boolean isVisible() {
     return (view != null) && (view.getVisibility() == View.VISIBLE);
   }
 
+  @Override
   protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
     if (changeSupport != null) {
       changeSupport.firePropertyChange(propertyName, oldValue, newValue);
     }
   }
 
+  @Override
   protected void interacted() {}
 
-  protected void mouseEntered(MotionEvent me) {
+  protected boolean mouseEntered(MotionEvent me) {
     MouseEvent e         = null;
     Object[]   listeners = listenerList.getListenerList();
 
@@ -1262,9 +1353,13 @@ public class Component extends aComponent
         ((iMouseListener) listeners[i + 1]).mouseExited(e);
       }
     }
+
+    return (e == null)
+           ? false
+           : e.isConsumed();
   }
 
-  protected void mouseExited(MotionEvent me) {
+  protected boolean mouseExited(MotionEvent me) {
     MouseEvent e         = null;
     Object[]   listeners = listenerList.getListenerList();
 
@@ -1277,6 +1372,10 @@ public class Component extends aComponent
         ((iMouseListener) listeners[i + 1]).mouseExited(e);
       }
     }
+
+    return (e == null)
+           ? false
+           : e.isConsumed();
   }
 
   protected void setPaddingFromBorder(View v, iPlatformBorder b) {
@@ -1306,6 +1405,7 @@ public class Component extends aComponent
     view.setTag(this);
   }
 
+  @Override
   protected iPlatformComponentPainter getComponentPainterEx() {
     return componentPainter;
   }
@@ -1318,7 +1418,8 @@ public class Component extends aComponent
     return interactionListener;
   }
 
-  protected void getMinimumSizeEx(UIDimension size) {
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (!SIZE_CACHE_ENABLED) {
       sizeCache.minDirty = true;
     }
@@ -1348,6 +1449,7 @@ public class Component extends aComponent
     }
   }
 
+  @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     if (!SIZE_CACHE_ENABLED) {
       sizeCache.preferredDirty = true;
@@ -1430,18 +1532,21 @@ public class Component extends aComponent
       Platform.invokeLater(this);
     }
 
+    @Override
     public void onFocusChange(View v, boolean hasFocus) {
       hadFocus = true;
       repaint();
       Platform.invokeLater(this);
     }
 
+    @Override
     public boolean onTouch(View v, MotionEvent event) {
       interacted();
 
       return false;
     }
 
+    @Override
     public void run() {
       if (hadFocus && (view != null)) {
         removeFocusListenerEx(this);

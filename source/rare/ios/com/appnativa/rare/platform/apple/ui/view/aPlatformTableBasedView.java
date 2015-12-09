@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -57,10 +57,13 @@ import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.renderer.Renderers;
 import com.appnativa.rare.ui.renderer.UILabelRenderer;
 import com.appnativa.rare.ui.renderer.aListItemRenderer;
+import com.appnativa.rare.ui.table.TableHelper;
 import com.appnativa.rare.ui.tree.iTree;
 import com.appnativa.rare.ui.tree.iTreeItem;
 import com.appnativa.rare.viewer.aListViewer;
 import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.Helper;
+import com.appnativa.util.IdentityArrayList;
 import com.appnativa.util.IntList;
 import com.appnativa.util.SNumber;
 
@@ -90,6 +93,13 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   protected UIImage                                uncheckedImage;
   protected ListSynchronizer                       listSynchronizer;
   private UIScrollingEdgePainter                   scrollingEdgePainter;
+  private int                                      offsetX;
+  private int                                      offsetY;
+  private ScrollBarView                            hsb;
+  private ScrollBarView                            vsb;
+  protected IdentityArrayList<iScrollerSupport>    hScrollSynchronizer;
+  protected IdentityArrayList<iScrollerSupport>    vScrollSynchronizer;
+  private boolean                                  inOnScrollChanged;
 
   protected aPlatformTableBasedView(Object nsview) {
     super(nsview);
@@ -282,14 +292,23 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   public native void repaintRow(int index)
   /*-[
     RAREAPListView* table=(RAREAPListView*)proxy_;
-    [table repaintRow:  index indexPath: nil];;
+    [table repaintRow:  index indexPath: nil];
   ]-*/
   ;
 
+  @Override
   public native void repaintVisibleRows()
   /*-[
     RAREAPListView* table=(RAREAPListView*)proxy_;
     [table repaintVisibleRows];
+  ]-*/
+  ;
+
+  @Override
+  protected native void removePressedHilight(int index)
+  /*-[
+    RAREAPListView* table=(RAREAPListView*)proxy_;
+    [table removePressedHilight:  index ];
   ]-*/
   ;
 
@@ -413,8 +432,9 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
 
   public native void setContentOffset(float x, float y)
   /*-[
-    RAREAPListView* table=(RAREAPListView*)proxy_;
-    table.contentOffset=CGPointMake(x,y);
+    if(!inOnScrollChanged_) {
+      ((RAREAPListView*)proxy_).contentOffset=CGPointMake(x,y);
+    }
   ]-*/
   ;
 
@@ -500,8 +520,8 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     super.setEditingMode(mode);
 
     if (editingSelectionAllowed) {
-      uncheckedImage = Platform.getAppContext().getResourceAsImage("Rare.List.editorUncheckedIcon");
-      checkedImage   = Platform.getAppContext().getResourceAsImage("Rare.List.editorCheckedIcon");
+      uncheckedImage = Platform.getAppContext().getResourceAsImage("Rare.icon.list.editorUncheckedIcon");
+      checkedImage   = Platform.getAppContext().getResourceAsImage("Rare.icon.list.editorCheckedIcon");
     }
   }
 
@@ -559,6 +579,20 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   public void setShowVertivalGridLines(boolean showVertivalGridLines) {
     this.showVertivalGridLines = showVertivalGridLines;
   }
+
+  public native void setShowsHorizontalScrollIndicator(boolean show)
+  /*-[
+    UIScrollView* sv=(UIScrollView*)proxy_;
+    [sv setShowsHorizontalScrollIndicator: show];
+  ]-*/
+  ;
+
+  public native void setShowsVerticalScrollIndicator(boolean show)
+  /*-[
+    UIScrollView* sv=(UIScrollView*)proxy_;
+    [sv setShowsVerticalScrollIndicator: show];
+  ]-*/
+  ;
 
   public void setUseEditingAnimation(boolean useEditingAnimation) {
     this.useEditingAnimation = useEditingAnimation;
@@ -636,6 +670,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   ]-*/
   ;
 
+  @Override
   public native int getSelectedIndexCount()
   /*-[
     int n=[self getRowCount];
@@ -740,8 +775,68 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
       row.dispose();
     }
 
+    if (vsb != null) {
+      vsb.dispose();
+    }
+
+    if (hsb != null) {
+      hsb.dispose();
+    }
+
     rows.clear();
+
+    if (hScrollSynchronizer != null) {
+      hScrollSynchronizer.clear();
+    }
+
+    if (vScrollSynchronizer != null) {
+      vScrollSynchronizer.clear();
+    }
+
+    vScrollSynchronizer  = null;
+    hScrollSynchronizer  = null;
     scrollingEdgePainter = null;
+    vsb                  = null;
+    hsb                  = null;
+  }
+
+  protected void viewDidScroll(float x, float y) {
+    inOnScrollChanged = true;
+
+    if (listSynchronizer != null) {
+      listSynchronizer.sychronizePosition(this);
+    }
+
+    if (vScrollSynchronizer != null) {
+      for (iScrollerSupport ss : vScrollSynchronizer) {
+        ss.setContentOffset(0, y);
+      }
+    }
+
+    if (hScrollSynchronizer != null) {
+      for (iScrollerSupport ss : hScrollSynchronizer) {
+        ss.setContentOffset(x, 0);
+      }
+    }
+
+    int xx = (int) x;
+    int yy = (int) y;
+
+    if (hsb != null) {
+      if (xx != offsetX) {
+        hsb.notifyChangeListeners();
+      }
+    }
+
+    if (vsb != null) {
+      if (yy != offsetY) {
+        vsb.notifyChangeListeners();
+      }
+    }
+
+    offsetX           = xx;
+    offsetY           = yy;
+    inOnScrollChanged = false;
   }
 
   protected static void disposeOfRenderers(Object renderers) {
@@ -753,6 +848,12 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
       }
     }
   }
+  
+  protected native int getPressedColumn()
+  /*-[
+    return [(RAREAPListView*)proxy_ getPressedColumn];
+  ]-*/
+  ;
 
   protected void itemDeselected(int index) {
     if (listSynchronizer != null) {
@@ -817,6 +918,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     w.importData(new RenderableDataItemTransferable(list), di);
   }
 
+  @Override
   protected native void reloadVisibleRows()
   /*-[
     RAREAPListView* table=(RAREAPListView*)proxy_;
@@ -841,7 +943,6 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
 
     w.removeData(new RenderableDataItemTransferable(list));
   }
-
 
   @Override
   protected void setupNewRenderingCell(Object nativeView) {
@@ -894,26 +995,6 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   ]-*/
   ;
 
-  protected final int getSpanWidth(int start, int span, int len, Column[] columns, int cm) {
-    int width = 0;
-
-    if (span == -1) {
-      span = len;
-    }
-
-    span += start;
-
-    if (span > len) {
-      span = len;
-    }
-
-    while(start < span) {
-      width += columns[start++].getWidth() + cm;
-    }
-
-    return width;
-  }
-
   @Override
   protected native RowView getViewForRow(int index)
   /*-[
@@ -939,6 +1020,47 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
 
   public void setListSynchronizer(ListSynchronizer listSynchronizer) {
     this.listSynchronizer = listSynchronizer;
+  }
+
+  public void setScrollBarViews(ScrollBarView hsb, ScrollBarView vsb) {
+    this.hsb = hsb;
+    this.vsb = vsb;
+  }
+
+  public void setHeaderView(iScrollerSupport ss) {
+    turnOffScrollBarVisibility(ss, true);
+    syncScrolling(ss, false);
+  }
+
+  public void setFooterView(iScrollerSupport ss) {
+    setShowsHorizontalScrollIndicator(false);
+    syncScrolling(ss, false);
+  }
+
+  public void setRowHeaderView(iScrollerSupport ss) {
+    turnOffScrollBarVisibility(ss, false);
+    syncScrolling(ss, true);
+  }
+
+  public void setRowFooterView(iScrollerSupport rowFooterView) {
+    setShowsVerticalScrollIndicator(false);
+    syncScrolling(rowFooterView, true);
+  }
+
+  public void syncScrolling(iScrollerSupport ss, boolean vertical) {
+    if (vertical) {
+      if (vScrollSynchronizer == null) {
+        vScrollSynchronizer = new IdentityArrayList<iScrollerSupport>(2);
+      }
+
+      vScrollSynchronizer.addIfNotPresent(ss);
+    } else {
+      if (hScrollSynchronizer == null) {
+        hScrollSynchronizer = new IdentityArrayList<iScrollerSupport>(2);
+      }
+
+      hScrollSynchronizer.addIfNotPresent(ss);
+    }
   }
 
   @WeakOuter
@@ -1199,7 +1321,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     ;
 
     @Override
-    public native void getMinimumSize(UIDimension size)
+    public native void getMinimumSize(UIDimension size, float maxWidth)
     /*-[
       CGSize s= [((RAREUITableViewCell*)proxy_) intrinsicContentSize];
       size->width_=s.width;
@@ -1275,18 +1397,19 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
         componentPainter.paint(g, rect.x, rect.y, rect.width, height, iPainter.UNKNOWN);
       }
 
-      boolean     pressed        = isPressed();
-      PaintBucket selectionPaint = isSelected()
-                                   ? itemRenderer.getSelectionPaintForExternalPainter(false)
-                                   : null;
+      boolean     pressed  = (popupMenuIndex == -1)
+                             ? isPressed()
+                             : false;
+      boolean     selected = isSelected();
+      PaintBucket pb       = getBackgroundPaint(pressed, selected);
 
-      if (pressed || (selectionPaint != null)) {
+      if (pressed || (pb != null)) {
         float sx = 0;
         float ex = 0;
 
         if (isColumnSelectionAllowed()) {
           int n = pressed
-                  ? contentView.getPressedViewIndex()
+                  ? getPressedColumn()
                   : getSelectedColumn();
 
           if (n > -1) {
@@ -1295,7 +1418,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
             sx = contentView.getViewX(pv);
             ex = sx + contentView.getViewWidth(pv);
           } else {
-            selectionPaint = null;
+            pb = null;
           }
         }
 
@@ -1305,21 +1428,15 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
         }
 
         if (!SNumber.isEqual(sx, ex)) {
-          if (pressed) {
-            PaintBucket pb = itemRenderer.getPressedPaint();
-
-            if (pb != null) {
-              UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, pb);
-            }
-          } else if (selectionPaint != null) {
-            UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, selectionPaint);
+          if (pb != null) {
+            UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, pb);
           }
         }
       }
     }
 
     public void render(View parent, iPlatformComponent list, aListItemRenderer lr, int row, RenderableDataItem rowItem,
-                       Column[] columns, boolean isSelected, boolean isPressed, iTreeItem ti) {
+                       Column[] columns, boolean isSelected, boolean isPressed, iTreeItem ti, int[] viewPositions) {
       iPlatformRenderingComponent rc;
       boolean                     empty = (rowItem == null) || (rowItem == NULL_ITEM);
 
@@ -1415,7 +1532,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
       boolean            canselcol = isColumnSelectionAllowed();
 
       for (int i = 0; i < len; i++) {
-        c = columns[i];
+        c = columns[viewPositions[i]];
 
         if (!c.isVisible()) {
           continue;
@@ -1487,7 +1604,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
 
             int width = (span == 1)
                         ? c.getWidth()
-                        : getSpanWidth(i, span, len, columns, d);
+                        : TableHelper.getSpanWidth(i, span, columns, viewPositions);
 
             comp.getPreferredSize(size, width);
             height = Math.max(height, size.height);
@@ -1533,6 +1650,11 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
       super(proxy);
     }
 
+    @Override
+    public boolean isMouseTransparent() {
+      return true;
+    }
+
     public native void setCellRenderers(Object renderers)
     /*-[
       ((RAREUITableContentView*)proxy_).cellRenderers=renderers;
@@ -1542,12 +1664,6 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     public native Object getCellRenderers()
     /*-[
       return ((RAREUITableContentView*)proxy_).cellRenderers;
-    ]-*/
-    ;
-
-    public native int getPressedViewIndex()
-    /*-[
-      return [((RAREUITableContentView*)proxy_) getPressedViewIndex];
     ]-*/
     ;
 
@@ -1576,6 +1692,20 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
           implements Cloneable, iPlatformRenderingComponent {
     public UITableCellViewRenderingComponent() {
       super(new RowViewEx(createUITableCellView()));
+    }
+
+    public void columnMoved(int from, int to) {
+      if (view instanceof TableRowView) {
+        ContentView cv = ((TableRowView) view).contentView;
+
+        if (cv != null) {
+          iPlatformRenderingComponent renderers[] = (iPlatformRenderingComponent[]) cv.getCellRenderers();
+
+          if (renderers != null) {
+            Helper.move(renderers, -1, from, to);
+          }
+        }
+      }
     }
 
     public void disposeOfRenderers() {
@@ -1717,6 +1847,23 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
       }
 
       return getComponent(cs, item);
+    }
+  }
+
+
+  private void turnOffScrollBarVisibility(iScrollerSupport ss, boolean horizontal) {
+    if (ss instanceof ScrollView) {
+      if (horizontal) {
+        ((ScrollView) ss).setShowsHorizontalScrollIndicator(false);
+      } else {
+        ((ScrollView) ss).setShowsVerticalScrollIndicator(false);
+      }
+    } else if (ss instanceof aPlatformTableBasedView) {
+      if (horizontal) {
+        ((aPlatformTableBasedView) ss).setShowsHorizontalScrollIndicator(false);
+      } else {
+        ((aPlatformTableBasedView) ss).setShowsVerticalScrollIndicator(false);
+      }
     }
   }
 }

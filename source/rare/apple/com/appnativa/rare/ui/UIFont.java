@@ -130,7 +130,7 @@ public class UIFont {
       return this;
     }
 
-    UIFont f = new UIFont(deriveFont(proxy, baseSize, true, false));
+    UIFont f = new UIFont(deriveFont(this, baseSize, true, false));
 
     f.setUnderline(underline);
     f.setStrikeThrough(strikethrough);
@@ -143,7 +143,7 @@ public class UIFont {
       return this;
     }
 
-    UIFont f = new UIFont(deriveFont(proxy, baseSize, true, false));
+    UIFont f = new UIFont(deriveFont(this, baseSize, true, false));
 
     f.setUnderline(underline);
     f.setStrikeThrough(strikethrough);
@@ -156,7 +156,7 @@ public class UIFont {
       return this;
     }
 
-    UIFont f = new UIFont(deriveFont(proxy, size, isBold(style), isItalic(style)));
+    UIFont f = new UIFont(deriveFont(this, size, isBold(style), isItalic(style)));
 
     f.setUnderline(underline);
     f.setStrikeThrough(strikethrough);
@@ -169,7 +169,7 @@ public class UIFont {
       return this;
     }
 
-    UIFont f = new UIFont(deriveFont(proxy, size, isBold(style), isItalic(style)));
+    UIFont f = new UIFont(deriveFont(this, size, isBold(style), isItalic(style)));
 
     f.setUnderline(underline);
     f.setStrikeThrough(strikethrough);
@@ -182,7 +182,7 @@ public class UIFont {
       return this;
     }
 
-    UIFont f = new UIFont(deriveFont(proxy, size, isBold(), true));
+    UIFont f = new UIFont(deriveFont(this, size, isBold(), true));
 
     f.setUnderline(underline);
     f.setStrikeThrough(strikethrough);
@@ -192,7 +192,7 @@ public class UIFont {
 
   public UIFont deriveRelativeFont(float nrs) {
     float  sz = nrs * baseSize;
-    UIFont f  = new UIFont(deriveFont(proxy, sz, isBold(style), isItalic(style)));
+    UIFont f  = new UIFont(deriveFont(this, sz, isBold(style), isItalic(style)));
 
     f.relativeSize = nrs;
     f.baseSize     = baseSize;
@@ -340,33 +340,36 @@ public class UIFont {
     }
   ]-*/
   ;
-
-  private native static Object deriveFont(Object base, float size, boolean bold, boolean italic)
-  /*-[
-   CTFontRef font= (__bridge CTFontRef)base;
-   if(!bold && !italic) {
-     CTFontDescriptorRef fd= CTFontCopyFontDescriptor(font);
-     if(fd) {
-       font= CTFontCreateWithFontDescriptor(fd, size, NULL);
-       CFRelease(fd);
-     }
-     else {
-       font=nil;
-     }
-   }
-   else {
-     CTFontSymbolicTraits desiredTrait = bold ? kCTFontBoldTrait : 0 ;
-     if(italic) {
-       desiredTrait|=kCTFontItalicTrait;
-     }
-     font = CTFontCreateCopyWithSymbolicTraits(font, size, NULL, desiredTrait, kCTFontBoldTrait|kCTFontItalicTrait);
-   }
-   if(!font) {
-     return base;
-   }
-   return CFBridgingRelease(font);
-   ]-*/
-  ;
+  private static Object deriveFont(UIFont base, float size, boolean bold, boolean italic) {
+    return newFont(base.family, size, bold, italic);
+  }
+//
+//  private native static Object deriveFont(Object base, float size, boolean bold, boolean italic)
+//  /*-[
+//   CTFontRef font= (__bridge CTFontRef)base;
+//   if(!bold && !italic) {
+//     CTFontDescriptorRef fd= CTFontCopyFontDescriptor(font);
+//     if(fd) {
+//       font= CTFontCreateWithFontDescriptor(fd, size, NULL);
+//       CFRelease(fd);
+//     }
+//     else {
+//       font=nil;
+//     }
+//   }
+//   else {
+//     CTFontSymbolicTraits desiredTrait = bold ? kCTFontBoldTrait : 0 ;
+//     if(italic) {
+//       desiredTrait|=kCTFontItalicTrait;
+//     }
+//     font = CTFontCreateCopyWithSymbolicTraits(font, size, NULL, desiredTrait, kCTFontBoldTrait|kCTFontItalicTrait);
+//   }
+//   if(!font) {
+//     return base;
+//   }
+//   return CFBridgingRelease(font);
+//   ]-*/
+//  ;
 
   private static boolean isBold(int style) {
     return (style & BOLD) != 0;

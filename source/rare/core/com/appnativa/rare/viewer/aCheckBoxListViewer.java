@@ -20,6 +20,8 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.List;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.scripting.iScriptHandler;
@@ -30,12 +32,10 @@ import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.event.ItemChangeEvent;
 import com.appnativa.rare.ui.event.iItemChangeListener;
-import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.util.DataItemCollection;
-
-import java.util.List;
 
 public abstract class aCheckBoxListViewer extends ListBoxViewer {
   protected CheckBoxChangeHandler checkBoxChangeHandler;

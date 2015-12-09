@@ -15,10 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
+
+import java.util.Map;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
@@ -44,6 +46,11 @@ import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.ViewerCreator;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iActionComponent;
+import com.appnativa.rare.ui.iListHandler;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.border.UIBalloonBorder;
 import com.appnativa.rare.ui.border.UILineBorder;
@@ -54,12 +61,6 @@ import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iPopupMenuListener;
-import com.appnativa.rare.ui.iActionComponent;
-import com.appnativa.rare.ui.iListHandler;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
@@ -68,11 +69,10 @@ import com.appnativa.rare.viewer.ToolBarViewer;
 import com.appnativa.rare.viewer.aContainer;
 import com.appnativa.rare.viewer.aListViewer;
 import com.appnativa.rare.viewer.iContainer;
+import com.appnativa.rare.viewer.iFormViewer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.SNumber;
-
-import java.util.Map;
 
 public abstract class aPushButtonWidget extends aGroupableButton {
 
@@ -130,6 +130,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
   protected boolean         popupContentFocusable;
   protected boolean         popupScrollable;
   protected iActionListener popupMenuActionListener;
+  protected boolean         popupTransient = true;
 
   public aPushButtonWidget(iContainer parent) {
     super(parent);
@@ -205,7 +206,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
 
     if (popupConfiguration != null) {
       popupWidget = aContainer.createWidget(getParent(), popupConfiguration);
-
+      
       if (popupConfiguration.focusable.spot_valueWasSet()) {
         popupContentFocusable = popupConfiguration.focusable.booleanValue();
       }
@@ -223,8 +224,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
         ((aListViewer) popupWidget).addActionListener(new iActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
-            disposeOfPopup();
-            resetButtonBorderAndBackground();
+            hidePopupContainer();
 
             RenderableDataItem item = ((aListViewer) popupWidget).getSelectedItem();
 
@@ -285,6 +285,10 @@ public abstract class aPushButtonWidget extends aGroupableButton {
 
   @Override
   public void hidePopupContainer() {
+    if(popupWidget==null) {
+      super.hidePopupContainer();
+      return;
+    }
     if (popupComponent != null) {
       popupComponent.hidePopup();
     }
@@ -406,6 +410,15 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     return null;
   }
 
+  /**
+   * This method return the popup widget ONLY if one has been created
+   *
+   * @return the widget or null if the button does not have a popup widget or if the popup widget has not yet been created
+   */
+  public iWidget getPopupWidget() {
+    return popupWidget;
+  }
+
   public void setSelectedIndex(int index) {
     int len = size();
 
@@ -521,6 +534,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
 
       if (origPopupAttributes != null) {
         popupScrollable = "true".equals(origPopupAttributes.get("scrollable"));
+        popupTransient  = !"false".equals(origPopupAttributes.get("transient"));
 
         if ((popupConfiguration == null) && (origPopupAttributes.get("url") != null)) {
           popupLink = new ActionLink(this, origPopupAttributes.get("url"), null);
@@ -630,7 +644,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
       }
 
       PainterHolder p = new PainterHolder(null, sp, null, pp, dp);
-
+      p.setForegroundColor(getForeground());
       getComponentPainter(true, true).setPainterHolder(p);
     } else {
       PainterHolder p = null;
@@ -708,19 +722,14 @@ public abstract class aPushButtonWidget extends aGroupableButton {
           }
 
           UIColor fg = getDataComponent().getForeground();
-
+          p.setForegroundColor(fg);
           p.normalPainter.setForegroundColor(fg);
 
           if (p.pressedPainter.getForegroundColor() != null) {
             p.pressedPainter = (PaintBucket) p.pressedPainter.clone();
             p.pressedPainter.setForegroundColor(ColorUtils.getPressedVersion(fg));
           }
-
-          if (p.getForeground(ButtonState.DISABLED) == null) {
-            p.setDisabledForegroundColor(ColorUtils.getDisabledVersion(fg));
-          }
         }
-
         getComponentPainter(true, true).setPainterHolder(p);
       }
     }
@@ -776,9 +785,8 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     if (popupComponent != null) {
       popupComponent.dispose();
       popupComponent = null;
-
-      if (popupWidget != null) {
-        popupWidget.setParent(null);
+      if(popupWidget!=null) {
+        getFormViewer().unregisterFormWidget(popupWidget);
       }
     }
   }
@@ -885,7 +893,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     }
 
     popupComponent = createPopupComponent();
-    popupComponent.setTransient(true);
+    popupComponent.setTransient(popupTransient);
     popupComponent.setFocusable(popupContentFocusable);
     popupComponent.setMovable(false);
     popupComponent.setAnimator(popupAnimator);
@@ -903,8 +911,11 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     } else {
       popupComponent.setContent(popupWidget.getContainerComponent());
     }
-
-    popupWidget.setParent(this.getParent());
+    getFormViewer().registerFormWidget(popupWidget);
+    iFormViewer fv=getFormViewer();
+    if(fv!=popupWidget.getFormViewer()) {
+      getFormViewer().registerFormWidget(popupWidget);
+    }
     popupAttributes = Utils.resolveOptions(this, origPopupAttributes, popupAttributes);
     popupComponent.setOptions(popupAttributes);
     popupComponent.addPopupMenuListener(new iPopupMenuListener() {
@@ -953,6 +964,10 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     if (shareBorder) {
       d.width  += (ScreenUtils.PLATFORM_PIXELS_2 * sharedBorderThickness);
       d.height += (ScreenUtils.PLATFORM_PIXELS_2 * sharedBorderThickness);
+    }
+    float maxw= ScreenUtils.getUsableScreenSize().width-ScreenUtils.PLATFORM_PIXELS_8;
+    if(maxw<d.width) {
+      d.width=maxw;
     }
 
     getProposedPopupBounds(d, popupBounds);

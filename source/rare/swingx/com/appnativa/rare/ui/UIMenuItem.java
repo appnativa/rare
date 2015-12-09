@@ -20,12 +20,6 @@
 
 package com.appnativa.rare.ui;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
-import com.appnativa.rare.widget.iWidget;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -33,7 +27,13 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.widget.iWidget;
 
 /**
  * A class representing a menu item
@@ -74,7 +74,7 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
    */
   public UIMenuItem(JMenuItem item) {
     super();
-    menuItem      = item;
+    setMenuItem(item);
     originalValue = item.getText();
     theType       = RenderableDataItem.TYPE_STRING;
   }
@@ -133,8 +133,9 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
    * @param item the item
    */
   public UIMenuItem(UIAction a, JMenuItem item) {
-    super(a);
-    menuItem = item;
+    super();
+    setMenuItem(item);
+    setAction(a);
   }
 
   /**
@@ -151,12 +152,7 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    this.fire(contextWidget);
-  }
-
-  @Override
-  public void clear() {
-    super.clear();
+    this.fire(getContextWidget());
   }
 
   @Override
@@ -174,8 +170,7 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
 
   @Override
   public void dispose() {
-    if (!disposed) {
-      disposed  = true;
+    if (!disposed && isDisposable()) {
       component = null;
       menuItem  = null;
       super.dispose();
@@ -282,11 +277,7 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
                  ? new JCheckBoxMenuItemEx()
                  : new JMenuItemEx();
 
-      if (action != null) {
-        menuItem.setAction(action);
-      } else {
-        menuItem.addActionListener(this);
-      }
+      menuItem.addActionListener(this);
 
       menuItem.setText((theValue == null)
                        ? ""
@@ -316,6 +307,8 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
 
   void setMenuItem(JMenuItem item) {
     menuItem = item;
+    item.removeActionListener(this);
+    item.addActionListener(this);
   }
 
   @Override
@@ -325,7 +318,7 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
     }
   }
 
-  static class JCheckBoxMenuItemEx extends JCheckBoxMenuItem {
+  public static class JCheckBoxMenuItemEx extends JCheckBoxMenuItem {
     public JCheckBoxMenuItemEx() {
       super();
       setForeground(ColorUtils.getForeground());
@@ -340,17 +333,12 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
 
     @Override
     public Icon getDisabledIcon() {
-      if (getAction() instanceof UIAction) {
-        return ((UIAction) getAction()).getDisabledIcon();
-      }
-
-      return super.getDisabledIcon();
+      return getIcon();
     }
   }
 
 
-  static class JMenuItemEx extends JMenuItem {
-    Icon disabledIcon;
+  public static class JMenuItemEx extends JMenuItem {
 
     public JMenuItemEx() {
       super();
@@ -362,25 +350,27 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
 
     @Override
     public Icon getDisabledIcon() {
+      return super.getIcon();
+    }
+  }
+  public static class JMenuEx extends JMenu {
+
+    public JMenuEx() {
+      super();
+    }
+
+    public JMenuEx(Action a) {
+      super(a);
+    }
+
+    @Override
+    public Icon getDisabledIcon() {
       if (getAction() instanceof UIAction) {
-        Icon ic = ((UIAction) getAction()).getDisabledIcon();
-
-        if (ic != null) {
-          ic = getIcon();
-
-          if (ic instanceof UIImageIcon) {
-            ic = ((UIImageIcon) ic).getDisabledVersion();
-          } else if (ic != null) {
-            ic = ImageHelper.createDisabledIcon(this, ic);
-          }
-
-          setDisabledIcon(ic);
-
-          return ic;
-        }
+        return ((UIAction) getAction()).getDisabledIcon();
       }
 
       return super.getDisabledIcon();
     }
   }
+
 }

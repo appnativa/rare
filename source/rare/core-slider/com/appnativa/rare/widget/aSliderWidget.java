@@ -131,7 +131,7 @@ public abstract class aSliderWidget extends aPlatformWidget implements iChangeab
     slider.setHorizontal(horizontal);
 
     if (borderPanel != null) {
-      borderPanel.setHorizontal(horizontal);
+      borderPanel.setUseCrossPattern(horizontal);
     }
   }
 

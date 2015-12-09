@@ -57,9 +57,14 @@ typedef enum {
 @interface RAREMouseHandlerGestureRecognizer : UIGestureRecognizer  <UIGestureRecognizerDelegate,RAREGestureListenerProtocol>{
 }
 -(void)sparDispose;
+-(void) cancelLongPress;
 @end
 
 @interface RAREInteractionGestureRecognizer : UITapGestureRecognizer <UIGestureRecognizerDelegate,RAREGestureListenerProtocol>
 -(void)sparDispose;
 @end
-
+@interface LongPressObject : NSObject 
+-(id)initWithEvent:(UIEvent*) event;
+-(void) cancel;
+-(UIEvent*) getEvent;
+@end

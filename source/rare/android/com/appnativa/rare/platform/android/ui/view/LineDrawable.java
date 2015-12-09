@@ -76,6 +76,7 @@ public class LineDrawable extends Drawable {
     }
   }
 
+  @Override
   public void draw(Canvas canvas) {
     Rect  bounds = getBounds();
     float d      = 0;
@@ -102,8 +103,10 @@ public class LineDrawable extends Drawable {
     }
   }
 
+  @Override
   public void setAlpha(int alpha) {}
 
+  @Override
   public void setColorFilter(ColorFilter cf) {}
 
   /**
@@ -137,12 +140,14 @@ public class LineDrawable extends Drawable {
     this.thickness = thickness;
   }
 
+  @Override
   public int getIntrinsicHeight() {
     return (int) (isHorizontal()
                   ? getThickness()
                   : -1);
   }
 
+  @Override
   public int getIntrinsicWidth() {
     return (int) (isHorizontal()
                   ? -1
@@ -150,6 +155,7 @@ public class LineDrawable extends Drawable {
   }
 
   // Always want it to be opaque.
+  @Override
   public int getOpacity() {
     return PixelFormat.OPAQUE;
   }

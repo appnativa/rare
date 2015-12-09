@@ -71,11 +71,11 @@ public class UIAction extends aUIAction implements Action {
     }
 
     if (key == Action.SMALL_ICON) {
-      return getSmallIcon();
+      return getIcon();
     }
 
     if (key == Action.LARGE_ICON_KEY) {
-      return getSmallIcon();
+      return getLargeIcon();
     }
 
     if (key == Action.SHORT_DESCRIPTION) {
@@ -108,7 +108,7 @@ public class UIAction extends aUIAction implements Action {
                     ? ""
                     : value.toString());
     } else if (key == Action.SMALL_ICON) {
-      setSmallIcon((iPlatformIcon) value);
+      setIcon((iPlatformIcon) value);
     } else if (key == Action.LARGE_ICON_KEY) {
       setLargeIcon((iPlatformIcon) value);
     } else if (key == Action.SHORT_DESCRIPTION) {

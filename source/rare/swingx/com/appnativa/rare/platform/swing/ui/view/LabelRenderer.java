@@ -20,16 +20,14 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
+import java.awt.Color;
+import java.awt.Rectangle;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.plaf.LabelExUI;
 import com.appnativa.rare.ui.ColorUtils;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Rectangle;
-
 public class LabelRenderer extends LabelView {
-  Dimension       dsize;
   private boolean _opaque;
 
   public LabelRenderer() {

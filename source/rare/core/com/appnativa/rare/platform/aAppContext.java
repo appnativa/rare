@@ -20,10 +20,24 @@
 
 package com.appnativa.rare.platform;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.converters.DateContext;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iAsyncLoadStatusHandler;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iDataCollection;
@@ -35,6 +49,9 @@ import com.appnativa.rare.iResourceFinder;
 import com.appnativa.rare.iWeakReference;
 import com.appnativa.rare.iWidgetCustomizer;
 import com.appnativa.rare.iWorkerTask;
+import com.appnativa.rare.converters.DateContext;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.net.iConnectionHandler;
@@ -54,14 +71,14 @@ import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIProperties;
 import com.appnativa.rare.ui.UISound;
 import com.appnativa.rare.ui.aFocusedAction;
-import com.appnativa.rare.ui.effects.PullBackAnimation;
-import com.appnativa.rare.ui.effects.ShakeAnimation;
-import com.appnativa.rare.ui.effects.SlideAnimation;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformWindowManager;
 import com.appnativa.rare.ui.iPrintHandler;
 import com.appnativa.rare.ui.iSpeechEnabler;
+import com.appnativa.rare.ui.effects.PullBackAnimation;
+import com.appnativa.rare.ui.effects.ShakeAnimation;
+import com.appnativa.rare.ui.effects.SlideAnimation;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.listener.iApplicationListener;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
@@ -74,27 +91,7 @@ import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.CharArray;
 import com.appnativa.util.IdentityArrayList;
 import com.appnativa.util.iURLResolver;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * This class represents an instance of a running application. It acts as a
@@ -129,6 +126,7 @@ public abstract class aAppContext implements iPlatformAppContext {
   protected final UIProperties           uiDefaults;
   protected iWidgetCustomizer            widgetCustomizer;
   private boolean                        isPlatformTheme = true;
+  private CharArray nameCharArray=new CharArray(32);
 
   /**
    * Creates a new application context
@@ -310,7 +308,7 @@ public abstract class aAppContext implements iPlatformAppContext {
   }
 
   public void handleConfigurationWillChange(Object newConfig) {
-    closePopupWindows(true);
+    closePopupWindows(false);
 
     if (configListeners != null) {
       for (iConfigurationListener l : configListeners) {
@@ -345,7 +343,7 @@ public abstract class aAppContext implements iPlatformAppContext {
            ? true
            : RARE.okForOS(os, null);
   }
-
+  
   @Override
   public iURLConnection openConnection(URL url) throws IOException {
     return RARE.openConnection(url);
@@ -499,11 +497,9 @@ public abstract class aAppContext implements iPlatformAppContext {
     boolean dark = bg.isDarkColor();
 
     if (dark) {
-      uiDefaults.put("Rare.disabledForeground", fg.light(-75));
       uiDefaults.put("Rare.TitledBorder.titleColor", fg.light(-75));
     } else {
       uiDefaults.put("Rare.TitledBorder.titleColor", fg.light(75));
-      uiDefaults.put("Rare.disabledForeground", fg.light(75));
     }
 
     int n = bg.getRed() + bg.getGreen() + bg.getBlue();
@@ -559,7 +555,6 @@ public abstract class aAppContext implements iPlatformAppContext {
     appIcons.put("Rare.icon.cancel", getResourceAsIcon("Rare.icon.close"));
     uiDefaults.put("Rare.List.foreground", UIColor.BLACK);
     uiDefaults.put("Rare.List.background", UIColor.WHITE);
-    uiDefaults.put("Rare.List.disabledForeground", UIColor.GRAY);
     ColorUtils.setBaseColors();
     isPlatformTheme = isdefault;
   }
@@ -805,17 +800,24 @@ public abstract class aAppContext implements iPlatformAppContext {
     return getManagedResource(name, landscapeMode);
   }
 
-  @SuppressWarnings("resource")
   public UIImage getManagedResource(String name, boolean landscape) {
+    CharArray ca=Platform.isUIThread() ? nameCharArray : new CharArray();
+    ca.set(name);
+    ca.toLowerCase().replace('.', '_');
+    String cname = ca.toString();
+    return getManagedResource(name, cname, landscape, ca);
+  }
+  
+  
+  protected UIImage getManagedResource(String name, String cname, boolean landscape,CharArray ca) {
     if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".gif")) {
       return PlatformHelper.getImageFromResourceFileName(name);
     }
 
     UIImage   img = null;
     String    path[];
-    CharArray ca = new CharArray();
 
-    if (name.startsWith("Rare.icon.")) {
+    if (cname.startsWith("rare_icon_")) {
       path = rareIconResourcePaths;
     } else {
       if (!managedResourcePathInitialized) {
@@ -825,13 +827,6 @@ public abstract class aAppContext implements iPlatformAppContext {
       path = managedResourcePaths;
     }
 
-    ca.set(name);
-
-    if (name.indexOf('.') != -1) {
-      ca.toLowerCase().replace('.', '_');
-    }
-
-    String cname = ca.toString();
 
     for (String s : path) {
       if (landscape && s.contains("-port")) {
@@ -923,9 +918,9 @@ public abstract class aAppContext implements iPlatformAppContext {
   }
 
   public UISound getSound(String sound) throws Exception {
-    if (sound.startsWith("Rare.")) {
-      sound = sound.toLowerCase(Locale.US);
-      sound = sound.replace('.', '_');
+    sound = sound.toLowerCase(Locale.US);
+    sound = sound.replace('.', '_');
+    if (sound.startsWith("rare_")) {
 
       return PlatformHelper.getSoundResource(sound);
     } else {
@@ -950,7 +945,7 @@ public abstract class aAppContext implements iPlatformAppContext {
         return new PullBackAnimation(true, false);
       } else if ("Rare.anim.pullBackTop".equalsIgnoreCase(animator)) {
         return new PullBackAnimation(false, true);
-      } else if ("Rare.anim.pullBackButtom".equalsIgnoreCase(animator)) {
+      } else if ("Rare.anim.pullBackBottom".equalsIgnoreCase(animator)) {
         return new PullBackAnimation(false, false);
       } else if ("Rare.anim.shake".equalsIgnoreCase(animator)) {
         return new ShakeAnimation();
@@ -978,10 +973,28 @@ public abstract class aAppContext implements iPlatformAppContext {
 
     return icon;
   }
-
+  
+  @Override
+  public UIImageIcon addResourceIcon(String name, UIImageIcon icon) {
+    @SuppressWarnings("resource")
+    CharArray ca=Platform.isUIThread() ? nameCharArray : new CharArray();
+    ca.set(name);
+    ca.toLowerCase().replace('.', '_');
+    String cname = ca.toString();
+    if(appIcons==null) {
+      appIcons=new HashMap<String, UIImageIcon>();
+    }
+    return appIcons.put(cname, icon);
+  }
+  
   @Override
   public UIImageIcon getResourceAsIconEx(String name) {
     UIImageIcon icon = null;
+    icon = uiDefaults.getImageIcon(name);
+
+    if (icon != null) {
+      return icon;
+    }
 
     if (resourceFinder != null) {
       icon = resourceFinder.getResourceAsIcon(name);
@@ -991,31 +1004,58 @@ public abstract class aAppContext implements iPlatformAppContext {
       }
     }
 
+    CharArray ca=Platform.isUIThread() ? nameCharArray : new CharArray();
+    ca.set(name);
+    ca.toLowerCase().replace('.', '_');
+    String cname = ca.toString();
+
     if (appIcons != null) {
-      icon = appIcons.get(name);
+      icon = appIcons.get(cname);
 
       if (icon != null) {
         return icon;
       }
     }
 
-    icon = uiDefaults.getImageIcon(name);
 
-    if (icon != null) {
-      return icon;
-    }
-
-    UIImage img = getManagedResource(name);
+    UIImage img = getManagedResource(name, cname, landscapeMode, ca);
 
     if (img != null) {
       UIImageIcon ic = new UIImageIcon(img, "", img.getLocation());
 
-      ic.setResourceName(name);
+      ic.setResourceName(cname);
 
       return ic;
     }
 
     return null;
+  }
+
+  public UIImage getResourceAsImage(String name) {
+    UIImage img;
+    if (resourceFinder != null) {
+      img=resourceFinder.getResourceAsImage(name);
+
+      if (img != null) {
+        return img;
+      }
+    }
+
+    CharArray ca=Platform.isUIThread() ? nameCharArray : new CharArray();
+    ca.set(name);
+    ca.toLowerCase().replace('.', '_');
+    String cname = ca.toString();
+
+    if (appIcons != null) {
+     UIImageIcon icon = appIcons.get(cname);
+
+      if (icon != null) {
+        return icon.getImage();
+      }
+    }
+
+
+    return getManagedResource(name, cname, landscapeMode, ca);
   }
 
   @Override
@@ -1099,7 +1139,7 @@ public abstract class aAppContext implements iPlatformAppContext {
   }
 
   @Override
-  public WindowViewer getTopWindowViewer() {
+  public WindowViewer getMainWindowViewer() {
     iPlatformWindowManager wm = (RARE == null)
                                 ? null
                                 : RARE.getWindowManager();
@@ -1147,6 +1187,16 @@ public abstract class aAppContext implements iPlatformAppContext {
   public boolean isOrientationLocked() {
     return orientationLocked;
   }
+  
+  @Override
+  public void lockOrientation(Boolean landscape) {
+    orientationLocked=PlatformHelper.lockOrientation(landscape);
+  }
+ @Override
+public void unlockOrientation() {
+   PlatformHelper.unlockOrientation();
+   orientationLocked=false;
+}
 
   @Override
   public boolean isOverlapAutoToolTips() {

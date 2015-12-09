@@ -114,7 +114,9 @@ static RAREDisplayLinkManager* linkManager;
   }
   [super drawRect:dirtyRect];
  }
-
+-(void)setFrame:(CGRect)frame {
+  [super setFrame:frame];
+}
 -(void) layoutSubviews {
   if(overlayView) {
     overlayView.frame=self.frame;

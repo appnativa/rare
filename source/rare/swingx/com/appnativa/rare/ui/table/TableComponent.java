@@ -15,14 +15,30 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Locale;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.KeyStroke;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.ActionHelper;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.spot.ItemDescription;
 import com.appnativa.rare.spot.Table;
@@ -38,7 +54,6 @@ import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformItemRenderer;
 import com.appnativa.rare.ui.iScrollerSupport;
@@ -53,24 +68,6 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.FilterableList;
 import com.appnativa.util.iFilterableList;
-
-import java.awt.Dimension;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Locale;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
 
 public class TableComponent extends Container implements iTableComponent, iScrollerSupport {
   protected final static int[]                          EMPTY_INTS = new int[0];
@@ -364,8 +361,8 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    tableHeader.getMinimumSize(size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    tableHeader.getMinimumSize(size, maxWidth);
 
     int rc = tableView.getMinimumVisibleRowCount();
 
@@ -492,8 +489,8 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   }
 
   @Override
-  public PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket def) {
-    if (!focusPainted ||!tableView.isFocusOwner() || ((SwingGraphics) g).getSwingComponent() != view) {
+  public PaintBucket getFocusPaint(PaintBucket def) {
+    if (!focusPainted ||!tableView.isFocusOwner()) {
       return null;
     }
 
@@ -723,6 +720,13 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   }
 
   @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    tableHeader.setEnabled(enabled);
+    tableView.setEnabled(enabled);
+  }
+  
+  @Override
   public boolean isScrolling() {
     return getScrollPane().isScrolling();
   }
@@ -780,6 +784,11 @@ public class TableComponent extends Container implements iTableComponent, iScrol
   @Override
   public UIPoint getContentOffset() {
     return getScrollPane().getContentOffset();
+  }
+
+  @Override
+  public void setContentOffset(float x, float y) {
+    getScrollPane().setContentOffset(x, y);
   }
 
   @Override
@@ -1215,13 +1224,13 @@ public class TableComponent extends Container implements iTableComponent, iScrol
 
     if (needSizeToFitCall) {
       int len = tm.getRowCount();
-
+      int[] vp=tableHeader.viewPositions;
       rMax = Math.min(len, rMax + 1);
 
       for (int i = rMin; i < rMax; i++) {
         RenderableDataItem rowItem = tm.getRow(i);
         int                h       = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, i, tm.getColumnsEx(),
-                                       false, getRowHeight());
+                                       false, getRowHeight(),vp);
 
         h += 4;
         rowItem.setHeight(h);
@@ -1291,7 +1300,7 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     int                h       = rowItem.getHeight();
 
     if (h < 1) {
-      h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, row, tm.getColumnsEx(), false, getRowHeight());
+      h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, row, tm.getColumnsEx(), false, getRowHeight(),mt.getViewPositions());
       h += 4;
       rowItem.setHeight(h);
     }
@@ -1327,13 +1336,13 @@ public class TableComponent extends Container implements iTableComponent, iScrol
     tableView.needSizeToFitCall = false;
 
     int len = tm.getRowCount();
-
+    int[] vp=mt.getViewPositions();
     for (int i = 0; i < len; i++) {
       RenderableDataItem rowItem = tm.getRow(i);
       int                h       = rowItem.getHeight();
 
       if (h < 1) {
-        h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, i, tm.getColumnsEx(), false, getRowHeight());
+        h = TableHelper.calculateRowHeight(this, getItemRenderer(), tm, i, tm.getColumnsEx(), false, getRowHeight(),vp);
         h += 4;
         rowItem.setHeight(h);
       }

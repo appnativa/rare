@@ -24,7 +24,10 @@
 @end
 static TextFieldDelegate* textFieldDelegate;
 
-@implementation RAREAPTextField
+@implementation RAREAPTextField {
+  NSMutableDictionary* attributes;
+  NSMutableParagraphStyle *paragraphStyle;
+}
 
 + (Class)layerClass
 {
@@ -169,8 +172,8 @@ static TextFieldDelegate* textFieldDelegate;
   }
   else {
     [self resignFirstResponder];
-
   }
+  
   return YES;
 }
 
@@ -239,29 +242,44 @@ static TextFieldDelegate* textFieldDelegate;
 
 - (void)drawPlaceholderInRect:(CGRect)rect {
   if (!self.emptyFieldColor) {
-    self.emptyFieldColor=[self.textColor colorWithAlphaComponent:.75];
+    self.emptyFieldColor=[self.textColor colorWithAlphaComponent:.5];
   }
-  [self.emptyFieldColor set];
   UIFont *f = self.font;
   if (self.emptyFieldFont) {
     f = self.emptyFieldFont;
   }
-  CGSize size = [self.placeholder sizeWithFont:f constrainedToSize:rect.size lineBreakMode:NSLineBreakByTruncatingTail];
+  if(!attributes) {
+    attributes=[NSMutableDictionary dictionaryWithCapacity:2];
+    paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+  }
+  else {
+    [attributes removeAllObjects];
+  }
+  paragraphStyle.lineBreakMode = NSLineBreakByTruncatingTail;
+  [attributes setObject:paragraphStyle forKey:NSParagraphStyleAttributeName];
+  [attributes setObject:f forKey:NSFontAttributeName];
+  [attributes setObject:self.emptyFieldColor forKey:NSForegroundColorAttributeName];
+  CGSize size = [self.placeholder sizeWithAttributes:attributes];
   rect.origin.y += (rect.size.height - size.height) / 2;
   rect.size.height = size.height;
-  [self.placeholder drawInRect:rect withFont:f lineBreakMode:NSLineBreakByTruncatingTail];
-  
+  [self.placeholder drawInRect:rect withAttributes:attributes];
 }
 
 - (BOOL)becomeFirstResponder {
   BOOL ok = [super becomeFirstResponder];
   if (ok) {
+    RARETextFieldView *tv = (RARETextFieldView *) self.sparView;
+    if(tv->cursorPosition_>0 && tv->cursorPosition_<=self.text.length) {
+      [tv setSelectionWithInt:tv->cursorPosition_ withInt:tv->cursorPosition_];
+    }
     [self gainedFocusEx];
   }
   return ok;
 }
 
 - (BOOL)resignFirstResponder {
+  RARETextFieldView *tv = (RARETextFieldView *) self.sparView;
+  [tv saveCursorPosition];
   BOOL ok = [super resignFirstResponder];
   if (ok) {
     [self lostFocusEx];
@@ -327,22 +345,23 @@ static TextFieldDelegate* textFieldDelegate;
 
 - (BOOL)textFieldShouldEndEditing:(UITextField *)textField {
   return [(RAREAPTextField*) textField textFieldShouldBeginEditingEx:textField];
-  
 }
+
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
-  return [(RAREAPTextField*) textField textFieldEx:textField shouldChangeCharactersInRange:range replacementString:string];
+  BOOL should=[(RAREAPTextField*) textField textFieldEx:textField shouldChangeCharactersInRange:range replacementString:string];
+  if(should) {
+    RARETextFieldView *tv = (RARETextFieldView *) textField.sparView;
+    if(tv->changeListener_) {
+      [tv notifyTextChanged];
+    }
+  }
+  return should;
 }
 
 -(void)textFieldDidBeginEditing:(UITextField *)textField {
-  if([textField.window.rootViewController isKindOfClass:[RAREUIViewController class]]) {
-    [((RAREUIViewController*)textField.window.rootViewController) textFieldDidBeginEditing:textField];
-  }
 }
 - (void)textFieldDidEndEditing:(UITextField *)textField {
   [(RAREAPTextField*) textField textFieldDidEndEditingEx:textField];
-  if([textField.window.rootViewController isKindOfClass:[RAREUIViewController class]]) {
-    [((RAREUIViewController*)textField.window.rootViewController) textFieldDidEndEditing:textField];
-  }
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {

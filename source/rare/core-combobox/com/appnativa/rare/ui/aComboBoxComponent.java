@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -51,8 +51,10 @@ import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.widget.ComboBoxWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.ContainsFilter;
 
 import java.util.List;
+import java.util.Locale;
 
 public abstract class aComboBoxComponent extends XPContainer
         implements iActionListener, iPopupMenuListener, iComboBox, iItemChangeListener, iTextChangeListener,
@@ -95,6 +97,8 @@ public abstract class aComboBoxComponent extends XPContainer
   protected int                       maxVisibleRows;
   protected boolean                   popupContentFocusable;
   protected UIRectangle               popupBounds;
+  private ContainsFilter              startsWithFilter;
+  private boolean                     deletingText;
 
   public aComboBoxComponent(Object view) {
     super(view);
@@ -110,12 +114,23 @@ public abstract class aComboBoxComponent extends XPContainer
     editor = createEditor();
 
     iPlatformComponent ec = editor.getComponent();
-    Listener           l  = new Listener();
+
+    if (ec instanceof iActionComponent) {
+      ((iActionComponent) ec).setAutoAdjustSize(false);
+    }
+
+    Listener l = new Listener();
 
     ec.addFocusListener(l);
-    ec.addKeyListener(l);
     ec.addMouseListener(l);
-    addKeyListener(l);
+
+    if (Platform.hasPhysicalKeyboard()) {
+      addKeyListener(l);
+      ec.addKeyListener(l);
+    } else {
+      editor.addActionListener(l);
+    }
+
     addMouseListener(l);
     add(editor.getContainer());
 
@@ -163,7 +178,7 @@ public abstract class aComboBoxComponent extends XPContainer
   @Override
   public void cancelPopup() {
     if (isPopupVisible()) {
-      popupMenuCanceled(new ExpansionEvent(currentPopup));
+      popupMenuCanceled(new ExpansionEvent(currentPopup,ExpansionEvent.Type.WILL_COLLAPSE));
     }
   }
 
@@ -423,11 +438,57 @@ public abstract class aComboBoxComponent extends XPContainer
   }
 
   @Override
-  public void textChanged(Object source) {}
+  public void textChanged(Object source) {
+    if (!deletingText) {
+      if (autoFilter || (restrictInput && (listHandler != null) &&!listHandler.isEmpty())) {
+        if (startsWithFilter == null) {
+          startsWithFilter = new ContainsFilter("", true, true, false, false);
+        }
+
+        String s = getEditorValue();
+
+        if (s.length() > 0) {
+          s = s.toLowerCase(Locale.getDefault());
+          startsWithFilter.setValue(s);
+
+          final int n = listHandler.find(startsWithFilter, 0);
+
+          if (n != -1) {
+            int                startIndex = s.length();
+            RenderableDataItem item       = listHandler.get(n);
+
+            getTextEditor().setChangeEventsEnabled(false);
+
+            if (listHandler.getSelectedIndex() != n) {
+              listHandler.setSelectedIndex(n);
+            }
+
+            setEditorValue(item);
+            s = item.toString();
+
+            int endIndex = s.length();
+
+            if (startIndex < endIndex) {
+              getTextEditor().setSelection(startIndex, endIndex);
+            }
+
+            Platform.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                getTextEditor().setChangeEventsEnabled(true);
+              }
+            });
+          }
+        }
+      }
+    }
+  }
 
   @Override
   public boolean textChanging(Object source, int startIndex, int endIndex, CharSequence replacementString) {
-    return false;
+    deletingText = replacementString.length() == 0;
+
+    return true;
   }
 
   public void setAutoFilter(boolean autoFilter) {
@@ -459,6 +520,7 @@ public abstract class aComboBoxComponent extends XPContainer
 
     if (downButton != null) {
       downButton.setVisible(visible);
+      downButton.setAutoAdjustSize(false);
     }
   }
 
@@ -585,6 +647,7 @@ public abstract class aComboBoxComponent extends XPContainer
     editor.getComponent().setForeground(fg);
   }
 
+  @Override
   public void setEditorIcon(iPlatformIcon icon) {
     this.editorIcon = icon;
 
@@ -752,10 +815,6 @@ public abstract class aComboBoxComponent extends XPContainer
       width = Math.max(width, size.width);
     }
 
-    if ((standardBorder != null) && Platform.isTouchDevice()) {
-      height += ScreenUtils.PLATFORM_PIXELS_6;
-    }
-
     width += ScreenUtils.PLATFORM_PIXELS_2;
 
     if (buttonVisible) {
@@ -769,11 +828,11 @@ public abstract class aComboBoxComponent extends XPContainer
     height      += (margin.top + margin.bottom);
     size.width  = width;
     size.height = height;
-    Utils.adjustTextFieldSize(size);
 
     if (maxWidth > 0) {
       size.width = Math.min(maxWidth, size.width);
     }
+    Utils.adjustComboBoxSize(size);
   }
 
   public boolean hasValue() {
@@ -969,7 +1028,7 @@ public abstract class aComboBoxComponent extends XPContainer
       p.removePopupMenuListener(this);
 
       if (callhideOnPopup && (listenerList != null)) {
-        Utils.firePopupEvent(listenerList, new ExpansionEvent(this), false);
+        Utils.firePopupEvent(listenerList, new ExpansionEvent(this,ExpansionEvent.Type.WILL_COLLAPSE), false);
       }
 
       currentPopup = null;    // prevents the logic from being invoked again when
@@ -1001,6 +1060,7 @@ public abstract class aComboBoxComponent extends XPContainer
 
       if (buttonVisible && (downButton == null)) {
         downButton = createButton();
+        downButton.setAutoAdjustSize(false);
 
         if (!isEnabled()) {
           downButton.setEnabled(false);
@@ -1021,7 +1081,9 @@ public abstract class aComboBoxComponent extends XPContainer
   }
 
   protected void keyboardActionPerformed(ActionEvent e) {
-    if (listenerList != null) {
+    if (listHandler != null) {
+      listHandler.fireActionForSelected();
+    } else if (listenerList != null) {
       Utils.fireActionEvent(listenerList, e);
     }
   }
@@ -1035,13 +1097,13 @@ public abstract class aComboBoxComponent extends XPContainer
     if (editorIcon != null) {
       UIInsets in = getInsetsEx();
       float    x  = ScreenUtils.PLATFORM_PIXELS_2;
+      float    iw = editorIcon.getIconWidth();
 
       if (in != null) {
-        x += in.left;
+        x += in.left - iw;
       }
 
-      editorIcon.paint(graphics, x, (getHeight() - editorIcon.getIconHeight()) / 2, editorIcon.getIconWidth(),
-                       editorIcon.getIconHeight());
+      editorIcon.paint(graphics, x, (getHeight() - editorIcon.getIconHeight()) / 2, iw, editorIcon.getIconHeight());
     }
 
     if (isButtonVisible()) {
@@ -1058,9 +1120,11 @@ public abstract class aComboBoxComponent extends XPContainer
       }
 
       if (fg == null) {
-        fg = down.isEnabled()
-             ? UIColorHelper.getForeground()
-             : UIColorHelper.getDisabledForeground();
+        fg = UIColorHelper.getForeground();
+        if(!down.isEnabled()) {
+          fg=fg.getDisabledColor();
+        }
+             
       }
 
       if (icon == null) {
@@ -1090,12 +1154,13 @@ public abstract class aComboBoxComponent extends XPContainer
     }
 
     if (listenerList != null) {
-      Utils.fireActionEvent(listenerList, new ActionEvent(this));
+      Utils.fireActionEvent(listenerList, e);
     }
   }
 
   protected void popupHidden(iPopup p) {}
 
+  @Override
   public void getWillBecomeVisibleBounds(UIRectangle rect) {
     if (popupBounds != null) {
       rect.set(rect);
@@ -1215,7 +1280,7 @@ public abstract class aComboBoxComponent extends XPContainer
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (!initialized) {
       initializeComboBox();
     }
@@ -1237,7 +1302,7 @@ public abstract class aComboBoxComponent extends XPContainer
     size.width  = width;
     size.height = height;
   }
-
+ 
   protected iWidget getPopupWidget() {
     return ((ComboBoxWidget) getWidget()).getPopupWidget();
   }
@@ -1287,7 +1352,7 @@ public abstract class aComboBoxComponent extends XPContainer
     this.popupContentFocusable = popupContentFocusable;
   }
 
-  class Listener extends aMouseAdapter implements iKeyListener, iFocusListener {
+  class Listener extends aMouseAdapter implements iKeyListener, iFocusListener, iActionListener {
     @Override
     public void keyPressed(KeyEvent e) {
       handleKeyPressed(e);
@@ -1305,8 +1370,15 @@ public abstract class aComboBoxComponent extends XPContainer
     }
 
     @Override
-    public void focusChanged(Object view, boolean hasFocus, Object oppositeView) {
-      aComboBoxComponent.this.focusChanged(view, hasFocus, oppositeView);
+    public void focusChanged(Object view, boolean hasFocus, Object oppositeView, boolean temporary) {
+      aComboBoxComponent.this.focusChanged(view, hasFocus, oppositeView, temporary);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      hidePopup();
+      keyboardActionPerformed(e);
+      e.consume();
     }
   }
 }

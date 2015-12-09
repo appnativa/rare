@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -42,6 +42,7 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.converters.iDataConverter;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
+import com.appnativa.rare.platform.android.ui.view.ListViewEx.iListViewRow;
 import com.appnativa.rare.platform.android.ui.view.ViewGroupEx;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
@@ -90,7 +91,6 @@ public abstract class aTableAdapter extends aDataItemTableModel {
   protected int                         checkboxHeight;
   protected int                         checkboxWidth;
   protected Column                      columnDescription;
-  protected Column                      columns[];
   protected iPlatformRenderingComponent defaultRenderer;
   protected boolean                     deletingAllowed;
   protected Paint                       dividerPaint;
@@ -121,7 +121,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
   private boolean                       showRootHandles;
   TableType                             tableType;
   TableHeader                           header;
-
+  long columnMovedTime;
   static {
     NULL_ITEM.setVisible(false);
     NULL_ITEM.setSelectable(false);
@@ -174,7 +174,6 @@ public abstract class aTableAdapter extends aDataItemTableModel {
   @Override
   public void resetModel(List<Column> columns, iFilterableList<RenderableDataItem> rows) {
     super.resetModel(columns, rows);
-    this.columns = columns.toArray(new Column[columns.size()]);
   }
 
   public void unregisterDataSetObserver(DataSetObserver observer) {
@@ -371,14 +370,13 @@ public abstract class aTableAdapter extends aDataItemTableModel {
     return columnDescription;
   }
 
-  public Column[] getColumnsEx() {
-    return columns;
-  }
-
   public int getCount() {
     return getRowCount();
   }
 
+  public void columnMoved(int form, int to) {
+    columnMovedTime=System.currentTimeMillis();
+  }
   public View getDropDownView(int position, View convertView, ViewGroup parent) {
     return getView(position, convertView, parent);
   }
@@ -570,6 +568,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
 
     if (convertView instanceof TableRow) {
       rc = (TableRow) convertView;
+      rc.prepareForReuse(lv, row, isSelected);
     }
 
     if (rc == null) {
@@ -577,7 +576,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
     }
 
     if (list != null) {
-      rc.render(parent, list, itemRenderer, row, item, columns, isSelected, isSelected);
+      rc.render(parent, list, itemRenderer, row, item, isSelected, isSelected);
     } else {
       list = null;
     }
@@ -586,17 +585,18 @@ public abstract class aTableAdapter extends aDataItemTableModel {
   }
 
   @SuppressLint({ "ViewConstructor", "ClickableViewAccessibility" })
-  public class TableRow extends ViewGroupEx {
+  public class TableRow extends ViewGroupEx implements iListViewRow {
     iPlatformIcon               indicator;
     int                         position;
     iPlatformRenderingComponent renderers[];
     boolean                     selected;
-    int                         widths[];
     int                         indent;
-
+    boolean                     hilight;
+    long myColumnMovedTime;
     public TableRow(Context context) {
       super(context);
       setMeasureType(MeasureType.HORIZONTAL);
+      myColumnMovedTime=columnMovedTime;
     }
 
     @Override
@@ -676,20 +676,26 @@ public abstract class aTableAdapter extends aDataItemTableModel {
       graphics.clear();
     }
 
-    public void prepareForReuse(ListViewEx lv, int position, boolean isSelected) {}
+    public void prepareForReuse(ListViewEx lv, int position, boolean isSelected) {
+    }
 
     public void render(View parent, iPlatformComponent list, iPlatformItemRenderer lr, int row,
-                       RenderableDataItem rowItem, Column[] columns, boolean isSelected, boolean isChecked) {
+                       RenderableDataItem rowItem,boolean isSelected, boolean isChecked) {
       iPlatformRenderingComponent rc;
+      TableHeader        h    = header;
 
-      this.removeAllViewsInLayout();
+      this.removeAllViews();
       position  = row;
       selected  = isSelected;
       indicator = null;
+      hilight   = false;
 
       CharSequence text;
-      final int    len = columns.length;
-
+      final int    len =h.getColumnCount();
+      if(myColumnMovedTime!=columnMovedTime) {
+        renderers=null;
+        myColumnMovedTime=columnMovedTime;
+      }
       if ((renderers == null) || (renderers.length < len)) {
         iPlatformRenderingComponent a[] = new iPlatformRenderingComponent[len];
 
@@ -735,11 +741,11 @@ public abstract class aTableAdapter extends aDataItemTableModel {
       RenderableDataItem item;
       TableRowParams     lp        = null;
       final iWidget      w         = list.getWidget();
-      TableHeader        header    = ((ListViewEx) parent).getHeader();
-      boolean            canselcol = header.isColumnSelectionAllowed();
+      
+      boolean            canselcol = h.isColumnSelectionAllowed();
 
       for (int i = 0; i < len; i++) {
-        c    = columns[i];
+        c    = h.getColumnForViewAt(i);
         item = rowItem.getItemEx(i);
 
         if (item == null) {
@@ -776,7 +782,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
           if (item.isVisible()) {
             boolean selected = isSelected;
 
-            if (canselcol &&!header.isColumnSelected(i)) {
+            if (canselcol &&!h.isColumnSelected(i)) {
               selected = false;
             }
 
@@ -787,6 +793,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
             v = (View) rc.getComponent("", item).getView();
           }
         } else {
+          comp.removeFromParent();
           v = (View) comp.getView();
         }
 
@@ -795,8 +802,8 @@ public abstract class aTableAdapter extends aDataItemTableModel {
         if (!(o instanceof TableRowParams)) {
           lp = new TableRowParams(i, span);
         } else {
-          lp            = (TableRowParams) o;
-          lp.columnSpan = 1;
+          lp = (TableRowParams) o;
+          lp.reset(i, span);
         }
 
         if (span != 1) {
@@ -835,7 +842,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
         }
 
         i += span - 1;
-        this.addViewInLayout(v, -1, lp, true);
+        this.addView(v,lp);
         v.setVisibility(c.isVisible()
                         ? VISIBLE
                         : GONE);
@@ -921,16 +928,24 @@ public abstract class aTableAdapter extends aDataItemTableModel {
     }
 
     protected boolean paintCanvas(Canvas canvas) {
-      int         top            = getScrollY();
-      int         left           = getScrollX();
-      int         right          = getWidth();
-      int         bottom         = getHeight();
-      boolean     hasContainer   = deletingAllowed || draggingAllowed;
-      boolean     showvlines     = showVerticalLines &&!hasContainer;
-      boolean     pressed        = isPressed();
-      PaintBucket selectionPaint = (selected && selectable)
-                                   ? itemRenderer.getSelectionPaintForExternalPainter(false)
-                                   : null;
+      int         top          = getScrollY();
+      int         left         = getScrollX();
+      int         right        = getWidth();
+      int         bottom       = getHeight();
+      boolean     hasContainer = deletingAllowed || draggingAllowed;
+      boolean     showvlines   = showVerticalLines &&!hasContainer;
+      boolean     pressed      = isPressed();
+      PaintBucket selectionPaint;
+
+      if (hilight) {
+        System.out.println("hilight=" + hilight);
+        selectionPaint = itemRenderer.getAutoHilightPaint();
+        pressed        = false;
+      } else {
+        selectionPaint = (selected && selectable)
+                         ? itemRenderer.getSelectionPaintForExternalPainter(false)
+                         : null;
+      }
 
       if (pressed || (selectionPaint != null)) {
         int sx = 0,
@@ -998,6 +1013,9 @@ public abstract class aTableAdapter extends aDataItemTableModel {
       View                   lv = null;
       int                    w, span, col;
       Column                 c;
+      TableHeader        h    = header;
+      Column[] columns=h.getColumns();
+      int[] viewPositions=h.viewPositions;
 
       for (int i = 0; i < len; i++) {
         v = getChildAt(i);
@@ -1019,12 +1037,13 @@ public abstract class aTableAdapter extends aDataItemTableModel {
         if (span == 1) {
           w = c.getWidth();
         } else {
-          w = TableHelper.getSpanWidth(col, span, columns);
+          w = TableHelper.getSpanWidth(col, span, columns,viewPositions);
         }
 
         int mw = v.getMeasuredWidth();
+        int mh = v.getMeasuredHeight();
 
-        if (mw != w) {
+        if ((mw != w) || (mh != bottom)) {
           measureExactly(v, w, bottom);
         }
 
@@ -1076,6 +1095,9 @@ public abstract class aTableAdapter extends aDataItemTableModel {
       int                    w, span, col;
       Column                 c;
       int                    x = 0;
+      TableHeader        h    = header;
+      Column[] columns=h.getColumns();
+      int[] viewPositions=h.viewPositions;
 
       for (int i = 0; i < len; i++) {
         v = getChildAt(i);
@@ -1097,7 +1119,7 @@ public abstract class aTableAdapter extends aDataItemTableModel {
         if (span == 1) {
           w = c.calculatePreferedWidth(listComponent, width);
         } else {
-          w = TableHelper.getPreferredSpanWidth(listComponent, width, col, span, columns);
+          w = TableHelper.getPreferredSpanWidth(listComponent, width, col, span, columns,viewPositions);
         }
 
         if ((width > 0) && (x + w > width)) {
@@ -1153,6 +1175,12 @@ public abstract class aTableAdapter extends aDataItemTableModel {
 
       return null;
     }
+
+    @Override
+    public void setHilight(boolean hilight) {
+      this.hilight = hilight;
+      invalidate();
+    }
   }
 
 
@@ -1162,6 +1190,11 @@ public abstract class aTableAdapter extends aDataItemTableModel {
 
     public TableRowParams(int index, int span) {
       super(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+      columnIndex = index;
+      columnSpan  = span;
+    }
+
+    public void reset(int index, int span) {
       columnIndex = index;
       columnSpan  = span;
     }

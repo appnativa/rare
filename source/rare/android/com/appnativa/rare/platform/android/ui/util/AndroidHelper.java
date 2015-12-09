@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.util;
@@ -45,7 +45,6 @@ import android.view.View.OnTouchListener;
 
 import android.widget.AbsListView;
 import android.widget.HorizontalScrollView;
-import android.widget.ListView;
 import android.widget.ScrollView;
 
 import com.appnativa.rare.Platform;
@@ -55,13 +54,14 @@ import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.android.AppContext;
 import com.appnativa.rare.platform.android.ui.view.HorizontalScrollViewEx;
+import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.platform.android.ui.view.ScrollViewEx;
 import com.appnativa.rare.spot.ScrollPane;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.BorderPanel;
-import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.GraphicsComposite;
+import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
@@ -74,7 +74,9 @@ import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.aAdjustable;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.listener.WidgetScriptChangeListener;
+import com.appnativa.rare.ui.table.TableComponent;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.aViewer;
 import com.appnativa.rare.viewer.iContainer;
@@ -142,7 +144,42 @@ public class AndroidHelper {
     }
   }
 
-  public static iPlatformComponent configureScrollPane(final aViewer lv, iPlatformComponent fc, final View view,
+  public static void configureScrollBars(iWidget w, View view, SPOTEnumerated cfg, boolean horizontal) {
+    int val = cfg.intValue();
+
+    if (val == ScrollPane.CVerticalScrollbar.hidden) {
+      view.setVerticalScrollBarEnabled(false);
+      view.setHorizontalScrollBarEnabled(false);
+    }
+
+    String code = cfg.spot_getAttribute("onChange");
+
+    if (code != null) {
+      final ScrollBarAdjustable sm = new ScrollBarAdjustable();
+
+      sm.addChangeListener(new WidgetScriptChangeListener(w, code));
+
+      if (horizontal && (view instanceof HorizontalScrollViewEx)) {}
+      else if (!horizontal) {
+        if (view instanceof AbsListView) {
+          AbsListView.OnScrollListener sl = new AbsListView.OnScrollListener() {
+            public void onScrollStateChanged(AbsListView alv, int scrollState) {}
+            public void onScroll(AbsListView alv, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+              sm.setMaximum(totalItemCount);
+              sm.setVisibleAmount(visibleItemCount);
+              sm.setValue(firstVisibleItem);
+            }
+          };
+
+          ((AbsListView) view).setOnScrollListener(sl);
+        } else if (view instanceof ScrollViewEx) {
+          ((ScrollViewEx) view).setAdjustable(sm);
+        }
+      }
+    }
+  }
+
+  public static iPlatformComponent configureScrollPane(final aViewer lv, iPlatformComponent fc, View view,
           ScrollPane sp) {
     if (sp == null) {
       return fc;
@@ -176,61 +213,49 @@ public class AndroidHelper {
       ((AbsListView) view).setOnScrollListener(sl);
     }
 
-    BorderPanel bp = null;
-    Widget      wc = null;
-    iWidget     w;
-
-    if (view instanceof ListView) {
-      ListView v = (ListView) view;
-
-      wc = (Widget) sp.columnFooter.getValue();
-      w  = PlatformHelper.getWidget(lv, wc);
-
-      if (w != null) {
-        lv.registerNamedItem(w.getName(), w);
-        v.addFooterView(w.getContainerComponent().getView());
+    if (sp.hasColumnWidgets() || sp.hasRowWidgets()) {
+      if (fc instanceof TableComponent) {
+        view = ((TableComponent) fc).getScrollingView();
       }
 
+      BorderPanel bp = new BorderPanel();
+      Widget      wc = null;
+      iWidget     w;
+      bp.setUseCrossPattern(true);
       wc = (Widget) sp.columnHeader.getValue();
       w  = PlatformHelper.getWidget(lv, wc);
 
       if (w != null) {
-        lv.registerNamedItem(w.getName(), w);
-        v.addHeaderView(w.getContainerComponent().getView());
-      }
-    } else {
-      bp = new BorderPanel(lv);
-      wc = (Widget) sp.columnHeader.getValue();
-      w  = PlatformHelper.getWidget(lv, wc);
-
-      if (w != null) {
-        lv.registerNamedItem(w.getName(), w);
-        bp.setTopView(w.getContainerComponent());
+        lv.registerOrphanWidget(w);
+        setScrollComponentView(bp, view, w, Location.TOP);
       }
 
       wc = (Widget) sp.columnFooter.getValue();
       w  = PlatformHelper.getWidget(lv, wc);
 
       if (w != null) {
-        lv.registerNamedItem(w.getName(), w);
-        bp.setBottomView(w.getContainerComponent());
-      }
-    }
-
-    wc = (Widget) sp.rowFooter.getValue();
-    w  = PlatformHelper.getWidget(lv, wc);
-
-    if (w != null) {
-      if (bp == null) {
-        bp = new BorderPanel(lv);
+        lv.registerOrphanWidget(w);
+        setScrollComponentView(bp, view, w, Location.BOTTOM);
       }
 
-      lv.registerNamedItem(w.getName(), w);
-      bp.setRightView(w.getContainerComponent());
-    }
+      wc = (Widget) sp.rowHeader.getValue();
+      w  = PlatformHelper.getWidget(lv, wc);
 
-    if (bp != null) {
-      bp.setCenterView(Component.fromView(view));
+      if (w != null) {
+        lv.registerOrphanWidget(w);
+        setScrollComponentView(bp, view, w, Location.LEFT);
+      }
+
+      wc = (Widget) sp.rowFooter.getValue();
+      w  = PlatformHelper.getWidget(lv, wc);
+
+      if (w != null) {
+        lv.registerOrphanWidget(w);
+        setScrollComponentView(bp, view, w, Location.RIGHT);
+      }
+      bp.setScrollPaneCorners(lv, sp);
+      bp.setCenterView(fc);
+      fc.setWidget(lv);
       fc = bp;
     }
 
@@ -333,39 +358,11 @@ public class AndroidHelper {
     return gp;
   }
 
-  public static void errorMessage(iPlatformAppContext app, String title, String message) {
-    errorMessage(app, title, message, null);
-  }
-
   public static void errorMessage(iPlatformAppContext app, String title, String message, final iFunctionCallback cb) {
     AlertDialog alertDialog = new AlertDialog.Builder(app.getActivity()).create();
 
     alertDialog.setTitle((title == null)
                          ? app.getResourceAsString("Rare.text.error")
-                         : title);
-    alertDialog.setMessage(message);
-    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, app.getResourceAsString("Rare.text.ok"),
-                          new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int which) {
-        if (cb != null) {
-          cb.finished(false, null);
-        }
-
-        return;
-      }
-    });
-    alertDialog.show();
-  }
-
-  public static void infoMessage(iPlatformAppContext app, String title, String message) {
-    infoMessage(app, title, message, null);
-  }
-
-  public static void infoMessage(iPlatformAppContext app, String title, String message, final iFunctionCallback cb) {
-    AlertDialog alertDialog = new AlertDialog.Builder(app.getActivity()).create();
-
-    alertDialog.setTitle((title == null)
-                         ? app.getResourceAsString("Rare.text.info")
                          : title);
     alertDialog.setMessage(message);
     alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, app.getResourceAsString("Rare.text.ok"),
@@ -674,7 +671,9 @@ public class AndroidHelper {
     protected int        winY   = 0;
     private WindowViewer window;
 
-    public DragHandler() {}
+    public DragHandler(WindowViewer window) {
+      this.window=window;
+    }
 
     public void dispose() {
       window = null;
@@ -695,24 +694,13 @@ public class AndroidHelper {
         case MotionEvent.ACTION_DOWN :
           startX = xCoord;
           startY = yCoord;
-          setWindow(v);
+          winX   = window.getScreenX();
+          winY   = window.getScreenY();
 
           break;
       }
 
       return true;
-    }
-
-    void setWindow(View v) {
-      iWidget w = Platform.findWidgetForComponent(v);
-
-      if (w != null) {
-        try {
-          window = (WindowViewer) w.getViewer().getWindow().getViewer();
-          winX   = window.getScreenX();
-          winY   = window.getScreenY();
-        } catch(Exception ignore) {}
-      }
     }
   }
 
@@ -753,6 +741,89 @@ public class AndroidHelper {
     }
   }
 
+
+  private static void setScrollComponentView(BorderPanel bp, View parent, iWidget w, Location loc) {
+    View               v;
+    iScrollerSupport   ss    = null;
+    iPlatformComponent child = w.getContainerComponent();
+
+    if (child instanceof TableComponent) {
+      v = ((TableComponent) child).getScrollingView();
+    } else {
+      v = w.getDataComponent().getView();
+    }
+
+    if (v instanceof iScrollerSupport) {
+      ss = (iScrollerSupport) v;
+    }
+    else {
+      if (parent instanceof HorizontalScrollViewEx) {
+        HorizontalScrollViewEx sv=new HorizontalScrollViewEx(parent.getContext());
+        sv.addView(child.getView());
+        child=new ScrollPanePanel(sv);
+        ss=sv;
+      }
+    }
+    if (parent instanceof HorizontalScrollViewEx) {
+      switch(loc) {
+        case TOP :
+        case BOTTOM :
+          if (parent instanceof HorizontalScrollViewEx) {
+            HorizontalScrollViewEx hv = (HorizontalScrollViewEx) parent;
+            if(ss==null) {
+              HorizontalScrollViewEx sv=new HorizontalScrollViewEx(parent.getContext());
+              sv.addView(child.getView());
+              child=new ScrollPanePanel(sv);
+              ss=sv;
+            }
+            if (loc == Location.TOP) {
+              hv.setHeaderView(ss);
+            } else {
+              hv.setFooterView(ss);
+            }
+          }
+
+          break;
+
+        default :
+          if(ss==null) {
+            ScrollViewEx sv=new ScrollViewEx(parent.getContext());
+            sv.addView(child.getView());
+            child=new ScrollPanePanel(sv);
+            ss=sv;
+          }
+          
+          if (parent instanceof ScrollViewEx) {
+            if (loc == Location.RIGHT) {
+              ((ScrollViewEx) parent).setRowFooter(ss);
+            } else {
+              ((ScrollViewEx) parent).setRowHeader(ss);
+            }
+          }
+          else  if (parent instanceof HorizontalScrollViewEx) {
+            HorizontalScrollViewEx hv = (HorizontalScrollViewEx) parent;
+
+            if (loc == Location.RIGHT) {
+              hv.setRowFooter(ss);
+            } else {
+              hv.setRowHeader(ss);
+            }
+          }
+          else if (parent instanceof ListViewEx) {
+            ListViewEx lv = (ListViewEx) parent;
+
+            if (loc == Location.RIGHT) {
+              lv.setRowFooter(ss);
+            } else {
+              lv.setRowHeader(ss);
+            }
+          }
+          break;
+      }
+      bp.add(w.getContainerComponent(), loc);
+    }
+
+  }
 
   static class ScrollBarAdjustable extends aAdjustable {}
 }

@@ -22,22 +22,15 @@ package com.appnativa.rare.platform.apple.ui.view;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Frame;
+import com.appnativa.rare.ui.TitlePane;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
-import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.WindowPane;
 import com.appnativa.rare.ui.WindowTarget;
-import com.appnativa.rare.ui.border.SharedLineBorder;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.effects.iAnimator.Direction;
-import com.appnativa.rare.ui.effects.iAnimatorListener;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.event.EventListenerList;
-import com.appnativa.rare.ui.event.WindowEvent;
-import com.appnativa.rare.ui.event.iWindowListener;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -45,7 +38,17 @@ import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformMenuBar;
 import com.appnativa.rare.ui.iStatusBar;
 import com.appnativa.rare.ui.iToolBarHolder;
+import com.appnativa.rare.ui.border.SharedLineBorder;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.effects.iAnimator.Direction;
+import com.appnativa.rare.ui.effects.iAnimatorListener;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iWindowListener;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.viewer.iViewer;
 
@@ -58,7 +61,6 @@ public abstract class aWindow extends ParentView {
   UIEmptyBorder                paddingBorder;
   protected iPlatformComponent content;
   protected boolean            decorated;
-  protected EventListenerList  listenerList;
   protected WindowPane         rootPane;
   protected boolean            sizeSet;
   protected iTarget            target;
@@ -80,30 +82,26 @@ public abstract class aWindow extends ParentView {
     super(nswindow);
     associateWindow();
     rootPane = createRootPane();
+    
   }
-
+  
+  public void createDialogTitleBar(final WindowViewer win,boolean showCloseButton) {
+    TitlePane bar = rootPane.createDialogTitleBar(win, new iActionListener() {
+      
+      @Override
+      public void actionPerformed(ActionEvent e) {
+       win.close();
+        
+      }
+    });
+    win.addWindowDragger(bar);
+  }
+  
   public native void addViewToGlass(View view)
   /*-[
     [((RAREAPWindow*)proxy_) addViewToGlass: view ];
   ]-*/
   ;
-
-  public void addWindowListener(iWindowListener l) {
-    if (listenerList == null) {
-      listenerList = new EventListenerList();
-
-      iWindowListener wl = new iWindowListener() {
-        @Override
-        public void windowEvent(WindowEvent e) {
-          Utils.fireWindowEvent(listenerList, e);
-        }
-      };
-
-      setWindowListener(wl);
-    }
-
-    listenerList.add(iWindowListener.class, l);
-  }
 
   public native void centerOnScreen()
   /*-[
@@ -119,6 +117,7 @@ public abstract class aWindow extends ParentView {
 
   @Override
   public void dispose() {
+    Platform.getAppContext().getActiveWindows().remove(this);
     disposeEx();
     super.dispose();
 
@@ -138,14 +137,11 @@ public abstract class aWindow extends ParentView {
       rootPane.dispose();
     }
 
-    if (listenerList != null) {
-      listenerList.clear();
-    }
-
-    listenerList = null;
     content      = null;
     rootPane     = null;
     target       = null;
+    animationComponent=null;
+    animator=null;
   }
 
   @Override
@@ -205,8 +201,8 @@ public abstract class aWindow extends ParentView {
   ;
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    getPreferredSize(size, 0);
+  public void getMinimumSize(UIDimension size,float maxWidth) {
+    getPreferredSize(size, maxWidth);
   }
 
   @Override
@@ -218,6 +214,18 @@ public abstract class aWindow extends ParentView {
     return rootPane;
   }
 
+  public iPlatformMenuBar getMenuBar() {
+    return rootPane.getMenuBar();
+  }
+
+  public iStatusBar getStatusBar() {
+    return rootPane.getStatusBar();
+  }
+
+  public iToolBarHolder getiToolBarHolder() {
+    return rootPane.getToolBarHolder();
+  }
+  
   @Override
   public UIDimension getSize() {
     UIDimension d = new UIDimension();
@@ -339,24 +347,26 @@ public abstract class aWindow extends ParentView {
 
   public void pack() {
     UIDimension size = new UIDimension();
-
+    
     rootPane.getPreferredSize(size);
-    size.height += getTitlebarHeight();
+    UIDimension ss=UIScreen.getUsableSize();
+    ss.width-=10;
+    ss.height-=10;
+    if(size.width>ss.width) {
+      size.width=ss.width;
+    }
+    if(size.height>ss.height) {
+      size.height=ss.height;
+    }
     setSizeEx(size.width, size.height);
-    rootPane.revalidate();
   }
 
+  
   public native void removeViewFromGlass(View view)
   /*-[
     [((RAREAPWindow*)proxy_) removeViewFromGlass: view ];
   ]-*/
   ;
-
-  public void removeWindowListener(iWindowListener l) {
-    if (listenerList != null) {
-      listenerList.remove(iWindowListener.class, l);
-    }
-  }
 
   @Override
   public void revalidate() {
@@ -489,8 +499,8 @@ public abstract class aWindow extends ParentView {
     rootPane.setTitileBar(c);
   }
 
-  public void setToolBar(iToolBarHolder tb) {
-    rootPane.setToolBar(tb);
+  public void setToolBarHolder(iToolBarHolder tb) {
+    rootPane.setToolBarHolder(tb);
   }
 
   public iViewer setViewer(iViewer viewer) {
@@ -574,12 +584,7 @@ public abstract class aWindow extends ParentView {
 
   protected void createTarget() {
     String name = "_new_window_" + Integer.toHexString((int)hashCode());// int cast for java->objc
-
     target = new WindowTarget(Platform.getAppContext(), name, rootPane);
-  }
-
-  protected float getTitlebarHeight() {
-    return 0;
   }
 
   protected boolean handleOutsideTouch() {
@@ -613,9 +618,19 @@ public abstract class aWindow extends ParentView {
     setVisibleEx(visible);
 
     if (visible) {
-      Platform.getAppContext().getActiveWindows().add(this);
+      Platform.getAppContext().getActiveWindows().addIfNotPresent(this);
     } else {
       Platform.getAppContext().getActiveWindows().remove(this);
+    }
+  }
+  
+  protected void resizeAndCenter() {
+    iPlatformComponent c = getComponent();
+    if(c instanceof Frame) {
+      Frame f=(Frame) c;
+      f.getWindowViewer().onConfigurationChanged(true);
+      f.pack();
+      f.center();
     }
   }
 

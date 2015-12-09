@@ -20,34 +20,6 @@
 
 package com.appnativa.rare.ui;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.EventHelper;
-import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
-import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
-import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
-import com.appnativa.rare.platform.swing.ui.view.iView;
-import com.appnativa.rare.ui.RenderableDataItem.Orientation;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
-import com.appnativa.rare.ui.listener.iFocusListener;
-import com.appnativa.rare.ui.listener.iKeyListener;
-import com.appnativa.rare.ui.listener.iMouseListener;
-import com.appnativa.rare.ui.listener.iMouseMotionListener;
-import com.appnativa.rare.ui.listener.iViewListener;
-import com.appnativa.rare.ui.painter.PainterHolder;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-import com.appnativa.rare.ui.painter.iComponentPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
@@ -62,13 +34,41 @@ import java.awt.event.HierarchyListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import javax.swing.plaf.UIResource;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.platform.EventHelper;
+import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
+import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
+import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.ListView;
+import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
+import com.appnativa.rare.platform.swing.ui.view.iView;
+import com.appnativa.rare.ui.RenderableDataItem.Orientation;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.listener.iFocusListener;
+import com.appnativa.rare.ui.listener.iKeyListener;
+import com.appnativa.rare.ui.listener.iMouseListener;
+import com.appnativa.rare.ui.listener.iMouseMotionListener;
+import com.appnativa.rare.ui.listener.iViewListener;
+import com.appnativa.rare.ui.painter.PainterHolder;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
+import com.appnativa.rare.ui.painter.iComponentPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -89,9 +89,13 @@ public class Component extends aComponent
   private ScaleGestureDetector        scaleGestureDetector;
 
   public Component(JComponent component) {
+    super();
     this.view                  = component;
-    useBorderInSizeCalculation = false;
+    useBorderInSizeCalculation=false;
 
+    if (component instanceof ListView) {
+      component.putClientProperty(RARE_COMPONENT_PROXY_PROPERTY, this);
+    }
     if (component != null) {
       component.putClientProperty(RARE_COMPONENT_PROXY_PROPERTY, this);
     }
@@ -192,14 +196,14 @@ public class Component extends aComponent
   @Override
   public void dispatchEvent(KeyEvent e) {
     if (e.getNativeEvent() != null) {
-      SwingHelper.retargetKeyEvent(e.getID(), (java.awt.event.KeyEvent) e.getNativeEvent(), view);
+      SwingHelper.retargetKeyEvent((java.awt.event.KeyEvent) e.getNativeEvent(), view);
     }
   }
 
   @Override
   public void dispatchEvent(MouseEvent e) {
     if (e.getNativeEvent() != null) {
-      SwingHelper.retargetMouseEvent(e.getID(), (java.awt.event.MouseEvent) e.getNativeEvent(), view);
+      SwingHelper.retargetMouseEvent((java.awt.event.MouseEvent) e.getNativeEvent(), view);
     }
   }
 
@@ -210,20 +214,20 @@ public class Component extends aComponent
         componentPainter.removePropertyChangeListener(this);
       }
 
-      super.dispose();
       disposeEx();
+      super.dispose();
       view = null;
     }
   }
 
   @Override
   public void focusGained(FocusEvent e) {
-    focusChanged(view, true, e.getOppositeComponent());
+    focusChanged(view, true, e.getOppositeComponent(),e.isTemporary());
   }
 
   @Override
   public void focusLost(FocusEvent e) {
-    focusChanged(view, false, e.getOppositeComponent());
+    focusChanged(view, false, e.getOppositeComponent(),e.isTemporary());
   }
 
   public static iPlatformComponent fromView(JComponent c) {
@@ -686,21 +690,10 @@ public class Component extends aComponent
   }
 
   @Override
-  public void setDisabledColor(UIColor color) {
-    super.setDisabledColor(color);
-    view.putClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY, color);
-  }
-
-  @Override
   public void setEnabled(boolean enabled) {
     if (enabled != view.isEnabled()) {
       view.setEnabled(enabled);
-
-      if (!foregroundSet) {
-        view.setForeground(enabled
-                           ? ColorUtils.getForeground()
-                           : ColorUtils.getDisabledForeground());
-      }
+      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled,enabled);
     }
   }
 
@@ -718,10 +711,6 @@ public class Component extends aComponent
   public void setForeground(UIColor fg) {
     foregroundSet = fg != null;
     view.setForeground(fg);
-
-    if ((fg != null) && (componentPainter != null)) {
-      componentPainter.setForegroundColor(fg);
-    }
   }
 
   @Override
@@ -875,26 +864,30 @@ public class Component extends aComponent
     if (loc == null) {
       loc = new UIPoint();
     }
-
-    iParentComponent pc = getParent();
-    Orientation      o  = (pc == null)
-                          ? Orientation.HORIZONTAL
-                          : pc.getOrientation();
-
-    if ((o != Orientation.VERTICAL_DOWN) && (o != Orientation.VERTICAL_UP)) {
-      Point p = view.getLocationOnScreen();
-
-      loc.x = p.x;
-      loc.y = p.y;
-
-      return loc;
+    if(!view.isShowing()) {
+      loc.set(Short.MAX_VALUE,Short.MAX_VALUE);
     }
-
-    Point p = pc.getView().getLocationOnScreen();
-
-    getOrientedLocation(loc);
-    loc.x += p.x;
-    loc.y += p.y;
+    else {
+      iParentComponent pc = getParent();
+      Orientation      o  = (pc == null)
+                            ? Orientation.HORIZONTAL
+                            : pc.getOrientation();
+  
+      if ((o != Orientation.VERTICAL_DOWN) && (o != Orientation.VERTICAL_UP)) {
+        Point p = view.getLocationOnScreen();
+  
+        loc.x = p.x;
+        loc.y = p.y;
+  
+        return loc;
+      }
+  
+      Point p = pc.getView().getLocationOnScreen();
+  
+      getOrientedLocation(loc);
+      loc.x += p.x;
+      loc.y += p.y;
+    }
 
     return loc;
   }
@@ -1080,9 +1073,9 @@ public class Component extends aComponent
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size,float  maxWidth) {
     if (view instanceof iView) {
-      ((iView) view).getMinimumSize(size);
+      ((iView) view).getMinimumSize(size, (int)maxWidth);
     } else {
       SwingHelper.setUIDimension(size, view.getMinimumSize());
     }
@@ -1094,11 +1087,11 @@ public class Component extends aComponent
 
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-    view.putClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE, maxWidth);
 
     if (view instanceof iView) {
-      ((iView) view).getPreferredSize(size, (int) Math.ceil(maxWidth));
+      ((iView) view).getPreferredSize(size, (int) maxWidth);
     } else {
+      view.putClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE, maxWidth);
       SwingHelper.setUIDimension(size, view.getPreferredSize());
     }
   }

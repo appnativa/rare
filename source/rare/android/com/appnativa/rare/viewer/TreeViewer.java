@@ -65,14 +65,17 @@ public class TreeViewer extends aTreeViewer implements iTreeHandler {
   /**
    * Cancels tree editing (if editing)
    */
+  @Override
   public void cancelEditing() {
     if (treeHandler != null) {}
   }
 
   public void stopEditing() {}
 
+  @Override
   public void setAutoSizeRowsToFit(boolean autoSize) {}
 
+  @Override
   public void setSelectionMode(SelectionMode selectionMode) {
     super.setSelectionMode(selectionMode);
 
@@ -133,18 +136,20 @@ public class TreeViewer extends aTreeViewer implements iTreeHandler {
    *
    * @param cfg the listbox's configuration
    */
+  @Override
   protected void configureEx(Tree cfg) {
     super.configureEx(cfg);
     ((ListViewEx) getDataView()).viewConfigured();
   }
 
+  @Override
   protected void createModelAndComponents(Viewer vcfg) {
     Tree       cfg  = (Tree) vcfg;
     TreeViewEx tree = getAppContext().getComponentCreator().getTree(this, cfg);
 
     treeModel = new DataItemTreeModel();
     listModel = new TreeListAdapter(this, null);
-    ((DataItemTreeModel) treeModel).setListModel((TreeListAdapter) listModel);
+    ((DataItemTreeModel) treeModel).setListModel(listModel);
     dataComponent = formComponent = new TreeComponent(tree, (DataItemTreeModel) treeModel);
     treeHandler   = ((TreeComponent) dataComponent).getTreeHandler();
     formComponent = AndroidHelper.configureScrollPane(this, formComponent, tree, cfg.getScrollPane());
@@ -157,14 +162,17 @@ public class TreeViewer extends aTreeViewer implements iTreeHandler {
     listModel.setItemRenderer(lr);
   }
 
+  @Override
   protected void setFlingThreshold(int threshold) {
     ((TreeViewEx) getDataView()).setFlingThreshold(threshold);
   }
 
+  @Override
   protected void setSelectFlinged(boolean select) {
     ((TreeViewEx) getDataView()).setSelectFlinged(true);
   }
 
+  @Override
   protected void setWholeViewFling(boolean wholeViewFling) {
     ((TreeViewEx) getDataView()).setWholeViewFling(wholeViewFling);
   }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -75,7 +75,6 @@ public class ComboBoxComponent extends aComboBoxComponent {
   @Override
   public void setVisibleCharacters(int count) {
     TextFieldView e = (TextFieldView) editor.getComponent().getView();
-
     e.setPrefColumnCount(count);
     visibleCharacters = count;
   }
@@ -83,7 +82,7 @@ public class ComboBoxComponent extends aComboBoxComponent {
   @Override
   protected iPlatformTextEditor createEditor() {
     TextFieldView e = new TextFieldView();
-
+    e.setSuggestionsEnabled(false);
     e.addActionListener((ComboBoxView) view);
     e.makeTransparent();
     e.removeNativeBorder();

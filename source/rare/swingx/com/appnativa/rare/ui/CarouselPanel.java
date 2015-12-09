@@ -223,7 +223,7 @@ public class CarouselPanel extends aCarouselPanel {
     public void setOpaque(boolean isOpaque) {}
 
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size, int maxWidth) {
       CarouselPanel.this.getMinimumSize(size);
     }
 

@@ -36,13 +36,13 @@ public class aInterfaceProxy implements iInterfaceProxy {
   @Override
   public native void spar_addMethod(String signature, Object sparJSFunctionObject)
   /*-[
-          [((NSMutableDictionary*)proxy_) setValue: sparJSFunctionObject forKey: signature];
+    [((NSMutableDictionary*)proxy_) setValue: sparJSFunctionObject forKey: signature];
   ]-*/
   ;
 
   public native Object spar_getFunctionObject(String signature)
   /*-[
-          return [((NSMutableDictionary*)proxy_) objectForKey: signature];
+    return [((NSMutableDictionary*)proxy_) objectForKey: signature];
   ]-*/
   ;
 
@@ -58,7 +58,7 @@ public class aInterfaceProxy implements iInterfaceProxy {
 
   static native Object createProxy()
   /*-[
-return [NSMutableDictionary dictionaryWithCapacity: 3];
+    return [NSMutableDictionary dictionaryWithCapacity: 3];
   ]-*/
   ;
 }

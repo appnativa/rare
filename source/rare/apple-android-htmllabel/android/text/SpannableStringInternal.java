@@ -68,10 +68,12 @@ abstract class SpannableStringInternal implements CharSequence{
    }
    
 
+  @Override
   public final int length() {
     return mText.length();
   }
 
+  @Override
   public final char charAt(int i) {
     return mText.charAt(i);
   }

@@ -21,7 +21,6 @@
   NSString* title_;
   CGSize fixedSize;
   BOOL modal_;
-  UIView* glass_;
 }
 @property (nonatomic, retain) RAREWindow* sparWindow;
 @property(nonatomic) UIInterfaceOrientation sparOrientation;
@@ -55,4 +54,5 @@
 -(CGRect) orientedFrame;
 -(CGPoint) orientedLocation;
 -(CGSize) orientedSize;
+
 @end

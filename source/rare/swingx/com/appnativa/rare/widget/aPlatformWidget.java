@@ -34,6 +34,7 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.iActionable;
@@ -44,7 +45,6 @@ import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.spot.SPOTSet;
 
 import java.awt.Window;
-
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -146,6 +146,10 @@ public abstract class aPlatformWidget extends aWidget {
     UIPopupMenu menu = getPopupMenu();
 
     if (menu != null) {
+      if (menu.getActionScript() != null) {
+        aWidgetListener.evaluate(this, this.getScriptHandler(), menu.getActionScript(), new ExpansionEvent(menu,ExpansionEvent.Type.WILL_EXPAND));
+      }
+
       menu.show(this.getDataComponent(), x, y);
     }
   }
@@ -208,6 +212,9 @@ public abstract class aPlatformWidget extends aWidget {
 
   @Override
   public boolean isFocusOwner() {
+    if(isPopupMenuShowing()) {
+      return true;
+    }
     iPlatformComponent fc = Platform.getAppContext().getFocusOwner();
 
     if (fc == null) {

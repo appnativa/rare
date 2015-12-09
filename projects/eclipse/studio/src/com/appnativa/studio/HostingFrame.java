@@ -18,6 +18,7 @@ import javax.swing.RootPaneContainer;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.ui.view.JRootPaneEx;
 import com.appnativa.rare.ui.Frame;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
 import com.appnativa.rare.ui.iPlatformMenuBar;
 import com.appnativa.rare.ui.iStatusBar;
 import com.appnativa.rare.ui.iToolBarHolder;
@@ -26,7 +27,7 @@ import com.appnativa.studio.composite.DesignComposite;
 
 public class HostingFrame extends Frame {
   public HostingFrame(iPlatformAppContext app, DesignComposite dc) {
-    super(app, dc.getFrame(), new RootPaneHolder());//.getRootPaneContainer());
+    super(app, dc.getFrame(), new RootPaneHolder(),WindowType.FRAME);//.getRootPaneContainer());
     dc.getRootPaneContainer().getContentPane().removeAll();
     disposeOfNativeWindow = false;
     dc.getRootPaneContainer().getContentPane().add(getRootPaneContainer().getRootPane());
@@ -54,27 +55,24 @@ public class HostingFrame extends Frame {
   }
 
   @Override
-  public iPlatformMenuBar setMenuBar(iPlatformMenuBar mb) {
+  public void setMenuBar(iPlatformMenuBar mb) {
     if(forPreview) {
-      return super.setMenuBar(mb);
+      super.setMenuBar(mb);
     }
-    return null;
   }
 
   @Override
-  public iStatusBar setStatusBar(iStatusBar sb) {
+  public void setStatusBar(iStatusBar sb) {
     if(forPreview) {
-      return super.setStatusBar(sb);
+      super.setStatusBar(sb);
     }
-    return null;
   }
 
   @Override
-  public iToolBarHolder setToolBarHolder(iToolBarHolder tbh) {
+  public void setToolBarHolder(iToolBarHolder tbh) {
     if(forPreview) {
-      return super.setToolBarHolder(tbh);
+      super.setToolBarHolder(tbh);
     }
-    return null;
   }
   
   public boolean isForPreview() {

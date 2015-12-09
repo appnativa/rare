@@ -623,6 +623,38 @@ public final class Helper {
   }
   
   /**
+   * Moves a value in the specified array from one location to another
+   *
+   * @param list  the list to delete from
+   * @param length the length of the array to move within (use -1 for the while array)
+   * @param from     the from position.
+   * @param to the to position
+   * 
+   * @return false if the specified parameters were invalid; true otherwise
+   */
+  public static boolean move(Object[] list,int length, int from, int to) {
+    int len=length==-1 ? list.length : length;
+    if(to<0 || to>=len) {
+      return false;
+    }
+    if(from<0 || from>=len) {
+      return false;
+    }
+    if(from==to) {
+      return true;
+    }
+    Object val=list[from];
+    if(from!=len-1) {
+      System.arraycopy(list, from+1, list, from, len-from-1);
+    }
+    if(to!=len-1) {
+      System.arraycopy(list, to, list, to+1, len-to-1);
+    }
+    list[to]=val;
+    return true;
+   }
+  
+   /**
    * Searches for the first occurrence of the given object.
    *
    * @param array  the array of objects

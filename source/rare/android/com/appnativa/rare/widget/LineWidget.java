@@ -47,6 +47,7 @@ public class LineWidget extends aLineWidget {
     super(parent);
   }
 
+  @Override
   protected iActionComponent createLabel(String text, iPlatformIcon icon, boolean left) {
     boolean   horiz = isHorizontal();
     LabelView tv    = new LabelView(getAndroidContext());
@@ -73,6 +74,7 @@ public class LineWidget extends aLineWidget {
     return l;
   }
 
+  @Override
   protected aLineHelper createLineHelperAndComponents(Line cfg) {
     LineView view = getAppContext().getComponentCreator().getLine(getViewer(), cfg);
 

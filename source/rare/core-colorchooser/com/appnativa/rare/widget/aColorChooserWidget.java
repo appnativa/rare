@@ -327,7 +327,6 @@ public class aColorChooserWidget extends aPlatformWidget implements iActionable 
     comp.setShowPopupAsDialog(cfg.showPopupAsDialog.booleanValue());
     comp.setEditable(cfg.editable.booleanValue());
     comp.setShowValueAsHex(cfg.showValueAsHex.booleanValue());
-
     if (!cfg.showPopupButton.booleanValue()) {
       comp.setButtonVisible(false);
     } else {

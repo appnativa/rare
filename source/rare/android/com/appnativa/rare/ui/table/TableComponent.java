@@ -15,17 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+
 import android.annotation.SuppressLint;
-
 import android.content.Context;
-
 import android.graphics.Rect;
-
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.View;
@@ -34,8 +35,6 @@ import android.view.View.OnFocusChangeListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
-
-import android.widget.ListAdapter;
 
 import com.appnativa.rare.platform.android.iContextMenuHandler;
 import com.appnativa.rare.platform.android.ui.iFlingSupport;
@@ -53,29 +52,24 @@ import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UIStroke;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.event.iAndroidViewListener;
-import com.appnativa.rare.ui.event.iDataModelListener;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformItemRenderer;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.iTableModel;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.event.iAndroidViewListener;
+import com.appnativa.rare.ui.event.iDataModelListener;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.table.TableHeader.ColumnView;
 import com.appnativa.rare.ui.table.aTableAdapter.TableRow;
 import com.appnativa.rare.ui.table.aTableHeader.SizeType;
-import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.FilterableList;
 import com.appnativa.util.iFilterableList;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
 
 /**
  *
@@ -173,6 +167,17 @@ public class TableComponent extends Container
     list.addViewListenerEx(l);
   }
 
+  public View getScrollingView() {
+    View v = getView();
+
+    if (v instanceof HorizontalScrollViewEx) {
+      return v;
+    }
+
+    return getListView();
+  }
+
+  @Override
   public void contentsChanged(Object source) {
     if (tableHeader.isGridView()) {
       tableHeader.handleGridView(oldWidth, getHeight(), getGridRowHeight(), true);
@@ -181,16 +186,20 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public void contentsChanged(Object source, int index0, int index1) {}
 
+  @Override
   public int convertModelIndexToView(int index) {
     return tableHeader.convertModelIndexToView(index);
   }
 
+  @Override
   public int convertViewIndexToModel(int index) {
     return tableHeader.convertViewIndexToModel(index);
   }
 
+  @Override
   public Column createColumn(String title, Object value, int type, Object data, iPlatformIcon icon) {
     return new Column(title, value, type, data, icon);
   }
@@ -200,10 +209,12 @@ public class TableComponent extends Container
     tableModel.setAutoSizeRows(autoSizeRows);
   }
 
+  @Override
   public void dispatchEvent(KeyEvent keyEvent) {
     list.dispatchEvent(keyEvent);
   }
 
+  @Override
   public void dispatchEvent(MouseEvent mouseEvent) {
     list.dispatchEvent(mouseEvent);
   }
@@ -213,6 +224,7 @@ public class TableComponent extends Container
     return false;
   }
 
+  @Override
   public void dispose() {
     if (tableModel != null) {
       tableModel.dispose();
@@ -234,6 +246,7 @@ public class TableComponent extends Container
     tableModel  = null;
   }
 
+  @Override
   public UIRectangle getCellRect(int row, int column, boolean includeMargin) {
     UIRectangle r    = null;
     View        view = getListView().getViewForRow(row);
@@ -261,6 +274,7 @@ public class TableComponent extends Container
     return tableHeader.getColumnAt(index);
   }
 
+  @Override
   public int getColumnCount() {
     return tableModel.getColumnCount();
   }
@@ -275,6 +289,7 @@ public class TableComponent extends Container
     return null;
   }
 
+  @Override
   public int getColumnIndexAt(float x, float y) {
     return tableHeader.getColumnIndexAt(x, y);
   }
@@ -301,6 +316,7 @@ public class TableComponent extends Container
     return tableHeader;
   }
 
+  @Override
   public iPlatformItemRenderer getItemRenderer() {
     return tableModel.getItemRenderer();
   }
@@ -320,8 +336,8 @@ public class TableComponent extends Container
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    tableHeader.getMinimumSize(size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    tableHeader.getMinimumSize(size, maxWidth);
 
     float w = size.width;
     float h = size.height;
@@ -342,22 +358,26 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public iTableModel getModel() {
     return tableModel;
   }
 
+  @Override
   public iPlatformComponent getPlatformComponent() {
     return this;
   }
 
+  @Override
   public UIPopupMenu getPopupMenu(View v, ContextMenuInfo menuInfo) {
     if (v instanceof ColumnView) {
       return (((ColumnView) v).column).getPopupMenu(widget);
     }
 
-    return ((aPlatformWidget) widget).getPopupMenu();
+    return null;
   }
 
+  @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     if (maxWidth > 0) {
       tableHeader.getSize(size, true, maxWidth);
@@ -408,10 +428,12 @@ public class TableComponent extends Container
     return tableHeader.getRowHeight(row, tableModel.getItemRenderer(), rh);
   }
 
+  @Override
   public int getSelectedColumn() {
     return tableHeader.getSelectedColumn();
   }
 
+  @Override
   public int getSelectedColumnCount() {
     if (multipleSelectColumns) {
       return tableHeader.getSelectedColumnCount();
@@ -422,10 +444,12 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public int[] getSelectedColumns() {
     return tableHeader.getSelectedColumnIndices();
   }
 
+  @Override
   public int getSortColumn() {
     return sortColumn;
   }
@@ -434,6 +458,7 @@ public class TableComponent extends Container
     return list;
   }
 
+  @Override
   public TableHeader getTableHeader() {
     return tableHeader;
   }
@@ -482,6 +507,7 @@ public class TableComponent extends Container
     return new UIRectangle(x, y, width, height);
   }
 
+  @Override
   public int getVisibleColumnCount() {
     return tableHeader.getVisibleColumnCount();
   }
@@ -492,14 +518,18 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public void intervalAdded(Object source, int index0, int index1) {}
 
+  @Override
   public void intervalRemoved(Object source, int index0, int index1, List<RenderableDataItem> removed) {}
 
+  @Override
   public boolean isAtBottomEdge() {
     return getTableViewLayout().isAtBottomEdge();
   }
 
+  @Override
   public boolean isAtLeftEdge() {
     if (view instanceof HorizontalScrollingTableComponentLayout) {
       return ((HorizontalScrollingTableComponentLayout) view).isAtLeftEdge();
@@ -508,6 +538,7 @@ public class TableComponent extends Container
     return true;
   }
 
+  @Override
   public boolean isAtRightEdge() {
     if (view instanceof HorizontalScrollingTableComponentLayout) {
       return ((HorizontalScrollingTableComponentLayout) view).isAtRightEdge();
@@ -552,10 +583,12 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public boolean isAtTopEdge() {
     return getTableViewLayout().isAtTopEdge();
   }
 
+  @Override
   public UIPoint getContentOffset() {
     UIPoint p = getTableViewLayout().getContentOffset();
 
@@ -566,6 +599,16 @@ public class TableComponent extends Container
     return p;
   }
 
+  @Override
+  public void setContentOffset(float x, float y) {
+    if (view instanceof HorizontalScrollingTableComponentLayout) {
+      ((HorizontalScrollingTableComponentLayout) view).setContentOffset(x, y);
+    } else {
+      getListView().setContentOffset(x, y);
+    }
+  }
+
+  @Override
   public boolean isAutoSizeRows() {
     return ((aTableAdapter) tableModel).isAutoSizeRows();
   }
@@ -574,6 +617,7 @@ public class TableComponent extends Container
     return columnSizesInitialized;
   }
 
+  @Override
   public boolean isEditing() {
     return false;
   }
@@ -582,6 +626,7 @@ public class TableComponent extends Container
     return keepSelectionVisible;
   }
 
+  @Override
   public boolean isMainTable() {
     return (tableType == null) || (tableType == TableType.MAIN);
   }
@@ -590,6 +635,7 @@ public class TableComponent extends Container
     return ((aTableAdapter) tableModel).showVerticalLines;
   }
 
+  @Override
   public boolean isSortDescending() {
     return descending;
   }
@@ -672,8 +718,9 @@ public class TableComponent extends Container
    *          the new index of the column
    *
    */
+  @Override
   public void moveColumn(int column, int targetColumn) {
-    tableHeader.moveColumn(column, targetColumn);
+    tableHeader.columnMoved(column, targetColumn);
     revalidate();
   }
 
@@ -683,6 +730,7 @@ public class TableComponent extends Container
     list.removeFocusListenerEx(l);
   }
 
+  @Override
   public void removeKeyListenerEx(OnKeyListener l) {
     list.removeKeyListenerEx(l);
   }
@@ -695,6 +743,7 @@ public class TableComponent extends Container
     list.removeViewListenerEx(l);
   }
 
+  @Override
   public void resetTable(List<Column> columns, List<RenderableDataItem> rows) {
     FilterableList<RenderableDataItem> l;
 
@@ -719,6 +768,7 @@ public class TableComponent extends Container
     tableModel.resetModel(columns, rows);
   }
 
+  @Override
   public void setBounds(int x, int y, int w, int h) {
     final LayoutParams lp = view.getLayoutParams();
 
@@ -732,11 +782,13 @@ public class TableComponent extends Container
     view.layout(x, y, x + w, y + h);
   }
 
+  @Override
   public void setColumnIcon(int col, iPlatformIcon icon) {
     col = convertViewIndexToModel(col);
     tableHeader.setColumnIcon(col, icon);
   }
 
+  @Override
   public void setColumnTitle(int col, CharSequence title) {
     col = convertViewIndexToModel(col);
     tableHeader.setColumnTitle(col, title);
@@ -744,6 +796,7 @@ public class TableComponent extends Container
     repaint();
   }
 
+  @Override
   public void setColumnVisible(int col, boolean visible) {
     col = convertViewIndexToModel(col);
     tableHeader.setColumnVisible(col, visible);
@@ -754,6 +807,7 @@ public class TableComponent extends Container
     getListView().setDividerLine(color, stroke);
   }
 
+  @Override
   public void setForeground(UIColor fg) {
     super.setForeground(fg);
 
@@ -773,6 +827,7 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public void setHeaderBackground(PaintBucket pb) {
     tableHeader.setComponentPainter(null);
     pb.install(tableHeader, true);
@@ -786,16 +841,18 @@ public class TableComponent extends Container
     getTableViewLayout().setHeaderHeight(height);
   }
 
+  @Override
   public void setOpaque(boolean opaque) {
     super.setOpaque(opaque);
     list.setOpaque(opaque);
   }
 
   public void setRowHeight(int height) {
-    ((ListViewEx) getListView()).setRowHeight(height);
+    getListView().setRowHeight(height);
     ((aTableAdapter) tableModel).setRowHeight(height);
   }
 
+  @Override
   public void setRowHeight(int row, int h) {}
 
   @Override
@@ -812,20 +869,24 @@ public class TableComponent extends Container
     tableHeader.setShowHeaderMargin(show);
   }
 
+  @Override
   public void setShowHorizontalLines(boolean show) {
     ((aTableAdapter) tableModel).setShowHorizontalLines(show);
   }
 
+  @Override
   public void setShowVerticalLines(boolean show) {
     ((aTableAdapter) tableModel).setShowVerticalLines(show);
   }
 
+  @Override
   public void setSortColumn(int sortColumn, boolean descending) {
     this.sortColumn = sortColumn;
     this.descending = descending;
     tableHeader.setSortColumn(sortColumn, descending);
   }
 
+  @Override
   public void setStyle(TableStyle style) {
     tableStyle = style;
 
@@ -890,9 +951,10 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public void setTable() {
     tableHeader.setColumns(tableModel.getColumns());
-    getListView().setAdapter((ListAdapter) tableModel);
+    getListView().setAdapter(tableModel);
   }
 
   @Override
@@ -900,6 +962,7 @@ public class TableComponent extends Container
     tableType = type;
   }
 
+  @Override
   public void setWidget(iWidget widget) {
     super.setWidget(widget);
     list.setWidget(widget);
@@ -919,6 +982,7 @@ public class TableComponent extends Container
     c.setWidth(w);
   }
 
+  @Override
   public void sizeRowsToFit() {
     DataItemTableModel tm  = tableModel;
     int                len = (tm == null)
@@ -943,10 +1007,12 @@ public class TableComponent extends Container
     }
   }
 
+  @Override
   public void sort(Comparator c) {
     tableModel.sort(c);
   }
 
+  @Override
   public void sort(int col) {
     if (sortColumn == col) {
       descending = !descending;
@@ -957,6 +1023,7 @@ public class TableComponent extends Container
     sort(col, descending, false);
   }
 
+  @Override
   public void sort(int col, boolean descending, boolean useLinkedData) {
     sortColumn      = col;
     this.descending = descending;
@@ -964,8 +1031,10 @@ public class TableComponent extends Container
     tableHeader.setSortColumn(col, descending);
   }
 
+  @Override
   public void stopEditing() {}
 
+  @Override
   public void structureChanged(Object source) {
     if (tableHeader.columns.length == 0) {
       return;
@@ -1017,27 +1086,41 @@ public class TableComponent extends Container
     public HorizontalScrollingTableComponentLayout(Context context) {
       super(context);
       table = new TableViewLayout(context);
-      addViewInLayout(table, -1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
+      super.addView(table, -1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT));
       setFillViewport(true);
     }
 
+    @Override
     public void addView(View child) {
       table.addView(child);
     }
 
+    @Override
     public void addView(View child, android.view.ViewGroup.LayoutParams params) {
       table.addView(child, params);
     }
 
+    @Override
     public void addView(View child, int index, android.view.ViewGroup.LayoutParams params) {
       table.addView(child, index, params);
     }
 
+    @Override
     public void addView(View child, int width, int height) {
       table.addView(child, width, height);
     }
 
-    // @Override
+    @Override
+    public void setRowFooter(iScrollerSupport footerView) {
+      getListView().setRowFooter(footerView);
+    }
+
+    @Override
+    public void setRowHeader(iScrollerSupport headerView) {
+      getListView().setRowHeader(headerView);
+    }
+    
+    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
       if (tableHeader.isGridView()) {
         if ((MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY)
@@ -1065,10 +1148,12 @@ public class TableComponent extends Container
       }
     }
 
+    @Override
     public void setFlingGestureListener(OnGestureListener flingGestureListener) {
       table.setFlingGestureListener(flingGestureListener);
     }
 
+    @Override
     public void setOnTouchListener(OnTouchListener l) {
       table.setOnTouchListener(l);
     }

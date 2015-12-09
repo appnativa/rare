@@ -20,23 +20,22 @@
 
 package com.appnativa.rare.widget;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import android.content.Context;
-
 import android.graphics.drawable.Drawable;
-
 import android.view.FocusFinder;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
-import android.widget.PopupWindow;
-
-import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.android.AppContext;
 import com.appnativa.rare.platform.android.ui.DrawableIcon;
 import com.appnativa.rare.platform.android.ui.util.ImageUtils;
+import com.appnativa.rare.platform.android.ui.view.PopupWindowEx.PopupWindowFormsView;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.Component;
@@ -45,16 +44,13 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.iActionable;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.spot.SPOTSet;
-
-import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Base class for all widgets
@@ -77,6 +73,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
   /**
    * Performs Haptic Feedback on capable devices
    */
+  @Override
   public void buzz() {
     getDataView().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
             HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
@@ -87,6 +84,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
    *
    * @return an image of the widget
    */
+  @Override
   public UIImage capture() {
     return ImageUtils.createImage(getContainerView());
   }
@@ -94,6 +92,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
   /**
    * Focuses the next widget in the navigation sequence
    */
+  @Override
   public void focusNextWidget() {
     Component  c = this.getContainerComponentEx();
     iContainer p = getParent();
@@ -111,6 +110,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
   /**
    * Focuses the previous widget in the navigation sequence
    */
+  @Override
   public void focusPreviousWidget() {
     Component  c = this.getContainerComponentEx();
     iContainer p = getParent();
@@ -125,10 +125,12 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     }
   }
 
+  @Override
   public void handleKeyboardActions(KeyEvent e) {
     getDataComponent().dispatchEvent(e);
   }
 
+  @Override
   public void hidePopupContainer() {
     if (isDisposed()) {
       return;
@@ -141,8 +143,8 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
       ViewParent vp = v.getParent();
 
       while(vp != null) {
-        if (vp instanceof PopupWindow) {
-          ((PopupWindow) vp).dismiss();
+        if (vp instanceof PopupWindowFormsView) {
+          ((PopupWindowFormsView) vp).closeWindow();
 
           return;
         }
@@ -152,84 +154,10 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     }
   }
 
+  @Override
   public boolean requestFocus() {
     return getDataView().requestFocus();
   }
-
-  /**
-   * Shows the popup menu for the widget
-   */
-  public void showPopupMenu(int x, int y) {
-    UIPopupMenu menu = getPopupMenu();
-
-    if (menu != null) {
-      menu.show(this, Platform.isTouchDevice());
-    }
-  }
-
-//  public void setEventHandler(String event, Object code, boolean append) {
-//    String se = aWidgetListener.fromWebEventEx(event);
-//
-//    if (se != null) {
-//      event = se;
-//    }
-//
-//    WidgetListener l = (WidgetListener) this.getWidgetListener();
-//
-//    if (l == null) {
-//      l = (WidgetListener) createWidgetListener(this, new HashMap(), getScriptHandler());
-//      setWidgetListener(l);
-//    }
-//
-//    l.setEventHandler(event, code, append);
-//    getDataComponentEx().removeMouseListenerEx(l);
-//
-//    if (l.isMouseEventsEnabled() || l.isMouseMotionEventsEnabled() || l.isEnabled(iConstants.EVENT_SCROLL)) {
-//      getDataComponentEx().addMouseListenerEx(l);
-//    }
-//
-//    getDataComponentEx().removeKeyListenerEx(l);
-//
-//    if (l.isKeyEventsEnabled()) {
-//      getDataComponentEx().addKeyListenerEx(l);
-//    }
-//
-//    getDataComponentEx().removeFocusListenerEx(l);
-//
-//    if (l.isEnabled(iConstants.EVENT_FOCUS) || l.isEnabled(iConstants.EVENT_BLUR)) {
-//      getDataComponentEx().addFocusListenerEx(l);
-//    }
-//
-//    getContainerComponentEx().removeViewListenerEx(l);
-//
-//    if (l.isEnabled(iConstants.EVENT_RESIZE) || l.isEnabled(iConstants.EVENT_MOVED)
-//        || l.isEnabled(iConstants.EVENT_SHOWN) || l.isEnabled(iConstants.EVENT_HIDDEN)) {
-//      getContainerComponentEx().addViewListener(l);
-//    }
-//
-//    if (l.isEnabled(iConstants.EVENT_CHANGE) && (this instanceof iListHandler)) {
-//      ((iListHandler) this).removeItemChangeListener(l);
-//      ((iListHandler) this).addItemChangeListener(l);
-//    }
-//
-//    if (l.isEnabled(iConstants.EVENT_ACTION) && (this instanceof iActionable)) {
-//      ((iActionable) this).removeActionListener(l);
-//      ((iActionable) this).addActionListener(l);
-//    }
-//
-//    if ((this instanceof iTreeHandler) && (event.startsWith("onWill") || event.startsWith("onHas"))) {
-//      ((iTreeHandler) this).removeExpandedListener(l);
-//      ((iTreeHandler) this).removeExpansionListener(l);
-//
-//      if (l.isExpandedEventsEnabled()) {
-//        ((iTreeHandler) this).addExpandedListener(l);
-//      }
-//
-//      if (l.isExpansionEventsEnabled()) {
-//        ((iTreeHandler) this).addExpansionListener(l);
-//      }
-//    }
-//  }
   public Context getAndroidContext() {
     if (formComponent != null) {
       return getContainerView().getContext();
@@ -247,13 +175,14 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
   }
 
   public View getContainerView() {
-    return (View) getContainerComponentEx().getView();
+    return getContainerComponentEx().getView();
   }
 
   public View getDataView() {
-    return (View) getDataComponentEx().getView();
+    return getDataComponentEx().getView();
   }
 
+  @Override
   public Drawable getDrawable(String source) {
     iPlatformIcon icon = getIcon(source, source);
 
@@ -262,6 +191,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
            : new DrawableIcon(icon);
   }
 
+  @Override
   public boolean getHasPainterSupport() {
     if (getDataView() instanceof iPainterSupport) {
       return true;
@@ -290,6 +220,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     return null;
   }
 
+  @Override
   public boolean isFocusOwner() {
     Component fc = getContainerComponentEx();
 
@@ -300,6 +231,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     return fc.getView().isFocused();
   }
 
+  @Override
   public boolean isInPopup() {
     if (isDisposed()) {
       return false;
@@ -309,7 +241,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     ViewParent vp = v.getParent();
 
     while(vp != null) {
-      if (vp instanceof PopupWindow) {
+      if (vp instanceof PopupWindowFormsView) {
         return true;
       }
 
@@ -347,6 +279,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
    *          true to create text menus (cut/copy/paste/) for the widget; false
    *          otherwise
    */
+  @Override
   protected void configureMenus(iPlatformComponent comp, Widget cfg, boolean textMenus) {
     SPOTSet menu = cfg.getPopupMenu();
 
@@ -356,10 +289,12 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     }
   }
 
+  @Override
   protected aWidgetListener createWidgetListener(iWidget widget, Map map, iScriptHandler scriptHandler) {
     return new WidgetListener(widget, map, scriptHandler);
   }
 
+  @Override
   protected void initializeListeners(aWidgetListener listener) {
     WidgetListener l = (WidgetListener) listener;
 
@@ -407,6 +342,7 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
     return (Component) getDataComponent();
   }
 
+  @Override
   protected iPainterSupport getPainterSupport(boolean outer) {
     return outer
            ? getContainerComponentEx()

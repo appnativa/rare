@@ -90,12 +90,12 @@ public class LabelView extends View implements iApplePainterSupport {
   @Override
   public native void setFont(UIFont font)
   /*-[
-        if(font!=font_) {
-                font_ = font;
-                if(font!=nil) {
+     if(font!=font_) {
+        font_ = font;
+        if(font!=nil) {
         [((UILabel*)proxy_) setFont: (UIFont*)[font getIOSProxy]];
       }
-        }
+    }
   ]-*/
   ;
 
@@ -103,7 +103,7 @@ public class LabelView extends View implements iApplePainterSupport {
   protected native void setForegroundColorEx(UIColor fg)
   /*-[
     if(fg!=nil) {
-                [((UILabel*)proxy_) setTextColor: fg.getAPColor];
+      [((UILabel*)proxy_) setTextColor: fg.getAPColor];
     }
   ]-*/
   ;
@@ -142,7 +142,7 @@ public class LabelView extends View implements iApplePainterSupport {
   ;
 
   @Override
-  public native void getMinimumSize(UIDimension size)
+  public native void getMinimumSize(UIDimension size,float maxWidth)
   /*-[
     CGSize s= [((UILabel*)proxy_) intrinsicContentSize];
     size->width_=0;

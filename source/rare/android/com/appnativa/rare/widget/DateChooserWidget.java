@@ -55,10 +55,12 @@ public class DateChooserWidget extends aDateChooserWidget {
    *
    * @return true if the new month is displayed successfully; false if the new month is out of the valid date range
    */
+  @Override
   public boolean setDisplayedMonth(int year, int month, int index) {
     return false;
   }
 
+  @Override
   protected void handleCustomProperties(Widget cfg, Map<String, Object> properties) {
     super.handleCustomProperties(cfg, properties);
 

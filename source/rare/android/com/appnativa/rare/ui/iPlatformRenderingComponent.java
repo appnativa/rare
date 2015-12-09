@@ -62,4 +62,6 @@ public interface iPlatformRenderingComponent extends iRenderingComponent {
                                   boolean handleAll);
 
   void setBlockRequestLayout(boolean block);
+
+  void setColumnWidth(int width);
 }

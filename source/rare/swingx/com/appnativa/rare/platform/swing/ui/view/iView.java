@@ -25,7 +25,7 @@ import com.appnativa.rare.ui.UIDimension;
 import java.awt.geom.AffineTransform;
 
 public interface iView {
-  public void getMinimumSize(UIDimension size);
+  public void getMinimumSize(UIDimension size, int maxWidth);
 
   public void getPreferredSize(UIDimension size, int maxWidth);
 

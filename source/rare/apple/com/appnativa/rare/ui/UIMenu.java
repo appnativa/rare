@@ -30,7 +30,7 @@ import com.appnativa.spot.SPOTSet;
  * @author Don DeCoteau
  */
 public class UIMenu extends aUIMenu {
-
+  
   /**
    * Constructs a new instance
    */
@@ -160,12 +160,10 @@ public class UIMenu extends aUIMenu {
 
   @Override
   protected void addToNativeMenu(int pos, UIMenuItem mi) {
-    //((Menu) menuItem).add(pos,mi);
   }
 
   @Override
   protected void removeNativeItem(UIMenuItem mi) {
-    //((Menu) menuItem).remove(mi);
   }
 
   @Override
@@ -178,5 +176,10 @@ public class UIMenu extends aUIMenu {
     return (menuItem == null)
            ? false
            : ((Menu) menuItem).hasParentMenu();
+  }
+
+  @Override
+  public void setHeader(iPlatformComponent comp) {
+    ((Menu) menuItem).setHeaderView(comp==null ? null : comp.getView());
   }
 }

@@ -58,11 +58,10 @@ public class UIComponentPainter extends aUIComponentPainter {
       if (bp == null) {
         bp = backgroundPainter;
       }
-
       v.setBorder(b);
-      v.setBackgroundColorEx((bp == null)
-                             ? bg
-                             : null);
+      if(bp==null && bg!=null) {
+        v.setBackgroundColorEx(bg);
+      }
       v.setBackgroundPainter(bp);
     }
   }

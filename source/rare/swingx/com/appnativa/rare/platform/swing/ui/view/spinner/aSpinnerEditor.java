@@ -67,7 +67,7 @@ public abstract class aSpinnerEditor implements iSpinnerEditor, iFocusListener, 
   }
 
   @Override
-  public void focusChanged(Object view, boolean hasFocus, Object otherView) {
+  public void focusChanged(Object view, boolean hasFocus, Object otherView,boolean temporary) {
     if (!hasFocus && (view == editorView)) {
       commitEdit();
     }
@@ -86,6 +86,9 @@ public abstract class aSpinnerEditor implements iSpinnerEditor, iFocusListener, 
 
   public void setEditorDirty(boolean editorDirty) {
     this.editorDirty = editorDirty;
+  }
+
+  public void selectAll() {
   }
 
   @Override

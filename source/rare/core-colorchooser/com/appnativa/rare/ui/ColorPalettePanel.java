@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -66,6 +66,23 @@ public class ColorPalettePanel extends UIPanel implements iActionable, iActionLi
     if (listenerList != null) {
       listenerList.remove(iActionListener.class, l);
     }
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+
+    if (listHandler != null) {
+      iPlatformComponent c = listHandler.getContainerComponent();
+
+      listHandler.dispose();
+
+      if (c != null) {
+        c.dispose();
+      }
+    }
+
+    listHandler = null;
   }
 
   public void setColorPalette(ColorPalette palette) {
@@ -346,7 +363,7 @@ public class ColorPalettePanel extends UIPanel implements iActionable, iActionLi
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (listHandler != null) {
       listHandler.getContainerComponent().getMinimumSize(size);
     } else {

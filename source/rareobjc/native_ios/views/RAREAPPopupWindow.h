@@ -11,16 +11,17 @@
 @interface RAREAPPopupWindow : RAREAPWindow {
   BOOL transient_;
   NSTimer* timer;
-  NSInteger timeout_;
+  double timeout_;
   BOOL focusable_;
   BOOL canceled_;
 }
 
 @property (nonatomic) BOOL transient;
 @property (nonatomic) BOOL focusable;
-@property (nonatomic) NSInteger timeout;
+@property (nonatomic) double timeout;
 
 -(void) setDecorated: (BOOL) decorated;
 -(void) cancelPopup:(BOOL) useAnimation;
 -(BOOL) outsideTouchHappened;
+-(BOOL) isTransient;
 @end

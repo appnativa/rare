@@ -105,10 +105,10 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     setGravity(Gravity.CENTER);
 
     UIColor c = Platform.getUIDefaults().getColor("Rare.Button.foreground");
-
-    if (c != null) {
-      c.setTextColor(this);
+    if (c == null) {
+      c=ColorUtils.getForeground();
     }
+    c.setTextColor(this);
 
     FontUtils.getDefaultFont().setupTextView(this);
     setMaxLines(Short.MAX_VALUE);
@@ -124,6 +124,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     }
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -138,6 +139,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     }
   }
 
+  @Override
   public void invalidate() {
     if (invalidateParent) {
       ViewGroup vp = (ViewGroup) getParent();
@@ -152,6 +154,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     super.invalidate();
   }
 
+  @Override
   public void invalidate(Rect dirty) {
     if (invalidateParent) {
       ViewGroup vp = (ViewGroup) getParent();
@@ -166,6 +169,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     super.invalidate(dirty);
   }
 
+  @Override
   public void invalidate(int l, int t, int r, int b) {
     if (invalidateParent) {
       ViewGroup vp = (ViewGroup) getParent();
@@ -181,7 +185,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
   }
 
   public void makeTransparent() {
-    setBackgroundDrawable(NullDrawable.getInstance());
+    setBackground(NullDrawable.getInstance());
     setMinimumHeight(0);
     setMinimumWidth(0);
     setMinHeight(0);
@@ -212,6 +216,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     return super.onTrackballEvent(event);
   }
 
+  @Override
   public void onWindowFocusChanged(boolean hasWindowFocus) {
     super.onWindowFocusChanged(hasWindowFocus);
 
@@ -220,6 +225,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     }
   }
 
+  @Override
   public String toString() {
     CharSequence s = getText();
 
@@ -247,6 +253,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
 
     mHandler  = new Handler();
     mRunnable = new Runnable() {
+      @Override
       public void run() {
         if (repeatCanceled ||!isPressed()) {
           invalidate();
@@ -261,6 +268,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
       }
     };
     longClickListener = new OnLongClickListener() {
+      @Override
       public boolean onLongClick(View v) {
         repeatCanceled = false;
         mHandler.post(mRunnable);
@@ -271,6 +279,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     setOnLongClickListener(longClickListener);
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
     resolveStateValues();
@@ -411,6 +420,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     this.orientation = orientation;
   }
 
+  @Override
   public void setText(CharSequence text, BufferType type) {
     text = LabelView.checkText(text, (ImageGetter) Platform.findWidgetForComponent(Component.fromView(this)));
 
@@ -429,6 +439,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     return Utils.getState(isEnabled(), isPressed(), isSelected(), false);
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
@@ -460,6 +471,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     return orientation;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     if (orientation == Orientation.HORIZONTAL) {
       return Math.max(super.getSuggestedMinimumHeight(), getIconHeight());
@@ -468,6 +480,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     }
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     if (orientation == Orientation.HORIZONTAL) {
       return Math.max(super.getSuggestedMinimumWidth(), getIconWidth());
@@ -494,17 +507,20 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     resolveStateValues();
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     repeatCanceled = true;
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onDraw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -563,6 +579,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     graphics.clear();
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -574,11 +591,13 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     }
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);
@@ -587,17 +606,11 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
   protected void resolveStateValues() {
     if (componentPainter != null) {
       PainterHolder ph = componentPainter.getPainterHolder();
-
       if (ph != null) {
+        invalidate();
         ButtonState bs = getButtonState();
 
         drawIcon = ph.getIcon(bs);
-
-        UIColor fg = ph.getForeground(bs, true);
-
-        if (fg != null) {
-          setTextColor(fg.getColor());
-        }
       }
     }
 

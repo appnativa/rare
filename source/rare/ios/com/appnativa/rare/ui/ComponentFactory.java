@@ -57,6 +57,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
   iPlatformAppContext appContext;
   Class               collapsibleClass;
 
+  @Override
   public void setAppContext(iPlatformAppContext app) {
     appContext = app;
   }
@@ -156,6 +157,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     return v;
   }
 
+  @Override
   public iCollapsible getCollapsible(iWidget context, CollapsibleInfo cfg) {
     try {
       if (collapsibleClass == null) {
@@ -172,6 +174,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     }
   }
 
+  @Override
   public iPlatformTextEditor getDocumentPane(iWidget widget, DocumentPane cfg) {
     switch(cfg.style.getValue()) {
       case DocumentPane.CStyle.html_editor :

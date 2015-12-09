@@ -81,7 +81,9 @@ public abstract class aComponentRenderer implements iPlatformRenderingComponent 
   public void setBorder(iPlatformBorder b) {
     renderingComponent.setBorder(b);
   }
-
+  @Override
+  public void setColumnWidth(int width) {
+  }
   /**
    * Sets the component to use to render
    * @param comp the component to use to render

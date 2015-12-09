@@ -20,16 +20,15 @@
 
 package com.appnativa.rare.ui.spinner;
 
-import android.content.Context;
+import java.text.DecimalFormat;
 
+import android.content.Context;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spanned;
 import android.text.method.DigitsKeyListener;
 
 import com.appnativa.util.SNumber;
-
-import java.text.DecimalFormat;
 
 /**
  *
@@ -53,7 +52,6 @@ public class NumberEditor extends DefaultEditor {
   protected void customizeEditor() {
     super.customizeEditor();
     editorView.setFilters(new InputFilter[] { new NumberRangeKeyListener(false, true) });
-
     if (supportDecimalValues) {
       editorView.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
     } else {

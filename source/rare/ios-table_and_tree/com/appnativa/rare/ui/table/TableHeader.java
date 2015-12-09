@@ -74,7 +74,17 @@ public class TableHeader extends aTableHeader {
     addMouseMotionListener(l);
     setForeground(ColorUtils.getForeground());
   }
-
+  
+  @Override
+  public void moveColumn(int column, int targetColumn) {
+    int len=this.columns.length;
+    if(column<0 || column>=len || targetColumn<0 || targetColumn>=len) {
+      throw new IllegalArgumentException();
+    }
+   tableView.moveColumn(column, targetColumn);
+   columnMoved(column, targetColumn);
+  }
+  
   public boolean isColumnSelected(int col) {
     return (selectionModel == null)
            ? false
@@ -234,7 +244,6 @@ public class TableHeader extends aTableHeader {
       super(proxy);
       this.headerView = headerView;
       this.tableView  = table;
-      setParentView(table);
     }
 
     @Override

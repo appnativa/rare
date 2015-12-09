@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -83,7 +83,6 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   boolean                     canceled;
   Component                   content;
   iWidget                     contextWidget;
-  ExpansionEvent              expansionEvent;
   iPlatformComponent          owner;
   WindowPane                  windowPane;
   UITarget                    target;
@@ -167,6 +166,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
 
   @Override
   public void showModalPopup() {
+    setFocusable(true);
     setModal(true);
     setVisible(true);
   }
@@ -278,6 +278,8 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   @Override
   public void setTransient(boolean istransient) {
     this.istransient = istransient;
+    setFocusable(!istransient);
+    setModal(!istransient);
   }
 
   @Override
@@ -287,6 +289,7 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
 
   @Override
   public void dispose() {
+    Platform.getAppContext().getActiveWindows().remove(this);
     if (_awtEventListener != null) {
       removeMouseEventHandler();
     }
@@ -502,11 +505,8 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
       canceled = false;
 
       if (listenerList != null) {    // can be null if disposed was called
-        if (expansionEvent == null) {
-          expansionEvent = new ExpansionEvent(PopupWindow.this);
-        }
-
-        Utils.firePopupEvent(listenerList, expansionEvent, true);
+        ExpansionEvent  e = new ExpansionEvent(PopupWindow.this,ExpansionEvent.Type.WILL_EXPAND);
+        Utils.firePopupEvent(listenerList, e, true);
       }
 
       if (!sizeSet) {
@@ -546,38 +546,46 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
 
       setLocation(UIScreen.snapToPosition(xx), UIScreen.snapToPosition(yy));
 
-      if (content != null) {
-        content.requestFocusInWindow();
-      }
     } else {
       removeMouseEventHandler();
 
       if (listenerList != null) {    // can be null if disposed was called
-        if (expansionEvent == null) {
-          expansionEvent = new ExpansionEvent(PopupWindow.this);
-        }
-
-        Utils.firePopupEvent(listenerList, expansionEvent, false);
+        ExpansionEvent e = new ExpansionEvent(PopupWindow.this,ExpansionEvent.Type.WILL_COLLAPSE);
+        Utils.firePopupEvent(listenerList, e, false);
       }
-
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          dispose();
-        }
-      });
     }
-
+    if(visible) {
+      if (istransient) {
+        addMouseEventHandler();
+        setModalityType(ModalityType.MODELESS);
+      }
+      else {
+        setFocusable(true);
+        setModalityType(ModalityType.APPLICATION_MODAL);
+      }
+    }
     super.setVisible(visible);
 
     if (visible) {
       Platform.getAppContext().getActiveWindows().add(this);
 
-      if (istransient) {
-        addMouseEventHandler();
+      if (timeout > 0) {
+        Platform.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            if (isVisible()) {
+              setVisible(false);
+            }
+          }
+        }, timeout);
       }
     } else {
-      Platform.getAppContext().getActiveWindows().remove(this);
+      Platform.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          dispose();
+        }
+      });
     }
   }
 
@@ -613,18 +621,20 @@ public class PopupWindow extends JDialog implements iPopup, WindowFocusListener 
   }
 
   private void removeMouseEventHandler() {
-    try {
-      java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<Object>() {
-        @Override
-        public Object run() {
-          Toolkit.getDefaultToolkit().removeAWTEventListener(_awtEventListener);
-          _awtEventListener = null;
+    if (_awtEventListener != null) {
+      try {
+        java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<Object>() {
+          @Override
+          public Object run() {
+            Toolkit.getDefaultToolkit().removeAWTEventListener(_awtEventListener);
+            _awtEventListener = null;
 
-          return null;
-        }
-      });
-    } catch(SecurityException e) {
-      throw new RuntimeException(e);
+            return null;
+          }
+        });
+      } catch(SecurityException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }

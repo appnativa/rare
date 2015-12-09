@@ -22,9 +22,7 @@ package com.appnativa.rare.ui;
 
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
-
 import android.graphics.drawable.Drawable;
-
 import android.widget.TextView;
 
 import com.appnativa.rare.Platform;
@@ -293,7 +291,6 @@ public class UIColorShade extends UIColor implements Cloneable {
     if ((colorStateList != null) && (colorStateList.getColorForState(STATE_DISABLED, 0) != 0)) {
       return this;
     }
-    ;
 
     return def;
   }

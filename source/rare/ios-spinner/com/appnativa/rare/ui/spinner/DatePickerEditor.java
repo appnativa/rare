@@ -110,4 +110,8 @@ public class DatePickerEditor extends aSpinnerEditor implements iUpdateListener,
   public Object removeSelectedData(boolean returnData) {
     return null;
   }
+
+  @Override
+  public void selectField() {
+  }
 }

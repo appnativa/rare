@@ -78,9 +78,9 @@ public class PainterUtils {
 
     if (v != null) {
       if (pb.getBackgroundColor() != null) {
-        v.setBackgroundDrawable(pb.getBackgroundColor().getDrawable());
+        v.setBackground(pb.getBackgroundColor().getDrawable());
       } else if (pb.getBorder() != null) {
-        v.setBackgroundDrawable(pb.getBorder().getDrawable(null));
+        v.setBackground(pb.getBorder().getDrawable(null));
       }
     }
   }

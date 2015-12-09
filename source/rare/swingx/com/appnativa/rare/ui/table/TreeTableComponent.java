@@ -23,6 +23,7 @@ package com.appnativa.rare.ui.table;
 import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.event.EventListenerList;
@@ -80,12 +81,8 @@ public class TreeTableComponent extends TableComponent {
     super.initialize(table, cfg);
 
     TreeTable     tt = (TreeTable) cfg;
-    TreeTableView tv = (TreeTableView) tableView;
-
-    tv.setShowRootHandles(tt.showRootHandles.booleanValue());
     treeModel.setExpandableColumn(tt.expandableColumn.intValue());
-    treeModel.setExpandAll(tt.expandAll.booleanValue());
-    tv.setParentItemsSelectable(tt.parentItemsSelectable.booleanValue());
+    setTreeIcons(new PainterUtils.TwistyIcon(this,false),new PainterUtils.TwistyIcon(this,true));
   }
 
   @Override

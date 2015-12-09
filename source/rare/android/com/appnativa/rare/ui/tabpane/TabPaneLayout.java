@@ -15,11 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.tabpane;
 
+import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.android.ui.view.FrameView;
 import com.appnativa.rare.ui.RenderType;
 
@@ -28,16 +29,11 @@ public class TabPaneLayout extends aTabPaneLayout {
     super(cm);
   }
 
-//  public boolean checkOrientation() {
-//    boolean ok = super.checkOrientation();
-//
-//    if (VERSION.SDK_INT > 10) {
-//      mainComponent.getView().postInvalidateDelayed(300);
-//    }
-//
-//    return ok;
-//  }
-//
+  @Override
+  protected boolean canChangeOrientationInCurrentState() {
+    return !PlatformHelper.isKeyboardVisible();
+  }
+
   protected void configureRotation(int degrees) {}
 
   protected void setContentRenderType(RenderType type) {

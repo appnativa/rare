@@ -564,7 +564,7 @@ public abstract class aNavigatorWidget extends aPlatformWidget {
     Margin m = cfg.getContentPadding();
 
     if (m != null) {
-      np.setInsets(m.createInsets());
+      np.setInsets(m.getInsets());
     }
 
     SPOTSet    set = cfg.actions;
@@ -637,8 +637,8 @@ public abstract class aNavigatorWidget extends aPlatformWidget {
     }
 
     @Override
-    protected void getMinimumSizeEx(UIDimension size) {
-      super.getMinimumSizeEx(size);
+    protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+      super.getMinimumSizeEx(size, maxWidth);
       size.width += ScreenUtils.PLATFORM_PIXELS_4;
     }
 

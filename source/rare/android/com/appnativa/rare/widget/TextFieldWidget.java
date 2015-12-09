@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
@@ -31,7 +31,6 @@ import com.appnativa.rare.scripting.Functions;
 import com.appnativa.rare.spot.PasswordField;
 import com.appnativa.rare.spot.TextField;
 import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.KeyboardReturnButtonType;
 import com.appnativa.rare.ui.KeyboardType;
 import com.appnativa.rare.ui.Utils;
@@ -111,7 +110,8 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
     return _typeMap.get(name);
   }
 
-  public void setKeyboardReturnButtonType(KeyboardReturnButtonType type, String text) {
+  @Override
+  public void setKeyboardReturnButtonType(KeyboardReturnButtonType type, String text, boolean autoEnable) {
     final EditText et = (EditText) getDataView();
 
     if (type == null) {
@@ -166,11 +166,12 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
     }
   }
 
+  @Override
   public void setKeyboardType(KeyboardType type) {
+    super.setKeyboardType(type);
     if (type == null) {
       type = KeyboardType.TEXT_TYPE;
     }
-
     final EditText et = (EditText) getDataView();
 
     switch(type) {
@@ -221,6 +222,7 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
     }
   }
 
+  @Override
   public void setShowPassword(boolean show) {
     EditText et = (EditText) getDataView();
     int      n  = et.getInputType();
@@ -247,6 +249,7 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
    *
    * @param characters the number of characters
    */
+  @Override
   public void setVisibleCharacters(int characters) {
     visibleCharacters = characters;
     ((EditText) getDataView()).setEms((int) Math.ceil((characters * 12) / 16));
@@ -257,10 +260,15 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
    *
    * @param cfg the text field's configuration
    */
+  @Override
   protected void configureEx(TextField cfg) {
     super.configureEx(cfg);
 
-    final EditText et = (EditText) getDataView();
+    EditText et = (EditText) getDataView();
+    if(!cfg.allowDefaultSuggestions.booleanValue()) {
+      et.setInputType(et.getInputType()|InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+    }
+    
     String         s  = cfg.keyboardType.spot_getAttribute("autoShow");
 
     if ((s != null) && (et instanceof EditTextEx)) {
@@ -268,14 +276,17 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
     }
   }
 
+  @Override
   protected iPlatformTextEditor createEditorAndComponents(iViewer viewer, PasswordField cfg) {
     EditTextEx e = (EditTextEx) getAppContext().getComponentCreator().getPasswordTextField(getViewer(), cfg);
 
-    dataComponent = formComponent = new ActionComponent(e);
+    dataComponent = e.getComponent();
+    formComponent = e.getContainer();
 
     return e;
   }
 
+  @Override
   protected iPlatformTextEditor createEditorAndComponents(iViewer viewer, TextField cfg) {
     EditTextEx e = (EditTextEx) getAppContext().getComponentCreator().getTextField(getViewer(), cfg);
 
@@ -285,6 +296,7 @@ public class TextFieldWidget extends aTextFieldWidget implements iActionable {
     return e;
   }
 
+  @Override
   protected void handleCustomProperties(Widget cfg, Map<String, Object> properties) {
     final EditText et      = (EditText) getDataView();
     UtilityMap     options = DataParser.getOptionsMapFromCustomProperties(properties);

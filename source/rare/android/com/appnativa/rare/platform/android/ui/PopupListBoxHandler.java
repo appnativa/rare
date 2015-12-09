@@ -34,7 +34,6 @@ import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.widget.iWidget;
 
 public class PopupListBoxHandler extends ListBoxListHandler {
-  @SuppressWarnings("unused")
   public PopupListBoxHandler(iWidget context, iPlatformListDataModel model, boolean forMenu) {
     super(new ListViewEx(context.getAppContext().getActivity()), model);
 
@@ -47,7 +46,7 @@ public class PopupListBoxHandler extends ListBoxListHandler {
     list.setAdapter((ListAdapter) listModel);
 
     Component comp = new ListComponent(list);
-
+    comp.setWidget(context);
     list.setVerticalFadingEdgeEnabled(true);
 
     ListItemRenderer lr = new ListItemRenderer();

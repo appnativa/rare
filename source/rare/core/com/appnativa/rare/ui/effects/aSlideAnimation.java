@@ -20,16 +20,14 @@
 
 package com.appnativa.rare.ui.effects;
 
-import com.appnativa.rare.platform.PlatformHelper;
+import java.util.Map;
+
 import com.appnativa.rare.ui.AnimationComponent;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.util.SNumber;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.util.Map;
 
 public abstract class aSlideAnimation extends aPlatformAnimator implements iTransitionSupport {
   protected boolean            horizontal = true;
@@ -200,7 +198,7 @@ public abstract class aSlideAnimation extends aPlatformAnimator implements iTran
 
   @Override
   public void restoreComponent(iPlatformComponent comp) {
-    PlatformHelper.setComponentAlpha(comp, 1f);
+    comp.setAlpha(1f);
   }
 
   protected boolean isComponentDisposed() {
@@ -256,12 +254,12 @@ public abstract class aSlideAnimation extends aPlatformAnimator implements iTran
     }
 
     if (fadeOut && (outComponent != null)) {
-      PlatformHelper.setComponentAlpha(outComponent, 1 - fraction);
+      outComponent.setAlpha( 1 - fraction);
       outComponent.repaint();
     }
 
     if (fadeIn && (inComponent != null)) {
-      PlatformHelper.setComponentAlpha(inComponent, fraction);
+      inComponent.setAlpha(fraction);
       inComponent.repaint();
     }
   }

@@ -76,7 +76,14 @@ public class JViewportEx extends JViewport implements iPainterSupport, ChangeLis
   public void setComponentPainter(iPlatformComponentPainter cp) {
     this.componentPainter = cp;
   }
-
+   @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    Component c=getView();
+    if(c!=null) {
+      c.setEnabled(enabled);
+    }
+  }
   public void setForceSizeMatch(boolean forceSizeMatch) {
     this.forceSizeMatch = forceSizeMatch;
   }
@@ -357,15 +364,6 @@ public class JViewportEx extends JViewport implements iPainterSupport, ChangeLis
 
           vp.setViewPosition(p);
           vp.setViewSize(size);
-          size = linkedViewPort.getSize();
-
-          if (horizontalLink) {
-            size.height = vp.getHeight();
-          } else {
-            size.width = vp.getWidth();
-          }
-
-          vp.setSize(size);
         }
       }
     }

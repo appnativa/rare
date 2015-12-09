@@ -216,11 +216,6 @@
 
 + (CGRect)imageRectForContentRect:(CGRect)contentRect titleRect: (CGRect) titleRect titleSize: (CGSize) titleSize imageSize: (CGSize) imageSize iconPosition: (RARERenderableDataItem_IconPosition ) ip iconGap : (int) iconGap textAlignment:(NSTextAlignment) alignment{
   CGRect rect = {contentRect.origin, imageSize};
-  if(titleRect.size.height<=0 || titleRect.size.width<=0) {
-    rect.origin.x+=((contentRect.size.width-rect.size.width)/2);
-    rect.origin.y+=((contentRect.size.height-rect.size.height)/2);
-    return rect;
-  }
   BOOL rtl = [AppleHelper isLTRText];
   if (ip == RARERenderableDataItem_IconPosition_TRAILING) {
     ip = rtl ? RARERenderableDataItem_IconPosition_LEFT : RARERenderableDataItem_IconPosition_RIGHT;
@@ -228,6 +223,11 @@
   else if (ip == RARERenderableDataItem_IconPosition_LEADING || !ip) {
     ip = rtl ? RARERenderableDataItem_IconPosition_RIGHT : RARERenderableDataItem_IconPosition_LEFT;
     
+  }
+  if((titleRect.size.height<=0 || titleRect.size.width<=0) && ip!=RARERenderableDataItem_IconPosition_RIGHT_JUSTIFIED) {
+    rect.origin.x+=((contentRect.size.width-rect.size.width)/2);
+    rect.origin.y+=((contentRect.size.height-rect.size.height)/2);
+    return rect;
   }
   switch (ip) {
     case RARERenderableDataItem_IconPosition_TOP_CENTER :

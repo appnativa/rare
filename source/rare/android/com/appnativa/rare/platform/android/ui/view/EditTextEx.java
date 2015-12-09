@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
@@ -26,10 +26,13 @@ import android.graphics.Canvas;
 
 import android.text.Editable;
 import android.text.Html;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
@@ -44,6 +47,7 @@ import android.util.AttributeSet;
 
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,6 +55,8 @@ import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
 
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -58,11 +64,15 @@ import com.appnativa.rare.platform.android.ui.iComponentView;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
 import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
 import com.appnativa.rare.ui.ActionComponent;
+import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.Container;
 import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.KeyboardType;
+import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
+import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.listener.iTextChangeListener;
@@ -77,24 +87,27 @@ import com.appnativa.rare.widget.iWidget;
  * @author Don DeCoteau
  */
 public class EditTextEx extends EditText
-        implements iPainterSupport, iComponentView, iPlatformTextEditor, OnFocusChangeListener, Callback {
-  public static final CharacterStyle BOLD_SPAN          = new StyleSpan(android.graphics.Typeface.BOLD);
-  public static final CharacterStyle ITALIC_SPAN        = new StyleSpan(android.graphics.Typeface.ITALIC);
-  public static final CharacterStyle NORMAL_SPAN        = new StyleSpan(android.graphics.Typeface.NORMAL);
-  public static final CharacterStyle BOLD_ITALIC_SPAN   = new StyleSpan(android.graphics.Typeface.NORMAL);
-  public static final CharacterStyle UNDERLINE_SPAN     = new UnderlineSpan();
-  public static final CharacterStyle SUPERSCRIPT_SPAN   = new SuperscriptSpan();
-  public static final CharacterStyle SUBSCRIPT_SPAN     = new SubscriptSpan();
-  public static final CharacterStyle STRIKETHROUGH_SPAN = new StrikethroughSpan();
-  iPlatformComponentPainter          componentPainter;
-  boolean                            trapEnter;
-  protected AndroidGraphics          graphics;
-  private Orientation                orientation = Orientation.HORIZONTAL;
-  private boolean                    editable    = true;
-  private boolean                    autoShowKeyboard;
-  private Container                  container;
-  private OnFocusChangeListener      focusChangeListener;
-  private iSelectionChangeListener   selectionChangeListener;
+        implements iPainterSupport, iComponentView, iPlatformTextEditor, OnFocusChangeListener, Callback,
+                   OnEditorActionListener {
+  public static final CharacterStyle  BOLD_SPAN          = new StyleSpan(android.graphics.Typeface.BOLD);
+  public static final CharacterStyle  ITALIC_SPAN        = new StyleSpan(android.graphics.Typeface.ITALIC);
+  public static final CharacterStyle  NORMAL_SPAN        = new StyleSpan(android.graphics.Typeface.NORMAL);
+  public static final CharacterStyle  BOLD_ITALIC_SPAN   = new StyleSpan(android.graphics.Typeface.NORMAL);
+  public static final CharacterStyle  UNDERLINE_SPAN     = new UnderlineSpan();
+  public static final CharacterStyle  SUPERSCRIPT_SPAN   = new SuperscriptSpan();
+  public static final CharacterStyle  SUBSCRIPT_SPAN     = new SubscriptSpan();
+  public static final CharacterStyle  STRIKETHROUGH_SPAN = new StrikethroughSpan();
+  protected iPlatformComponentPainter componentPainter;
+  protected AndroidGraphics           graphics;
+  protected Orientation               orientation = Orientation.HORIZONTAL;
+  protected boolean                   editable    = true;
+  protected boolean                   autoShowKeyboard;
+  protected Container                 container;
+  protected OnFocusChangeListener     focusChangeListener;
+  protected iSelectionChangeListener  selectionChangeListener;
+  protected ATextWatcher              textWatcher;
+  protected boolean                   changeEventsEnabled = true;
+  protected boolean                   wantsAction;
 
   public static enum Orientation { HORIZONTAL, VERTICAL_TOP, VERTICAL_BOTTOM; }
 
@@ -109,56 +122,62 @@ public class EditTextEx extends EditText
       e = new EditTextEx(context);
     }
 
+    e.setInputType(e.getInputType() | InputType.TYPE_CLASS_TEXT);
+
     return e;
   }
 
   public EditTextEx(Context context, AttributeSet attrs) {
     super(context, attrs);
     setId(System.identityHashCode(this));
-
-    UIColor c = Platform.getUIDefaults().getColor("Rare.TextField.background");
-
-    if (c != null) {
-      setBackgroundColor(c.getColor());
-    }
-
-    c = Platform.getUIDefaults().getColor("Rare.TextField.foreground");
-
-    if (c != null) {
-      setTextColor(c.getColor());
-    }
-
-    UIFont f = Platform.getUIDefaults().getFont("Rare.TextField.font");
-
-    if (f == null) {
-      f = FontUtils.getDefaultFont();
-    }
-
-    f.setupTextView(this);
     setImeActionLabel(Platform.getResourceAsString("Rare.text.done"), EditorInfo.IME_ACTION_DONE);
     super.setOnFocusChangeListener(this);
     this.setCustomSelectionActionModeCallback(this);
     setFocusable(true);
     setFocusableInTouchMode(true);
+    setOnEditorActionListener(this);
   }
 
   @Override
   public void addActionListener(iActionListener listener) {
     ((ActionComponent) getComponent()).addActionListener(listener);
+    wantsAction = true;
   }
 
+  @Override
   public void addTextChangeListener(iTextChangeListener changeListener) {
     ((ActionComponent) getComponent()).addTextChangeListener(changeListener);
+
+    if (textWatcher == null) {
+      textWatcher = new ATextWatcher();
+      addTextChangedListener(textWatcher);
+
+      InputFilter[] filters = getFilters();
+
+      if ((filters == null) || (filters.length == 0)) {
+        setFilters(new InputFilter[] { textWatcher });
+      } else {
+        InputFilter[] a = new InputFilter[filters.length + 1];
+
+        System.arraycopy(filters, 0, a, 0, filters.length);
+        a[filters.length] = textWatcher;
+        setFilters(a);
+      }
+    }
   }
 
+  @Override
   public void appendText(String text) {
     append(text);
   }
 
+  @Override
   public void boldText() {}
 
+  @Override
   public void decreaseIndent() {}
 
+  @Override
   public void deleteSelection() {
     int s = getSelectionStart();
     int e = getSelectionEnd();
@@ -172,6 +191,7 @@ public class EditTextEx extends EditText
     setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -179,6 +199,7 @@ public class EditTextEx extends EditText
     }
   }
 
+  @Override
   public void draw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -195,18 +216,23 @@ public class EditTextEx extends EditText
     graphics.clear();
   }
 
+  @Override
   public void enlargeFont() {}
 
+  @Override
   public void increaseIndent() {}
 
+  @Override
   public void insertHTML(int pos, String html) {
     getEditableText().insert(pos, Html.fromHtml(html));
   }
 
+  @Override
   public void insertText(int pos, String text) {
     getEditableText().insert(pos, text);
   }
 
+  @Override
   public void italicText() {
     setCurrentStyle(ITALIC_SPAN, true);
   }
@@ -218,7 +244,7 @@ public class EditTextEx extends EditText
 
   @Override
   public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-    iWidget w = (iWidget) getComponent().getWidget();
+    iWidget w = getComponent().getWidget();
 
     if (w != null) {
       if (!w.canCopy() &&!w.canPaste()) {
@@ -232,10 +258,12 @@ public class EditTextEx extends EditText
   @Override
   public void onDestroyActionMode(ActionMode mode) {}
 
+  @Override
   public void onFocusChange(final View v, boolean hasFocus) {
     if (autoShowKeyboard) {
       if (hasFocus) {
         postDelayed(new Runnable() {
+          @Override
           public void run() {
             PlatformHelper.showVirtualKeyboard(v);
           }
@@ -255,6 +283,7 @@ public class EditTextEx extends EditText
     return false;
   }
 
+  @Override
   public void pasteText(String text) {
     int n = getSelectionStart();
 
@@ -272,24 +301,30 @@ public class EditTextEx extends EditText
     ((ActionComponent) getComponent()).removeActionListener(listener);
   }
 
+  @Override
   public void removeTextChangeListener(iTextChangeListener changeListener) {
     ((ActionComponent) getComponent()).removeTextChangeListener(changeListener);
   }
 
+  @Override
   public void shrinkFont() {}
 
+  @Override
   public void strikeThroughText() {
     setCurrentStyle(STRIKETHROUGH_SPAN, true);
   }
 
+  @Override
   public void subscriptText() {
     setCurrentStyle(SUBSCRIPT_SPAN, true);
   }
 
+  @Override
   public void superscriptText() {
     setCurrentStyle(SUPERSCRIPT_SPAN, true);
   }
 
+  @Override
   public void underlineText() {
     setCurrentStyle(UNDERLINE_SPAN, true);
   }
@@ -298,10 +333,12 @@ public class EditTextEx extends EditText
     autoShowKeyboard = autoShow;
   }
 
+  @Override
   public void setCaretPosition(int position) {
     setSelection(position);
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
@@ -338,6 +375,7 @@ public class EditTextEx extends EditText
   /**
    * @param editable the editable to set
    */
+  @Override
   public void setEditable(boolean editable) {
     if (editable != this.editable) {
       this.editable = editable;
@@ -359,10 +397,12 @@ public class EditTextEx extends EditText
     setHint(text);
   }
 
+  @Override
   public void setFollowHyperlinks(boolean follow) {
     setLinksClickable(follow);
   }
 
+  @Override
   public void setOnFocusChangeListener(OnFocusChangeListener l) {
     focusChangeListener = l;
   }
@@ -378,11 +418,13 @@ public class EditTextEx extends EditText
     selectionChangeListener = l;
   }
 
+  @Override
   public void setText(CharSequence text, BufferType type) {
     text = LabelView.checkText(text, null);
     super.setText(text, type);
   }
 
+  @Override
   public void setText(String text, boolean htmlDocument) {
     if ((text == null) || (text.length() == 0)) {
       setText("");
@@ -409,6 +451,7 @@ public class EditTextEx extends EditText
     }
   }
 
+  @Override
   public void setTextFontFamily(String family) {
 //  int start = getSelectionStart();
 //  int end   = getSelectionEnd();
@@ -431,6 +474,7 @@ public class EditTextEx extends EditText
 //  setCurrentStyle(span=new TextAppearanceSpan(family,0,-1,null,null), false);
   }
 
+  @Override
   public void setTextFontSize(int size) {
 //  int                start = getSelectionStart();
 //  int                end   = getSelectionEnd();
@@ -442,30 +486,35 @@ public class EditTextEx extends EditText
     // setCurrentStyle(span=new TextAppearanceSpan(family,0,-1,null,null), false);
   }
 
+  @Override
   public void setTextForeground(UIColor fg) {
     if (fg != null) {
       setCurrentStyle(new ForegroundColorSpan(fg.getColor()), true);
     }
   }
 
+  @Override
   public int getCaretPosition() {
     return getSelectionStart();
   }
 
+  @Override
   public iPlatformComponent getComponent() {
     iPlatformComponent c = (iPlatformComponent) this.getTag();
 
     if (c == null) {
-      c = new ActionComponent(this);
+      c = new EditorComponent(this);
     }
 
     return c;
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
 
+  @Override
   public iPlatformComponent getContainer() {
     if (container != null) {
       return container;
@@ -474,6 +523,7 @@ public class EditTextEx extends EditText
     return getComponent();
   }
 
+  @Override
   public String getHtmlText() {
     Editable e = super.getText();
     String   s = Html.toHtml(e);
@@ -496,10 +546,12 @@ public class EditTextEx extends EditText
     return orientation;
   }
 
+  @Override
   public String getPlainText() {
     return super.getText().toString();
   }
 
+  @Override
   public String getSelectionString() {
     int s = getSelectionStart();
     int e = getSelectionEnd();
@@ -511,18 +563,22 @@ public class EditTextEx extends EditText
     return "";
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     return super.getSuggestedMinimumHeight();
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     return super.getSuggestedMinimumWidth();
   }
 
+  @Override
   public String getText(int start, int end) {
     return getText().subSequence(start, end).toString();
   }
 
+  @Override
   public int getTextLength() {
     Editable e = getText();
 
@@ -540,19 +596,28 @@ public class EditTextEx extends EditText
   /**
    * @return the editable
    */
+  @Override
   public boolean isEditable() {
     return editable;
   }
 
+  @Override
   public boolean isFollowHyperlinks() {
     return getLinksClickable();
   }
 
+  @Override
+  public void setChangeEventsEnabled(boolean enabled) {
+    changeEventsEnabled = enabled;
+  }
+
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
 
@@ -563,6 +628,7 @@ public class EditTextEx extends EditText
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -574,6 +640,7 @@ public class EditTextEx extends EditText
     }
   }
 
+  @Override
   protected void onSelectionChanged(int selStart, int selEnd) {
     super.onSelectionChanged(selStart, selEnd);
 
@@ -582,16 +649,19 @@ public class EditTextEx extends EditText
     }
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);
   }
 
+  @Override
   protected boolean getDefaultEditable() {
     return isEditable();
   }
@@ -625,11 +695,115 @@ public class EditTextEx extends EditText
     }
 
     @Override
-    protected void getMinimumSizeEx(UIDimension size) {
+    protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
       UIFont f = getFont();
 
       size.width  = FontUtils.getCharacterWidth(f) * 5;
+      size.width  += view.getPaddingLeft() + view.getPaddingRight();
       size.height = (int) FontUtils.getFontHeight(f, true) + 2;
+      size.height += view.getPaddingTop() + view.getPaddingBottom();
+      size.height = Math.max(size.height, ScreenUtils.lineHeight(this));
+    }
+  }
+
+
+  class ATextWatcher implements TextWatcher, InputFilter {
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+    @Override
+    public void afterTextChanged(Editable s) {
+      if (changeEventsEnabled) {
+        Component c = (Component) getComponent();
+
+        c.textChanged(c);
+      }
+    }
+
+    @Override
+    public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+      if (changeEventsEnabled) {
+        Component    c                 = (Component) getComponent();
+        CharSequence replacementString = source.subSequence(start, end);
+
+        if (c.textChanging(c, dstart, dend, replacementString)) {
+          return replacementString;
+        }
+      }
+
+      return null;
+    }
+  }
+
+
+  @Override
+  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+    ActionComponent c = (ActionComponent) getComponent();
+
+    if (!c.shouldStopEditing(c)) {
+      return true;
+    }
+
+    if (wantsAction) {
+      c.actionPerformed(new ActionEvent(c));
+    }
+
+    return false;
+  }
+
+  public void setKeyboardType(KeyboardType type) {
+    if (type == null) {
+      type = KeyboardType.TEXT_TYPE;
+    }
+
+    switch(type) {
+      case DECIMAL_PUNCTUATION_TYPE :
+        setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+        break;
+
+      case EMAIL_ADDRESS_TYPE :
+        setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+
+        break;
+
+      case NAME_PHONE_NUMBER_TYPE :
+        setInputType(InputType.TYPE_TEXT_VARIATION_PERSON_NAME | InputType.TYPE_CLASS_PHONE);
+
+        break;
+
+      case NUMBER_PUNCTUATION_TYPE :
+        setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        break;
+
+      case NUMBER_TYPE :
+        setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        break;
+
+      case DECIMAL_TYPE :
+        setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+        break;
+
+      case PHONE_NUMBER_TYPE :
+        setInputType(InputType.TYPE_CLASS_PHONE);
+
+        break;
+
+      case URL_TYPE :
+        setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+
+        break;
+
+      default :
+        setInputType(InputType.TYPE_CLASS_TEXT);
+
+        break;
     }
   }
 }

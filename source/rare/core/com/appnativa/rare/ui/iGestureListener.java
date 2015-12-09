@@ -23,6 +23,10 @@ package com.appnativa.rare.ui;
 import com.appnativa.rare.ui.event.MouseEvent;
 
 public interface iGestureListener {
+  public static final int SCALE       = 2;
+  public static final int SCALE_BEGIN = 1;
+  public static final int SCALE_END   = 3;
+  public static final int SCALE_CANCELED   = 4;
   public void onScaleEvent(Object view, int type, Object sgd, float factor);
 
   void onFling(Object view, MouseEvent e1, MouseEvent e2, float velocityX, float velocityY);

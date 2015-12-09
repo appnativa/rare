@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -25,6 +25,7 @@ import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
+import com.appnativa.rare.ui.iNavigatorPanel.PanelType;
 import com.appnativa.rare.ui.border.UILineBorder;
 import com.appnativa.rare.ui.border.UIMatteBorder;
 import com.appnativa.rare.ui.event.ActionEvent;
@@ -32,8 +33,6 @@ import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.WindowEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iWindowListener;
-import com.appnativa.rare.ui.iNavigatorPanel.PanelType;
-import com.appnativa.rare.ui.renderer.aListItemRenderer;
 import com.appnativa.rare.viewer.WidgetPaneViewer;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
@@ -61,6 +60,25 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
   @Override
   public void addActionListener(iActionListener l) {
     getEventListenerList().add(iActionListener.class, l);
+  }
+
+  @Override
+  public void dispose() {
+    if (palettePanel != null) {
+      palettePanel.dispose();
+    }
+    if (colorWheel != null) {
+      colorWheel.dispose();
+    }
+
+    if (colorPalette != null) {
+      colorPalette.dispose();
+    }
+
+    super.dispose();
+    colorPalette = null;
+    colorWheel   = null;
+    palettePanel = null;
   }
 
   public void handleKeyPressed(KeyEvent e) {
@@ -320,12 +338,12 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
 
     if (showNoneButton) {
       s  = Platform.getResourceAsString("Rare.runtime.text.colorChooser.none");
-      pb = AlertPanel.createButton(s, "Rare.ColorChooser.noneButton", "0,0,0,1", new iActionListener() {
+      pb = AlertPanel.createButton(s, "Rare.ColorChooser.noneButton", new iActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           noneButtonPressed();
         }
-      }, UILineBorder.getDefaultLineColor());
+      });
 
       if (Platform.isTouchDevice()) {
         pb.setMinimumSize(null, "2ln");
@@ -340,12 +358,12 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
 
     if (showOkButton) {
       s  = Platform.getResourceAsString("Rare.text.ok");
-      pb = AlertPanel.createButton(s, "Rare.ColorChooser.noneButton", "0,0,0,1", new iActionListener() {
+      pb = AlertPanel.createButton(s, "Rare.ColorChooser.noneButton", new iActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
           okButtonPressed();
         }
-      }, UILineBorder.getDefaultLineColor());
+      });
 
       if (Platform.isTouchDevice()) {
         pb.setMinimumSize(null, "2ln");
@@ -371,6 +389,8 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
     iPlatformComponent getComponent();
 
     UIColor getSelectedColor();
+
+    void dispose();
   }
 
 
@@ -441,6 +461,8 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
     public ColorChooserComboBox(iWidget widget) {
       super(widget);
       setEditable(false);
+      restrictInput=false;
+      autoFilter=false;
       this.widget = widget;
       colorIcon.setIconWidth((int) Math.ceil(ScreenUtils.PLATFORM_PIXELS_8 * 4));
       setEditorIcon(colorIcon);
@@ -553,6 +575,7 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
       }
 
       setEditorValue(s);
+      editor.selectAll();
       colorIcon.setColor(c);
       repaint();
     }
@@ -567,44 +590,6 @@ public class ColorChooserPanel extends BorderPanel implements iActionable {
       popupContent.revalidate();
       Utils.getProposedPopupBounds(r, this, popupContent.getPreferredSize(), 0, HorizontalAlign.RIGHT,
                                    getPopupBorder(), false);
-    }
-
-    protected class DateComboBoxListHandler extends aNonListListHandler {
-      public DateComboBoxListHandler() {}
-
-      @Override
-      public void clear() {
-        super.clear();
-        setEditorValue("");
-      }
-
-      @Override
-      public void setSelectedIndex(int index) {}
-
-      @Override
-      public aListItemRenderer getItemRenderer() {
-        return null;
-      }
-
-      @Override
-      public iPlatformComponent getListComponent() {
-        return getPanel();
-      }
-
-      @Override
-      public UIDimension getPreferredSize() {
-        return getListComponent().getPreferredSize();
-      }
-
-      @Override
-      public float getPreferredWidth() {
-        return getListComponent().getPreferredSize().width;
-      }
-
-      @Override
-      public int getRowHeight() {
-        return FontUtils.getDefaultLineHeight();
-      }
     }
   }
 }

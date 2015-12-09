@@ -27,10 +27,10 @@ import com.google.j2objc.annotations.Weak;
 
 /**
  * This is a base class for function callbacks
- *  that provides some useful methods especially
- *  when working in scenarios where the screen
- *  that initiates the call back can go away before
- *  the callback finished method is called
+ * that provides some useful methods especially
+ * when working in scenarios where the screen
+ * that initiates the call back can go away before
+ * the callback finished method is called
  *
  * @author Don DeCcoteau
  *

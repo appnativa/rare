@@ -124,7 +124,7 @@ public class FrameView extends ParentView implements iAppleLayoutManager {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size,float maxWidth) {
     Container container = (Container) component;
     Component child     = null;
 
@@ -134,7 +134,7 @@ public class FrameView extends ParentView implements iAppleLayoutManager {
 
     if (container.getComponentCount() > 0) {
       child = (Component) container.getComponentAt(0);
-      child.getMinimumSize(size);
+      child.getMinimumSize(size,maxWidth);
     }
 
     UIInsets in = (border != null)

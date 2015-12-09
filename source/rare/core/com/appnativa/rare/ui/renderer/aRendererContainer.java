@@ -15,11 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.renderer;
 
+import com.appnativa.rare.iConstants;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
@@ -27,6 +28,7 @@ import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.XPContainer;
@@ -39,6 +41,7 @@ import java.util.Map;
 
 public abstract class aRendererContainer extends XPContainer implements iPlatformRenderingComponent {
   iPlatformRenderingComponent renderingComponent;
+  protected int               columnWidth;
 
   public aRendererContainer(iPlatformRenderingComponent rc) {
     this.renderingComponent = rc;
@@ -117,6 +120,11 @@ public abstract class aRendererContainer extends XPContainer implements iPlatfor
   }
 
   @Override
+  public void setColumnWidth(int width) {
+    columnWidth = width;
+  }
+
+  @Override
   public iPlatformComponent getComponent() {
     renderingComponent.getComponent();
 
@@ -136,5 +144,39 @@ public abstract class aRendererContainer extends XPContainer implements iPlatfor
     renderingComponent.getComponent(list, value, item, row, isSelected, hasFocus, col, rowItem, handleAll);
 
     return this;
+  }
+
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    super.getMinimumSizeEx(size, maxWidth);
+
+    Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
+
+    if ((i != null) && (i.intValue() > size.height)) {
+      size.height = i.intValue();
+    }
+  }
+
+  @Override
+  protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    int n = columnWidth;
+
+    if (n < 0) {
+      maxWidth += n;
+
+      if (maxWidth < 0) {
+        maxWidth = 0;
+      }
+    } else if ((n > 0) && (maxWidth > n)) {
+      maxWidth = n;
+    }
+
+    super.getPreferredSizeEx(size, maxWidth);
+
+    Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
+
+    if ((i != null) && (i.intValue() > size.height)) {
+      size.height = i.intValue();
+    }
   }
 }

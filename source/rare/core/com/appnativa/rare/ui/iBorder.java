@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author Don DeCoteau
  */
-public interface iBorder {
+public interface iBorder extends Cloneable{
 
   /**
    * Clips the specified graphics context based on the shape of the border
@@ -149,4 +149,16 @@ public interface iBorder {
    * @param map the map of properties
    */
   void handleCustomProperties(Map map);
+  
+  /**
+   * Returns if the border is focus aware 
+   * @return true if it is; false otherwise
+   */
+  boolean isFocusAware();
+  
+  /**
+   * Returns if the border is enabled state aware 
+   * @return true if it is; false otherwise
+   */
+  boolean isEnabledStateAware();
 }

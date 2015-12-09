@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -44,6 +44,7 @@ import javax.swing.event.PopupMenuListener;
  */
 public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener {
   static ArrayList<iWeakReference> visibleMenus = new ArrayList<iWeakReference>();
+  protected iPlatformComponent     header;
 
   /**
    * Constructs a new instance
@@ -55,7 +56,8 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   /**
    * Constructs a new instance
    *
-   * @param item the menu component
+   * @param item
+   *          the menu component
    */
   public UIMenu(JMenuEx item) {
     super();
@@ -65,7 +67,8 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   /**
    * Constructs a new instance
    *
-   * @param text the text
+   * @param text
+   *          the text
    */
   public UIMenu(String text) {
     this(text, null, null);
@@ -100,8 +103,10 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   /**
    * Constructs a new instance
    *
-   * @param text the text
-   * @param icon the icon
+   * @param text
+   *          the text
+   * @param icon
+   *          the icon
    */
   public UIMenu(String text, iPlatformIcon icon) {
     this(text, icon, null);
@@ -131,9 +136,12 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   /**
    * Constructs a new instance
    *
-   * @param text the text
-   * @param icon the icon
-   * @param data the data to associate with the menu item
+   * @param text
+   *          the text
+   * @param icon
+   *          the icon
+   * @param data
+   *          the data to associate with the menu item
    */
   public UIMenu(String text, iPlatformIcon icon, Object data) {
     this(new JMenuEx(text));
@@ -141,9 +149,18 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
     setLinkedData(data);
   }
 
-  @Override
-  public void actionPerformed(java.awt.event.ActionEvent e) {
-    fire(contextWidget);
+  public void setHeader(iPlatformComponent comp) {
+    JPopupMenu p = ((JMenu) menuItem).getPopupMenu();
+
+    if (this.header != null) {
+      p.remove(header.getView());
+    }
+
+    header = comp;
+
+    if (comp != null) {
+      p.add(comp.getView(), 0);
+    }
   }
 
   public static void closeVisibleMenus() {
@@ -174,7 +191,8 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   /**
    * Adds the specified component as a new menu item
    *
-   * @param item the component to add
+   * @param item
+   *          the component to add
    *
    */
   @Override
@@ -192,10 +210,10 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   }
 
   /**
-   * Copies the contents of this menu to the specified
-   *  menu component
+   * Copies the contents of this menu to the specified menu component
    *
-   * @param menu the menu to copy to
+   * @param menu
+   *          the menu to copy to
    */
   public void copyTo(JPopupMenu menu) {
     List<RenderableDataItem> items = getItems();
@@ -226,20 +244,12 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   @Override
   public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
     visibleMenus.add(Platform.createWeakReference(this));
-    menuWillBecomeInvisible();
-
-    final iWidget ctx = getContextWidget();
-
-    if (ctx instanceof iListHandler) {
-      Platform.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          if (!ctx.isDisposed()) {
-            ((iListHandler) ctx).clearPopupMenuIndex();
-          }
-        }
-      });
-    }
+    Platform.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        menuWillBecomeInvisible();
+      }
+    });
   }
 
   void removeFromVisibleList() {
@@ -284,7 +294,7 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
   /**
    * Gets the JavaFX menu component
    *
-   * @return  the JavaFX menu component
+   * @return the JavaFX menu component
    */
   public JMenu getMenu() {
     return (JMenu) menuItem;
@@ -308,11 +318,6 @@ public class UIMenu extends aUIMenu implements PopupMenuListener, ActionListener
     if ((mi != null) && (mi.getMenuItem() != null)) {
       menuItem.remove(getMenuItem());
     }
-  }
-
-  @Override
-  protected iWidget getInvoker() {
-    return Platform.findWidgetForComponent(menuItem);
   }
 
   @Override

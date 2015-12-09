@@ -20,17 +20,25 @@
 
 package com.appnativa.rare.widget;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
 import com.appnativa.rare.converters.DateContext;
 import com.appnativa.rare.converters.DateTimeConverter;
 import com.appnativa.rare.converters.iDataConverter;
 import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
 import com.appnativa.rare.spot.DateChooser;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.aComboBoxComponent;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iActionComponent;
+import com.appnativa.rare.ui.iActionable;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.calendar.DateButton;
 import com.appnativa.rare.ui.calendar.DateComboBox;
 import com.appnativa.rare.ui.calendar.DatePanel;
@@ -38,9 +46,6 @@ import com.appnativa.rare.ui.calendar.DateViewManager;
 import com.appnativa.rare.ui.calendar.iDateViewManager;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iPopupMenuListener;
-import com.appnativa.rare.ui.iActionComponent;
-import com.appnativa.rare.ui.iActionable;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
@@ -48,12 +53,6 @@ import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.util.FormatException;
 import com.appnativa.util.Helper;
 import com.appnativa.util.SimpleDateFormatEx;
-
-import java.text.DateFormat;
-import java.text.ParseException;
-
-import java.util.Calendar;
-import java.util.Date;
 
 public abstract class aDateChooserWidget extends aPlatformWidget implements iActionable {
   protected iDateViewManager dateViewManager;
@@ -565,6 +564,9 @@ public abstract class aDateChooserWidget extends aPlatformWidget implements iAct
     super.initializeListeners(l);
 
     if (l != null) {
+      if(l.isChangeEventEnabled()) {
+        dateViewManager.addChangeListener(l);
+      }
       if (l.isExpansionEventsEnabled()) {
         addPopupMenuListener(l);
       }
@@ -576,6 +578,9 @@ public abstract class aDateChooserWidget extends aPlatformWidget implements iAct
     super.uninitializeListeners(l);
 
     if (l != null) {
+      if(l!=null) {
+        dateViewManager.removeChangeListener(l);
+      }
       removeActionListener(l);
       removePopupMenuListener(l);
     }

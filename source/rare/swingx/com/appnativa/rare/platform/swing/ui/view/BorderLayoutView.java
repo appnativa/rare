@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -23,6 +23,7 @@ package com.appnativa.rare.platform.swing.ui.view;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.aBorderPanel;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.layout.BorderLayout;
@@ -31,15 +32,6 @@ import com.jgoodies.forms.layout.CellConstraints;
 
 public class BorderLayoutView extends FormsView {
   protected static String[] specs             = { "f:d,f:d:g,f:d", "f:d,f:d:g,f:d" };
-  static CellConstraints    tbTopCell         = new CellConstraints(1, 1, 3, 1);
-  static CellConstraints    tbRightCell       = new CellConstraints(3, 2, 1, 1);
-  static CellConstraints    tbLeftCell        = new CellConstraints(1, 2, 1, 1);
-  static CellConstraints    tbBottomCell      = new CellConstraints(1, 3, 3, 1);
-  static CellConstraints    lrTopCell         = new CellConstraints(2, 1, 1, 1);
-  static CellConstraints    lrRightCell       = new CellConstraints(3, 1, 1, 3);
-  static CellConstraints    lrLeftCell        = new CellConstraints(1, 1, 1, 3);
-  static CellConstraints    lrBottomCell      = new CellConstraints(2, 3, 1, 1);
-  static CellConstraints    centerCell        = new CellConstraints(2, 2, 1, 1);
   boolean                   topBottomPriority = true;
   UIInsets                  padding;
 
@@ -63,43 +55,12 @@ public class BorderLayoutView extends FormsView {
   }
 
   public void add(iPlatformComponent c, Location constraints) {
-    CellConstraints cc;
+    CellConstraints cc = aBorderPanel.getConstraints(constraints, useCrossPattern, topBottomPriority);
 
-    switch(constraints) {
-      case TOP :
-        cc = topBottomPriority
-             ? new CellConstraints(1, 1, 3, 1)
-             : new CellConstraints(2, 1, 1, 1);
+    cc = (CellConstraints) cc.clone();
 
-        break;
-
-      case BOTTOM :
-        cc = topBottomPriority
-             ? new CellConstraints(1, 3, 3, 1)
-             : new CellConstraints(2, 3, 1, 1);
-
-        break;
-
-      case LEFT :
-        cc = topBottomPriority
-             ? new CellConstraints(1, 2, 1, 1)
-             : new CellConstraints(1, 1, 1, 3);
-
-        break;
-
-      case RIGHT :
-        cc = topBottomPriority
-             ? new CellConstraints(3, 2, 1, 1)
-             : new CellConstraints(3, 1, 1, 3);
-
-        break;
-
-      default :
-        cc = new CellConstraints(2, 2, 1, 1);
-
-        if (padding != null) {
-          cc.insets = padding;
-        }
+    if (padding != null) {
+      cc.insets = padding;
     }
 
     cc.hAlign = CellConstraints.FILL;
@@ -152,8 +113,6 @@ public class BorderLayoutView extends FormsView {
     }
   }
 
-  public void setHorizontal(boolean horizontal) {}
-
   public void setLeftView(iPlatformComponent c) {
     if (c == null) {
       removeAtLocation(Location.LEFT);
@@ -170,7 +129,9 @@ public class BorderLayoutView extends FormsView {
     }
   }
 
-  public void setTopBottomPriority(boolean topBottomPriority) {}
+  public void setTopBottomPriority(boolean topBottomPriority) {
+    this.topBottomPriority = true;
+  }
 
   public void setTopView(iPlatformComponent c) {
     if (c == null) {
@@ -188,43 +149,10 @@ public class BorderLayoutView extends FormsView {
     return getComponentAt(Location.CENTER);
   }
 
-  public CellConstraints getConstraints(Location location) {
-    CellConstraints cc;
+  boolean useCrossPattern;
 
-    switch(location) {
-      case TOP :
-        cc = topBottomPriority
-             ? tbTopCell
-             : lrTopCell;
-
-        break;
-
-      case BOTTOM :
-        cc = topBottomPriority
-             ? tbBottomCell
-             : lrBottomCell;
-
-        break;
-
-      case LEFT :
-        cc = topBottomPriority
-             ? tbLeftCell
-             : lrLeftCell;
-
-        break;
-
-      case RIGHT :
-        cc = topBottomPriority
-             ? tbRightCell
-             : lrRightCell;
-
-        break;
-
-      default :
-        cc = centerCell;
-    }
-
-    return cc;
+  public void setUseCrossPattern(boolean useCrossPattern) {
+    this.useCrossPattern = true;
   }
 
   public iPlatformComponent getLeftView() {
@@ -240,7 +168,7 @@ public class BorderLayoutView extends FormsView {
   }
 
   public iPlatformComponent getComponentAt(Location location) {
-    CellConstraints cc = getConstraints(location);
+    CellConstraints cc = aBorderPanel.getConstraints(location, useCrossPattern, topBottomPriority);
 
     if (cc == null) {
       return null;

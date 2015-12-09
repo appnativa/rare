@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -27,20 +27,27 @@ import com.appnativa.rare.ui.Container;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
+import com.appnativa.util.IdentityArrayList;
 
 /*-[
  #import "RAREAPScrollView.h"
  ]-*/
 public class ScrollView extends ParentView implements iApplePainterSupport, iAppleLayoutManager, iScrollerSupport {
-  ScrollBarView                  hsb;
-  ScrollBarView                  vsb;
-  private boolean                hasVerticalScrollbar   = true;
-  private boolean                hasHorizontalScrollbar = true;
-  UIDimension                    measureSize            = new UIDimension();
-  private UIScrollingEdgePainter scrollingEdgePainter;
+  protected ScrollBarView                       hsb;
+  protected ScrollBarView                       vsb;
+  protected boolean                             hasVerticalScrollbar   = true;
+  protected boolean                             hasHorizontalScrollbar = true;
+  protected UIDimension                         measureSize            = new UIDimension();
+  protected UIScrollingEdgePainter              scrollingEdgePainter;
+  protected int                                 offsetX;
+  protected int                                 offsetY;
+  protected IdentityArrayList<iScrollerSupport> hScrollSynchronizer;
+  protected IdentityArrayList<iScrollerSupport> vScrollSynchronizer;
+  private boolean                               inOnScrollChanged;
 
   public ScrollView() {
     super(createProxy());
@@ -50,8 +57,29 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
     super(uiview);
   }
 
+  @Override
   public void add(int position, View view) {
     setContentView(view);
+  }
+
+  public void setHeaderView(iScrollerSupport ss) {
+    turnOffScrollBarVisibility(ss, true);
+    syncScrolling(ss, false);
+  }
+
+  public void setFooterView(iScrollerSupport ss) {
+    setShowsHorizontalScrollIndicator(false);
+    syncScrolling(ss, false);
+  }
+
+  public void setRowHeaderView(iScrollerSupport ss) {
+    turnOffScrollBarVisibility(ss, false);
+    syncScrolling(ss, true);
+  }
+
+  public void setRowFooterView(iScrollerSupport rowFooterView) {
+    setShowsVerticalScrollIndicator(false);
+    syncScrolling(rowFooterView, true);
   }
 
   @Override
@@ -93,6 +121,23 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
     setContentSize(w, h);
   }
 
+  public void syncScrolling(iScrollerSupport ss, boolean vertical) {
+    if (vertical) {
+      if (vScrollSynchronizer == null) {
+        vScrollSynchronizer = new IdentityArrayList<iScrollerSupport>(2);
+      }
+
+      vScrollSynchronizer.addIfNotPresent(ss);
+    } else {
+      if (hScrollSynchronizer == null) {
+        hScrollSynchronizer = new IdentityArrayList<iScrollerSupport>(2);
+      }
+
+      hScrollSynchronizer.addIfNotPresent(ss);
+    }
+  }
+
+  @Override
   public native boolean isAtBottomEdge()
   /*-[
     if(!hasVerticalScrollbar_) {
@@ -105,6 +150,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native void scrollToLeftEdge()
   /*-[
   UIScrollView* sv=(UIScrollView*)proxy_;
@@ -116,6 +162,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native void scrollToTopEdge()
   /*-[
   UIScrollView* sv=(UIScrollView*)proxy_;
@@ -127,6 +174,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native void scrollToRightEdge()
   /*-[
     UIScrollView* sv=(UIScrollView*)proxy_;
@@ -140,6 +188,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native void scrollToBottomEdge()
   /*-[
     UIScrollView* sv=(UIScrollView*)proxy_;
@@ -153,6 +202,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native boolean isAtLeftEdge()
   /*-[
     if(!hasHorizontalScrollbar_) {
@@ -162,6 +212,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native boolean isAtRightEdge()
   /*-[
     if(!hasHorizontalScrollbar_) {
@@ -174,6 +225,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native boolean isAtTopEdge()
   /*-[
     if(!hasVerticalScrollbar_) {
@@ -183,7 +235,25 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
    ]-*/
   ;
 
+  @Override
   public void removeChildren() {}
+
+  public void setScrollBarListeners(aPlatformTableBasedView view) {
+    ScrollBarView h = null;
+    ScrollBarView v = null;
+
+    if ((hsb != null) && hsb.hasListener()) {
+      h   = hsb;
+      hsb = null;
+    }
+
+    if ((vsb != null) && vsb.hasListener()) {
+      v   = vsb;
+      vsb = null;
+    }
+
+    view.setScrollBarViews(h, v);
+  }
 
   public void unwrap() {
     if (hsb != null) {
@@ -227,16 +297,9 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
-  public void setHasHorizontalScrollBar(boolean hasHorizontalScrollbar) {
-    this.hasHorizontalScrollbar = hasHorizontalScrollbar;
-  }
-
-  public void setHasVerticalScrollBar(boolean hasVerticalScrollbar) {
-    this.hasVerticalScrollbar = hasVerticalScrollbar;
-  }
-
   public native void setShowsHorizontalScrollIndicator(boolean show)
   /*-[
+   hasVerticalScrollbar_=show;
     UIScrollView* sv=(UIScrollView*)proxy_;
     [sv setShowsHorizontalScrollIndicator: show];
   ]-*/
@@ -244,6 +307,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
 
   public native void setShowsVerticalScrollIndicator(boolean show)
   /*-[
+   hasVerticalScrollbar_=show;
     UIScrollView* sv=(UIScrollView*)proxy_;
     [sv setShowsVerticalScrollIndicator: show];
   ]-*/
@@ -265,16 +329,10 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    Container container = (Container) component;
-    Component child     = null;
+  public void getMinimumSize(UIDimension size, float maxWidth) {
+    size.width = size.height = UIScreen.PLATFORM_PIXELS_16 * 2;
 
-    if (container.getComponentCount() > 0) {
-      child = (Component) container.getComponentAt(0);
-      child.getMinimumSize(size);
-    }
-
-    iPlatformBorder border = container.getBorder();
+    iPlatformBorder border = component.getBorder();
     UIInsets        insets = (border == null)
                              ? null
                              : border.getBorderInsets(null);
@@ -330,10 +388,12 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
     return hasVerticalScrollbar;
   }
 
+  @Override
   public boolean isScrollView() {
     return true;
   }
 
+  @Override
   public native boolean isScrolling()
   /*-[
     return ((UIScrollView*)proxy_).dragging;
@@ -356,6 +416,14 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   protected void disposeEx() {
     super.disposeEx();
 
+    if (hScrollSynchronizer != null) {
+      hScrollSynchronizer.clear();
+    }
+
+    if (vScrollSynchronizer != null) {
+      vScrollSynchronizer.clear();
+    }
+
     if (hsb != null) {
       hsb.dispose();
     }
@@ -364,6 +432,8 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
       vsb.dispose();
     }
 
+    vScrollSynchronizer  = null;
+    hScrollSynchronizer  = null;
     hsb                  = null;
     vsb                  = null;
     scrollingEdgePainter = null;
@@ -375,6 +445,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   ]-*/
   ;
 
+  @Override
   public native UIPoint getContentOffset()
   /*-[
     CGPoint p=((RAREAPScrollView*)proxy_).contentOffset;
@@ -390,8 +461,9 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
 
   public native void setContentOffset(float x, float y)
   /*-[
-    CGPoint p=CGPointMake(x,y);
-    ((RAREAPScrollView*)proxy_).contentOffset=p;
+   if(!inOnScrollChanged_) {
+     ((RAREAPScrollView*)proxy_).contentOffset=CGPointMake(x,y);
+   }
   ]-*/
   ;
 
@@ -440,4 +512,55 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
     }
   ]-*/
   ;
+
+  protected void viewDidScroll(float x, float y) {
+    inOnScrollChanged = true;
+
+    if (vScrollSynchronizer != null) {
+      for (iScrollerSupport ss : vScrollSynchronizer) {
+        ss.setContentOffset(0, y);
+      }
+    }
+
+    if (hScrollSynchronizer != null) {
+      for (iScrollerSupport ss : hScrollSynchronizer) {
+        ss.setContentOffset(x, 0);
+      }
+    }
+
+    int xx = (int) x;
+    int yy = (int) y;
+
+    if (hsb != null) {
+      if (xx != offsetX) {
+        hsb.notifyChangeListeners();
+      }
+    }
+
+    if (vsb != null) {
+      if (yy != offsetY) {
+        vsb.notifyChangeListeners();
+      }
+    }
+
+    offsetX           = xx;
+    offsetY           = yy;
+    inOnScrollChanged = false;
+  }
+
+  private void turnOffScrollBarVisibility(iScrollerSupport ss, boolean horizontal) {
+    if (ss instanceof ScrollView) {
+      if (horizontal) {
+        ((ScrollView) ss).setShowsHorizontalScrollIndicator(false);
+      } else {
+        ((ScrollView) ss).setShowsVerticalScrollIndicator(false);
+      }
+    } else if (ss instanceof aPlatformTableBasedView) {
+      if (horizontal) {
+        ((aPlatformTableBasedView) ss).setShowsHorizontalScrollIndicator(false);
+      } else {
+        ((aPlatformTableBasedView) ss).setShowsVerticalScrollIndicator(false);
+      }
+    }
+  }
 }

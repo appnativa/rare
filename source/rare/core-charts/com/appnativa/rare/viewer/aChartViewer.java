@@ -1336,7 +1336,7 @@ public abstract class aChartViewer extends aPlatformViewer {
     }
 
     if (plot.getContentPadding() != null) {
-      margin = plot.getContentPadding().createInsets();
+      margin = plot.getContentPadding().getInsets();
     }
 
     s = plot.shapes.stringValue().toUpperCase(Locale.ENGLISH);

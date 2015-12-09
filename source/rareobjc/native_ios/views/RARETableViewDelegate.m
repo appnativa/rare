@@ -52,17 +52,19 @@
 }
 
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+  [(RAREAPListView*)scrollView scrollViewWillBeginDragging];
 }
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  [(RAREAPListView*)scrollView scrollViewDidScroll];
   RAREListView* lb=(RAREListView*)scrollView.sparView;
   if(lb->editingRow_!=-1) {
     [lb hideRowEditingComponentWithBoolean:NO];
   }
-  if(lb->listSynchronizer_) {
-    [lb->listSynchronizer_ sychronizePositionWithRAREaPlatformTableBasedView:lb];
-  }
+  CGPoint p=scrollView.contentOffset;
+  [lb viewDidScrollWithFloat:p.x withFloat:p.y];
 }
+
 - (void)tableView:(UITableView *)tableView willBeginEditingRowAtIndexPath:(NSIndexPath *)indexPath {
   RAREListView* lb=(RAREListView*)tableView.sparView;
   lb->editingRow_=[(RAREAPListView*)tableView rowFromPath:indexPath];
@@ -75,34 +77,7 @@
 }
 -(NSIndexPath *)tableView:(UITableView *)tableView willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   RAREAPListView* table=(RAREAPListView*)tableView;
-  if(table->ignoreTouchesEnded_) return nil;
-  NSTimeInterval now= CFAbsoluteTimeGetCurrent();
-  if(table->lastHotspotTouchTime_+0.01>now) {
-    return nil;
-  }
-  int row=[(RAREAPListView*)tableView rowFromPath:indexPath];
-  RAREListView* lb=(RAREListView*)tableView.sparView;
-  if([lb isScrolling]) return nil;
-  if([lb isColumnSelectionAllowed]) {
-    RAREUITableViewCell *view=(RAREUITableViewCell*)[tableView cellForRowAtIndexPath:indexPath];
-    int col=view ? [view getPressedContentViewIndex] : -1;
-    if(col==-1 || ![lb isSelectableWithInt:row withInt:col withRARERenderableDataItem:nil]) {
-      return nil;
-    }
-  }
-  id<RAREiTreeItem> ti=nil;
-  RARERenderableDataItem* item=nil;
-  if(table->isTree_ && table->isTable_) {
-    RAREUITableViewCell *view=(RAREUITableViewCell*)[tableView cellForRowAtIndexPath:indexPath];
-    if(view) {
-      ti=view->treeItem;
-      item=view->rowItem;
-    }
-  }
-  if(![lb isSelectableWithInt:row withRARERenderableDataItem:item withRAREiTreeItem:ti]) {
-    return nil;
-  }
-  return indexPath;
+  return [table willSelectRowAtIndexPath:indexPath];
 }
 - (void)tableView:(UITableView *)tableView didHighlightRowAtIndexPath:(NSIndexPath *)indexPath {
   [[tableView cellForRowAtIndexPath:indexPath] setNeedsDisplay];
@@ -110,13 +85,15 @@
 - (void)tableView:(UITableView *)tableView didUnhighlightRowAtIndexPath:(NSIndexPath *)indexPath {
   [[tableView cellForRowAtIndexPath:indexPath] setNeedsDisplay];
 }
+-(NSIndexPath *)tableView:(UITableView *)tableView willDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
+  return [(RAREAPListView*)tableView willDeselectRowAtIndexPath: indexPath];
+}
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   RAREAPListView* table=(RAREAPListView*)tableView;
   int row=[(RAREAPListView*)tableView rowFromPath:indexPath];
   RAREListView* lb=(RAREListView*)tableView.sparView;
   if([lb isColumnSelectionAllowed]) {
-    RAREUITableViewCell *view=(RAREUITableViewCell*)[tableView cellForRowAtIndexPath:indexPath];
-    int col=view ? [view getPressedContentViewIndex] :0;
+    int col=[table getPressedColumn];
     [lb columnSelectedWithInt:row withInt:col <0 ? 0 : col];
   }
   else {
@@ -161,9 +138,6 @@
   RAREaTableBasedView_RowView* rv=(RAREaTableBasedView_RowView*)cell.sparView;
   RAREListView* lb=(RAREListView*)tableView.sparView;
   BOOL selected=cell.selected;
-  //  if(lb->draggingAllowed_ || lb->editingSelectionAllowed_) {
-  //    [view addBackgroundView];
-  //  }
   [view sparPrepareForReuse];
   cell.userInteractionEnabled=YES;
   [lb renderItemWithInt:row withRARERenderableDataItem:view->rowItem withRAREaTableBasedView_RowView:rv withBoolean:selected withBoolean:[view isPressed] withRAREiTreeItem:view->treeItem];
@@ -180,7 +154,7 @@
       return table.rowHeight;
     }
   }
-  int row=[(RAREAPListView*)tableView rowFromPath:indexPath];
+  int row=[table rowFromPath:indexPath];
   RARERenderableDataItem* item=[table->list_ getWithInt:(int)row];
   int h=[item getHeight];
   if(h<1) {
@@ -188,30 +162,15 @@
       h=[(( RARETableView*)table.sparView) getRowHeightWithInt: row];
     }
     else {
-      CGRect frame= tableView.bounds;
-      RAREUITableViewCell *view=(RAREUITableViewCell*)[self heightTableView:tableView cellForRowAtIndexPath:indexPath];
-      //[table.dataSource tableView:tableView cellForRowAtIndexPath:indexPath];
-      RAREaTableBasedView_RowView* rv=(RAREaTableBasedView_RowView*)view.sparView;
       RAREListView* lb=(RAREListView*)tableView.sparView;
-      [lb renderItemWithInt:row withRARERenderableDataItem:item withRAREaTableBasedView_RowView:rv withBoolean:NO withBoolean:NO withRAREiTreeItem:nil];
-      h=[item getHeight];
-      if(h<1) {
-        [view layoutSubviews];
-        h=(int)ceil([view getPreferredHeight:frame.size.width]);
-        if(h<1) {
-          h=tableView.rowHeight;
-        }
-        else {
-          h=MAX(h,lb->effectiveMinRowHeight_);
-          [item setHeightWithInt:h];
-        }
-      }
+      CGRect frame=tableView.frame;
+      h=[lb getRowHeightWithInt: row withFloat: frame.size.width-4];
     }
+    [item setHeightWithInt:h];
   }
   if(h==0) {
     h=32;
   }
-  
   return MIN(h,2000);
 }
 - (UITableViewCell *)heightTableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -260,16 +219,12 @@
 }
 
 - (void)tableView:(UITableView *)tableView willBeginReorderingRowAtIndexPath:(NSIndexPath *)indexPath {
-  RAREAPListView* table=(RAREAPListView*)tableView;
-  table->reordering_=YES;
+  [(RAREAPListView*)tableView willBeginReorderingRowAtIndexPath: indexPath];
 }
 - (void)tableView:(UITableView *)tableView didEndReorderingRowAtIndexPath:(NSIndexPath *)indexPath {
-  RAREAPListView* table=(RAREAPListView*)tableView;
-  table->reordering_=NO;
-  
+  [(RAREAPListView*)tableView didEndReorderingRowAtIndexPath: indexPath];
 }
 - (void)tableView:(UITableView *)tableView didCancelReorderingRowAtIndexPath:(NSIndexPath *)indexPath {
-  RAREAPListView* table=(RAREAPListView*)tableView;
-  table->reordering_=NO;
+  [(RAREAPListView*)tableView didCancelReorderingRowAtIndexPath: indexPath];
 }
 @end

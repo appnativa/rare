@@ -125,7 +125,7 @@ public class SplitPanePanel extends aSplitPanePanel {
     public Dimension minimumLayoutSize(java.awt.Container parent) {
       UIDimension size = new UIDimension();
 
-      getMinimumSize(size);
+      getMinimumSize(size, 0);
 
       return SwingHelper.setDimension(null, size);
     }

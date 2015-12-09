@@ -20,6 +20,10 @@
 
 package com.appnativa.rare.viewer;
 
+import javax.swing.ActionMap;
+import javax.swing.JTable;
+
+import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.swing.ui.ListBoxListHandler;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.spot.ItemDescription;
@@ -27,7 +31,6 @@ import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.Column;
-import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.iPlatformListHandler;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
@@ -42,8 +45,6 @@ import com.appnativa.rare.ui.table.TreeTableComponent;
 import com.appnativa.rare.ui.table.TreeTableItemRenderer;
 import com.appnativa.rare.ui.table.TreeTableListHandler;
 import com.appnativa.rare.ui.table.iTableComponent.TableType;
-
-import javax.swing.JTable;
 
 public class TableViewer extends aTableViewer {
 
@@ -125,12 +126,6 @@ public class TableViewer extends aTableViewer {
   }
 
   @Override
-  public void setSelectionMode(SelectionMode selectionMode) {
-    super.setSelectionMode(selectionMode);
-    ((TableComponent) tableHandler.getMainTable()).getTableView().setSelectionMode(selectionMode);
-  }
-
-  @Override
   public void setShowLastDivider(boolean show) {
     ((TableComponent) tableHandler.getMainTable()).setShowLastItemBorder(show);
   }
@@ -181,15 +176,11 @@ public class TableViewer extends aTableViewer {
       list         = ((TreeTableComponent) tableHandler).getTableView();
       tableModel   = ((TreeTableComponent) tableHandler).getTableModel();
       treeHandler  = ((TreeTableComponent) tableHandler).getTreeHandler();
-      treeHandler.setIndentBy(tcfg.indentBy.intValue());
-      ((TreeTableComponent) tableHandler).setExpandAll(tcfg.expandAll.booleanValue());
-      ((TreeTableComponent) tableHandler).setExpandableColumn(tcfg.expandableColumn.intValue());
-      ((TreeTableComponent) tableHandler).setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
-          new PainterUtils.TwistyIcon(dataComponent,true));
 
       formComponent = tableHandler.getPlatformComponent();
       listComponent = new TreeTableListHandler(list, tableModel, ((TreeTableComponent) tableHandler).getTreeModel());
       lr            = new TreeTableItemRenderer(list);
+      ((ListBoxListHandler)listComponent).setTabular(true);
     } else {
       tableHandler  = new TableComponent(cfg);
       list          = ((TableComponent) tableHandler).getTableView();
@@ -198,6 +189,7 @@ public class TableViewer extends aTableViewer {
       listComponent = new ListBoxListHandler(list, tableModel);
       lr            = new ListItemRenderer(list);
 
+      ((ListBoxListHandler)listComponent).setTabular(true);
       int mtype = getMiltiTableConfigurationType(cfg);
 
       if (mtype != 0) {
@@ -272,8 +264,16 @@ public class TableViewer extends aTableViewer {
     }
 
     dataComponent = ((TableComponent) tableHandler.getMainTable()).getTable();
-    SwingHelper.configureScrollPane(this, ((TableComponent) tableHandler.getMainTable()).getScrollPane(),
+    registerWithWidget(formComponent);
+    formComponent=SwingHelper.configureScrollPane(this,formComponent, ((TableComponent) tableHandler.getMainTable()).getScrollPane(),
                                     cfg.getScrollPane());
     list.setItemRenderer(lr);
+    ActionMap am   = list.getJTable().getActionMap();
+
+    am.put("Rare.origSelectNextRow", am.get("selectNextRow"));
+    am.put("Rare.origSelectPreviousRow", am.get("selectPreviousRow"));
+    am.put("selectNextRow", ActionHelper.selectNextRow);
+    am.put("selectPreviousRow", ActionHelper.selectPreviousRow);
+    
   }
 }

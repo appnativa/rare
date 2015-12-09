@@ -15,23 +15,31 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformShape;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.aUIComponentPainter;
 
 import java.util.Map;
 
 public abstract class aUIBorder implements Cloneable, iPlatformBorder {
-  protected UIInsets clipInsets;
-  protected int      modCount;
-  protected boolean  padForArc;
+  protected UIInsets           clipInsets;
+  protected int                modCount;
+  protected boolean            padForArc;
+  protected static boolean     paintFocus;
+  protected static PaintBucket focusPaint;
+  protected static UIColor     focusColor;
 
   public aUIBorder() {}
 
@@ -140,5 +148,40 @@ public abstract class aUIBorder implements Cloneable, iPlatformBorder {
   @Override
   public boolean isRectangular() {
     return true;
+  }
+
+  @Override
+  public boolean isFocusAware() {
+    return false;
+  }
+  
+  @Override
+  public boolean isEnabledStateAware() {
+    return isFocusAware();
+  }
+
+  protected UIColor getFocusColor(iPlatformComponent pc, boolean always) {
+    if (focusPaint == null) {
+      focusPaint = Platform.getAppContext().getWidgetFocusPainter();
+      paintFocus = aUIComponentPainter.paintFocusDefault;
+
+      if (focusPaint != null) {
+        focusColor = focusPaint.getBackgroundColorAlways();
+      }
+    }
+
+    if (paintFocus && (pc != null) && pc.isFocusPainted() && pc.isFocusOwner()) {
+      PaintBucket pb = pc.getFocusPaint(focusPaint);
+
+      if (pb != null) {
+        if (pb == focusPaint) {
+          return focusColor;
+        } else {
+          return pb.getBackgroundColorAlways();
+        }
+      }
+    }
+
+    return null;
   }
 }

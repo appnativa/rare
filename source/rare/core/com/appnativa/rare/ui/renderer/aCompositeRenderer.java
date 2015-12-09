@@ -21,6 +21,7 @@
 package com.appnativa.rare.ui.renderer;
 
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.BorderPanel;
 import com.appnativa.rare.ui.Column;
@@ -42,7 +43,6 @@ import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iRenderingComponent;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.util.SNumber;
-
 import com.jgoodies.forms.layout.CellConstraints;
 
 import java.util.Locale;
@@ -59,6 +59,7 @@ public abstract class aCompositeRenderer extends BorderPanel implements iPlatfor
   private UIFont                        iconLabelFont;
   private Object                        iconLabelForeground;
   UIInsets                              iconGapInsets = new UIInsets();
+  protected int columnWidth;
 
   public static enum BackgroundSurface { PANEL, RENDERER, ICON }
 
@@ -109,6 +110,11 @@ public abstract class aCompositeRenderer extends BorderPanel implements iPlatfor
   public void makeRendererPrimary() {
     backgroundSurface = BackgroundSurface.RENDERER;
   }
+  @Override
+ public void setColumnWidth(int width) {
+    columnWidth=width;
+ }
+  
 
   @Override
   public void setAlignment(HorizontalAlign ha, VerticalAlign va) {
@@ -557,11 +563,46 @@ public abstract class aCompositeRenderer extends BorderPanel implements iPlatfor
   }
 
   @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    super.getMinimumSizeEx(size,maxWidth);
+
+    Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
+
+    if ((i != null) && (i.intValue() > size.height)) {
+      size.height = i.intValue();
+    }
+  }
+
+  @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    int n=columnWidth;
+    if(n<0) {
+      maxWidth+=n;
+      if(maxWidth<0) {
+        maxWidth=0;
+      }
+    }
+    else if(n>0 && maxWidth>n){
+      maxWidth=n;
+    }
     super.getPreferredSizeEx(size, maxWidth);
     size.width  += iconGapInsets.left + iconGapInsets.right;
     size.height += iconGapInsets.top + iconGapInsets.bottom;
+
+    Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
+
+    if ((i != null) && (i.intValue() > size.height)) {
+      size.height = i.intValue();
+    }
   }
+  
+  protected iPlatformRenderingComponent setupNewCopy(aCompositeRenderer r) {
+    r.setIconPosition(iconPosition);
+    r.backgroundSurface = backgroundSurface;
+    r.columnWidth=columnWidth;
+    return Renderers.setupNewCopy(this, r);
+  }
+    
 
   private void setIconGap(float gap) {
     iconGap = gap;

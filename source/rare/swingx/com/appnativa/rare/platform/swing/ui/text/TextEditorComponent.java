@@ -15,23 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.swing.ui.view.TextFieldView;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.Container;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIFont;
-import com.appnativa.rare.ui.UISoundHelper;
-import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.text.iPlatformTextEditor;
 
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -42,6 +29,21 @@ import javax.swing.JTextField;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.platform.swing.ui.view.TextAreaView;
+import com.appnativa.rare.platform.swing.ui.view.TextFieldView;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Container;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIFont;
+import com.appnativa.rare.ui.UISoundHelper;
+import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.listener.iTextChangeListener;
+import com.appnativa.rare.ui.text.iPlatformTextEditor;
 
 public class TextEditorComponent extends Container implements iPlatformTextEditor, ActionListener {
   JTextComponent textComponent;
@@ -82,6 +84,24 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   }
 
   @Override
+  public void addTextChangeListener(iTextChangeListener l) {
+    if (textComponent instanceof TextFieldView) {
+      ((TextFieldView) textComponent).addTextChangeListener(l);
+    } else if (textComponent instanceof TextAreaView) {
+      ((TextAreaView) textComponent).addTextChangeListener(l);
+    }
+  }
+
+  @Override
+  public void removeTextChangeListener(iTextChangeListener l) {
+    if (textComponent instanceof TextFieldView) {
+      ((TextFieldView) textComponent).removeTextChangeListener(l);
+    } else if (textComponent instanceof TextAreaView) {
+      ((TextAreaView) textComponent).removeTextChangeListener(l);
+    }
+  }
+
+  @Override
   public void appendText(String text) {
     Document doc = textComponent.getDocument();
 
@@ -101,6 +121,19 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   @Override
   public void deleteSelection() {
     deleteSelection(textComponent);
+  }
+
+  @Override
+  public void setForeground(UIColor fg) {
+    super.setForeground(fg);
+
+    if (fg != null) {
+      if (view instanceof TextFieldView) {
+        ((TextFieldView) view).setDisabledTextColor(fg.getDisabledColor());
+      } else if (view instanceof TextAreaView) {
+       ((TextFieldView) view).setDisabledTextColor(fg.getDisabledColor());
+      }
+    }
   }
 
   public static void deleteSelection(JTextComponent textComponent) {
@@ -339,5 +372,14 @@ public class TextEditorComponent extends Container implements iPlatformTextEdito
   @Override
   public boolean isFollowHyperlinks() {
     return false;
+  }
+
+  @Override
+  public void setChangeEventsEnabled(boolean enabled) {
+    if (textComponent instanceof TextFieldView) {
+      ((TextFieldView) textComponent).setChangeEventsEnabled(enabled);
+    } else if (textComponent instanceof TextAreaView) {
+      ((TextAreaView) textComponent).setChangeEventsEnabled(enabled);
+    }
   }
 }

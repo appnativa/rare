@@ -22,14 +22,11 @@ package com.appnativa.rare.ui.spinner;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-
 import android.graphics.Color;
-
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
-
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -121,6 +118,11 @@ public class DefaultEditor implements iSpinnerEditor, View.OnFocusChangeListener
     }
   }
 
+  @Override
+  public void selectAll() {
+    editorView.selectAll();
+  }
+
   public void setValue(Object value) {
     String v = spinnerModel.toString(value);
 
@@ -172,7 +174,7 @@ public class DefaultEditor implements iSpinnerEditor, View.OnFocusChangeListener
   }
 
   protected void customizeEditor() {
-    editorView.setBackgroundDrawable(NullDrawable.getInstance());
+    editorView.setBackground(NullDrawable.getInstance());
 
     int[][] states = new int[2][];
 
@@ -216,5 +218,10 @@ public class DefaultEditor implements iSpinnerEditor, View.OnFocusChangeListener
     editorView.deleteSelection();
 
     return o;
+  }
+
+  @Override
+  public void selectField() {
+    selectAll();
   }
 }

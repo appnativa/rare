@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -23,9 +23,10 @@ package com.appnativa.rare.ui.table;
 import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.event.EventListenerList;
+import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.tree.DataItemTreeModel;
 import com.appnativa.rare.ui.tree.aTreeHandler;
@@ -33,6 +34,7 @@ import com.appnativa.rare.util.SubItemComparator;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.FilterableList;
 import com.appnativa.util.iFilterableList;
+
 import com.google.j2objc.annotations.WeakOuter;
 
 import java.util.Comparator;
@@ -55,18 +57,15 @@ public class TreeTableComponent extends TableComponent {
   protected void initialize(TableView table, Table cfg) {
     super.initialize(table, cfg);
 
-    TreeTable     tt = (TreeTable) cfg;
-    TreeTableView tv = (TreeTableView) tableView;
+    TreeTable tt = (TreeTable) cfg;
 
-    tv.setShowRootHandles(tt.showRootHandles.booleanValue());
-    tv.setParentItemsSelectable(tt.parentItemsSelectable.booleanValue());
-    tv.setToggleOnTwistyOnly(tt.parentItemsSelectable.booleanValue());
     treeModel.setExpandableColumn(tt.expandableColumn.intValue());
-    treeModel.setExpandAll(tt.expandAll.booleanValue());
+    setTreeIcons(new PainterUtils.TwistyIcon(this, false), new PainterUtils.TwistyIcon(this, true));
   }
-  
+
   public void setTreeIcons(iPlatformIcon expanded, iPlatformIcon collapsed) {
     TreeTableView tv = (TreeTableView) tableView;
+
     tv.setTreeIcons(expanded, collapsed);
   }
 

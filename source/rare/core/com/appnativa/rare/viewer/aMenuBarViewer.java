@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.MenuBar;
@@ -31,18 +34,15 @@ import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.UIMenu;
 import com.appnativa.rare.ui.UIMenuItem;
-import com.appnativa.rare.ui.event.ScriptActionListener;
 import com.appnativa.rare.ui.iMenuBarComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformMenuBar;
+import com.appnativa.rare.ui.event.ScriptActionListener;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.FilterableList;
-
-import java.util.Collections;
-import java.util.List;
 
 public abstract class aMenuBarViewer extends aContainer implements iPlatformMenuBar {
 

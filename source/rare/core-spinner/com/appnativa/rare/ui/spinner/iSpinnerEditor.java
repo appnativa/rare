@@ -58,4 +58,7 @@ public interface iSpinnerEditor {
   boolean isTextField();
 
   Object removeSelectedData(boolean returnData);
+
+  void selectAll();
+  void selectField();
 }

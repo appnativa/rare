@@ -192,7 +192,7 @@ public class JavaScriptEngine implements ScriptEngine {
     context.setBindings(bindings, scope);
   }
 
-  public native void setConstantValue(String name, Object value)
+  public native void setConstantValue(String name, Object value) 
   /*-[
     RAREJSEngine* e=(RAREJSEngine*)proxy_;
     [e setConstantValue: value withName: name];

@@ -646,6 +646,10 @@ public class DataParser {
 
         DataParser.loadSPOTObject(context, link.getConnection(), cfg);
         cfg.spot_copySharedMemberValuesEx(vcfg);
+        Map map = vcfg.spot_getAttributesEx();
+        if(map!=null) {
+          cfg.spot_addAttributes(map);
+        }
         vcfg = cfg;
       } catch(Exception e) {
         return vcfg;

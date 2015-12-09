@@ -369,7 +369,6 @@ public final class IntList {
    * @return   the index of the first occurrence of the argument in this list; returns <tt>-1</tt>
    *           if the integer is not found.
    *
-   * @see      Object#equals(Object)
    */
   public static int indexOf(int[] list, int e) {
     for (int i = 0; i < list.length; i++) {
@@ -381,6 +380,51 @@ public final class IntList {
     return -1;
   }
 
+  /**
+   * Moves a value from one location to another
+   *
+   * @param from     the from position.
+   * @param to the to position
+   */
+  public  void move(int from, int to) {
+    if(!move(A,_length,from,to)) {
+      throw new IllegalArgumentException();
+    }
+  }
+  
+
+  /**
+   * Moves a value in the specified array from one location to another
+   *
+   * @param list  the list to delete from
+   * @param length the length of the array to move within (use -1 for the while array)
+   * @param from     the from position.
+   * @param to the to position
+   * 
+   * @return false if the specified parameters were invalid; true otherwise
+   */
+  public static boolean move(int[] list,int length, int from, int to) {
+    int len=length==-1 ? list.length : length;
+    if(to<0 || to>=len) {
+      return false;
+    }
+    if(from<0 || from>=len) {
+      return false;
+    }
+    if(from==to) {
+      return true;
+    }
+    int val=list[from];
+    if(from!=len-1) {
+      System.arraycopy(list, from+1, list, from, len-from-1);
+    }
+    if(to!=len-1) {
+      System.arraycopy(list, to, list, to+1, len-to-1);
+    }
+    list[to]=val;
+    return true;
+   }
+  
   /**
    * Searches for the first occurrence of a value that is greater than the given argument
    *

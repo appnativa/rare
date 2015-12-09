@@ -24,6 +24,7 @@ import com.appnativa.rare.platform.swing.ui.text.BasicHTMLEx;
 import com.appnativa.rare.platform.swing.ui.view.ButtonView;
 import com.appnativa.rare.platform.swing.ui.view.JButtonEx;
 import com.appnativa.rare.ui.PainterUtils;
+import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.iPaintedButton.ButtonState;
@@ -37,7 +38,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.AbstractButton;
@@ -125,7 +125,7 @@ public class RareButtonUI extends BasicButtonUI {
              : cp.getPainterHolder();
 
         ButtonModel model = bv.getModel();
-        ButtonState state = Utils.getState(model.isEnabled(), model.isPressed(), model.isSelected(),
+        ButtonState state = Utils.getState(model.isEnabled(), model.isArmed(), model.isSelected(),
                                            model.isRollover());
         Color fg = (ph == null)
                    ? null
@@ -172,16 +172,15 @@ public class RareButtonUI extends BasicButtonUI {
     ButtonState state         = Utils.getState(enabled, model.isPressed(), model.isSelected(), model.isRollover());
     Color       fg            = (ph == null)
                                 ? null
-                                : ph.getForeground(state, !enabled);
+                                : ph.getForeground(state, false);
 
     if (fg == null) {
       fg = b.getForeground();
+      if(fg instanceof UIColor) {
+        fg=((UIColor)fg).getColor(state);
+      }
     }
-
-    if (!b.isEnabled() && (fg instanceof UIColorShade) && ((UIColorShade) fg).isColorStateList()) {
-      fg = ((UIColorShade) fg).getColorStateList().getDisabledColor();
-    }
-
+    
     g.setColor(fg);
 
     if (b instanceof ButtonView) {

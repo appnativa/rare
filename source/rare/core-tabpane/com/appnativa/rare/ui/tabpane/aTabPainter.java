@@ -86,7 +86,6 @@ public abstract class aTabPainter implements iTabPainter {
   protected UIColor                              tabBorderColor;
   protected UIFont                               tabFont;
   protected UIColor                              tabForeground;
-  protected UIColor                              tabDisabledForeground;
   protected int[]                                tabLayoutSizes;
   protected PaintBucket                          tabPainter;
   protected int[]                                tabSizes;
@@ -584,15 +583,6 @@ public abstract class aTabPainter implements iTabPainter {
     }
 
     tabForeground = c;
-    tabDisabledForeground          = Platform.getUIDefaults().getColor("Rare.TabPane.tabDisabledForegroundColor");
-    if(tabDisabledForeground==null) {
-      if(c==UIColorHelper.getForeground()) {
-        tabDisabledForeground=ColorUtils.getDisabledForeground();
-      }
-      else {
-        tabDisabledForeground=ColorUtils.getDisabledVersion(c);
-      }
-    }
 
     if ((selectedPainter == null) || (selectedPainter.getForegroundColor() == null)) {
       selectedTabForeground = c;
@@ -1007,7 +997,7 @@ public abstract class aTabPainter implements iTabPainter {
       }
     }
     if(!renderer.isEnabled()) {
-      fg=tabDisabledForeground;
+      fg=fg.getDisabledColor();
     }
 
     renderer.setForeground(fg);

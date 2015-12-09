@@ -15,14 +15,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
-import com.appnativa.rare.Platform;
+import javax.swing.ActionMap;
+
 import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iFunctionCallback;
+import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.swing.ui.DataItemListModel;
 import com.appnativa.rare.platform.swing.ui.ListBoxListHandler;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
@@ -33,18 +34,11 @@ import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScrollPanePanel;
 import com.appnativa.rare.ui.UIAction;
-import com.appnativa.rare.ui.UISelectionModelGroup;
 import com.appnativa.rare.ui.iListView.EditingMode;
 import com.appnativa.rare.ui.iToolBar;
+import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.widget.iWidget;
-
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.JList;
 
 /**
  *  A widget that allows a user to select one or more choices from a
@@ -53,50 +47,6 @@ import javax.swing.JList;
  *  @author Don DeCoteau
  */
 public class ListBoxViewer extends aListViewer {
-
-  /** action to select the next row */
-  protected static Action selectNextRow = new AbstractAction("selectNextRow") {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Object o = (e == null)
-                 ? null
-                 : e.getSource();
-
-      if (o instanceof JList) {
-        JList         list = (JList) o;
-        int           row  = list.getLeadSelectionIndex();
-        ListBoxViewer v    = (ListBoxViewer) Platform.getWidgetForComponent(list);
-
-        if ((v != null) && (v.selectionModelGroup != null)) {
-          v.selectionModelGroup.selectNextRow(row, list.getSelectionModel());
-        } else {
-          UISelectionModelGroup.selectNextRow(v, row);
-        }
-      }
-    }
-  };
-
-  /** action to select the previous row */
-  protected static Action selectPreviousRow = new AbstractAction("selectPreviousRow") {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Object o = (e == null)
-                 ? null
-                 : e.getSource();
-
-      if (o instanceof JList) {
-        JList         list = (JList) o;
-        int           row  = list.getLeadSelectionIndex();
-        ListBoxViewer v    = (ListBoxViewer) Platform.getWidgetForComponent(list);
-
-        if ((v != null) && (v.selectionModelGroup != null)) {
-          v.selectionModelGroup.selectPreviousRow(row, list.getSelectionModel());
-        } else {
-          UISelectionModelGroup.selectPreviousRow(v, row);
-        }
-      }
-    }
-  };
 
   /**
    * Constructs a new instance
@@ -160,7 +110,7 @@ public class ListBoxViewer extends aListViewer {
    * @param index the index of the row that changed
    */
   @Override
-  public void rowChanged(int index) {
+  public void repaintRow(int index) {
     if (listModel != null) {
       listModel.rowChanged(index);
     }
@@ -209,12 +159,17 @@ public class ListBoxViewer extends aListViewer {
 
     v.setAutoSizeRows(autoSize);
   }
-
+  
   @Override
-  public void setEditModeNotifier(iFunctionCallback cb) {
+  public void setEditModeListener(iExpansionListener l) {
     ListView v = (ListView) getDataView();
-
-    v.setEditModeNotifier(cb);
+    v.setEditModeListener(l);
+  }
+  
+  @Override
+  public void setRowEditModeListener(iExpansionListener l) {
+    ListView v = (ListView) getDataView();
+    v.setRowEditModeListener(l);
   }
 
   @Override
@@ -233,8 +188,8 @@ public class ListBoxViewer extends aListViewer {
 
   @Override
   public void setRowEditingWidget(iWidget widget, boolean centerVertically) {
+    super.setRowEditingWidget(widget, centerVertically);
     ListView v = (ListView) getDataView();
-
     v.setRowEditingComponent(widget.getContainerComponent(), centerVertically);
   }
 
@@ -282,10 +237,10 @@ public class ListBoxViewer extends aListViewer {
 
     am.put("Rare.origSelectNextRow", am.get("selectNextRow"));
     am.put("Rare.origSelectPreviousRow", am.get("selectPreviousRow"));
-    am.put("selectNextRow", selectNextRow);
-    am.put("selectPreviousRow", selectPreviousRow);
-    dataComponent = formComponent = new ScrollPanePanel(list);
-    SwingHelper.configureScrollPane(this, list, cfg.getScrollPane());
+    am.put("selectNextRow", ActionHelper.selectNextRow);
+    am.put("selectPreviousRow", ActionHelper.selectPreviousRow);
+    formComponent = dataComponent = new ScrollPanePanel(list);
+    formComponent=SwingHelper.configureScrollPane(this,formComponent, list, cfg.getScrollPane());
     list.setItemRenderer(new ListItemRenderer(list, true));
     listComponent = new ListBoxListHandler(list, listModel);
     list.setListModel(listModel);
@@ -295,6 +250,8 @@ public class ListBoxViewer extends aListViewer {
     if (tb != null) {
       list.setEditingToolbar(tb);
     }
+
+    registerWithWidget(list.getListComponent());
   }
 
   @Override

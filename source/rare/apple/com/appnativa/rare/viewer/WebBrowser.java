@@ -21,6 +21,7 @@
 package com.appnativa.rare.viewer;
 
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.platform.apple.ui.view.WebView;
 import com.appnativa.rare.platform.apple.ui.view.WebView.iLoadListener;
 import com.appnativa.rare.spot.Browser;
@@ -30,6 +31,7 @@ import com.appnativa.rare.ui.iPlatformComponent;
 
 /**
  * Native Web Browser viewer
+ * 
  * @author Don DeCoteau
  */
 public class WebBrowser extends aWebBrowser {
@@ -58,6 +60,29 @@ public class WebBrowser extends aWebBrowser {
     webView = null;
   }
 
+  /**
+   * Executes the specified script within the context of the browser
+   *
+   * @param script
+   *          the script to execute
+   * @param cb
+   *          an optional callback to receive the result of the execution
+   */
+  public void executeScript(final String script, final iFunctionCallback cb) {
+    webView.executeScript(script, cb);
+  }
+
+  /**
+   * Sets a property on the current DOM window
+   * in the browser
+   *
+   * @param name the name of the property to set
+   * @param value the value of the property
+   */
+  public void setWindowProperty(String name, Object value) {
+    webView.setWindowProperty(name, value);
+  }
+
   @Override
   public void setScaleToFit(boolean scaleToFit) {
     webView.setScaleToFit(scaleToFit);
@@ -65,7 +90,7 @@ public class WebBrowser extends aWebBrowser {
 
   @Override
   protected iBrowser createWebView(Browser cfg) {
-    webView       = new WebView();
+    webView = new WebView();
     dataComponent = formComponent = new Container(webView);
 
     return new AppleBrowser();
@@ -88,7 +113,8 @@ public class WebBrowser extends aWebBrowser {
       if (webView != null) {
         try {
           webView.stopLoading();
-        } catch(Throwable ignore) {}
+        } catch (Throwable ignore) {
+        }
       }
     }
 

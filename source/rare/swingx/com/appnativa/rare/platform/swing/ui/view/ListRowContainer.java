@@ -20,28 +20,30 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.PainterUtils.GripperIcon;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.effects.ValueRangeAnimator;
-import com.appnativa.rare.ui.effects.iAnimatorListener;
-import com.appnativa.rare.ui.effects.iAnimatorValueListener;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.iListView.EditingMode;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
 import javax.swing.JComponent;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Container;
+import com.appnativa.rare.ui.PainterUtils.GripperIcon;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iListView.EditingMode;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.effects.ValueRangeAnimator;
+import com.appnativa.rare.ui.effects.iAnimatorListener;
+import com.appnativa.rare.ui.effects.iAnimatorValueListener;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.widget.iWidget;
 
 public class ListRowContainer extends JPanelEx {
   int                                 editorX = 0;
@@ -67,12 +69,16 @@ public class ListRowContainer extends JPanelEx {
   private int                         contentViewPrefWidth;
   private int                         position;
   int                                 measuringMaxWidth;
+  Container container;
 
   public ListRowContainer(ListView parent) {
     super();
     this.parent    = parent;
     showSelections = (parent.editingMode == EditingMode.SELECTION)
                      || (parent.editingMode == EditingMode.REORDERING_AND_SELECTION);
+    container=new Container(this);
+    iWidget w = Platform.getWidgetForComponent(parent);
+    container.setWidget(w);
   }
 
   public void hideRowEditingComponent(boolean animate) {
@@ -318,7 +324,7 @@ public class ListRowContainer extends JPanelEx {
   }
 
   protected void addEditingComponent(iPlatformComponent b) {
-    add(b.getView());
+    container.add(b);
   }
 
   protected void animateDeleteButton(final boolean in) {
@@ -400,8 +406,8 @@ public class ListRowContainer extends JPanelEx {
   }
 
   protected void initializeIcons() {
-    uncheckedIcon = Platform.getResourceAsIcon("Rare.List.editorUncheckedIcon");
-    checkedIcon   = Platform.getResourceAsIcon("Rare.List.editorCheckedIcon");
+    uncheckedIcon = Platform.getResourceAsIcon("Rare.icon.list.editorUncheckedIcon");
+    checkedIcon   = Platform.getResourceAsIcon("Rare.icon.list.editorCheckedIcon");
   }
 
   @Override

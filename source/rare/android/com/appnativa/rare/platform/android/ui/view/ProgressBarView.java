@@ -59,6 +59,7 @@ public class ProgressBarView extends ProgressBar implements iProgressBar {
     this.horizontal = horizontal;
   }
 
+  @Override
   public void setMaximum(int maximum) {
     maxValue = maximum;
 
@@ -67,16 +68,19 @@ public class ProgressBarView extends ProgressBar implements iProgressBar {
     setMax((int) max);
   }
 
+  @Override
   public void setMinimum(int minimum) {
     minValue = minimum;
   }
 
+  @Override
   public void setValue(int value) {
     int val = Math.max(0, value - minValue);
 
     setProgress(val);
   }
 
+  @Override
   public iPlatformComponent getComponent() {
     Component c = Component.fromView(this);
 
@@ -95,6 +99,7 @@ public class ProgressBarView extends ProgressBar implements iProgressBar {
     return minValue;
   }
 
+  @Override
   public int getValue() {
     return getProgress() + minValue;
   }
@@ -106,21 +111,25 @@ public class ProgressBarView extends ProgressBar implements iProgressBar {
     return horizontal;
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

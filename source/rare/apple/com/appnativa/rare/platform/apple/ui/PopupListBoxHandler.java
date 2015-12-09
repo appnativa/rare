@@ -39,7 +39,9 @@ public class PopupListBoxHandler extends ListBoxListHandler {
     ListView list = (ListView) getView();
 
     listComponent      = new Container(list);
+    listComponent.setWidget(w);
     containerComponent = AppleHelper.configureScrollPane(w, getListComponent(), getListComponent().getView(), null);
+    containerComponent.setWidget(w);
     list.setListModel(model);
     list.setShowLastDivider(false);
 

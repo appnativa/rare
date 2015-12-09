@@ -224,7 +224,7 @@ public class aFlowPanel extends XPContainer {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (preferredSizeWidth > 0) {
       getPreferredSizeEx(size, 0);
 

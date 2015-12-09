@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -39,7 +39,6 @@ public class ParentView extends View implements PropertyChangeListener {
 
   public native void add(int position, View view)
   /*-[
-    [view setParentViewWithRAREView:self];
     [((UIView*)proxy_) addSubview:((UIView*)view->proxy_)];
    ]-*/
   ;

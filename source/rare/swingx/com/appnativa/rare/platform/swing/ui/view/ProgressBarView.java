@@ -141,7 +141,7 @@ public class ProgressBarView extends JProgressBar implements iPainterSupport, iV
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     Dimension d = getMinimumSize();
 
     size.width  = d.width;

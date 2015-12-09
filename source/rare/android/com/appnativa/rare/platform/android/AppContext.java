@@ -15,69 +15,58 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.Theme;
-
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-
 import android.net.Uri;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
-
 import android.util.TypedValue;
-
 import android.view.Gravity;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-
 import android.widget.PopupWindow;
 
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionHandler;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.platform.aAppContext;
-import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
+import com.appnativa.rare.platform.android.ui.view.DialogEx;
+import com.appnativa.rare.platform.android.ui.view.PopupWindowEx;
 import com.appnativa.rare.ui.Frame;
-import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIProperties;
-import com.appnativa.rare.ui.effects.AnimationImage;
-import com.appnativa.rare.ui.effects.AnimationWrapper;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformComponentFactory;
 import com.appnativa.rare.ui.iPrintHandler;
+import com.appnativa.rare.ui.effects.AnimationImage;
+import com.appnativa.rare.ui.effects.AnimationWrapper;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharArray;
 import com.appnativa.util.IdentityArrayList;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import java.util.Locale;
 
 /**
  * This class represents an instance of a running application. It acts as a
@@ -88,6 +77,7 @@ import java.util.Locale;
  */
 public class AppContext extends aAppContext {
   private static ThreadLocal<CharArray> perThreadBuffer = new ThreadLocal<CharArray>() {
+    @Override
     protected synchronized CharArray initialValue() {
       return new CharArray(32);
     }
@@ -104,6 +94,7 @@ public class AppContext extends aAppContext {
     super(instance, new UIProperties());
   }
 
+  @Override
   public boolean browseURL(URL url) {
     Uri    uri    = Uri.parse(url.toExternalForm());
     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -113,14 +104,19 @@ public class AppContext extends aAppContext {
     return true;
   }
 
+  @Override
   public void clearStatusBar() {}
 
+  @Override
   public void closePopupWindows(boolean all) {
     IdentityArrayList w = new IdentityArrayList(activeWindows);
 
     for (Object o : w) {
-      if (o instanceof PopupWindow) {
-        ((PopupWindow) o).dismiss();
+      if (o instanceof PopupWindowEx) {
+        PopupWindowEx p=(PopupWindowEx) o;
+        if(all || p.isTransient()) {
+          p.dismiss();
+        }
       } else if (all && (o instanceof Dialog)) {
         ((Dialog) o).dismiss();
       }
@@ -159,6 +155,7 @@ public class AppContext extends aAppContext {
     return false;
   }
 
+  @Override
   public void exit() {
     if ((getRootActivity() != null) &&!getRootActivity().isFinishing()) {
       getRootActivity().finish();
@@ -169,47 +166,7 @@ public class AppContext extends aAppContext {
     super.exit();
   }
 
-  public void lockOrientation(Boolean landscape) {
-    int orientation = getActivity().getResources().getConfiguration().orientation;
-
-    if (landscape == null) {
-      switch(orientation) {
-        case Configuration.ORIENTATION_LANDSCAPE :
-          getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
-          break;
-
-        case Configuration.ORIENTATION_PORTRAIT :
-          getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-          break;
-
-        default :
-          if (ScreenUtils.isWider()) {
-            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-          } else {
-            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-          }
-
-          break;
-      }
-    } else if (landscape) {
-      if (orientation != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-      }
-    } else {
-      if (orientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-      }
-    }
-
-    orientationLocked = true;
-  }
-
-  public void oneLineErrorMessage(String title, String message) {
-    AndroidHelper.errorMessage(_instance, title, message);
-  }
-
+ 
   public static void startApplication(final MainActivity a, Bundle icicle) throws Exception {
     AppContext app = (AppContext) _instance;
 
@@ -224,14 +181,7 @@ public class AppContext extends aAppContext {
     new StartupTask().execute(a);
   }
 
-  public void unlockOrientation() {
-    if (getActivity().getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_SENSOR) {
-      getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-    }
-
-    orientationLocked = false;
-  }
-
+  @Override
   public void setActivityListener(aActivityListener l) {
     activityListener = l;
 
@@ -249,19 +199,9 @@ public class AppContext extends aAppContext {
     }
   }
 
+  @Override
   public void setContentView(MainActivity a) throws Exception {
     ((Rare) RARE).setContentView(a);
-  }
-
-  @Override
-  public void setThemeColors(UIColor fg, UIColor bg, boolean isdefault) {
-    super.setThemeColors(fg, bg, isdefault);
-
-    if (isdefault) {    // always set on android
-      uiDefaults.put("Rare.List.foreground", UIColor.BLACK);
-      uiDefaults.put("Rare.List.background", UIColor.WHITE);
-      uiDefaults.put("Rare.List.disabledForeground", UIColor.GRAY);
-    }
   }
 
   protected void didReceiveMemoryWarning() {
@@ -270,10 +210,12 @@ public class AppContext extends aAppContext {
     }
   }
 
+  @Override
   public Activity getActivity() {
     return ((Rare) ((AppContext) _instance).RARE).getActivity();
   }
 
+  @Override
   public aActivityListener getActivityListener() {
     return activityListener;
   }
@@ -282,6 +224,7 @@ public class AppContext extends aAppContext {
     return getContext().getActivity();
   }
 
+  @Override
   public iPlatformComponentFactory getComponentCreator() {
     return RARE.getWindowManager().getComponentCreator();
   }
@@ -317,22 +260,40 @@ public class AppContext extends aAppContext {
     return RARE.getFunctionHandler();
   }
 
+  @Override
   public Integer getLayoutId(String name) {
     return getResourceId(getActivity(), "layout", name);
   }
 
-  public UIImage getManagedResource(String name) {
-    return getResourceAsDrawableImage(name);
-  }
+  @Override
+  protected UIImage getManagedResource(String name, String cname, boolean landscape, CharArray ca) {
+    Context a = getActivity();
 
-  public UIImage getManagedResource(String name, boolean landscape) {
-    if (name.indexOf('.') != -1) {
-      name = name.replace('.', '-').toLowerCase(Locale.US);
+    if (a == null) {
+      a = getAndroidContext();
     }
 
-    return getResourceAsDrawableImage(name);
+    int      id = getResourceAsDrawableID(cname);
+    Drawable d  = (id == 0)
+                  ? null
+                  : a.getResources().getDrawable(id);
+
+    if (d instanceof AnimationDrawable) {
+      return new AnimationImage((AnimationDrawable) d, id);
+    }
+
+    if (d == null) {
+      return null;
+    }
+
+    UIImage img = new UIImage(d, id, cname);
+
+    img.setResourceName(name);
+
+    return img;
   }
 
+  @Override
   public iPrintHandler getPrintHandler() {
     return null;
   }
@@ -355,6 +316,7 @@ public class AppContext extends aAppContext {
     return (Rare) app.RARE;
   }
 
+  @Override
   public Drawable getResourceAsDrawable(String name) {
     Context a = getActivity();
 
@@ -369,48 +331,7 @@ public class AppContext extends aAppContext {
            : a.getResources().getDrawable(id);
   }
 
-  public UIImageIcon getResourceAsIconEx(String name) {
-    UIImageIcon icon = appIcons.get(name);
-
-    if (icon != null) {
-      return icon;
-    }
-
-    try {
-      icon = uiDefaults.getImageIcon(name);
-
-      if (icon != null) {
-        return icon;
-      }
-
-      UIImage img = getResourceAsDrawableImage(name);
-
-      if (img != null) {
-        return new UIImageIcon(img, name, iConstants.RESOURCE_PREFIX + name);
-      }
-    } catch(Exception e) {}
-
-    return null;
-  }
-
-  public UIImage getResourceAsImage(String name) {
-    UIImageIcon icon = appIcons.get(name);
-
-    if (icon != null) {
-      return icon.getImage();
-    }
-
-    try {
-      UIImage image = getResourceAsDrawableImage(name);
-
-      if (image != null) {
-        return image;
-      }
-    } catch(Exception e) {}
-
-    return UIImageIcon.getBrokenImage();
-  }
-
+  @Override
   public String getResourceAsString(String name) {
     String s;
 
@@ -446,6 +367,7 @@ public class AppContext extends aAppContext {
     return "";
   }
 
+  @Override
   public Integer getResourceId(String name) {
     Context a = getActivity();
 
@@ -490,6 +412,7 @@ public class AppContext extends aAppContext {
     return null;
   }
 
+  @Override
   public URL getResourceURL(String path) {
     try {
       if (path.startsWith("/")) {
@@ -517,6 +440,7 @@ public class AppContext extends aAppContext {
     return _instance.getUIDefaults();
   }
 
+  @Override
   public WindowViewer getWindowViewer() {
     WindowViewer w   = null;
     final int    len = activeWindows.size();
@@ -540,6 +464,40 @@ public class AppContext extends aAppContext {
     return w;
   }
 
+  @Override
+  public void handleConfigurationWillChange(Object newConfig) {
+    super.handleConfigurationWillChange(newConfig);
+
+    for (Object o : activeWindows) {
+      if (o instanceof DialogEx) {
+        DialogEx dialog = (DialogEx) o;
+        Frame    f      = dialog.getFrame();
+
+        f.getWindowViewer().onConfigurationWillChange(newConfig);
+        f.pack();
+        f.center();
+      }
+      else if(o instanceof PopupWindowEx) {
+        ((PopupWindowEx)o).cancelPopup(false);
+      }
+    }
+  }
+
+  @Override
+  public void handleConfigurationChanged(Object changes) {
+    super.handleConfigurationChanged(changes);
+
+    for (Object o : activeWindows) {
+      if (o instanceof Dialog) {
+        DialogEx dialog = (DialogEx) o;
+        Frame    f      = dialog.getFrame();
+
+        f.getWindowViewer().onConfigurationChanged(resetOnConfigurationChange);
+      }
+    }
+  }
+
+  @Override
   public boolean hasKeyboard() {
     return getConfiguration().keyboard != Configuration.KEYBOARD_NOKEYS;
   }
@@ -558,10 +516,12 @@ public class AppContext extends aAppContext {
     permanentFocusOwner = c;
   }
 
+  @Override
   protected void initializeManagedResourcePaths() {
     // TODO Auto-generated method stub
   }
 
+  @Override
   protected URL makeResourceURL(String name, String extension) {
     return getResourceURL(name + "." + extension);
   }
@@ -594,7 +554,7 @@ public class AppContext extends aAppContext {
 
     ColorStateList csl = new ColorStateList(new int[][] {
       new int[] { -android.R.attr.state_enabled }, new int[0]
-    }, new int[] { uiDefaults.getColor("Rare.disabledForeground").getColor(), fg.getColor() });
+    }, new int[] { fg.getDisabledColor().getColor(), fg.getColor() });
 
     uiDefaults.put("textText", new UIColorShade(csl));
     uiDefaults.put("Rare.foreground", uiDefaults.get("textText"));
@@ -612,6 +572,7 @@ public class AppContext extends aAppContext {
     return null;
   }
 
+  @Override
   protected iPlatformAnimator getResourceAsAnimatorEx(String animator) {
     try {
       Context a = getActivity();
@@ -732,6 +693,7 @@ public class AppContext extends aAppContext {
       alertDialog.setTitle("Startup Error");
       alertDialog.setMessage(ApplicationException.getMessageEx(e));
       alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
+        @Override
         public void onClick(DialogInterface dialog, int which) {
           a.finish();
         }
@@ -739,6 +701,7 @@ public class AppContext extends aAppContext {
       alertDialog.show();
     }
 
+    @Override
     protected MainActivity doInBackground(MainActivity... params) {
       MainActivity a = params[0];
 
@@ -751,6 +714,7 @@ public class AppContext extends aAppContext {
       return a;
     }
 
+    @Override
     protected void onPostExecute(MainActivity a) {
       if (error != null) {
         showError(a, error);

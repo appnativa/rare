@@ -29,6 +29,6 @@ public class UITouch {
   public float x;
   public float y;
   public int   clickCount;
-
+  public MouseEvent.Type type=MouseEvent.Type.MOUSE_UNKNOWN;
   public UITouch() {}
 }

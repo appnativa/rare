@@ -21,17 +21,15 @@
 package com.appnativa.rare.platform.android.ui;
 
 import android.annotation.SuppressLint;
-
 import android.content.Context;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
-
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.android.ui.aDataItemListModelEx.ListRow;
+import com.appnativa.rare.platform.android.ui.view.ListViewEx.iListViewRow;
 import com.appnativa.rare.platform.android.ui.view.ViewGroupEx;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.PainterUtils.GripperIcon;
@@ -46,7 +44,7 @@ import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
-public class ListRowContainer extends ViewGroupEx {
+public class ListRowContainer extends ViewGroupEx implements iListViewRow {
   protected iPlatformIcon             accessoryIcon;
   protected iPlatformComponent        accessoryView;
   protected Paint                     alternatingColorPaint;
@@ -64,6 +62,7 @@ public class ListRowContainer extends ViewGroupEx {
   protected boolean                   listEditingMode;
   protected int                       maxIconHeight;
   protected iPlatformComponentPainter pressedPainter;
+  protected iPlatformComponentPainter hilightPainter;
   protected iPlatformComponentPainter selectedPainter;
   protected boolean                   showSelections;
   protected boolean                   truncateContentWhenEditing;
@@ -73,8 +72,9 @@ public class ListRowContainer extends ViewGroupEx {
   private int                         position;
   UIDimension                         anamitingContentSize;
   protected boolean                   selected;
+  private boolean hilight;
 
-  public ListRowContainer(Context context) {
+  public ListRowContainer(Context context){
     super(context);
   }
 
@@ -90,11 +90,14 @@ public class ListRowContainer extends ViewGroupEx {
     int       bottom = getHeight();
     boolean   showh  = dividerPaint != null;
     final int d      = ScreenUtils.PLATFORM_PIXELS_1;
-
     if ((alternatingColorPaint != null) && (position % 2 == 1)) {
       canvas.drawRect(0, 0, right, bottom, alternatingColorPaint);
     }
 
+    if(hilight) {
+      
+    }
+    else {
     if (isPressed()) {
       if (pressedPainter != null) {
         pressedPainter.paint(this, canvas, 0, 0, right, bottom, iPainter.UNKNOWN);
@@ -104,7 +107,7 @@ public class ListRowContainer extends ViewGroupEx {
         selectedPainter.paint(this, canvas, 0, 0, right, bottom, iPainter.UNKNOWN);
       }
     }
-
+    }
     super.draw(canvas);
 
     if (listEditingMode) {
@@ -299,6 +302,11 @@ public class ListRowContainer extends ViewGroupEx {
       invalidate();
     }
   }
+  @Override
+  public void setHilight(boolean hilight) {
+    this.hilight=hilight;
+    invalidate();
+  }
 
   public void setShowSelections(boolean showSelections) {
     this.showSelections = showSelections;
@@ -438,8 +446,8 @@ public class ListRowContainer extends ViewGroupEx {
   }
 
   protected void initializeIcons() {
-    uncheckedIcon = Platform.getResourceAsIcon("Rare.List.editorUncheckedIcon");
-    checkedIcon   = Platform.getResourceAsIcon("Rare.List.editorCheckedIcon");
+    uncheckedIcon = Platform.getResourceAsIcon("Rare.icon.list.editorUncheckedIcon");
+    checkedIcon   = Platform.getResourceAsIcon("Rare.icon.list.editorCheckedIcon");
   }
 
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {

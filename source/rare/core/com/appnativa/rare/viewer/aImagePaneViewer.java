@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+import java.util.Locale;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.net.ActionLink;
@@ -28,15 +31,11 @@ import com.appnativa.rare.spot.ImagePane;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
-import com.appnativa.rare.ui.effects.iAnimatorListener;
+import com.appnativa.rare.ui.aImagePanel;
 import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformImagePanel;
+import com.appnativa.rare.ui.effects.iAnimatorListener;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.util.SNumber;
-
-import java.io.IOException;
-
-import java.util.Locale;
 
 public abstract class aImagePaneViewer extends aPlatformViewer {
   protected int         maxZoom       = 1000;
@@ -46,7 +45,7 @@ public abstract class aImagePaneViewer extends aPlatformViewer {
   protected boolean     autoScale;
 
   /** image panel */
-  protected iPlatformImagePanel imageView;
+  protected aImagePanel imageView;
   protected boolean             movingAllowed;
   protected boolean             panningAllowed;
   protected boolean             rotatingAllowed;
@@ -376,12 +375,30 @@ public abstract class aImagePaneViewer extends aPlatformViewer {
   }
 
   /**
-   * Rotates the image left by the specified degrees
+   * Get the rotation of the image
    *
    * @return the current image rotation in degrees
    */
-  public int getRotation() {
+  public int getImageRotation() {
     return imageView.getImageRotation();
+  }
+
+  /**
+   * Get the current image scale
+   *
+   * @return the current image scale
+   */
+  public float getImageScale() {
+    return imageView.getImageScale();
+  }
+
+  /**
+   * Get the image panel that is being used to render the image
+   *
+   * @return the image panel that is being used to render the image
+   */
+  public aImagePanel getImagePanel() {
+    return imageView;
   }
 
   /**
@@ -574,5 +591,5 @@ public abstract class aImagePaneViewer extends aPlatformViewer {
     imageView.fitImage();
   }
 
-  protected abstract iPlatformImagePanel createPanel(ImagePane cfg);
+  protected abstract aImagePanel createPanel(ImagePane cfg);
 }

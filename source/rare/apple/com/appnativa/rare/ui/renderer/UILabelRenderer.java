@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.renderer;
@@ -27,6 +27,7 @@ import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -41,6 +42,8 @@ import java.util.Map;
  * @author Don DeCoteau
  */
 public class UILabelRenderer extends ActionComponent implements Cloneable, iPlatformRenderingComponent {
+  int columnWidth;
+
   public UILabelRenderer() {
     this(new LabelView());
   }
@@ -68,9 +71,13 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
 
   @Override
   public iPlatformRenderingComponent newCopy() {
-    final UILabelRenderer r = new UILabelRenderer();
+    return setupNewCopy(new UILabelRenderer());
+  }
 
-    return Renderers.setupNewCopy(this, r);
+  protected iPlatformRenderingComponent setupNewCopy(UILabelRenderer r) {
+    r.columnWidth=columnWidth;
+    r.setWordWrap(isWordWrap());
+    return r;
   }
 
   @Override
@@ -90,7 +97,23 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
 
   @Override
   public void setColumnWidth(int width) {
-    ((LabelView) view).setPrefColumnWidth(width);
+    if (width <= 0) {
+      columnWidth = width;
+    } else {
+      columnWidth = 0;
+      ((LabelView) view).setPrefColumnWidth(width);
+    }
+  }
+
+  @Override
+  protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    maxWidth += columnWidth; //will only be set <=0
+
+    if (maxWidth < 0) {
+      maxWidth = 0;
+    }
+
+    super.getPreferredSizeEx(size, maxWidth);
   }
 
   @Override

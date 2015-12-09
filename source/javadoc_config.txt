@@ -1,9 +1,9 @@
 -use 
 -protected
 -splitindex
--windowtitle 'RARE v3.4 API Specification'
--doctitle 'RARE<sup><font size="-2">TM</font></sup> v3.4 API Specification'
--header '<b>Realtime Application Rendering Engine </b><br><font size="-1">3.4</font>'
+-windowtitle 'RARE v3.5 API Specification'
+-doctitle 'RARE<sup><font size="-2">TM</font></sup> v3.5 API Specification'
+-header '<b>Realtime Application Rendering Engine </b><br><font size="-1">3.5</font>'
 -bottom 'Copyright &copy; appNativa Inc. All rights reserved.'
 -group "Generic Utilities" "com.appnativa.util"
 -group "Object Syntax Notation Classes" "com.appnativa.spot"

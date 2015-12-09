@@ -15,28 +15,28 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
+import java.net.URL;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.ui.iComposite.CompositeType;
 import com.appnativa.rare.ui.effects.aAnimator.BoundsChanger;
 import com.appnativa.rare.ui.effects.iAnimatorListener;
-import com.appnativa.rare.ui.iComposite.CompositeType;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.util.SNumber;
-
-import java.net.URL;
 
 /**
  * A panel that displays an image and supports moving, scaling, etc.
  *
  * @author Don DeCoteau
  */
-public abstract class aImagePanel extends XPContainer implements iPainterSupport, iImageObserver, iPlatformImagePanel {
+public abstract class aImagePanel extends XPContainer implements iPainterSupport, iImageObserver {
   public static String         PROPERTY_PINCHZOOM = "pinchZoom";
   public static String         PROPERTY_ZOOM      = "zoom";
   public static String         PROPERTY_ROTATION  = "rotation";
@@ -103,25 +103,25 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     init(-1, -1, true);
   }
 
-  @Override
+  
   public boolean canZoomIn() {
     return theScale > maximumScale;
   }
 
-  @Override
+  
   public boolean canZoomOut() {
     return theScale > minimumScale;
   }
 
   public void cancelLoading() {}
 
-  @Override
+  
   public void centerImage() {
     centerOrFitImage(true);
     update();
   }
 
-  @Override
+  
   public void fitImage() {
     centerOrFitImage(false);
     update();
@@ -145,7 +145,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     update();
   }
 
-  @Override
+  
   public void clear() {
     initValues();
 
@@ -158,6 +158,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     destBounds.set(0, 0, 0, 0);
   }
 
+  
   @Override
   public void dispose() {
     super.dispose();
@@ -175,6 +176,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     scalingType   = null;
   }
 
+  
   @Override
   public void imageLoaded(UIImage image) {
     if (image != null) {
@@ -185,6 +187,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
           init(-1, -1, true);
         } else {
           Platform.invokeLater(new Runnable() {
+            
             @Override
             public void run() {
               init(-1, -1, true);
@@ -262,7 +265,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     this.firePropertyChange(PROPERTY_PINCHZOOM, Boolean.FALSE, Boolean.TRUE);
   }
 
-  @Override
+  
   public void resetImage() {
     theImage = originalImage;
     setScale(1.0f, false);
@@ -277,6 +280,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
 
       this.rotation = rotation;
       Platform.invokeLater(new Runnable() {
+        
         @Override
         public void run() {
           firePropertyChange(PROPERTY_ROTATION, oldRotation, rotation);
@@ -285,7 +289,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void rotateLeft() {
     if (theImage != null) {
       rotation -= 90;
@@ -293,7 +297,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void rotateRight() {
     if (theImage != null) {
       rotation += 90;
@@ -301,7 +305,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void zoom(int percent) {
     center = false;
 
@@ -312,7 +316,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void zoomIn() {
     center = false;
 
@@ -324,7 +328,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void zoomOut() {
     center = false;
 
@@ -348,28 +352,28 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void setAutoScale(boolean auto) {
     this.autoScale = auto;
   }
 
-  @Override
+  
   public void setCenterInitially(boolean centerInitially) {
     this.centerInitially = centerInitially;
     this.center          = centerInitially;
   }
 
-  @Override
+  
   public void setDisposeImageOnChange(boolean dispose) {
     disposeImageOnChange = dispose;
   }
 
-  @Override
+  
   public boolean isDisposeImageOnChange() {
     return disposeImageOnChange;
   }
 
-  @Override
+  
   public void setImage(UIImage img) {
     setImage(img, -1, -1);
   }
@@ -378,12 +382,13 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     setImage(PlatformHelper.createImage(url, true, 0));
   }
 
-  @Override
+  
   public void setImage(final UIImage img, final int width, final int height) {
     if (Platform.isUIThread()) {
       setImageEx(img, width, height);
     } else {
       Platform.invokeLater(new Runnable() {
+        
         @Override
         public void run() {
           setImageEx(img, width, height);
@@ -392,7 +397,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void setImageBorder(iPlatformBorder imageBorder) {
     this.imageBorder  = imageBorder;
     imageBorderInsets = (imageBorder == null)
@@ -418,14 +423,14 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
            : imageComposite.getAlpha();
   }
 
-  @Override
+  
   public void setMaximumZoom(int percent) {
     if ((percent > 0) && (percent < 5000)) {
       maximumScale = percent / 100f;
     }
   }
 
-  @Override
+  
   public void setMinimumZoom(int percent) {
     if ((percent > 0) && (percent < 5000)) {
       minimumScale = percent / 100f;
@@ -443,7 +448,6 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     this.moveIncrement = increment;
   }
 
-  @Override
   public void setMovingAllowed(boolean allowed) {
     this.movingAllowed = allowed;
   }
@@ -455,12 +459,10 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
    * @param allowed
    *          true to allow false otherwise
    */
-  @Override
   public void setMovingOnlyAllowedWhenToLarge(boolean allowed) {
     this.movingAllowedWhenToLarge = allowed;
   }
 
-  @Override
   public void setPreserveAspectRatio(boolean preserveAspectRatio) {
     this.preserveAspectRatio = preserveAspectRatio;
   }
@@ -469,11 +471,12 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     this.rotatingAllowed = allowed;
   }
 
-  @Override
+  
   public void setScalingType(ScalingType type) {
     this.scalingType = type;
   }
 
+  
   @Override
   public void setBounds(float x, float y, float width, float height) {
     UIRectangle from = animateBoundsChange
@@ -535,7 +538,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void setSelectionColor(UIColor color) {
     this.selectionColor = color;
 
@@ -570,12 +573,12 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     useSpinner = spinner;
   }
 
-  @Override
+  
   public void setUserSelectionAllowed(boolean allowed) {
     this.userSelectionAllowed = allowed;
   }
 
-  @Override
+  
   public void setZoomIncrementPercent(int percent) {
     if (percent > 100) {
       percent = 100;
@@ -588,39 +591,44 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     }
   }
 
-  @Override
+  
   public void setZoomingAllowed(boolean allowed) {
     this.zoomingAllowed = allowed;
   }
 
-  @Override
+  
   public iPlatformComponent getComponent() {
     return this;
   }
 
-  @Override
+  
   public UIImage getImage() {
     return theImage;
   }
 
-  @Override
+  
   public iPlatformBorder getImageBorder() {
     return imageBorder;
   }
 
-  @Override
+  
   public int getImageHeight() {
     return (theImage == null)
            ? 0
            : theImage.getHeight();
   }
 
-  @Override
+  
   public int getImageRotation() {
     return rotation;
   }
 
-  public UIImage getImageWithCurrentRotation() {
+  
+  public float getImageScale() {
+    return theScale;
+  }
+
+    public UIImage getImageWithCurrentRotation() {
     if (!usingTransforms && (theImage != null) && theImage.isLoaded()) {
       return UIImageHelper.rotateImage(theImage, rotation);
     }
@@ -628,11 +636,23 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     return theImage;
   }
 
-  @Override
+  
   public int getImageWidth() {
     return (theImage == null)
            ? 0
            : theImage.getWidth();
+  }
+
+  public int getImageScaleWidth() {
+    return (theImage == null)
+           ? 0
+           : (int)destBounds.width;
+  }
+
+  public int getImageScaleHeight() {
+    return (theImage == null)
+           ? 0
+           : (int)destBounds.height;
   }
 
   public int getMaximumZoom() {
@@ -654,7 +674,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     return scalingType;
   }
 
-  @Override
+  
   public iPlatformShape getSelection() {
     return selection;
   }
@@ -677,14 +697,14 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     return selectionStroke;
   }
 
-  @Override
+  
   public String getSource() {
     return (theImage == null)
            ? null
            : theImage.getLocation();
   }
 
-  @Override
+  
   public UIImage getRenderedImage() {
     int      width  = getWidth();
     int      height = getHeight();
@@ -736,7 +756,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     return theImage.getSubimage((int) r.x, (int) r.y, (int) r.width, (int) r.height);
   }
 
-  @Override
+  
   public int getZoomPercent() {
     return (int) (theScale * 100);
   }
@@ -1044,6 +1064,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
 
   protected void fireZoomChange(final int oldZoom, final int newZoom) {
     Platform.invokeLater(new Runnable() {
+      
       @Override
       public void run() {
         firePropertyChange(PROPERTY_ZOOM, oldZoom, newZoom);
@@ -1142,6 +1163,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     return in;
   }
 
+  
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     if (isAnimating()) {
@@ -1277,7 +1299,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
 
   protected void postRotateEx() {}
 
-  @Override
+  
   public boolean isImageFitted() {
     if ((destBounds.x > -1) && (destBounds.y > -1)) {
       UIInsets in = getPaintInsets();
@@ -1299,22 +1321,22 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
     return false;
   }
 
-  @Override
+  
   public boolean isFillViewport() {
     return fillViewport;
   }
 
-  @Override
+  
   public void setFillViewport(boolean fillViewport) {
     this.fillViewport = fillViewport;
   }
 
-  @Override
+  
   public boolean isAnimateBoundsChange() {
     return animateBoundsChange;
   }
 
-  @Override
+  
   public void setAnimateBoundsChange(boolean animateBoundsChange, iAnimatorListener listener) {
     this.animateBoundsChange  = animateBoundsChange;
     animateSizeChangeListener = listener;

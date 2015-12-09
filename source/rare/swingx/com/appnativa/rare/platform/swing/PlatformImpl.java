@@ -20,31 +20,6 @@
 
 package com.appnativa.rare.platform.swing;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iFunctionHandler;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.iTimer;
-import com.appnativa.rare.net.URLEncoder;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.aPlatform;
-import com.appnativa.rare.platform.swing.ui.view.LabelView;
-import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.Frame;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.chart.aChartHandler.NoChartHandler;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.dnd.iFlavorCreator;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.SNumber;
-import com.appnativa.util.iCancelable;
-
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Window;
@@ -69,6 +44,31 @@ import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iFunctionHandler;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.iTimer;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.aPlatform;
+import com.appnativa.rare.platform.swing.ui.view.LabelView;
+import com.appnativa.rare.ui.ActionComponent;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Frame;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.chart.aChartHandler.NoChartHandler;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.dnd.iFlavorCreator;
+import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.SNumber;
+import com.appnativa.util.URLEncoder;
+import com.appnativa.util.iCancelable;
 
 public class PlatformImpl extends aPlatform {
   static ClassLoader urlClassLoader;
@@ -187,25 +187,6 @@ public class PlatformImpl extends aPlatform {
     a.setIcon(icon);
 
     return a;
-  }
-
-  /**
-   * Creates a new instance of the class represented by the specified name
-   *
-   * @param className
-   *          the name of the class to load
-   *
-   * @return the new object or null if the object could not be instantiated
-   */
-  @Override
-  public Object createObject(String className) {
-    try {
-      return Class.forName(className, true, urlClassLoader).newInstance();
-    } catch(Throwable ignore) {
-      Platform.ignoreException("createObject:" + className, ignore);
-
-      return null;
-    }
   }
 
   @Override

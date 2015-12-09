@@ -20,3 +20,6 @@
 
 
 @end
+@interface RAREAPScrollViewDelegate : NSObject <UIScrollViewDelegate>
+
+@end

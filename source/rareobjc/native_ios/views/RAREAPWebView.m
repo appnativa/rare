@@ -49,6 +49,12 @@
   [self loadRequest:req];
 }
 
+-(void) setWindowProperty: (NSString*) property value: (NSObject*) value {
+  JSContext* js= (JSContext*)[self valueForKeyPath:@"documentView.webView.mainFrame.javaScriptContext"];
+  JSValue* window = js[@"window"];
+  [window setValue:value forKey:property];
+}
+
 -(void) setScaleToFit: (BOOL) scaleToFit {
   self.scalesPageToFit=scaleToFit;
 }

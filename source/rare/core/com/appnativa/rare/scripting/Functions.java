@@ -15,22 +15,52 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
 
-import com.appnativa.rare.FunctionCallbackChainner;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.DateFormatSymbols;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import com.appnativa.rare.FunctionCallbackChainer;
 import com.appnativa.rare.FunctionCallbackWaiter;
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.iFunctionCallback;
+import com.appnativa.rare.iFunctionHandler;
 import com.appnativa.rare.converters.Conversions;
 import com.appnativa.rare.converters.DateConverter;
 import com.appnativa.rare.converters.DateTimeConverter;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iFunctionCallback;
-import com.appnativa.rare.iFunctionHandler;
 import com.appnativa.rare.net.JavaURLConnection;
-import com.appnativa.rare.net.URLEncoder;
 import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.Widget;
@@ -51,12 +81,12 @@ import com.appnativa.rare.ui.UIProperties;
 import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.UITextIcon;
 import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.effects.iAnimator;
-import com.appnativa.rare.ui.effects.iAnimatorValueListener;
 import com.appnativa.rare.ui.iEventHandler;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.border.UICompoundBorder;
+import com.appnativa.rare.ui.effects.iAnimator;
+import com.appnativa.rare.ui.effects.iAnimatorValueListener;
 import com.appnativa.rare.ui.painter.UICompoundPainter;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
@@ -82,6 +112,7 @@ import com.appnativa.util.SNumber;
 import com.appnativa.util.SimpleDateFormatEx;
 import com.appnativa.util.Streams;
 import com.appnativa.util.StringCache;
+import com.appnativa.util.URLEncoder;
 import com.appnativa.util.iCancelable;
 import com.appnativa.util.iFilter;
 import com.appnativa.util.iFilterableList;
@@ -90,42 +121,6 @@ import com.appnativa.util.json.JSONArray;
 import com.appnativa.util.json.JSONException;
 import com.appnativa.util.json.JSONObject;
 import com.appnativa.util.xml.XMLUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-
-import java.net.URL;
-
-import java.text.DateFormat;
-import java.text.DateFormatSymbols;
-import java.text.DecimalFormat;
-import java.text.ParseException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class implementing support for functions exposed via the "rare" object within
@@ -328,6 +323,7 @@ public class Functions implements iFunctionHandler {
 
     return Base64.encode(ISO88591Helper.getInstance().getBytes(val));
   }
+
   /**
    * Base64 encodes the specified string
    *
@@ -341,7 +337,7 @@ public class Functions implements iFunctionHandler {
       return "";
     }
 
-    return Base64.encodeBytes(ISO88591Helper.getInstance().getBytes(val),Base64.DONT_BREAK_LINES);
+    return Base64.encodeBytes(ISO88591Helper.getInstance().getBytes(val), Base64.DONT_BREAK_LINES);
   }
 
   /**
@@ -605,9 +601,8 @@ public class Functions implements iFunctionHandler {
    *          the output format
    * @return the date string in the output format
    *
-   * @throws java.text.ParseException
    */
-  public static String convertDate(iWidget context, Object date, String outputFormat) throws ParseException {
+  public static String convertDate(iWidget context, Object date, String outputFormat) {
     if (date == null) {
       return "";
     }
@@ -649,10 +644,8 @@ public class Functions implements iFunctionHandler {
    *          the output format
    * @return the date string in the output format
    *
-   * @throws java.text.ParseException
    */
-  public static String convertDate(iWidget context, Object date, String inputFormat, String outputFormat)
-          throws ParseException {
+  public static String convertDate(iWidget context, Object date, String inputFormat, String outputFormat){
     if (date == null) {
       return "";
     }
@@ -691,9 +684,8 @@ public class Functions implements iFunctionHandler {
    *          format
    * @return the date/time string in the default display format
    *
-   * @throws java.text.ParseException
    */
-  public static String convertDateTime(iWidget context, Object date) throws ParseException {
+  public static String convertDateTime(iWidget context, Object date)  {
     return convertDateTime(context, date, true);
   }
 
@@ -711,9 +703,8 @@ public class Functions implements iFunctionHandler {
    *          the item (server) format
    * @return the date/time string in the default display format
    *
-   * @throws java.text.ParseException
    */
-  public static String convertDateTime(iWidget context, Object date, boolean display) throws ParseException {
+  public static String convertDateTime(iWidget context, Object date, boolean display) {
     if (date == null) {
       return "";
     }
@@ -1000,8 +991,8 @@ public class Functions implements iFunctionHandler {
    *
    * @return an object that can be used to chain callback requests
    */
-  public static FunctionCallbackChainner createFunctionCallbackChainner() {
-    return new FunctionCallbackChainner();
+  public static FunctionCallbackChainer createFunctionCallbackChainner() {
+    return new FunctionCallbackChainer();
   }
 
   /**
@@ -1789,33 +1780,52 @@ public class Functions implements iFunctionHandler {
       if (len > 0) {
         parameters = new String[len];
 
-        String s;
-        char   c;
-
-        // this loop needs to be recursion safe
         for (int i = 0; i < len; i++) {
-          s = list.get(i);
-          n = s.length();
-          c = (n == 0)
-              ? 0
-              : s.charAt(0);
-
-          if ((c == '\'') || (c == '\"')) {
-            s = CharScanner.cleanQuoted(s);
-          } else if (n > 0) {
-            Object o = context.getAttribute(s);
-
-            s = (o == null)
-                ? ""
-                : o.toString();
-          }
-
-          parameters[i] = s;
+          parameters[i] = resolveParameter(context, list.get(i), sc);
         }
       }
     }
 
     return executeFunction(context, name, parameters);
+  }
+
+  /**
+   * Resolves a function parameter for a configuration string
+   * @param context the context
+   * @param s the parameter string
+   * @return the resolved value
+   * @throws ParseException
+   */
+  protected String resolveParameter(iWidget context, String s, CharScanner sc) throws ParseException {
+    if (s.indexOf('+') != -1) {
+      sc.reset(s);
+
+      List<String>  list = sc.getTokens('+', true, false, true);
+      StringBuilder sb   = new StringBuilder();
+
+      for (String tok : list) {
+        sb.append(resolveParameter(context, tok, sc));
+      }
+
+      return sb.toString();
+    }
+
+    int  n = s.length();
+    char c = (n == 0)
+             ? 0
+             : s.charAt(0);
+
+    if ((c == '\'') || (c == '\"')) {
+      s = CharScanner.cleanQuoted(s);
+    } else if (!Character.isDigit(c) && (n > 0)) {
+      Object o = context.getAttribute(s);
+
+      s = (o == null)
+          ? ""
+          : o.toString();
+    }
+
+    return s;
   }
 
   /**
@@ -1972,8 +1982,15 @@ public class Functions implements iFunctionHandler {
       case FUNC_HTML :
         checkParmLength(context, plen, 1);
 
-        return "<html>" + parameters[0] + "</html>";
+        int chars = (plen == 1)
+                    ? 0
+                    : SNumber.intValue(parameters[1]);
 
+        if (chars < 1) {
+          return "<html>" + parameters[0] + "</html>";
+        } else {
+          return htmlWordWrap(parameters[0], chars, true);
+        }
       case FUNC_COLOR :
         checkParmLength(context, plen, 1);
 
@@ -2229,11 +2246,7 @@ public class Functions implements iFunctionHandler {
       }
 
       if ((obj instanceof Date) || (obj instanceof Calendar)) {
-        try {
           return convertDate(Platform.getContextRootViewer(), obj, pattern);
-        } catch(ParseException e) {
-          throw new ApplicationException(e);
-        }
       }
     }
 
@@ -3463,7 +3476,7 @@ public class Functions implements iFunctionHandler {
   public static String stringValue(double number) {
     return SNumber.toString(number);
   }
-  
+
   /**
    * Returns the string representation for the specified object
    *
@@ -3493,11 +3506,7 @@ public class Functions implements iFunctionHandler {
     }
 
     if ((obj instanceof Date) || (obj instanceof Calendar)) {
-      try {
-        return convertDateTime(Platform.getContextRootViewer(), obj, true);
-      } catch(ParseException ex) {
-        return obj.toString();
-      }
+      return convertDateTime(Platform.getContextRootViewer(), obj, true);
     }
 
     if (obj instanceof URL) {
@@ -4136,7 +4145,17 @@ public class Functions implements iFunctionHandler {
   public static boolean isOptimizationEnabled() {
     return PlatformHelper.isOptimizationEnabled();
   }
-
+  
+  /**
+   * Tests the specified objects of identity equality 
+   * @param o1 the first object to test
+   * @param o2 the first object to test
+   * @return true if they are the same object; false otherwise
+   */
+  public static boolean isEqual(Object o1, Object o2) {
+    return o1==o2;
+  }
+  
   /**
    * Printable character.
    *

@@ -20,21 +20,18 @@
 
 package com.appnativa.rare.ui.renderer;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.swing.ui.view.FormsView;
-import com.appnativa.rare.ui.FormsPanel;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 import com.google.j2objc.annotations.Weak;
-
 import com.jgoodies.forms.layout.FormLayout;
-
-import java.awt.Dimension;
-import java.awt.Rectangle;
 
 /**
  * A renderer that uses the JGoodies forms layout panel to render information
@@ -43,7 +40,7 @@ import java.awt.Rectangle;
  */
 public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
   public UIFormsLayoutRenderer() {
-    super(new FormsPanel(new FormsViewEx(new FormLayout())) {
+    super(new FormsPanelEx(new FormsViewEx(new FormLayout())) {
       @Override
       public void setBackground(UIColor bg) {
         if (componentPainter != null) {
@@ -69,7 +66,7 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
   }
 
   public UIFormsLayoutRenderer(String columns, String rows) {
-    super(new FormsPanel((new FormsViewEx(new FormLayout(columns, rows)))));
+    super(new FormsPanelEx((new FormsViewEx(new FormLayout(columns, rows)))));
     this.columns                                  = columns;
     this.rows                                     = rows;
     ((FormsViewEx) formsPanel.getView()).renderer = this;

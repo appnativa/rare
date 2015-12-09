@@ -20,19 +20,18 @@
 
 package com.appnativa.rare.ui;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
 import com.appnativa.rare.platform.swing.ui.view.BorderLayoutView;
 import com.appnativa.rare.platform.swing.ui.view.LabelView;
 import com.appnativa.rare.ui.PainterUtils.ChevronIcon;
 import com.appnativa.rare.ui.PainterUtils.TwistyIcon;
-import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.listener.iMouseListener;
-
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Point;
-import java.awt.event.MouseAdapter;
 
 /**
  *
@@ -55,7 +54,6 @@ public class CollapsiblePane extends aCollapsiblePane {
    */
   public CollapsiblePane(String title, iPlatformComponent c) {
     super();
-    eventObject              = new ExpansionEvent(this);
     toggleOnTitleSingleClick = Platform.isTouchDevice();
     initComponents();
 

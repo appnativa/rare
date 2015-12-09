@@ -61,7 +61,7 @@ public class NumberEditor extends DefaultEditor implements iTextChangeListener {
       return false;
     }
 
-    String        text = getTextField().getPlainText();
+    String        text = getTextField().getText();
     int           slen = text.length();
     StringBuilder sb   = new StringBuilder(slen - (end - start) + replacementString.length());
 
@@ -111,8 +111,7 @@ public class NumberEditor extends DefaultEditor implements iTextChangeListener {
   @Override
   protected void customizeEditor() {
     super.customizeEditor();
-    getTextField().removeTextChangeListener(this);
-    getTextField().addTextChangeListener(this);
+    updateTextChangeListener(this);
     editorView.setText(spinnerModel.getValue().toString());
   }
 }

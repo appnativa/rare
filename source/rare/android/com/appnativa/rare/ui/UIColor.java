@@ -23,12 +23,12 @@ package com.appnativa.rare.ui;
 import android.graphics.Paint;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
-
 import android.widget.TextView;
 
 import com.appnativa.rare.converters.Conversions;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.view.BackgroundDrawable;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 
 /**
  *
@@ -51,6 +51,7 @@ public class UIColor implements iPlatformPaint, Cloneable {
   public final static UIColor TRANSPARENT = new UIColor(android.graphics.Color.TRANSPARENT);
   protected final int         color;
   protected Paint             paint;
+  private UIColor disabledColor;
 
   public UIColor(int color) {
     this.color = color;
@@ -190,8 +191,23 @@ public class UIColor implements iPlatformPaint, Cloneable {
     return null;
   }
 
-  public UIColor getDisabledColor(UIColor def) {
-    return def;
+
+  public UIColor getColor(ButtonState state) {
+    switch(state) {
+      case DISABLED :
+      case DISABLED_SELECTED :
+        return getDisabledColor();
+
+      default :
+        return this;
+    }
+  }
+
+  public UIColor getDisabledColor() {
+    if(disabledColor==null) {
+     disabledColor=ColorUtils.getDisabledVersion(this);
+    }
+    return disabledColor;
   }
 
   public boolean isColor() {

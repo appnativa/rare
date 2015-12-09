@@ -267,10 +267,6 @@ public class UITarget implements iTarget {
     targetContainer.setLocked(lock);
   }
 
-  public void setLockedColor(UIColor color) {
-    targetContainer.setDisabledColor(color);
-  }
-
   /**
    * Sets whether the target is in manual update mode
    * In manual update mode a call to update() must be made after a new widget has been set,
@@ -548,7 +544,6 @@ public class UITarget implements iTarget {
       if (!isManualUpdate()) {
         update();
       }
-
       if (listener != null) {
         listener.viewerSet(theViewer);
       }

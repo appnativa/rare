@@ -22,15 +22,12 @@ package com.appnativa.rare.ui;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-
 import android.graphics.Canvas;
 import android.graphics.Color;
-
+import android.text.InputType;
 import android.text.TextUtils.TruncateAt;
-
 import android.view.Gravity;
 import android.view.View;
-
 import android.widget.EditText;
 
 import com.appnativa.rare.Platform;
@@ -91,9 +88,12 @@ public class ComboBoxComponent extends aComboBoxComponent {
 
   protected iPlatformTextEditor createEditor() {
     EditTextEx e = EditTextEx.createEditText(((View) view).getContext());
-
+    int i=e.getInputType();
+    i ^= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+    i|=InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+    e.setInputType(i);
     e.setPadding(0, 0, 0, 0);
-    e.setBackgroundDrawable(NullDrawable.getInstance());
+    e.setBackground(NullDrawable.getInstance());
 
     int[][] states = new int[2][];
 
@@ -103,7 +103,7 @@ public class ComboBoxComponent extends aComboBoxComponent {
     e.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
     e.setSingleLine(true);
     e.setEllipsize(TruncateAt.END);
-    ((ActionComponent) e.getComponent()).setAdjustSize(false);
+    ((ActionComponent) e.getComponent()).setAutoAdjustSize(false);
 
     return e;
   }

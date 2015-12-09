@@ -15,13 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.renderer;
 
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
@@ -46,13 +45,12 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
   protected boolean                   selectionPainted   = true;
   protected boolean                   paintRowBackground = true;
   protected boolean                   handlesSelection   = true;
-  protected boolean                   autoHilight;
   protected PaintBucket               autoHilightPaint;
   protected UIComponentPainter        componentPainter;
   protected iStringConverter          converter;
   protected iPlatformIcon             delayedIcon;
-  protected UIColor                   disabledColor;
   protected UIInsets                  insets;
+  protected UIInsets                  insetsAdd;
   protected UIInsets                  selectedInsets;
   protected Column                    itemDescription;
   protected PaintBucket               lostFocusSelectionPaint;
@@ -60,6 +58,9 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
   protected boolean                   alwaysCallSetBorder;
   protected PaintBucket               pressedPaint;
   protected PaintBucket               selectionPaint;
+  protected int                       hilightIndex = Integer.MIN_VALUE;
+  protected boolean                   hilightSelected;
+  protected boolean                   ignoreSelection;
 
   /**
    * Constructs a new instance
@@ -105,6 +106,10 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
       override = true;
     }
 
+    if (isIgnoreSelection()) {
+      isSelected = false;
+    }
+
     if ((w == null) && (list != null)) {
       w = Platform.findWidgetForComponent(list);
 
@@ -145,6 +150,10 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
       pb = (col == null)
            ? null
            : col.getItemSelectionPainter();
+
+      if ((pb == null) && (hilightSelected || hilightIndex == row)) {
+        pb = getAutoHilightPaint();
+      }
 
       if ((pb == null) && override) {
         pb = (col == null)
@@ -190,6 +199,10 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
            ? null
            : col.getItemPainter();
 
+      if ((pb == null) && (hilightIndex == row)) {
+        pb = getAutoHilightPaint();
+      }
+
       if (pb != null) {
         if (fg == null) {
           fg = pb.getForegroundColor();
@@ -206,10 +219,6 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
     }
 
     enabled = item.isEnabled();
-
-    if (enabled && (list != null)) {
-      enabled = list.isEnabled();
-    }
 
     if (rowItem != null) {
       if (!rowItem.isEnabled()) {
@@ -263,23 +272,6 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
     if ((fg == null) && (list != null)) {
       fg = list.getForeground();
     }
-
-    if (!enabled) {
-      if (disabledColor == null) {
-        disabledColor = ColorUtils.getDisabledForeground();
-      }
-
-      if (list != null) {
-        fg = fg.getDisabledColor(list.getDisabledColor());
-      }
-
-      if (fg == null) {
-        fg = disabledColor;
-      } else {
-        fg = fg.getDisabledColor(disabledColor);
-      }
-    }
-
     rc.setEnabled(enabled);
     rc.setFont(font);
     rc.setComponentPainter(bp);
@@ -298,6 +290,21 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
       rc.setBorder(b);
     } else if ((bp == null) || (bp.getBorder() == null)) {
       rc.setBorder(b);
+    }
+
+    if (col != null) {
+      if (in == null) {
+        in = col.getMargin();
+      } else {
+        if (insetsAdd == null) {
+          insetsAdd = new UIInsets(in);
+        } else {
+          insetsAdd.set(in);
+        }
+
+        in = insetsAdd;
+        col.addMargin(in);
+      }
     }
 
     if (in != null) {
@@ -321,10 +328,6 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
     selectionPaint          = null;
     itemDescription         = null;
     lostFocusSelectionPaint = null;
-  }
-
-  public void setAutoHilight(boolean autoHilight) {
-    this.autoHilight = autoHilight;
   }
 
   public void setAutoHilightPaint(PaintBucket autoHilightPaint) {
@@ -496,10 +499,6 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
     return pb;
   }
 
-  public boolean isAutoHilight() {
-    return autoHilight;
-  }
-
   public boolean isPaintRowBackground() {
     return paintRowBackground;
   }
@@ -534,5 +533,33 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
     }
 
     return selectedInsets;
+  }
+
+  public boolean getHilightSelected() {
+    return hilightSelected;
+  }
+
+  public void setHilightSelected(boolean hilightSelected) {
+    this.hilightSelected = hilightSelected;
+  }
+
+  public int getHilightIndex() {
+    return hilightIndex;
+  }
+
+  public void setHilightIndex(int hilightIndex) {
+    if (hilightIndex < 0) {
+      hilightIndex = Integer.MIN_VALUE;
+    }
+
+    this.hilightIndex = hilightIndex;
+  }
+
+  public boolean isIgnoreSelection() {
+    return ignoreSelection;
+  }
+
+  public void setIgnoreSelection(boolean ignoreSelection) {
+    this.ignoreSelection = ignoreSelection;
   }
 }

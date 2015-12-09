@@ -40,11 +40,7 @@ public class UIStringRenderer extends UILabelRenderer {
 
   @Override
   public iPlatformRenderingComponent newCopy() {
-    UIStringRenderer r = new UIStringRenderer();
-
-    r.setWordWrap(isWordWrap());
-
-    return Renderers.setupNewCopy(this, r);
+    return setupNewCopy(new UIStringRenderer());
   }
 
   /**

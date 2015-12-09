@@ -21,19 +21,15 @@
 package com.appnativa.rare.platform.android.ui.view;
 
 import android.content.Context;
-
 import android.util.AttributeSet;
-
 import android.view.View;
-
 import android.widget.SeekBar;
 
 import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iSlider;
-
-import java.util.EventObject;
+import com.appnativa.rare.ui.event.EventBase;
+import com.appnativa.rare.ui.event.iChangeListener;
 
 /**
  *
@@ -54,15 +50,18 @@ public class SliderView extends SeekBar implements SeekBar.OnSeekBarChangeListen
     super(context, attrs);
   }
 
+  @Override
   public void onProgressChanged(SeekBar sb, int progress, boolean fromUser) {
     if ((progress != lastValue) && (changeListener != null)) {
       lastValue = progress;
-      changeListener.stateChanged(new EventObject(sb));
+      changeListener.stateChanged(new EventBase(sb));
     }
   }
 
+  @Override
   public void onStartTrackingTouch(SeekBar seekBar) {}
 
+  @Override
   public void onStopTrackingTouch(SeekBar seekBar) {}
 
   public void setChangeListener(iChangeListener l) {
@@ -75,14 +74,17 @@ public class SliderView extends SeekBar implements SeekBar.OnSeekBarChangeListen
   /**
    * @param horizontal the horizontal to set
    */
+  @Override
   public void setHorizontal(boolean horizontal) {
     this.horizontal = horizontal;
   }
 
+  @Override
   public void setMajorTickSpacing(int value) {
     setKeyProgressIncrement(value);
   }
 
+  @Override
   public void setMaximum(int maximum) {
     maxValue = maximum;
 
@@ -91,16 +93,20 @@ public class SliderView extends SeekBar implements SeekBar.OnSeekBarChangeListen
     setMax((int) max);
   }
 
+  @Override
   public void setMinimum(int minimum) {
     minValue = minimum;
   }
 
+  @Override
   public void setMinorTickSpacing(int value) {}
 
+  @Override
   public void setShowTicks(boolean show) {
     // TODO Auto-generated method stub
   }
 
+  @Override
   public void setValue(int value) {
     int val = Math.max(0, value - minValue);
 
@@ -117,14 +123,17 @@ public class SliderView extends SeekBar implements SeekBar.OnSeekBarChangeListen
     return c;
   }
 
+  @Override
   public int getMaximum() {
     return maxValue;
   }
 
+  @Override
   public int getMinimum() {
     return minValue;
   }
 
+  @Override
   public int getValue() {
     return getProgress() + minValue;
   }
@@ -132,25 +141,30 @@ public class SliderView extends SeekBar implements SeekBar.OnSeekBarChangeListen
   /**
    * @return the horizontal
    */
+  @Override
   public boolean isHorizontal() {
     return horizontal;
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

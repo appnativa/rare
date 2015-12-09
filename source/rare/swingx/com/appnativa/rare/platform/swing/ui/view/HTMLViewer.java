@@ -15,13 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.event.DataEvent;
@@ -29,19 +30,16 @@ import com.appnativa.rare.widget.aWidget;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-
 import javafx.concurrent.Worker;
 import javafx.concurrent.Worker.State;
-
 import javafx.embed.swing.JFXPanel;
-
 import javafx.geometry.Orientation;
-
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.web.WebView;
+import netscape.javascript.JSObject;
 
 import java.util.Set;
 
@@ -58,6 +56,35 @@ public class HTMLViewer extends JFXPanel {
       @Override
       public void run() {
         initFX();
+      }
+    });
+  }
+
+  public void setWindowProperty(final String name, final Object value) {
+    javafx.application.Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        JSObject window = (JSObject) webView.getEngine().executeScript("window");
+
+        window.setMember(name, value);
+      }
+    });
+  }
+
+  public void executeScript(final String script, final iFunctionCallback cb) {
+    javafx.application.Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        final Object value = webView.getEngine().executeScript(script);
+
+        if (cb != null) {
+          Platform.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              cb.finished(false, value);
+            }
+          });
+        }
       }
     });
   }

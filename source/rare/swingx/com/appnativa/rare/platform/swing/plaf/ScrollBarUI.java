@@ -747,12 +747,12 @@ public class ScrollBarUI extends BasicScrollBarUI implements ChangeListener, Pro
     Color dk = thumbLightShadowColor;
 
     if (!c.isEnabled()) {
-      Color dc = Platform.getUIDefaults().getColor("Rare.LineBorder.disabledColor");
-
-      if (dc != null) {
-        color = dc;
+      if((color instanceof UIColor)) {
+        color = ((UIColor)color).getDisabledColor();
       }
-
+      else {
+        color=color.darker();
+      }
       dk = color.darker();
     }
 

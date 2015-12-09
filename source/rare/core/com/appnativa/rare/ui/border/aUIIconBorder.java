@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -29,6 +29,7 @@ import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.painter.NinePatch;
 import com.appnativa.rare.ui.painter.UIImagePainter;
+import com.appnativa.rare.ui.painter.aUIImagePainter;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 
@@ -69,11 +70,11 @@ public abstract class aUIIconBorder extends aUIPlatformBorder {
   /**
    * Creates an icon border with the specified insets.
    * @param top the top inset of the border
+   * @param right the right inset of the border
    * @param left the left inset of the border
    * @param bottom the bottom inset of the border
-   * @param right the right inset of the border
    */
-  public aUIIconBorder(int top, int left, int bottom, int right) {
+  public aUIIconBorder(int top, int right, int bottom, int left) {
     this.top    = top;
     this.right  = right;
     this.bottom = bottom;
@@ -193,11 +194,11 @@ public abstract class aUIIconBorder extends aUIPlatformBorder {
    *  Sets the icons for the border
    *
    *  @param top the top icon of the border
+   *  @param right the right icon of the border
    *  @param left the left icon of the border
    *  @param bottom the bottom icon of the border
-   *  @param right the right icon of the border
    */
-  public void setIcons(iPlatformIcon top, iPlatformIcon left, iPlatformIcon bottom, iPlatformIcon right) {
+  public void setIcons(iPlatformIcon top, iPlatformIcon right, iPlatformIcon bottom, iPlatformIcon left) {
     topIcon       = top;
     leftIcon      = left;
     bottomIcon    = bottom;
@@ -215,7 +216,7 @@ public abstract class aUIIconBorder extends aUIPlatformBorder {
     this.left   = insets.left;
   }
 
-  public void setInsets(int top, int left, int bottom, int right) {
+  public void setInsets(int top, int right, int bottom, int left) {
     this.top    = top;
     this.right  = right;
     this.bottom = bottom;
@@ -366,6 +367,11 @@ public abstract class aUIIconBorder extends aUIPlatformBorder {
     return this.leftRight;
   }
 
+  @Override
+  public boolean isPaintLast() {
+    return true;
+  }
+
   protected UIInsets addjustInsets(UIInsets insets) {
     int n;
 
@@ -437,5 +443,7 @@ public abstract class aUIIconBorder extends aUIPlatformBorder {
     p.paint(g, x, y, width, height, iPainter.UNKNOWN);
   }
 
-  protected abstract void paintPattern(UIImage image, iPlatformGraphics g, float x, float y, float width, float height);
+  protected void paintPattern(UIImage image, iPlatformGraphics g, float x, float y, float width, float height) {
+    aUIImagePainter.drawTiledImage(g, image, 0, 0, x, y, width, height, null);
+  }
 }

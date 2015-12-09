@@ -15,20 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -39,6 +29,17 @@ import java.awt.geom.AffineTransform;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToolTip;
+
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -138,51 +139,11 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
 
   @Override
   public Color getForeground() {
-    if (!isEnabled()) {
-      Color c = (Color) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-
-      if (c != null) {
-        return c;
-      }
+    Color c=super.getForeground();
+    if(c instanceof UIColor && !isEnabled()) {
+      c=((UIColor)c).getDisabledColor();
     }
-
-    return super.getForeground();
-  }
-
-  @Override
-  public void getMinimumSize(UIDimension size) {
-    Dimension d = getMinimumSize();
-
-    size.width  = d.width;
-    size.height = d.height;
-
-    if (drawArrow) {
-      size.width += 16;
-
-      String s = getText();
-
-      if ((s != null) && (s.length() > 0)) {
-        size.width += 4;
-      }
-    }
-  }
-
-  @Override
-  public void getPreferredSize(UIDimension size, int maxWidth) {
-    Dimension d = getPreferredSize();
-
-    size.width  = d.width;
-    size.height = d.height;
-
-    if (drawArrow) {
-      size.width += 16;
-
-      String s = getText();
-
-      if ((s != null) && (s.length() > 0)) {
-        size.width += 4;
-      }
-    }
+    return c;
   }
 
   private boolean drawArrow;
@@ -228,6 +189,10 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
            : super.isOpaque();
   }
 
+  public boolean isWordWrap() {
+    return false;
+  }
+
   @Override
   protected void paintBorder(Graphics g) {
     if (componentPainter == null) {
@@ -264,5 +229,67 @@ public class JButtonEx extends JButton implements iPainterSupport, iView {
     }
 
     super.paintComponent(g);
+  }
+
+  private static UIDimension size    = new UIDimension();
+
+  @Override
+  public Dimension getPreferredSize() {
+    Number num      = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
+    int    maxWidth = 0;
+
+    if ((num != null) && (num.intValue() > 0)) {
+      maxWidth = num.intValue();
+    }
+
+    getPreferredSize(size, maxWidth);
+
+    return new Dimension(size.intWidth(), size.intHeight());
+  }
+
+  @Override
+  public void getPreferredSize(UIDimension size, int maxWidth) {
+    Dimension d = super.getPreferredSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+
+    if (isFontSet() && getFont().isItalic()) {
+      if (getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) == null) {
+        size.width += 4;
+      }
+    }
+
+    if (getVerticalTextPosition() == BOTTOM) {
+      size.height += 16;
+    }
+
+    if (drawArrow) {
+      size.width += 16;
+
+      String s = getText();
+
+      if ((s != null) && (s.length() > 0)) {
+        size.width += 4;
+      }
+    }
+  }
+
+  @Override
+  public void getMinimumSize(UIDimension size, int maxWidth) {
+    Dimension d = super.getMinimumSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+
+    if (drawArrow) {
+      size.width += 16;
+
+      String s = getText();
+
+      if ((s != null) && (s.length() > 0)) {
+        size.width += 4;
+      }
+    }
   }
 }

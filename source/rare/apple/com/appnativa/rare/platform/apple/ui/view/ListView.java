@@ -15,13 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
 
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
 import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.CheckListManager;
@@ -35,8 +34,10 @@ import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.iGestureListener;
 import com.appnativa.rare.ui.iListHandler.SelectionType;
 import com.appnativa.rare.ui.iPlatformBorder;
@@ -73,7 +74,8 @@ public class ListView extends aPlatformTableBasedView {
   protected CheckListManager      checkListManager;
   protected boolean               columnSizesInitialized;
   protected UIAction[]            editActions;
-  protected iFunctionCallback     editModeNotifier;
+  protected iExpansionListener    editModeListener;
+  private iExpansionListener      rowEditModeListener;
   protected iToolBar              editToolbar;
   protected boolean               editing;
   protected iPlatformComponent    editingComponent;
@@ -152,7 +154,9 @@ public class ListView extends aPlatformTableBasedView {
 
   public void hideRowEditingComponent(boolean animate) {
     int row = editingRow;
-
+    if(row>-1 && rowEditModeListener!=null) {
+      rowEditModeListener.itemWillCollapse(new ExpansionEvent(editingComponent,ExpansionEvent.Type.WILL_COLLAPSE));
+    }
     editingRow = -1;
 
     if (row > -1) {
@@ -164,21 +168,7 @@ public class ListView extends aPlatformTableBasedView {
     }
   }
 
-  public void hideRowEditingComponentEx() {
-    int row = editingRow;
-
-    editingRow = -1;
-
-    if (row > -1) {
-      RowView v = (row < getRowCount())
-                  ? getViewForRow(row)
-                  : null;
-
-      if (v != null) {
-        v.hideRowEditingComponent(false);
-      }
-    }
-  }
+ 
 
   @Override
   public void paintRow(RowView view, AppleGraphics g, RenderableDataItem item, UIRectangle rect, iTreeItem ti) {
@@ -222,7 +212,7 @@ public class ListView extends aPlatformTableBasedView {
       CharSequence text = itemRenderer.configureRenderingComponent(component, rc, item, row, isSelected, isPressed,
                             null, null);
 
-      rc.getComponent(text, item);
+      c = rc.getComponent(text, item);
     }
 
     UIInsets in = borderInsets;
@@ -232,6 +222,26 @@ public class ListView extends aPlatformTableBasedView {
     }
 
     rv.setEditing(editing);
+
+    if (!fixedRowSize) {
+      UIDimension size = rowHeightCalSize;
+
+      if (size == null) {
+        size = rowHeightCalSize = new UIDimension();
+      }
+
+      int width = (int) view.getWidth();
+
+      c.getPreferredSize(size, width);
+
+      int rh = (int) Math.ceil(size.height) + 8;
+
+      if (rh < effectiveMinRowHeight) {
+        rh = -effectiveMinRowHeight;
+      }
+
+      item.setHeight(Math.max(rh, getRowHeight()));
+    }
   }
 
   public void renderSection(Object contentProxy, Object labelProxy) {
@@ -333,12 +343,16 @@ public class ListView extends aPlatformTableBasedView {
     repaintVisibleRows();
     setEditing(true, animate);
 
-    if (editModeNotifier != null) {
-      editModeNotifier.finished(false, Platform.findWidgetForComponent(this));
+    if (editModeListener != null) {
+      editModeListener.itemWillExpand(new ExpansionEvent(this,ExpansionEvent.Type.WILL_EXPAND));
     }
   }
 
   public void stopEditing(boolean animate) {
+    if (editModeListener != null) {
+      editModeListener.itemWillCollapse(new ExpansionEvent(this,ExpansionEvent.Type.WILL_COLLAPSE));
+    }
+
     this.editing = false;
     listModel.setEditing(false);
     setEditing(false, animate);
@@ -350,10 +364,6 @@ public class ListView extends aPlatformTableBasedView {
     if (editToolbar != null) {
       editToolbar.getComponent().setVisible(false);
       editToolbar.removeAllWidgets();
-    }
-
-    if (editModeNotifier != null) {
-      editModeNotifier.finished(true, Platform.findWidgetForComponent(this));
     }
 
     repaintVisibleRows();
@@ -381,8 +391,8 @@ public class ListView extends aPlatformTableBasedView {
     }
   }
 
-  public void setEditModeNotifier(iFunctionCallback editModeNotifier) {
-    this.editModeNotifier = editModeNotifier;
+  public void setEditModeListener(iExpansionListener l) {
+    this.editModeListener = l;
   }
 
   public void setEditingToolbar(iToolBar tb) {
@@ -471,7 +481,7 @@ public class ListView extends aPlatformTableBasedView {
       this.setRowEditingGestureListener(flingGestureListener);
     } else if (flingGestureListener != null) {
       flingGestureListener = null;
-      this.setRowEditingGestureListener(flingGestureListener);
+      this.setRowEditingGestureListener(null);
     }
   }
 
@@ -554,8 +564,8 @@ public class ListView extends aPlatformTableBasedView {
     return checkboxLeftXSlop;
   }
 
-  public iFunctionCallback getEditModeNotifier() {
-    return editModeNotifier;
+  public iExpansionListener getEditModeListener() {
+    return editModeListener;
   }
 
   @Override
@@ -563,10 +573,11 @@ public class ListView extends aPlatformTableBasedView {
     return itemRenderer;
   }
 
+  @Override
   public void getPreferredSize(UIDimension size, float maxWidth) {
     TableHelper.calculateListSize(listModel, component, itemRenderer, null, size, -1, (int) maxWidth, rowHeight);
 
-    int h = TableHelper.getPreferredListHeight(Component.findFromView(this), Math.max(minVisibleRows, visibleRows),
+    int h = TableHelper.getPreferredListHeight(component, Math.max(minVisibleRows, visibleRows),
               rowHeight, getRowCount());
 
     size.height = Math.max(h, size.height);
@@ -651,7 +662,8 @@ public class ListView extends aPlatformTableBasedView {
   @Override
   protected void disposeEx() {
     itemRenderer = null;
-
+    editingComponent=null;
+    flingGestureListener=null;
     if (listModel != null) {
       listModel.removeDataModelListener(this);
     }
@@ -802,6 +814,14 @@ public class ListView extends aPlatformTableBasedView {
   ]-*/
   ;
 
+  public iExpansionListener getRowEditModeListener() {
+    return rowEditModeListener;
+  }
+
+  public void setRowEditModeListener(iExpansionListener rowEditModeListener) {
+    this.rowEditModeListener = rowEditModeListener;
+  }
+
   /**
    * This interface allows for customizing the rendering of UITableVIew cells
    */
@@ -842,12 +862,15 @@ public class ListView extends aPlatformTableBasedView {
         if (e1.getX() > e2.getX()) {
           editingRow    = row;
           lastEditedRow = row;
+          clearSelections();
+          if(rowEditModeListener!=null) {
+            rowEditModeListener.itemWillExpand(new ExpansionEvent(editingComponent,ExpansionEvent.Type.WILL_EXPAND));
+          }
           v.showRowEditingComponent(editingComponent, true);
         }
       } else {
         if (e1.getX() < e2.getX()) {
-          v.hideRowEditingComponent(true);
-          editingRow = -1;
+          hideRowEditingComponent(true);
         }
       }
     }

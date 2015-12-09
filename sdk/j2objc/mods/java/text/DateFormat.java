@@ -1,6 +1,6 @@
 /*
  * @(#)DateFormat.java   2013-01-16
- * 
+ *
  * Copyright (c) SparseWare Inc. All rights reserved.
  *
  * Use is subject to license terms.
@@ -8,7 +8,9 @@
 
 package java.text;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -183,20 +185,25 @@ public abstract class DateFormat extends Format {
    *            the date to format.
    * @return the formatted string.
    */
-  public final native String format(Date date)    /*-[
-    NSDate* ndate=[NSDate fromJavaDate:date];
-    return [((NSDateFormatter*)proxy_) stringFromDate: ndate];
-    ]-*/
+  public final native String format(Date date)
+  /*-[
+     NSDate* ndate=[NSDate fromJavaDate:date];
+     return [((NSDateFormatter*)proxy_) stringFromDate: ndate];
+   ]-*/
   ;
 
   @Override
-  public String format(Object object) {
-    if (!(object instanceof Date)) {
-      throw new UnsupportedOperationException("Not supported yet.");
+  public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
+    if (obj instanceof Date) {
+      return format((Date) obj, toAppendTo, pos);
+    } else if (obj instanceof Number) {
+      return format(new Date(((Number) obj).longValue()), toAppendTo, pos);
+    } else {
+      throw new IllegalArgumentException("Cannot format given Object as a Date");
     }
-
-    return format((Date) object);
   }
+
+  public abstract StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition);
 
   /**
    * Parses a date from the specified string using the rules of this date
@@ -209,28 +216,19 @@ public abstract class DateFormat extends Format {
    *         if an error occurs during parsing.
    */
   public Date parse(String source) throws ParseException {
-  	ParsePosition p=new ParsePosition(0);
-  	Date date=parse(source,p);
+    ParsePosition p    = new ParsePosition(0);
+    Date          date = parse(source, p);
+
     if (p.getIndex() == 0) {
-      int ei=p.getErrorIndex();
-      p=null;
-      date=null;
-      throw new ParseException("Unparseable date: \"" + source + "\"" ,
-          ei);
+      int ei = p.getErrorIndex();
+
+      throw new ParseException("Unparseable date: \"" + source + "\"", ei);
     }
-  	return date;
-  }
-  @Override
-  public Object parseObject(String string) throws ParseException {
-    return parse(string);
+
+    return date;
   }
 
-  public Object parseObject(String source, ParsePosition pos) {
-    return parse(source, pos);
-  }
-  
   public abstract Date parse(String source, ParsePosition pos);
-  
 
   /**
    * Specifies whether or not date/time parsing shall be lenient. With lenient
@@ -242,27 +240,31 @@ public abstract class DateFormat extends Format {
    *            {@code true} to set the calendar to be lenient, {@code false}
    *            otherwise.
    */
-  public native void setLenient(boolean value)    /*-[
-       [((NSDateFormatter*)proxy_) setLenient: value];
-     ]-*/
+  public native void setLenient(boolean value)
+  /*-[
+    [((NSDateFormatter*)proxy_) setLenient: value];
+  ]-*/
   ;
 
   /**
    * Sets the time zone of the calendar used by this date format.
    *
-   * @param timezone
+   * @param tz
    *            the new time zone.
    */
-  public native void setTimeZone(TimeZone tz)     /*-[
-        if(timezone_!=tz) {
-          timezone_=tz;
-          [((NSDateFormatter*)proxy_) setTimeZone:((NSTimeZone*)tz->nativeTimeZone_)];
-        }
-      ]-*/
+  public native void setTimeZone(TimeZone tz)
+  /*-[
+    if(timezone_!=tz) {
+      timezone_=tz;
+      [((NSDateFormatter*)proxy_) setTimeZone:((NSTimeZone*)tz->nativeTimeZone_)];
+    }
+  ]-*/
   ;
 
   public static String getDateFormat(int dateStyle, Locale locale) {
-    return getDefaultPattern(dateStyle==SHORT ? "yMd" : "yMMMMdd", locale);
+    return getDefaultPattern((dateStyle == SHORT)
+                             ? "yMd"
+                             : "yMMMMdd", locale);
   }
 
   /**
@@ -380,11 +382,12 @@ public abstract class DateFormat extends Format {
     return getDateTimeInstance(SHORT, SHORT);
   }
 
-  
   public static String getTimeFormat(int timeStyle, Locale locale) {
-    return getDefaultPattern(timeStyle==SHORT ? "hmma" : "hmmssa", locale);
+    return getDefaultPattern((timeStyle == SHORT)
+                             ? "hmma"
+                             : "hmmssa", locale);
   }
-  
+
   /**
    * Returns a {@code DateFormat} instance for formatting and parsing time
    * values in the DEFAULT style for the default locale.
@@ -438,22 +441,21 @@ public abstract class DateFormat extends Format {
    *
    * @return the time zone of the calendar used by this date format.
    */
-  public native TimeZone getTimeZone()    /*-[
-         if(timezone_==nil) {
-           timezone_=[[JavaUtilTimeZone alloc] initWithId: [((NSDateFormatter*)proxy_) timeZone]];
-         }
-         return timezone_;
-     ]-*/
-  ;
-
+  public TimeZone getTimeZone() {
+    if(timezone==null) {
+      timezone=TimeZone.getDefault();
+    }
+    return timezone;
+  }
   /**
    * Indicates whether the calendar used by this date format is lenient.
    *
    * @return {@code true} if the calendar is lenient; {@code false} otherwise.
    */
-  public native boolean isLenient()    /*-[
-         return [((NSDateFormatter*)proxy_) isLenient];
-     ]-*/
+  public native boolean isLenient()
+  /*-[
+    return [((NSDateFormatter*)proxy_) isLenient];
+   ]-*/
   ;
 
   private static void checkDateStyle(int style) {
@@ -468,9 +470,165 @@ public abstract class DateFormat extends Format {
     }
   }
 
-  private static native String getDefaultPattern(String components, Locale locale)    /*-[
-        NSLocale* l=[AppleHelper toNSLocale:locale];
-        return [NSDateFormatter dateFormatFromTemplate:components options:0 locale:l];
-      ]-*/
+  private static native String getDefaultPattern(String components, Locale locale)
+  /*-[
+   NSLocale* l=[AppleHelper toNSLocale:locale];
+   return [NSDateFormatter dateFormatFromTemplate:components options:0 locale:l];
+  ]-*/
   ;
+
+  /**
+   * The instances of this inner class are used as attribute keys and values
+   * in {@code AttributedCharacterIterator} that the
+   * {@link SimpleDateFormat#formatToCharacterIterator(Object)} method returns.
+   * <p>
+   * There is no public constructor in this class, the only instances are the
+   * constants defined here.
+   */
+  public static class Field extends Format.Field {
+    private static final long                serialVersionUID = 7441350119349544720L;
+    private static Hashtable<Integer, Field> table            = new Hashtable<Integer, Field>();
+
+    /**
+     * Marks the era part of a date.
+     */
+    public static final Field ERA = new Field("era", Calendar.ERA);
+
+    /**
+     * Marks the year part of a date.
+     */
+    public static final Field YEAR = new Field("year", Calendar.YEAR);
+
+    /**
+     * Marks the month part of a date.
+     */
+    public static final Field MONTH = new Field("month", Calendar.MONTH);
+
+    /**
+     * Marks the hour of the day part of a date (0-11).
+     */
+    public static final Field HOUR_OF_DAY0 = new Field("hour of day", Calendar.HOUR_OF_DAY);
+
+    /**
+     * Marks the hour of the day part of a date (1-12).
+     */
+    public static final Field HOUR_OF_DAY1 = new Field("hour of day 1", -1);
+
+    /**
+     * Marks the minute part of a time.
+     */
+    public static final Field MINUTE = new Field("minute", Calendar.MINUTE);
+
+    /**
+     * Marks the second part of a time.
+     */
+    public static final Field SECOND = new Field("second", Calendar.SECOND);
+
+    /**
+     * Marks the millisecond part of a time.
+     */
+    public static final Field MILLISECOND = new Field("millisecond", Calendar.MILLISECOND);
+
+    /**
+     * Marks the day of the week part of a date.
+     */
+    public static final Field DAY_OF_WEEK = new Field("day of week", Calendar.DAY_OF_WEEK);
+
+    /**
+     * Marks the day of the month part of a date.
+     */
+    public static final Field DAY_OF_MONTH = new Field("day of month", Calendar.DAY_OF_MONTH);
+
+    /**
+     * Marks the day of the year part of a date.
+     */
+    public static final Field DAY_OF_YEAR = new Field("day of year", Calendar.DAY_OF_YEAR);
+
+    /**
+     * Marks the day of the week in the month part of a date.
+     */
+    public static final Field DAY_OF_WEEK_IN_MONTH = new Field("day of week in month", Calendar.DAY_OF_WEEK_IN_MONTH);
+
+    /**
+     * Marks the week of the year part of a date.
+     */
+    public static final Field WEEK_OF_YEAR = new Field("week of year", Calendar.WEEK_OF_YEAR);
+
+    /**
+     * Marks the week of the month part of a date.
+     */
+    public static final Field WEEK_OF_MONTH = new Field("week of month", Calendar.WEEK_OF_MONTH);
+
+    /**
+     * Marks the time indicator part of a date.
+     */
+    public static final Field AM_PM = new Field("am pm", Calendar.AM_PM);
+
+    /**
+     * Marks the hour part of a date (0-11).
+     */
+    public static final Field HOUR0 = new Field("hour", Calendar.HOUR);
+
+    /**
+     * Marks the hour part of a date (1-12).
+     */
+    public static final Field HOUR1 = new Field("hour 1", -1);
+
+    /**
+     * Marks the time zone part of a date.
+     */
+    public static final Field TIME_ZONE = new Field("time zone", -1);
+
+    /**
+     * The calendar field that this field represents.
+     */
+    private int calendarField = -1;
+
+    /**
+     * Constructs a new instance of {@code DateFormat.Field} with the given
+     * fieldName and calendar field.
+     *
+     * @param fieldName
+     *            the field name.
+     * @param calendarField
+     *            the calendar field type of the field.
+     */
+    protected Field(String fieldName, int calendarField) {
+      super(fieldName);
+      this.calendarField = calendarField;
+
+      if ((calendarField != -1) && (table.get(Integer.valueOf(calendarField)) == null)) {
+        table.put(Integer.valueOf(calendarField), this);
+      }
+    }
+
+    /**
+     * Returns the Calendar field that this field represents.
+     *
+     * @return the calendar field.
+     */
+    public int getCalendarField() {
+      return calendarField;
+    }
+
+    /**
+     * Returns the {@code DateFormat.Field} instance for the given calendar
+     * field.
+     *
+     * @param calendarField
+     *            a calendar field constant.
+     * @return the {@code DateFormat.Field} corresponding to
+     *         {@code calendarField}.
+     * @throws IllegalArgumentException
+     *             if {@code calendarField} is negative or greater than the
+     *             field count of {@code Calendar}.
+     */
+    public static Field ofCalendarField(int calendarField) {
+      if ((calendarField < 0) || (calendarField >= Calendar.FIELD_COUNT)) {
+        throw new IllegalArgumentException("Field out of range: " + calendarField);
+      }
+
+      return table.get(Integer.valueOf(calendarField));
+    }
+  }
 }

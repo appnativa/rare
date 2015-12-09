@@ -41,6 +41,7 @@ public class LabelWidget extends aLabelWidget {
     super(parent);
   }
 
+  @Override
   protected iActionComponent createActionComponent(Label cfg) {
     return new ActionComponent(getAppContext().getComponentCreator().getLabel(getViewer(), cfg));
   }

@@ -15,28 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.CookieHandler;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import android.app.Activity;
+
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
@@ -45,10 +35,17 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
+
 import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+
 import android.net.Uri;
+
 import android.text.Html.ImageGetter;
+
 import android.util.DisplayMetrics;
+
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.Surface;
@@ -56,10 +53,11 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
+
 import android.webkit.CookieManager;
+
 import android.widget.AbsListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
@@ -128,7 +126,6 @@ import com.appnativa.rare.ui.iPlatformMenuBar;
 import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iPlatformShape;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.renderer.Renderers;
 import com.appnativa.rare.viewer.FormViewer;
@@ -143,6 +140,21 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharScanner;
 import com.appnativa.util.FilePreferences;
 import com.appnativa.util.FilterableList;
+
+import java.io.File;
+import java.io.IOException;
+
+import java.net.CookieHandler;
+import java.net.URL;
+import java.net.URLConnection;
+
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class PlatformHelper extends aPlatformHelper {
   public static final HashMap<String, Integer>  colorStates         = new HashMap<String, Integer>();
@@ -340,7 +352,7 @@ public class PlatformHelper extends aPlatformHelper {
     ButtonViewEx v = new ButtonViewEx(context.getView().getContext(), false);
 
     v.setInvalidateParent(parentPaints);
-    v.setBackgroundDrawable(NullDrawable.getStatefulInstance());
+    v.setBackground(NullDrawable.getStatefulInstance());
 
     if (autoRepeatDelay > 0) {
       v.setAutoRepeats(autoRepeatDelay);
@@ -427,6 +439,14 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static void hideVirtualKeyboard(iWidget context) {
     hideVirtualKeyboard(context.getDataComponent().getView());
+  }
+
+  public static boolean hasPhysicalKeyboard() {
+    return false;
+  }
+
+  public static boolean hasPointingDevice() {
+    return false;
   }
 
   public static void hideVirtualKeyboard(View view) {
@@ -529,15 +549,6 @@ public class PlatformHelper extends aPlatformHelper {
     imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
   }
 
-  public static void systemAlert(iWidget context, Object message, iPlatformIcon icon, iActionListener listener) {
-    Activity     a = AppContext.getRootActivity();
-    CharSequence s = (message instanceof CharSequence)
-                     ? (CharSequence) message
-                     : message.toString();
-
-    ((iActivity) a).showToast(Toast.makeText(a, s, Toast.LENGTH_SHORT));
-  }
-
   public static boolean useInFormLayoutMeasureHeights(iPlatformComponent component) {
     return (component.getView() instanceof TextView);
   }
@@ -546,12 +557,6 @@ public class PlatformHelper extends aPlatformHelper {
     if (comp.getView() instanceof ButtonViewEx) {
       ((ButtonViewEx) comp.getView()).setAutoRepeats(interval);
     }
-  }
-
-  public static boolean setComponentAlpha(iPlatformComponent component, float alpha) {
-    component.getView().setAlpha(alpha);
-
-    return true;
   }
 
   /**
@@ -789,14 +794,6 @@ public class PlatformHelper extends aPlatformHelper {
    */
   public static aFocusedAction getCutAction() {
     return ActionHelper.getCutAction();
-  }
-
-  public static String getDefaultRowHeight() {
-    String s = Platform.getUIDefaults().getString("Rare.List.rowHeight");
-
-    return (s == null)
-           ? "1.75ln"
-           : s;
   }
 
   /**
@@ -1276,9 +1273,10 @@ public class PlatformHelper extends aPlatformHelper {
     Rect rect = new Rect();
 
     Platform.getWindowViewer().getContainerView().getWindowVisibleDisplayFrame(rect);
-    UIRectangle r=new UIRectangle(rect.left, rect.top, rect.width(), rect.height());
-    return r;
 
+    UIRectangle r = new UIRectangle(rect.left, rect.top, rect.width(), rect.height());
+
+    return r;
   }
 
   public static UIRectangle getUsableScreenBounds(iPlatformComponent c) {
@@ -1364,22 +1362,11 @@ public class PlatformHelper extends aPlatformHelper {
     return getDeviceConfiguration();
   }
 
-  public static void playSound(UISound uiSound) {
-    MediaPlayer p = (MediaPlayer) uiSound.getPlatformSound();
-
-    p.seekTo(0);
-    p.start();
-  }
-
   public static UISound getSoundResource(String name) {
     MediaPlayer p = null;
     Integer     id;
 
-    if (name.indexOf('.') == -1) {
-      id = AppContext.getResourceId(AppContext.getAndroidContext(), "raw/" + name + ".mp3");
-    } else {
-      id = AppContext.getResourceId(AppContext.getAndroidContext(), "raw/" + name);
-    }
+    id = AppContext.getResourceId(AppContext.getAndroidContext(), "raw/" + name);
 
     if (id != null) {
       p = MediaPlayer.create(AppContext.getAndroidContext(), id);
@@ -1399,40 +1386,106 @@ public class PlatformHelper extends aPlatformHelper {
            : new UISound(p);
   }
 
-  public static void stopSound(UISound uiSound) {
-    MediaPlayer p = (MediaPlayer) uiSound.getPlatformSound();
+  public static void stopSound(Object platformSound) {
+    MediaPlayer p = (MediaPlayer) platformSound;
 
     p.stop();
   }
 
-  public static void disposeOfSound(UISound uiSound) {
-    MediaPlayer p = (MediaPlayer) uiSound.getPlatformSound();
+  public static void disposeOfSound(Object platformSound) {
+    MediaPlayer p = (MediaPlayer) platformSound;
 
     p.release();
   }
 
-  public static void pauseSound(UISound uiSound) {
-    MediaPlayer p = (MediaPlayer) uiSound.getPlatformSound();
+  public static void pauseSound(Object platformSound) {
+    MediaPlayer p = (MediaPlayer) platformSound;
 
     p.pause();
   }
 
-  public static void resumeSound(UISound uiSound) {
-    MediaPlayer p = (MediaPlayer) uiSound.getPlatformSound();
+  public static void playSound(Object platformSound) {
+    MediaPlayer p = (MediaPlayer) platformSound;
+
+    p.seekTo(0);
+    p.start();
+  }
+
+  public static void resumeSound(Object platformSound) {
+    MediaPlayer p = (MediaPlayer) platformSound;
 
     p.start();
   }
 
-  public static Object setVolume(UISound uiSound, int percent) {
-    MediaPlayer p      = (MediaPlayer) uiSound.getPlatformSound();
+  public static Object setVolume(Object platformSound, int percent) {
+    MediaPlayer p      = (MediaPlayer) platformSound;
     final float volume = (float) (1 - (Math.log(100 - percent) / Math.log(100)));
 
     p.setVolume(volume, volume);
 
-    return uiSound.getPlatformSound();
+    return p;
+  }
+
+  public static void playNotificationSound() {
+    try {
+      Uri      notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+      Ringtone r            = RingtoneManager.getRingtone(Platform.getAppContext().getActivity(), notification);
+
+      r.play();
+    } catch(Exception e) {
+      Platform.ignoreException(null, e);;
+    }
   }
 
   public static void beep() {
-    // TODO Auto-generated method stub
+    View view = Platform.getWindowViewer().getDataComponent().getView();
+
+    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+  }
+
+  public static boolean lockOrientation(Boolean landscape) {
+    Activity a           = Platform.getAppContext().getActivity();
+    int      orientation = a.getResources().getConfiguration().orientation;
+
+    if (landscape == null) {
+      switch(orientation) {
+        case Configuration.ORIENTATION_LANDSCAPE :
+          a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
+          break;
+
+        case Configuration.ORIENTATION_PORTRAIT :
+          a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+          break;
+
+        default :
+          if (ScreenUtils.isWider()) {
+            a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+          } else {
+            a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+          }
+
+          break;
+      }
+    } else if (landscape) {
+      if (orientation != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+        a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+      }
+    } else {
+      if (orientation != ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+        a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+      }
+    }
+
+    return true;
+  }
+
+  public static void unlockOrientation() {
+    Activity a = Platform.getAppContext().getActivity();
+
+    if (a.getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_SENSOR) {
+      a.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+    }
   }
 }

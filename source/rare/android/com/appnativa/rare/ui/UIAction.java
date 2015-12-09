@@ -31,7 +31,6 @@ import com.appnativa.rare.widget.iWidget;
 public class UIAction extends aUIAction {
   public UIAction(aUIAction a) {
     super(a);
-    // TODO Auto-generated constructor stub
   }
 
   public UIAction(iWidget context, ActionItem item) {

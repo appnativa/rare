@@ -216,8 +216,7 @@ Only one viewer can be active at any given time. The viewers can be referenced b
   }<span class="keywordtype"> Reference</span>,<span class="comment"> // Hidden: the set of viewers for the stack pane</span>
   viewerURLs <span class="keywordtype">Set</span> {
     url <span class="keywordtype">PrintableString</span><span class="keywordtype"> [ name, mimeType, inline, deferred ]</span>
-  }<span class="keywordtype"> Reference</span>,<span class="comment"> // Design~urlset: a the set of URLs representing viewer configurations</span>
-  disableBehavior <span class="keywordtype">Refine</span><span class="keywordtype"> Default </span>disable_container
+  }<span class="keywordtype"> Reference</span> <span class="comment"> // Design~urlset: a the set of URLs representing viewer configurations</span>
 }<span class="keywordtype"> [ onChange ]</span>
 </pre>
 <h2><a name="SplitPane">SplitPane</a></h2><span class="description">This class represents the configuration information for a viewer that splits its section of the screen into multiple resizable regions.</span>
@@ -239,7 +238,6 @@ Only one viewer can be active at any given time. The viewers can be referenced b
     region <a href="#Region"><span class="keyword">Region</span></a>
   },<span class="comment"> // Design: the set of regions</span>
   transitionAnimator <span class="keywordtype">PrintableString</span><span class="keywordtype"> Optional</span><span class="keywordtype"> [ duration, direction, acceleration, deceleration, horizontal, fadeIn, fadeOut, diagonal, diagonalAnchor, autoOrient, customProperties ]</span>,<span class="comment"> // Behavior: name of the animator to use to animate transitions</span>
-  disableBehavior <span class="keywordtype">Refine</span><span class="keywordtype"> Default </span>disable_container,
   scrollPane <a href="#ScrollPane"><span class="keyword">ScrollPane</span></a><span class="keywordtype"> Reference</span> <span class="comment"> // Behavior~~reload: information specifying if the viewer is scrollable and how the associated scroll pane should be configured</span>
 }<span class="keywordtype"> [ onChange ]</span>
 </pre>
@@ -287,7 +285,6 @@ only one of which can be selected at a given time. A region can be selected by c
   actAsFormViewer <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: whether the pane should act as a form viewer (if false widgets will be registered with the next higher up form viewer)</span>
   leadingHeaderWidget <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // a leading widget for the tab area header</span>
   trailingHeaderWidget <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // a trailing widget for the tab area header</span>
-  disableBehavior <span class="keywordtype">Refine</span><span class="keywordtype"> Default </span>disable_container,
   transitionAnimator <span class="keywordtype">PrintableString</span><span class="keywordtype"> Optional</span><span class="keywordtype"> [ duration, direction, acceleration, deceleration, horizontal, fadeIn, fadeOut, diagonal, diagonalAnchor, autoOrient, customProperties ]</span>,<span class="comment"> // Behavior: name of the animator to use to animate transitions</span>
   textHAlignment <span class="keywordtype">Enumerated</span> {
 <span class="code">    auto     (0)</span>,<span class="comment"> // let the widget decide</span>
@@ -345,10 +342,11 @@ only one of which can be selected at a given time. A region can be selected by c
 </pre>
 <h2><a name="WidgetPane">WidgetPane</a></h2><span class="description">This class represents the configuration information for a viewer that wraps a widget</span>
 <pre><span class="keyword">WidgetPane</span> ::= <span class="keywordtype">Extends</span> <a href="#Viewer"><span class="keyword">Viewer</span></a> {
+  actAsFormViewer <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Behavior: whether the pane should act as a form viewer (if false widgets will be registered with the next higher up form viewer)</span>
   autoResizeWidget <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior~~reload: whether the pane should resize the widget to fill available space</span>
   scrollPane <a href="#ScrollPane"><span class="keyword">ScrollPane</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Behavior~~reload: information specifying if the viewer is scrollable and how the associated scroll pane should be configured</span>
   transitionAnimator <span class="keywordtype">PrintableString</span><span class="keywordtype"> Optional</span><span class="keywordtype"> [ duration, direction, acceleration, deceleration, horizontal, fadeIn, fadeOut, diagonal, diagonalAnchor, autoOrient, customProperties ]</span>,<span class="comment"> // Behavior: name of the animator to use to animate transitions</span>
-  widget <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span> <span class="comment"> // Hidden: the widget to be wrapped (if not specified that the dataURL is used)</span>
+  widget <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span> <span class="comment"> // Hidden: the widget to be wrapped (if not specified in the dataURLd)</span>
 }
 </pre>
 <h2><a name="ImagePane">ImagePane</a></h2><span class="description">This class represents the configuration information for a viewer that displays and image and provides tools for manipulating the image</span>
@@ -379,8 +377,7 @@ only one of which can be selected at a given time. A region can be selected by c
 </pre>
 <h2><a name="CollapsiblePane">CollapsiblePane</a></h2><span class="description">This class represents the configuration information for a viewer that supports the expansion and collapsing of it contents</span>
 <pre><span class="keyword">CollapsiblePane</span> ::= <span class="keywordtype">Extends</span> <a href="#WidgetPane"><span class="keyword">WidgetPane</span></a> {
-  collapsibleInfo <a href="#CollapsibleInfo"><span class="keyword">CollapsibleInfo</span></a>,<span class="comment"> // Appearance~~reload: information specifying how the expand/collapse functionality should be configured</span>
-  disableBehavior <span class="keywordtype">Refine</span><span class="keywordtype"> Default </span>disable_container
+  collapsibleInfo <a href="#CollapsibleInfo"><span class="keyword">CollapsibleInfo</span></a> <span class="comment"> // Appearance~~reload: information specifying how the expand/collapse functionality should be configured</span>
 }<span class="keywordtype"> [ onWillExpand, onWillCollapse, onHasCollapsed, onHasExpanded ]</span>
 </pre>
 <h2><a name="Table">Table</a></h2><span class="description">This class represents configuration information for a widget that displays and manages multiple rows and columns of data.</span>
@@ -454,9 +451,6 @@ only one of which can be selected at a given time. A region can be selected by c
   autoSizeRowsToFit <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Behavior: whether table rows should be automatically sized to fit their contents</span>
   wordWrapByDefault <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Behavior: whether table rows should be automatically sized to fit their contents</span>
   resetColumnsOnFontChange <span class="keywordtype">Boolean</span><span class="keywordtype"> Optional</span>,<span class="comment"> // Design: whether data items automatically word wrap</span>
-  inheritParentTableColumns <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: if this is a child table whether it should inherit its parent's columns</span>
-  inheritParentTableStyle <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: if this is a child table whether it should inherit its parent's style</span>
-  syncSelectionsWithParentTable <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: if this is a child table whether its selections should be synchronized its parent's</span>
   rowHeight <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..32)<span class="keywordtype"> Default </span>"1ln",<span class="comment"> // Appearance: the height to use for each row in the table</span>
   minVisibleRowCount <span class="keywordtype">Integer</span><span class="keywordtype"> Default </span>1,<span class="comment"> // Appearance:the desired minimum number of visible rows</span>
   visibleRowCount <span class="keywordtype">Integer</span><span class="keywordtype"> Optional</span>,<span class="comment"> // Appearance: the desired number of visible rows</span>
@@ -472,7 +466,7 @@ only one of which can be selected at a given time. A region can be selected by c
 <span class="code">    next_cell                      (2)</span> <span class="comment"> // moves to the next cell</span>
   }<span class="keywordtype"> Default </span>next_component_unless_editable,<span class="comment"> // Behavior: what action should be taken when the enter key is pressed</span>
   selectedIndex <span class="keywordtype">Integer</span><span class="keywordtype"> Range</span>(-1..)<span class="keywordtype"> Default </span>-1,<span class="comment"> // Appearance~~runtime: the index of the row that is to be initially selected</span>
-  handleFirstFocusSelection <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: whether the widget should automatically handle the selection when the widget recieves focus for the first time</span>
+  handleFirstFocusSelection <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Behavior: whether the widget should automatically handle the selection when the widget receives focus for the first time</span>
   submitValue <span class="keywordtype">Enumerated</span> {
 <span class="code">    selected_value_text                  (0)</span>,<span class="comment"> // submit the text of the selected rows</span>
 <span class="code">    selected_value                       (1)</span>,<span class="comment"> // use the actual selection value (useful for manual submission)</span>
@@ -510,6 +504,7 @@ as well as providing functionality for expanding and contracting rows.</span>
   expandAll <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Design~expandAll: whether all of the table rows should be initially expanded</span>
   showRootHandles <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Appearance: whether root node handles should be shown</span>
   parentItemsSelectable <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Appearance: whether parent items are selectable</span>
+  toggleOnTwistyOnly <span class="keywordtype">Boolean</span>,<span class="comment"> // Appearance: whether parent items expand/collapse only when the twisty is clicked (double tap always toggles) selectable</span>
   indentBy <span class="keywordtype">Integer</span><span class="keywordtype"> Range</span>(-1..100)<span class="keywordtype"> Default </span>16,<span class="comment"> // Appearance: the number of pixels to use to indent a child node from a parent</span>
   autoScrollOnExpansion <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true <span class="comment"> // Behavior: whether to automatically scroll rows of a newly expanded branch into view</span>
 }<span class="keywordtype"> [ onHasCollapsed, onHasExpanded, onWillExpand, onWillCollapse ]</span>
@@ -586,6 +581,9 @@ and provides functionality for expanding and contracting those items</span>
   showRootHandles <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Appearance: whether root node handles should be shown</span>
   showRootNode <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Appearance: whether the root node should be shown</span>
   rootNodeCollapsible <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Appearance: whether the root node is collapsible</span>
+  parentItemsSelectable <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Appearance: whether parent items are selectable</span>
+  toggleOnTwistyOnly <span class="keywordtype">Boolean</span>,<span class="comment"> // Appearance: whether parent items expand/collapse only when the twisty is clicked (double tap always toggles) selectable</span>
+  indentBy <span class="keywordtype">Integer</span><span class="keywordtype"> Range</span>(-1..100)<span class="keywordtype"> Default </span>16,<span class="comment"> // Appearance: the number of pixels to use to indent a child node from a parent</span>
   changeSelColorOnLostFocus <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: whether the selection color should change when the table looses focus (overrides the global default)</span>
   deselectEventsEnabled <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Behavior: whether events should be fired when an item is deselected</span>
   itemCursorsSupported <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false<span class="keywordtype"> [ whenNonNull="true", script ]</span>,<span class="comment"> // Behavior:whether to support cursors for data items</span>
@@ -783,7 +781,7 @@ and can serves as a container for widgets or other viewers. Viewers also support
 <span class="code">    disable_container (0)</span>,
 <span class="code">    disable_widgets   (1)</span>,
 <span class="code">    disable_both      (2)</span>
-  }<span class="keywordtype"> Default </span>disable_widgets<span class="keywordtype"> [ disableOverlayColor ]</span> <span class="comment"> // Behavior: the behavior for a disabled viewer</span>
+  }<span class="keywordtype"> Default </span>disable_container <span class="comment"> // Behavior: the behavior for a disabled viewer</span>
 }<span class="keywordtype"> [ onLoad, onUnload, onDispose, viewerClass, language, lockable ]</span>
 </pre>
 <h2><a name="Widget">Widget</a></h2><span class="description">This class provides the base configuration for widgets. A widget represents a visual component that can be utilized
@@ -897,7 +895,7 @@ to display and manipulate data items. A widget must be contained within a viewer
   }<span class="keywordtype"> Reference</span>,<span class="comment"> // Design: registered actions that this widget supports</span>
   popupMenu <span class="keywordtype">Set</span> {
     menuItem <a href="#MenuItem"><span class="keyword">MenuItem</span></a>
-  }<span class="keywordtype"> Reference</span><span class="keywordtype"> [ cache, onAction, icon, scrollable ]</span>,<span class="comment"> // Design: popup menu for the widget.</span>
+  }<span class="keywordtype"> Reference</span><span class="keywordtype"> [ cache, onAction, icon, cancelButtonText, modal ]</span>,<span class="comment"> // Design: popup menu for the widget.</span>
   bgImageURL <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..255)<span class="keywordtype"> Optional</span><span class="keywordtype"> [ opacity="100%", renderType="tiled", waitForLoad="false", renderSpace="within_border", composite="src_over", scaling, density ]</span>,<span class="comment"> // Appearance~image~backgroundOverlayPainter: an background image for the widget (not all widgets support background images)</span>
   overlayImageURL <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..255)<span class="keywordtype"> Optional</span><span class="keywordtype"> [ opacity="10%", renderType="tiled", waitForLoad="false", renderSpace="within_border", composite="src_over", scaling, displayed="always", density ]</span>,<span class="comment"> // Appearance~image~overlayPainter: an overlay image for the widget (not all widgets support overlay images)</span>
   overlayWidget <a href="#OverlayInfo"><span class="keyword">OverlayInfo</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Hidden~~reload: widget to use as an overlay for this widget</span>
@@ -1020,6 +1018,7 @@ It can also allow the user to type in a value if no of the predefined values are
   maxCharacters <span class="keywordtype">Integer</span><span class="keywordtype"> Range</span>(0..)<span class="keywordtype"> Optional</span>,<span class="comment"> // Behavior: the maximum characters to allow (use zero for no maximum)</span>
   undoLimit <span class="keywordtype">Integer</span><span class="keywordtype"> Range</span>(-1..)<span class="keywordtype"> Default </span>100,<span class="comment"> // Behavior: the maximum number of undos to support</span>
   speechInputSupported <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: whether the speech input is supported</span>
+  allowDefaultSuggestions <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // Behavior: whether default suggestions are allowed</span>
   keyboardType <span class="keywordtype">Enumerated</span> {
 <span class="code">    default_type             (0)</span>,
 <span class="code">    text_type                (1)</span>,
@@ -1043,15 +1042,6 @@ It can also allow the user to type in a value if no of the predefined values are
 <span class="code">    done_type    (7)</span>
   }<span class="keywordtype"> Default </span>default_type<span class="keywordtype"> [ autoEnable="true", text ]</span> <span class="comment"> // Design: the type of keyboard to use for input; text is custom text for the button if supported by the platform</span>
 }<span class="keywordtype"> [ onAction, onChange ]</span>
-</pre>
-<h2><a name="FileUploadField">FileUploadField</a></h2><span class="description">This class represents the configuration for a widget that allows a file to be selected and subsequently
-uploaded when the associated form is submitted</span>
-<pre><span class="keyword">FileUploadField</span> ::= <span class="keywordtype">Extends</span> <a href="#TextField"><span class="keyword">TextField</span></a> {
-  dialogTitle <span class="keywordtype">PrintableString</span><span class="keywordtype"> Optional</span>,<span class="comment"> // Design:the title to use for the file selection dialog box</span>
-  buttonText <span class="keywordtype">PrintableString</span><span class="keywordtype"> Default </span>"Browse...",<span class="comment"> // Appearance~~fileUploadButtonText: the text for the button that will initiate the file selection</span>
-  buttonIcon <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..255)<span class="keywordtype"> Optional</span><span class="keywordtype"> [ alt, slice, size, scaling, density ]</span>,<span class="comment"> // Appearance~icon~fileUploadButtonIcon: the icon for the button that will initiate the file selection</span>
-  fileExtensions <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..255)<span class="keywordtype"> Optional</span> <span class="comment"> // Design: comma separated list of file extension</span>
-}
 </pre>
 <h2><a name="PasswordField">PasswordField</a></h2><span class="description">This class represents the configuration for a widget that allows a password to be entered.
 The password can be hashed prior to submission. If the password is hashed, it will be transmitted as a base64 encoded string</span>
@@ -1121,10 +1111,10 @@ it is mean to be used as a base for button type widgets</span>
   groupName <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..64)<span class="keywordtype"> Optional</span><span class="keywordtype"> [ allowDeselection="false" ]</span>,<span class="comment"> // Design: the name of the group the button belongs to</span>
   selected <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Appearance: whether the button is initially selected</span>
   wordWrap <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false<span class="keywordtype"> [ os ]</span>,<span class="comment"> // Behavior: whether word wrapping is supported or text is truncated</span>
-  pressedPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span>,<span class="comment"> // Appearance: painter for when a button is pressed</span>
-  selectionPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span>,<span class="comment"> // Appearance: painter for when a button is selected</span>
-  rolloverPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span>,<span class="comment"> // Appearance: painter for when the button is rolled over</span>
-  disabledPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span> <span class="comment"> // Appearance: painter for when a button is disabled</span>
+  pressedPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance: painter for when a button is pressed</span>
+  selectionPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance: painter for when a button is selected</span>
+  rolloverPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance: painter for when the button is rolled over</span>
+  disabledPainter <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span> <span class="comment"> // Appearance: painter for when a button is disabled</span>
 }<span class="keywordtype"> [ onAction ]</span>
 </pre>
 <h2><a name="PushButton">PushButton</a></h2><span class="description">This class represents the configuration for a button widget</span>
@@ -1287,7 +1277,7 @@ Progress values range between 0 and 100</span>
   minValue <span class="keywordtype">Real</span><span class="keywordtype"> Optional</span>,<span class="comment"> // Behavior~spinner: minimum value for the spinner</span>
   maxValue <span class="keywordtype">Real</span><span class="keywordtype"> Optional</span>,<span class="comment"> // Behavior~spinner: maximum value for the spinner</span>
   incrementValue <span class="keywordtype">Real</span><span class="keywordtype"> Optional</span>,<span class="comment"> // Behavior~spinner: increment value for the spinner</span>
-  supportDecimalValues <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false,<span class="comment"> // Behavior: whether the decimal values are supported</span>
+  supportDecimalValues <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>false<span class="keywordtype"> [ maximumPlaces ]</span>,<span class="comment"> // Behavior: whether the decimal values are supported</span>
   format <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..64)<span class="keywordtype"> Optional</span> <span class="comment"> // Behavior: a format string for how the number should be displayed</span>
 }
 </pre>
@@ -1431,8 +1421,10 @@ as part of a widget or viewer that inherently supports scrolling</span>
   rowHeader <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // widget to use as the row header for the scroll pane it scrolls with when the main widget scrolls</span>
   columnFooter <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // widget to use as a fixed column footer</span>
   rowFooter <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // widget to use as a fixed row footer (does not necessarily scroll when the main widget scrolls)</span>
-  urCorner <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span><span class="keywordtype"> [ always ]</span>,<span class="comment"> // upper right corner widget (when a corner is needed)</span>
-  lrCorner <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span><span class="keywordtype"> [ always ]</span>,<span class="comment"> // lower right corner widget (when a corner is needed)</span>
+  urCorner <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // upper right corner widget (when a corner is needed)</span>
+  lrCorner <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // lower right corner widget (when a corner is needed)</span>
+  ulCorner <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // upper left corner widget (when a corner is needed)</span>
+  llCorner <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // lower left corner widget (when a corner is needed)</span>
   wheelScrollingAllowed <span class="keywordtype">Boolean</span><span class="keywordtype"> Default </span>true,<span class="comment"> // whether scroll wheel scrolling is enabled</span>
   extendVerticalScrollbar <span class="keywordtype">Boolean</span>,<span class="comment"> // whether the vertical scrollbar should be extended to encompass column headers</span>
   extendHorizontalScrollbar <span class="keywordtype">Boolean</span>,<span class="comment"> // whether the horizontal scrollbar should be extended to encompass row headers and footers</span>
@@ -1675,7 +1667,8 @@ The data embedded will be resolved prior to the action being visually presented<
   editorWidget <span class="keywordtype">Any</span><span class="keywordtype"> DefinedBy </span>Widget<span class="keywordtype"> Optional</span>,<span class="comment"> // Design~widget: a widget to use to edit items</span>
   font <a href="#Font"><span class="keyword">Font</span></a><span class="keywordtype"> Optional</span>,<span class="comment"> // Appearance~font: the font for items</span>
   gridCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance~~reload: a cell description for the item</span>
-  selectionGridCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span>,<span class="comment"> // Appearance~~reload: a cell description for the item when it is selected</span>
+  selectionGridCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance~~reload: a cell description for the item when it is selected</span>
+  contentPadding <a href="#Margin"><span class="keyword">Margin</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Layout~insets: the margin between the cell and its content</span>
   fgColor <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..64)<span class="keywordtype"> Optional</span>,<span class="comment"> // Appearance~color: the foreground color for items</span>
   actionLink <a href="#Link"><span class="keyword">Link</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Design: link to activate when an item is double-clicked</span>
   icon <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..255)<span class="keywordtype"> Optional</span><span class="keywordtype"> [ alt, slice, size, scaling, density ]</span>,<span class="comment"> // Appearance~icon: url to use to retrieve the icon for items</span>
@@ -1685,8 +1678,8 @@ The data embedded will be resolved prior to the action being visually presented<
   headerIcon <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..255)<span class="keywordtype"> Optional</span><span class="keywordtype"> [ alt, slice, size, scaling, density ]</span>,<span class="comment"> // Appearance~icon: url to retrieve the icon to display on the item header</span>
   headerColor <span class="keywordtype">PrintableString</span><span class="keywordtype"> Range</span>(0..64)<span class="keywordtype"> Optional</span>,<span class="comment"> // Appearance~color: the foreground color for the header</span>
   headerCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance~~reload: a cell description for the header</span>
-  headerRolloverCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span>,<span class="comment"> // Appearance~~reload: a cell description for the header rollover effect</span>
-  headerSelectionCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span><span class="keywordtype"> [ foreground ]</span>,<span class="comment"> // Appearance~~reload: a cell description for the header selected effect</span>
+  headerRolloverCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance~~reload: a cell description for the header rollover effect</span>
+  headerSelectionCell <a href="#GridCell"><span class="keyword">GridCell</span></a><span class="keywordtype"> Reference</span>,<span class="comment"> // Appearance~~reload: a cell description for the header selected effect</span>
   headerHorizontalAlign <span class="keywordtype">Enumerated</span> {
 <span class="code">    auto     (0)</span>,<span class="comment"> // let the widget decide</span>
 <span class="code">    left     (1)</span>,<span class="comment"> // the text is left aligned</span>

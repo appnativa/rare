@@ -27,81 +27,81 @@ import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 
 public interface iActionComponent extends iPlatformComponent, iActionable, iChangeable {
-  public void fireActionEvent();
+  void fireActionEvent();
 
-  public void setAction(UIAction a);
+  void setAction(UIAction a);
+  void setAutoAdjustSize(boolean adjustSize);
+  void setAlignment(HorizontalAlign hal, VerticalAlign val);
 
-  public void setAlignment(HorizontalAlign hal, VerticalAlign val);
+  void setDisabledIcon(iPlatformIcon icon);
 
-  public void setDisabledIcon(iPlatformIcon icon);
+  void setDisabledSelectedIcon(iPlatformIcon icon);
 
-  public void setDisabledSelectedIcon(iPlatformIcon icon);
-
-  public void setIcon(iPlatformIcon icon);
+  void setIcon(iPlatformIcon icon);
 
   /**
    * @param iconGap the iconGap to set
    */
-  public void setIconGap(int iconGap);
+  void setIconGap(int iconGap);
 
   /**
    * @param iconPosition the iconPosition to set
    */
-  public void setIconPosition(IconPosition iconPosition);
+  void setIconPosition(IconPosition iconPosition);
 
-  public void setMnemonic(char mn);
+  void setMnemonic(char mn);
 
   /**
    * @param pressedIcon the pressedIcon to set
    */
-  public void setPressedIcon(iPlatformIcon pressedIcon);
+  void setPressedIcon(iPlatformIcon pressedIcon);
 
   @Override
-  public void setSelected(boolean selected);
+  void setSelected(boolean selected);
 
   /**
    * @param selectedIcon the selectedIcon to set
    */
-  public void setSelectedIcon(iPlatformIcon selectedIcon);
+  void setSelectedIcon(iPlatformIcon selectedIcon);
 
-  public void setText(CharSequence buttonText);
+  void setText(CharSequence buttonText);
 
-  public void setToolTipText(CharSequence text);
+  void setToolTipText(CharSequence text);
 
-  public void setWordWrap(boolean wrap);
+  void setWordWrap(boolean wrap);
 
-  public UIAction getAction();
+  UIAction getAction();
 
-  public iPlatformIcon getDisabledIcon();
+  iPlatformIcon getDisabledIcon();
 
-  public iPlatformIcon getIcon();
+  iPlatformIcon getIcon();
 
   /**
    * @return the iconGap
    */
-  public int getIconGap();
+  int getIconGap();
 
   /**
    *   @return the iconPosition
    */
-  public IconPosition getIconPosition();
+  IconPosition getIconPosition();
 
   /**
    * @return the pressedIcon
    */
-  public iPlatformIcon getPressedIcon();
+  iPlatformIcon getPressedIcon();
 
   /**
    * @return the selectedIcon
    */
-  public iPlatformIcon getSelectedIcon();
+  iPlatformIcon getSelectedIcon();
 
-  public CharSequence getText();
+  CharSequence getText();
 
   @Override
-  public boolean isSelected();
+  boolean isSelected();
 
-  public boolean isWordWrap();
+  boolean isWordWrap();
 
   void doClick();
 

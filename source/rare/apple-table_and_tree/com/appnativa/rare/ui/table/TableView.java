@@ -15,10 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
+
+import java.util.List;
 
 import com.appnativa.rare.platform.apple.ui.view.ListView;
 import com.appnativa.rare.ui.Column;
@@ -35,10 +37,7 @@ import com.appnativa.rare.ui.table.iTableComponent.TableType;
 import com.appnativa.rare.ui.text.HTMLCharSequence;
 import com.appnativa.rare.ui.tree.iTreeItem;
 import com.appnativa.util.IntList;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.util.List;
 
 /*-[
  #import "RAREAPTableView.h"
@@ -143,7 +142,16 @@ public class TableView extends ListView {
       return rh;
     }
 
-    return header.getRowHeight(row, itemRenderer, rh);
+    return header.getRowHeight(row, itemRenderer, rh) + 8;
+  }
+
+  @Override
+  public float getPreferredHeight(int row) {
+    if (header != null) {
+      return getRowHeight(row);
+    }
+
+    return super.getPreferredHeight(row);
   }
 
   @Override
@@ -211,11 +219,11 @@ public class TableView extends ListView {
     int                span;
     RenderableDataItem item;
     int                width   = 0;
-    Column[]           columns = getHeader().getColumns();
+    Column[]           columns = header.getColumns();
     int                n       = 0;
     final int          len     = columns.length;
     int                d       = 0;
-
+    int[] vp=header.viewPositions;
     if (showVertivalGridLines) {
       d = ScreenUtils.PLATFORM_PIXELS_1;
     }
@@ -223,7 +231,7 @@ public class TableView extends ListView {
     int lvc = header.getLastVisibleColumn();
 
     for (int i = 0; i < len; i++) {
-      c = columns[i];
+      c = columns[vp[i]];
 
       if (!c.isVisible()) {
         continue;
@@ -246,7 +254,7 @@ public class TableView extends ListView {
           span = len;
         }
 
-        width = getSpanWidth(i, span, len, columns, d);
+        width = TableHelper.getSpanWidth(i, span, columns, vp);
       } else {
         width = c.getWidth();
       }
@@ -309,8 +317,8 @@ public class TableView extends ListView {
       }
     }
 
-    ((TableRowView) view).render(this, getComponent(), itemRenderer, row, item, header.getColumns(), isSelected,
-                                 isPressed, ti);
+    ((TableRowView) view).render(this, getComponent(), itemRenderer, row, item, header.columns, isSelected,
+                                 isPressed, ti,header.viewPositions);
   }
 
   public void setAutoSizeColumns(boolean autoSizeColumns) {
@@ -427,5 +435,19 @@ public class TableView extends ListView {
 
   public void setTableType(TableType tableType) {
     this.tableType = tableType;
+  }
+
+  protected native void moveColumnEx(int from, int to)
+  /*-[
+    [(RAREAPTableView*)proxy_ moveColumn: from toColumn: to];
+  ]-*/;
+  
+  public void moveColumn(int from, int to) {
+    moveColumnEx(from, to);
+    for(iPlatformRenderingComponent row:rows) {
+      if (row instanceof UITableCellViewRenderingComponent) {
+        ((UITableCellViewRenderingComponent) row).columnMoved(from, to);
+      }
+    }
   }
 }

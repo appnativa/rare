@@ -20,8 +20,6 @@
 
 package com.appnativa.rare.viewer;
 
-import android.view.View;
-
 import android.widget.FrameLayout.LayoutParams;
 
 import com.appnativa.rare.platform.android.ui.view.FrameView;
@@ -74,18 +72,21 @@ public class WidgetPaneViewer extends aWidgetPaneViewer {
     super(parent, comp);
   }
 
+  @Override
   protected void setWidgetRenderTypeEx(RenderType type) {
     if (widgetPanel.getView() instanceof FrameView) {
       ((FrameView) widgetPanel.getView()).setViewRenderType(type);
     }
   }
 
+  @Override
   protected void adjustWidgetForPlatform(iWidget w) {
     LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
-    ((View) w.getContainerComponent().getView()).setLayoutParams(lp);
+    w.getContainerComponent().getView().setLayoutParams(lp);
   }
 
+  @Override
   protected iParentComponent createWidgetPanel() {
     ContainerPanel cp = new ContainerPanel(new FrameView(getAndroidContext()));
 

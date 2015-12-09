@@ -70,14 +70,14 @@ public class ContainerPanel extends Container implements iTargetContainer {
     this.renderSpace = renderSpace;
   }
 
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     size.setSize(0, 0);
 
     if (getComponentCount() > 0) {
       iPlatformComponent c = getComponentAt(0);
 
       if (c.isVisible()) {
-        c.getMinimumSize(size);
+        c.getMinimumSize(size,maxWidth);
       }
     }
   }

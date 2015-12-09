@@ -32,6 +32,7 @@ public class LineView extends JPanelEx {
   public LineView() {
     lineHelper = new LineHelper(true);
     setOpaque(false);
+    setFocusable(false);
   }
 
   public aLineHelper getLineHelper() {
@@ -39,7 +40,7 @@ public class LineView extends JPanelEx {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     int th = UIScreen.snapToSize(lineHelper.getThickness());
 
     size.width  = th;
@@ -53,7 +54,6 @@ public class LineView extends JPanelEx {
     size.width  = th;
     size.height = th;
   }
-
   @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);

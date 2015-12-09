@@ -20,22 +20,18 @@
 
 package com.appnativa.rare.ui.renderer;
 
+import java.util.Iterator;
+
 import com.appnativa.rare.platform.apple.ui.view.FormsView;
 import com.appnativa.rare.platform.apple.ui.view.View;
-import com.appnativa.rare.ui.FormsPanel;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.widget.iWidget;
-
+import com.appnativa.rare.ui.border.UICompoundBorder;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
 import com.jgoodies.forms.layout.FormLayout;
-
-import java.util.Iterator;
 
 /**
  * A renderer that uses the JGoodies forms layout panel to render information
@@ -57,6 +53,7 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
         view.setBackgroundColorEx(bg);
       }
     });
+    ((FormsPanelEx)formsPanel).renderer=this;
   }
 
   public UIFormsLayoutRenderer(String columns, String rows) {
@@ -92,12 +89,7 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
     if ((columns == null) && (rows == null)) {
       return new UIFormsLayoutRenderer();
     }
-
-    UIFormsLayoutRenderer flr = new UIFormsLayoutRenderer(columns, rows);
-
-    setupNewCopy(flr);
-
-    return flr;
+    return setupNewCopy(new UIFormsLayoutRenderer(columns, rows));
   }
 
   @Override
@@ -115,9 +107,6 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
 
   @Override
   public void setAlignment(HorizontalAlign ha, VerticalAlign va) {}
-
-  @Override
-  public void setColumnWidth(int width) {}
 
   @Override
   public void setNativeView(Object proxy) {
@@ -145,50 +134,5 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
   @Override
   protected iPlatformRenderingComponent createRenderer(String className) throws Exception {
     return Renderers.createRenderer(className);
-  }
-
-  static class FormsPanelEx extends FormsPanel {
-    public FormsPanelEx() {
-      super();
-    }
-
-    public FormsPanelEx(FormsView view) {
-      super(view);
-    }
-
-    public FormsPanelEx(iWidget context) {
-      super(context);
-    }
-
-    public FormsPanelEx(Object view) {
-      super(view);
-    }
-
-    public FormsPanelEx(iWidget context, FormLayout layout) {
-      super(context, layout);
-    }
-
-    public FormsPanelEx(iWidget context, int rows, int cols) {
-      super(context, rows, cols);
-    }
-
-    public FormsPanelEx(iWidget context, int rows, int cols, String rspec, String cspec) {
-      super(context, rows, cols, rspec, cspec);
-    }
-
-    @Override
-    public void setBounds(float x, float y, float w, float h) {
-      super.setBounds(x, y, w, h);
-    }
-
-    @Override
-    public UIDimension getPreferredSize(UIDimension size, float maxWidth) {
-      return super.getPreferredSize(size, maxWidth);
-    }
-
-    @Override
-    protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-      super.getPreferredSizeEx(size, maxWidth);
-    }
   }
 }

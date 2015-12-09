@@ -15,11 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.platform.swing.ui.view.HTMLViewer;
 import com.appnativa.rare.spot.Browser;
 import com.appnativa.rare.ui.Component;
@@ -51,6 +52,27 @@ public class WebBrowser extends aWebBrowser {
    */
   public WebBrowser(iContainer parent) {
     super(parent);
+  }
+
+  /**
+   * Executes the specified script within the context of the browser
+   *
+   * @param script the script to execute
+   * @param cb an optional callback to receive the result of the execution
+   */
+  public void executeScript(final String script, final iFunctionCallback cb) {
+    htmlViewer.executeScript(script, cb);
+  }
+  
+  /**
+   * Sets a property on the current DOM window
+   * in the browser
+   *
+   * @param name the name of the property to set
+   * @param value the value of the property
+   */
+  public void setWindowProperty(String name, Object value) {
+    htmlViewer.setWindowProperty(name,value);
   }
 
   @Override

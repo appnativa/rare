@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -147,10 +147,6 @@ public class TreeViewer extends aTreeViewer {
     ((TreeView) getDataView()).repaintVisibleRows();
   }
 
-  protected static void registerForUse() {
-    Platform.getAppContext().registerWidgetClass(Platform.getSPOTName(Tree.class), TreeViewer.class);
-  }
-
   @Override
   protected void setFlingThreshold(int threshold) {
     ((TreeView) getDataView()).setFlingThreshold(threshold);
@@ -164,5 +160,9 @@ public class TreeViewer extends aTreeViewer {
   @Override
   protected void setWholeViewFling(boolean wholeViewFling) {
     ((TreeView) getDataView()).setWholeViewFling(wholeViewFling);
+  }
+
+  protected static void registerForUse() {
+    Platform.getAppContext().registerWidgetClass(Platform.getSPOTName(Tree.class), TreeViewer.class);
   }
 }

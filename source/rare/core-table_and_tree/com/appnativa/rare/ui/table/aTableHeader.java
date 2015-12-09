@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -36,9 +36,11 @@ import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.XPContainer;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.iImageObserver;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -59,54 +61,55 @@ import com.appnativa.rare.ui.table.iTableComponent.TableType;
 import com.appnativa.rare.viewer.TableViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.FilterableList;
+import com.appnativa.util.IntList;
 import com.appnativa.util.iFilterableList;
 
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class aTableHeader extends XPContainer implements iImageObserver {
-  static protected int                        columnSizePad = ScreenUtils.PLATFORM_PIXELS_2;
-  protected static iPlatformIcon              sort_asc, sort_dsc;
-  protected Column[]                          columns           = new Column[0];
-  protected Column[]                          multiTableColumns = null;
-  protected UIInsets                          cellInsets        = new UIInsets(ScreenUtils.PLATFORM_PIXELS_2);
-  protected UIInsets                          headerPadding     = new UIInsets(ScreenUtils.PLATFORM_PIXELS_2);
-  protected int                               pressedColumn     = -1;
-  protected int                               sortColumn        = -1;
-  protected boolean                           showHeaderMargin  = true;
-  protected boolean                           autoSizedColumns;
-  protected UIColor                           bottomMarginColor;
-  protected boolean                           chagingColumns;
-  protected boolean                           columnSelectionAllowed;
-  protected boolean                           descending;
-  protected GridViewType                      gridViewMode;
-  protected PaintBucket                       headerCellPainter;
-  protected String                            headerHeight;
-  protected int                               headerHeightNum;
-  protected boolean                           headerTracksSections;
-  protected int                               iconPadding;
-  protected UIColor                           marginColor;
-  protected int                               measuredHeight;
-  protected UIDimension                       preferredSize;
-  protected PaintBucket                       pressedHeaderPainter;
-  protected boolean                           propertyTabe;
-  protected List<UIAction>                    propertyTableActions;
-  protected Column                            propertyTableHeaderColumnDescription;
-  protected UILabelRenderer                   renderingComponent;
-  protected BasicSelectionModel               selectionModel;
-  protected int                               selectionPaintEndCol;
-  protected int                               selectionPaintStartCol;
-  protected boolean                           sortingAllowed = true;
-  private UIDimension                         computeSize;
-  iFilterableList<RenderableDataItem>         originalItems;
-  private int                                 flatCount;
-  private iFilterableList<RenderableDataItem> wrappRows;
-  protected boolean                           paintLeftMargin;
-  protected boolean                           paintRightMargin;
-  private int                                 lastVisibleColumn;
-  private int                                 firstVisibleColumn;
-
-  enum SizeType { MIN, PREFERRED, FIT }
+  static protected int                          columnSizePad = ScreenUtils.PLATFORM_PIXELS_2;
+  protected static iPlatformIcon                sort_asc, sort_dsc;
+  protected Column[]                            columns                  = new Column[0];
+  protected int[]                               viewPositions            = new int[0];
+  protected MultiTableTableComponent            multiTableTableComponent = null;
+  protected UIInsets                            cellInsets               = new UIInsets(ScreenUtils.PLATFORM_PIXELS_2);
+  protected UIInsets                            headerPadding            = new UIInsets(ScreenUtils.PLATFORM_PIXELS_2);
+  protected int                                 pressedColumn            = -1;
+  protected int                                 sortColumn               = -1;
+  protected boolean                             showHeaderMargin         = true;
+  protected boolean                             autoSizedColumns;
+  protected UIColor                             bottomMarginColor;
+  protected boolean                             chagingColumns;
+  protected boolean                             columnSelectionAllowed;
+  protected boolean                             descending;
+  protected GridViewType                        gridViewMode;
+  protected PaintBucket                         headerCellPainter;
+  protected String                              headerHeight;
+  protected int                                 headerHeightNum;
+  protected boolean                             headerTracksSections;
+  protected int                                 iconPadding;
+  protected UIColor                             marginColor;
+  protected int                                 measuredHeight;
+  protected UIDimension                         preferredSize;
+  protected PaintBucket                         pressedHeaderPainter;
+  protected boolean                             propertyTabe;
+  protected List<UIAction>                      propertyTableActions;
+  protected Column                              propertyTableHeaderColumnDescription;
+  protected UILabelRenderer                     renderingComponent;
+  protected BasicSelectionModel                 selectionModel;
+  protected int                                 selectionPaintEndCol;
+  protected int                                 selectionPaintStartCol;
+  protected boolean                             sortingAllowed = true;
+  private UIDimension                           computeSize;
+  iFilterableList<RenderableDataItem>           originalItems;
+  private int                                   flatCount;
+  protected iFilterableList<RenderableDataItem> wrappRows;
+  protected boolean                             paintLeftMargin;
+  protected boolean                             paintRightMargin;
+  protected int                                 lastVisibleColumn;
+  protected int                                 firstVisibleColumn;
+  protected int[]                               multiTableViewPositions;
 
   protected aTableHeader() {
     marginColor       = TableHelper.getMarginColor();
@@ -114,14 +117,14 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     headerHeightNum   = calculateMinHeight();
   }
 
-  public void setMultiTableColumns(List<Column> columns) {
-    multiTableColumns = (columns == null)
-                        ? null
-                        : columns.toArray(new Column[columns.size()]);
+  public void addColumnChangeListener(iChangeListener l) {
+    getEventListenerList().add(iChangeListener.class, l);
   }
 
-  public Column[] getMultiTableColumns() {
-    return multiTableColumns;
+  public void removeColumnChangeListener(iChangeListener l) {
+    if (listenerList != null) {
+      getEventListenerList().add(iChangeListener.class, l);
+    }
   }
 
   public void addSpace(aListItemRenderer renderer, int extra) {
@@ -196,6 +199,13 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     }
   }
 
+  public void columnDragging(int viewPosition, int insertPosition, int xPosition) {
+    if (hasListeners(iChangeListener.class)) {
+      Utils.fireChangeEvent(getEventListenerList(),
+                            new ColumnChangeEvent(this, viewPosition, insertPosition, xPosition));
+    }
+  }
+
   public boolean columnInRowClicked(int row, int col) {
     if (selectionModel != null) {
       RenderableDataItem item = ((TableComponent) getTableComponent()).getModel().getItemAt(row, col);
@@ -210,32 +220,11 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     return true;
   }
 
-  public static Column[] createGridColumns(Column[] columns, List<RenderableDataItem> rows) {
-    Column[] a     = columns;
-    int      count = 0;
-    int      len   = rows.size();
-
-    for (int i = 0; i < len; i++) {
-      int n = rows.get(i).size();
-
-      if (n > count) {
-        count = n;
-      }
+  public void columnSizeChanged(int viewPosition) {
+    if (hasListeners(iChangeListener.class)) {
+      Utils.fireChangeEvent(getEventListenerList(),
+                            new ColumnChangeEvent(this, ColumnChangeEvent.ChangeType.RESIZED, viewPosition));
     }
-
-    if (columns.length <= count) {
-      a   = new Column[count];
-      len = columns.length;
-      System.arraycopy(columns, 0, a, 0, len);
-
-      Column c = columns[len - 1];
-
-      for (int i = len; i < count; i++) {
-        a[i] = c;
-      }
-    }
-
-    return a;
   }
 
   @Override
@@ -245,9 +234,472 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     }
 
     super.dispose();
-    pressedHeaderPainter = null;
-    renderingComponent   = null;
-    columns              = null;
+    pressedHeaderPainter     = null;
+    renderingComponent       = null;
+    columns                  = null;
+    multiTableTableComponent = null;
+  }
+
+  public UIColor getBottomMarginColor() {
+    return bottomMarginColor;
+  }
+
+  public Column getColumnAt(int index) {
+    if ((index > -1) && (index < columns.length)) {
+      return columns[index];
+    }
+
+    return null;
+  }
+
+  public int getColumnCount() {
+    return columns.length;
+  }
+
+  public Column getColumnForViewAt(int viewColumn) {
+    return columns[viewPositions[viewColumn]];
+  }
+
+  public abstract int getColumnIndexAt(float x, float y);
+
+  public int getColumnIndexForClickedColumn(int col) {
+    iTableComponent tc   = getTableComponent();
+    TableType       type = tc.getTableType();
+
+    if ((type == null) || (type == TableType.HEADER)) {
+      return col;
+    }
+
+    iTableComponent mtc = ((TableViewer) getWidget()).getTableComponent();
+
+    tc = mtc.getRowHeaderTable();
+
+    if (tc != null) {
+      col += tc.getColumnCount();
+    }
+
+    if (type == TableType.FOOTER) {
+      col += mtc.getMainTable().getColumnCount();
+    }
+
+    return col;
+  }
+
+  public int getColumnIndexForViewAt(int viewColumn) {
+    return viewPositions[viewColumn];
+  }
+
+  public Column[] getColumns() {
+    return columns;
+  }
+
+  public void getColumnSize(iPlatformItemRenderer renderer, int col, Column c, SizeType type, float tableWidth,
+                            UIDimension size) {
+    UIInsets    in = cellInsets;
+    PaintBucket pb = c.getHeaderPainter();
+
+    if (pb != null) {
+      iPlatformBorder b = pb.getBorder();
+
+      if (b != null) {
+        in = b.getBorderInsets(new UIInsets());
+      }
+    }
+
+    if (renderingComponent == null) {
+      renderingComponent = new UILabelRenderer();
+    }
+
+    UIFont f = c.getHeaderFont();
+
+    if (f == null) {
+      f = getFont();
+    }
+
+    renderer.configureRenderingComponent(this, renderingComponent, c, 0, false, false, null, null);
+    renderingComponent.setWordWrap(c.headerWordWrap);
+
+    if (f != null) {
+      renderingComponent.setFont(f);
+    }
+
+    renderingComponent.getComponent(c.getColumnTitle(), c).getPreferredSize(size);
+    size.width  += in.left + in.right;
+    size.height += in.top + in.bottom;
+
+    int w = 0;
+
+    switch(type) {
+      case MIN :
+        w = c.calculateMinimumWidth(getTableComponentEx(), (tableWidth == 0)
+                ? 100
+                : tableWidth);
+
+        break;
+
+      case PREFERRED :
+        if (c.preferedWidth != 0) {
+          w = c.calculatePreferedWidth(getTableComponentEx(), (tableWidth == 0)
+                  ? 100
+                  : tableWidth);
+        }
+
+        break;
+
+      default :
+        break;
+    }
+
+    size.width  = Math.max(size.width, w) + columnSizePad;
+    size.height += ScreenUtils.PLATFORM_PIXELS_1 + iconPadding;
+  }
+
+  public int getColumnX(int column) {
+    Column[]  cols = columns;
+    final int len  = cols.length;
+    int       x    = 0;
+    int       d    = ScreenUtils.PLATFORM_PIXELS_1;
+
+    for (int i = 0; i < len; i++) {
+      if (i == column) {
+        break;
+      }
+
+      if (cols[i].isVisible()) {
+        x += cols[i].getWidth();
+
+        if (i > 0) {
+          x += d;
+        }
+      }
+    }
+
+    return x;
+  }
+
+  public int getDynamicColumnsWidth() {
+    if ((columns == null) || (columns.length == 0)) {
+      return 0;
+    }
+
+    int n = columns[0].calculatePreferedWidth(getTableComponentEx(), 400);
+
+    return n * columns.length;
+  }
+
+  public int getFirstVisibleColumnInView() {
+    UIRectangle r = getTableComponent().getViewRect();
+    int         n = getColumnIndexAt(r.x, 0);
+
+    if (n == -1) {
+      if (r.x == 0) {
+        n = getFirstVisibleColumn();
+      } else {
+        n = getLastVisibleColumn();
+      }
+    }
+
+    return n;
+  }
+
+  public int getGridColumnWidth(UIDimension reuseableSize) {
+    Column c = columns[0];
+
+    if (reuseableSize == null) {
+      reuseableSize = new UIDimension();
+    }
+
+    aListItemRenderer renderer = (aListItemRenderer) getTableComponent().getItemRenderer();
+
+    getColumnSize(renderer, 0, c, SizeType.PREFERRED, 0, reuseableSize);
+
+    return reuseableSize.intWidth() + ScreenUtils.PLATFORM_PIXELS_1;
+  }
+
+  public GridViewType getGridViewType() {
+    return gridViewMode;
+  }
+
+  public UIPoint getHotspotPopupLocation(int column) {
+    return null;
+  }
+
+  public int getLastVisibleColumn() {
+    if (lastVisibleColumn == -1) {
+      Column[]  cols = columns;
+      int       vp[] = viewPositions;
+      final int len  = cols.length;
+
+      for (int i = len - 1; i >= 0; i--) {
+        if (cols[vp[i]].isVisible()) {
+          lastVisibleColumn = i;
+
+          break;
+        }
+      }
+    }
+
+    return lastVisibleColumn;
+  }
+
+  public int getLastVisibleColumnInView() {
+    UIRectangle r = getTableComponent().getViewRect();
+    int         n = getColumnIndexAt(r.x + r.width - 1, 0);
+
+    if (n == -1) {
+      n = getLastVisibleColumn();
+    }
+
+    return n;
+  }
+
+  public UIColor getMarginColor() {
+    return marginColor;
+  }
+
+  public int getMeasuredHeight() {
+    if (measuredHeight == 0) {
+      return 0;
+    }
+
+    return (int) Math.ceil(measuredHeight + headerPadding.top + headerPadding.bottom + ScreenUtils.PLATFORM_PIXELS_1);
+  }
+
+  @Override
+  public UIDimension getMinimumSize(UIDimension size) {
+    if (size == null) {
+      size = new UIDimension();
+    }
+
+    getSize(size, true, 100);
+
+    return size;
+  }
+
+  public MultiTableTableComponent getMultiTableTableComponent() {
+    return multiTableTableComponent;
+  }
+
+  public int getOriginalsGridViewsRowCount() {
+    return flatCount;
+  }
+
+  public int getPreferredHeight() {
+    if (preferredSize != null) {
+      return preferredSize.intHeight();
+    }
+
+    return getPreferredSize(null).intHeight();
+  }
+
+  @Override
+  public UIDimension getPreferredSize(UIDimension size) {
+    if (size == null) {
+      size = new UIDimension();
+    }
+
+    if (preferredSize != null) {
+      size.setSize(preferredSize);
+
+      return size;
+    }
+
+    size = super.getPreferredSize(size);
+
+    if (preferredSize == null) {
+      preferredSize = new UIDimension(size);
+    } else {
+      preferredSize.setSize(size);
+    }
+
+    return size;
+  }
+
+  @Override
+  public void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    getSize(size, false, maxWidth);
+  }
+
+  public List<UIAction> getPropertyTableActions() {
+    return propertyTableActions;
+  }
+
+  public Column getPropertyTableHeaderColumnDescription() {
+    return propertyTableHeaderColumnDescription;
+  }
+
+  /**
+   * Get the height of a row for the table that the header belongs to.
+   * <p>
+   * This method is here so that it can be shared across platforms. It caches
+   * the height of the height property of the renderable data item for the row
+   * <p>
+   *
+   * @param row
+   *          the row
+   * @param renderer
+   *          the render to use to calculate the height
+   * @param defaultHeight
+   *          the default table row height
+   * @return the height of the row
+   */
+  public int getRowHeight(int row, iPlatformItemRenderer renderer, int defaultHeight) {
+    iTableComponent    tc          = getTableComponent();
+    iPlatformComponent pc          = tc.getPlatformComponent();
+    iTableModel        tm          = tc.getModel();
+    RenderableDataItem rowItem     = tm.getRow(row);
+    RenderableDataItem mainRowItem = tm.getRow(row);
+    int                h           = rowItem.getHeight();
+
+    if (h < 1) {
+      Column[] columns;
+      int      vp[];
+
+      if (multiTableTableComponent == null) {
+        columns     = this.columns;
+        vp          = this.viewPositions;
+        tm          = ((TableViewer) pc.getWidget()).getTableComponent().getModel();
+        mainRowItem = tm.getRow(row);
+        h           = mainRowItem.getHeight();
+      } else {
+        vp      = multiTableTableComponent.getViewPositions();
+        columns = multiTableTableComponent.getColumns();
+      }
+
+      if (h < 1) {
+        h = TableHelper.calculateRowHeight(pc, renderer, tm, row, columns, false, defaultHeight, vp);
+      }
+
+      rowItem.setHeight(h);
+
+      if (mainRowItem != null) {
+        mainRowItem.setHeight(h);
+      }
+    }
+
+    return h;
+  }
+
+  public int getSelectedColumn() {
+    return (selectionModel == null)
+           ? -1
+           : selectionModel.getLeadIndex();
+  }
+
+  public int getSelectedColumnCount() {
+    return (selectionModel == null)
+           ? 0
+           : selectionModel.getSelectionCount();
+  }
+
+  public int[] getSelectedColumnIndices() {
+    return (selectionModel == null)
+           ? null
+           : selectionModel.getSelectedIndices();
+  }
+
+  public int getSelectionPaintEndColumn() {
+    return selectionPaintEndCol;
+  }
+
+  public int getSelectionPaintStartColumn() {
+    return selectionPaintStartCol;
+  }
+
+  public void getSize(UIDimension size, boolean minimum, float tableWidth) {
+    int      width  = 0;
+    int      height = 0;
+    Column[] cols   = columns;
+    int      len    = cols.length;
+    Column   c;
+
+    if (gridViewMode == GridViewType.VERTICAL_WRAP) {
+      len = 1;
+    }
+
+    aListItemRenderer renderer = (aListItemRenderer) getTableComponent().getItemRenderer();
+
+    if (autoSizedColumns && (measuredHeight > 0)) {
+      height = measuredHeight;
+    }
+
+    int d = ScreenUtils.PLATFORM_PIXELS_1;
+
+    for (int i = 0; i < len; i++) {
+      if ((c = cols[i]).isVisible()) {
+        if (autoSizedColumns && (measuredHeight > 0)) {
+          width += c.getWidth() + d;
+        } else {
+          getColumnSize(renderer, i, c, minimum
+                                        ? SizeType.MIN
+                                        : SizeType.PREFERRED, tableWidth, size);
+          width  += size.width + d;
+          height = Math.max(height, size.intHeight());
+        }
+      }
+    }
+
+    measuredHeight = height;
+    size.width     = width;
+    size.height    = height;
+    size.width     += headerPadding.left + headerPadding.right;
+    size.height    += headerPadding.top + headerPadding.bottom;
+    size.height    += d;
+
+    if (headerHeightNum > size.height) {
+      size.height = headerHeightNum;
+    }
+  }
+
+  public int getSpanWidth(int start, int span) {
+    return TableHelper.getSpanWidth(start, span, columns, viewPositions);
+  }
+
+  public abstract iTableComponent getTableComponent();
+
+  public int getViewIndexForColumnAt(int dataColumn) {
+    int len = viewPositions.length;
+
+    for (int i = 0; i < len; i++) {
+      if (viewPositions[i] == dataColumn) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  public int getVisibleColumnCount() {
+    Column[]  cols  = columns;
+    final int len   = cols.length;
+    int       count = 0;
+
+    for (int i = 0; i < len; i++) {
+      if (cols[i].isVisible()) {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
+  @Override
+  public int getWidth() {
+    if (!isVisible()) {
+      Column[]  cols  = columns;
+      final int len   = cols.length;
+      int       width = 0;
+
+      for (int i = 0; i < len; i++) {
+        if (cols[i].isVisible()) {
+          width += cols[i].getWidth();
+        }
+      }
+
+      return width;
+    }
+
+    return super.getWidth();
   }
 
   public boolean handleGridView(int width, int height, int rowHeght, boolean contentsChanged) {
@@ -320,6 +772,17 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
           rows = wrappRows;
         }
 
+
+        int len = columns.length;
+
+        if (viewPositions.length != len) {
+          viewPositions = new int[len];
+
+          for (int i = 0; i < len; i++) {
+            viewPositions[i] = i;
+          }
+        }
+
         setColumnsEx();
         resetTableModel(rows);
 
@@ -350,6 +813,51 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     getTableComponentEx().revalidate();
     getTableComponentEx().repaint();
   }
+
+  public boolean isAutoSizedColumns() {
+    return autoSizedColumns;
+  }
+
+  public boolean isColumnSelectionAllowed() {
+    return columnSelectionAllowed;
+  }
+
+  public boolean isColumnVisible(int col) {
+    return getColumnAt(col).isVisible();
+  }
+
+  public boolean isGridView() {
+    return gridViewMode != null;
+  }
+
+  public boolean isHeaderTracksSections() {
+    return headerTracksSections;
+  }
+
+  public boolean isPaintLeftMargin() {
+    return paintLeftMargin;
+  }
+
+  public boolean isPaintRightMargin() {
+    return paintRightMargin;
+  }
+
+  public boolean isPropertyTabe() {
+    return propertyTabe;
+  }
+
+  public boolean isShowHeaderMargin() {
+    return showHeaderMargin;
+  }
+
+  /**
+   * @return the sortingAllowed
+   */
+  public boolean isSortingAllowed() {
+    return sortingAllowed;
+  }
+
+  public abstract void moveColumn(int from, int to);
 
   public boolean paintColumn(Column col, iPlatformGraphics g, float x, float y, float width, float height) {
     if (!isGridView()) {
@@ -419,6 +927,217 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
   public void revalidate() {
     super.revalidate();
     preferredSize = null;
+  }
+
+  public void setBottomMarginColor(UIColor bottomMarginColor) {
+    this.bottomMarginColor = bottomMarginColor;
+  }
+
+  public abstract void setColumnIcon(int col, iPlatformIcon icon);
+
+  public void setColumns(List<Column> columns) {
+    measuredHeight     = 0;
+    lastVisibleColumn  = -1;
+    firstVisibleColumn = -1;
+
+    if (getComponentPainter() == null) {
+      setupDafaultPainter();
+    }
+
+    iconPadding = 0;
+
+    int      len       = columns.size();
+    boolean  touchable = false;
+    Column[] cols      = new Column[len];
+
+    int vp[] = new int[len];
+
+    for (int i = 0; i < len; i++) {
+      Column c = columns.get(i);
+
+      cols[i]          = c;
+      vp[i] = i;
+
+      if ((c.getHeaderActionListener() != null) || c.hasPopupMenu()) {
+        touchable = true;
+      }
+
+      if (c.getCellRenderer() instanceof aFormsLayoutRenderer) {
+        ((aFormsLayoutRenderer) c.getCellRenderer()).dataModelChanged(getTableComponent().getModel());
+      }
+    }
+
+    if (sortingAllowed) {
+      iconPadding = getSortIcon(true).getIconHeight() / 2;
+      touchable   = true;
+    }
+
+    if (touchable) {
+      if (Platform.isTouchDevice() && (headerHeight == null)) {
+        headerHeight    = "1.75ln";
+        headerHeightNum = calculateMinHeight();
+      }
+    }
+
+    this.columns  = cols;
+    this.viewPositions=vp;
+    preferredSize = null;
+    resetSelectionPaintColumns();
+    setColumnsEx();
+  }
+
+  public void setColumnSelectionAllowed(boolean columnSelectionAllowed) {
+    this.columnSelectionAllowed = columnSelectionAllowed;
+  }
+
+  public abstract void setColumnTitle(int col, CharSequence title);
+
+  public void setColumnVisible(int col, boolean visible) {
+    if (isColumnVisible(col) != visible) {
+      lastVisibleColumn  = -1;
+      firstVisibleColumn = -1;
+      setColumnVisibleEx(col, visible);
+
+      int vp = getViewIndexForColumnAt(col);
+
+      if (hasListeners(iChangeListener.class)) {
+        Utils.fireChangeEvent(getEventListenerList(),
+                              new ColumnChangeEvent(this, ColumnChangeEvent.ChangeType.VISIBILITY_CHANGED, vp));
+      }
+    }
+  }
+
+  @Override
+  public void setFont(UIFont f) {
+    super.setFont(f);
+    measuredHeight  = 0;
+    headerHeightNum = calculateMinHeight();
+  }
+
+  public void setGridViewType(GridViewType gridViewMode) {
+    this.gridViewMode = gridViewMode;
+  }
+
+  /**
+   * @param headerPainter
+   *          the headerPainter to set
+   */
+  public void setHeaderCellPainter(PaintBucket headerPainter) {
+    this.headerCellPainter = headerPainter;
+
+    if (headerPainter != null) {
+      if (headerPainter.getBorder() != null) {
+        cellInsets = headerPainter.getBorder().getBorderInsets(cellInsets);
+      }
+
+      if (headerPainter.getForegroundColor() != null) {
+        setForeground(headerPainter.getForegroundColor());
+      }
+
+      if (headerPainter.getFont() != null) {
+        setFont(headerPainter.getFont());
+      }
+    }
+  }
+
+  public void setHeaderHeight(String height) {
+    headerHeight    = height;
+    headerHeightNum = calculateMinHeight();
+  }
+
+  public void setHeaderTracksSections(boolean headerTracksSections) {
+    this.headerTracksSections = headerTracksSections;
+  }
+
+  /**
+   * @param marginColor
+   *          the marginColor to set
+   */
+  public void setMarginColor(UIColor marginColor) {
+    if ((marginColor != null) && (marginColor.getAlpha() == 0)) {
+      marginColor = null;
+    }
+
+    if (this.bottomMarginColor == this.marginColor) {
+      this.bottomMarginColor = null;
+    }
+
+    this.marginColor = marginColor;
+
+    if (this.bottomMarginColor == null) {
+      this.bottomMarginColor = marginColor;
+    }
+  }
+
+  public void setMultiTableTableComponent(MultiTableTableComponent mttc) {
+    multiTableTableComponent = mttc;
+  }
+
+  public void setPaintLeftMargin(boolean paintLeftMargin) {
+    this.paintLeftMargin = paintLeftMargin;
+  }
+
+  public void setPaintRightMargin(boolean paintRightMargin) {
+    this.paintRightMargin = paintRightMargin;
+  }
+
+  /**
+   * @param pb
+   *          the headerPainter to set
+   */
+  public void setPressedHeaderPainter(PaintBucket pb) {
+    this.pressedHeaderPainter = pb;
+  }
+
+  public void setPropertyTabe(boolean propertyTabe) {
+    this.propertyTabe = propertyTabe;
+  }
+
+  public void setPropertyTableActions(List<UIAction> propertyTableActions) {
+    this.propertyTableActions = propertyTableActions;
+  }
+
+  public void setPropertyTableHeaderColumnDescription(Column propertyTableHeaderColumnDescription) {
+    this.propertyTableHeaderColumnDescription = propertyTableHeaderColumnDescription;
+  }
+
+  public void setSelectedIndex(int index) {
+    if (selectionModel != null) {
+      selectionModel.clearAndSelect(index);
+    }
+  }
+
+  public void setSelectedIndices(int[] indices) {
+    if (selectionModel != null) {
+      selectionModel.clearAndSelect(indices);
+    }
+  }
+
+  public void setShowHeaderMargin(boolean showHeaderMargin) {
+    this.showHeaderMargin = showHeaderMargin;
+  }
+
+  public void setSortColumn(int sortColumn, boolean descending) {
+    if (sortingAllowed) {
+      if ((this.sortColumn != -1) && (this.sortColumn != sortColumn) && isShowing()) {
+        repaintColumn(this.sortColumn);
+      }
+
+      this.sortColumn = sortColumn;
+      this.descending = descending;
+
+      if ((this.sortColumn != -1) && isShowing()) {
+        repaintColumn(this.sortColumn);
+      }
+    }
+  }
+
+  /**
+   * @param sortingAllowed
+   *          the sortingAllowed to set
+   */
+  public void setSortingAllowed(boolean sortingAllowed) {
+    this.sortingAllowed = sortingAllowed;
   }
 
   public boolean sizeColumnsToFitTableData() {
@@ -494,6 +1213,190 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     return true;
   }
 
+  protected int calculateMinHeight() {
+    int h = 0;
+
+    if (headerHeight != null) {
+      h = ScreenUtils.toPlatformPixelHeight(headerHeight, this, 100);
+    }
+
+    String s = Platform.getUIDefaults().getString("Rare.Table.minimumTouchableHeaderHeight");
+
+    if (s != null) {
+      int hh = ScreenUtils.toPlatformPixelHeight(s, this, 100);
+
+      h = Math.max(hh, h);
+    }
+
+    return h;
+  }
+
+  protected void columnMoved(int from, int to) {
+    if (IntList.move(viewPositions, -1, from, to)) {
+      lastVisibleColumn  = -1;
+      firstVisibleColumn = -1;
+
+      if (hasListeners(iChangeListener.class)) {
+        Utils.fireChangeEvent(getEventListenerList(),
+                              new ColumnChangeEvent(this, ColumnChangeEvent.ChangeType.MOVED, from, to));
+      }
+    }
+  }
+
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    getSize(size, true, 100);
+  }
+
+  protected PaintBucket getPressedPainter() {
+    if (pressedHeaderPainter == null) {
+      pressedHeaderPainter = TableHelper.getPressedPainter(getBackground());
+    }
+
+    return pressedHeaderPainter;
+  }
+
+  protected iPlatformIcon getSortIcon(boolean descending) {
+    if (sort_asc == null) {
+      sort_asc = Platform.getAppContext().getResourceAsIcon("Rare.icon.sort_asc");
+      sort_dsc = Platform.getAppContext().getResourceAsIcon("Rare.icon.sort_dsc");
+    }
+
+    return descending
+           ? sort_dsc
+           : sort_asc;
+  }
+
+  protected iPlatformComponent getTableComponentEx() {
+    return getTableComponent().getPlatformComponent();
+  }
+
+  protected Column[] getWrappedColumns(int count) {
+    Column   c    = columns[0];
+    Column[] list = new Column[count];
+
+    for (int i = 0; i < count; i++) {
+      list[i] = c;
+    }
+
+    return list;
+  }
+
+  protected boolean handleMousePress(MouseEvent e) {
+    return true;
+  }
+
+  protected void repaintColumn(int col) {
+    repaint();
+  }
+
+  protected void resetSelectionPaintColumns() {
+    Column[] cols = columns;
+    Column   c;
+    int      len = cols.length;
+
+    selectionPaintStartCol = 0;
+    selectionPaintEndCol   = len - 1;
+
+    for (int i = 0; i < len; i++) {
+      c = cols[i];
+
+      if (!c.overrideSelectionBackground && c.isVisible()) {
+        break;
+      }
+
+      selectionPaintStartCol++;
+    }
+
+    for (int i = len - 1; i > selectionPaintStartCol; i--) {
+      c = cols[i];
+
+      if (c.isVisible() &&!c.overrideSelectionBackground) {
+        break;
+      }
+
+      selectionPaintEndCol--;
+    }
+  }
+
+  protected void resetTableModel(iFilterableList<RenderableDataItem> rows) {
+    getTableComponent().getModel().resetModel(Arrays.asList(columns), rows);
+  }
+
+  protected abstract void setColumnPressed(int col, boolean pressed);
+
+  protected abstract void setColumnsEx();
+
+  protected abstract void setColumnVisibleEx(int col, boolean visible);
+
+  protected void setupDafaultPainter() {
+    if (headerCellPainter == null) {
+      PaintBucket pb;
+
+      if (propertyTabe) {
+        pb = new PaintBucket(ColorUtils.getBackground());
+      } else {
+        pb = TableHelper.getDefaultPainter(getBackgroundEx());
+      }
+
+      setComponentPainter(pb.getCachedComponentPainter());
+    }
+  }
+
+  protected abstract void tableHadInteraction();
+
+  protected void updateGridColumnWidths(int width) {
+    for (Column c : columns) {
+      c.setWidth(width);
+    }
+  }
+
+  private int getFirstVisibleColumn() {
+    if (firstVisibleColumn == -1) {
+      Column[]  cols = columns;
+      int       vp[] = viewPositions;
+      final int len  = cols.length;
+
+      for (int i = 0; i < len; i++) {
+        if (cols[vp[i]].isVisible()) {
+          firstVisibleColumn = i;
+
+          break;
+        }
+      }
+    }
+
+    return firstVisibleColumn;
+  }
+
+  public static Column[] createGridColumns(Column[] columns, List<RenderableDataItem> rows) {
+    Column[] a     = columns;
+    int      count = 0;
+    int      len   = rows.size();
+
+    for (int i = 0; i < len; i++) {
+      int n = rows.get(i).size();
+
+      if (n > count) {
+        count = n;
+      }
+    }
+
+    if (columns.length <= count) {
+      a   = new Column[count];
+      len = columns.length;
+      System.arraycopy(columns, 0, a, 0, len);
+
+      Column c = columns[len - 1];
+
+      for (int i = len; i < count; i++) {
+        a[i] = c;
+      }
+    }
+
+    return a;
+  }
+
   public static iFilterableList<RenderableDataItem> wrapItems(iFilterableList<RenderableDataItem> rows, int count) {
     int len = rows.size();
 
@@ -546,829 +1449,6 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
     return nrows;
   }
 
-  public void setBottomMarginColor(UIColor bottomMarginColor) {
-    this.bottomMarginColor = bottomMarginColor;
-  }
-
-  public abstract void setColumnIcon(int col, iPlatformIcon icon);
-
-  public void setColumnSelectionAllowed(boolean columnSelectionAllowed) {
-    this.columnSelectionAllowed = columnSelectionAllowed;
-  }
-
-  public abstract void setColumnTitle(int col, CharSequence title);
-
-  public void setColumnVisible(int col, boolean visible) {
-    lastVisibleColumn  = -1;
-    firstVisibleColumn = -1;
-    setColumnVisibleEx(col, visible);
-  }
-
-  protected abstract void setColumnVisibleEx(int col, boolean visible);
-
-  public void setColumns(List<Column> columns) {
-    measuredHeight     = 0;
-    lastVisibleColumn  = -1;
-    firstVisibleColumn = -1;
-
-    if (getComponentPainter() == null) {
-      setupDafaultPainter();
-    }
-
-    iconPadding = 0;
-
-    int      len       = columns.size();
-    boolean  touchable = false;
-    Column[] cols      = new Column[len];
-
-    for (int i = 0; i < len; i++) {
-      Column c = columns.get(i);
-
-      cols[i] = c;
-
-      if ((c.getHeaderActionListener() != null) || c.hasPopupMenu()) {
-        touchable = true;
-      }
-
-      if (c.getCellRenderer() instanceof aFormsLayoutRenderer) {
-        ((aFormsLayoutRenderer) c.getCellRenderer()).dataModelChanged(getTableComponent().getModel());
-      }
-    }
-
-    if (sortingAllowed) {
-      iconPadding = getSortIcon(true).getIconHeight() / 2;
-      touchable   = true;
-    }
-
-    if (touchable) {
-      if (Platform.isTouchDevice() && (headerHeight == null)) {
-        headerHeight    = "1.75ln";
-        headerHeightNum = calculateMinHeight();
-      }
-    }
-
-    this.columns  = cols;
-    preferredSize = null;
-    resetSelectionPaintColumns();
-    setColumnsEx();
-  }
-
-  @Override
-  public void setFont(UIFont f) {
-    super.setFont(f);
-    measuredHeight  = 0;
-    headerHeightNum = calculateMinHeight();
-  }
-
-  public void setGridViewType(GridViewType gridViewMode) {
-    this.gridViewMode = gridViewMode;
-  }
-
-  /**
-   * @param headerPainter
-   *          the headerPainter to set
-   */
-  public void setHeaderCellPainter(PaintBucket headerPainter) {
-    this.headerCellPainter = headerPainter;
-
-    if (headerPainter != null) {
-      if (headerPainter.getBorder() != null) {
-        cellInsets = headerPainter.getBorder().getBorderInsets(cellInsets);
-      }
-
-      if (headerPainter.getForegroundColor() != null) {
-        setForeground(headerPainter.getForegroundColor());
-      }
-
-      if (headerPainter.getFont() != null) {
-        setFont(headerPainter.getFont());
-      }
-    }
-  }
-
-  public void setHeaderHeight(String height) {
-    headerHeight    = height;
-    headerHeightNum = calculateMinHeight();
-  }
-
-  public void setHeaderTracksSections(boolean headerTracksSections) {
-    this.headerTracksSections = headerTracksSections;
-  }
-
-  /**
-   * @param marginColor
-   *          the marginColor to set
-   */
-  public void setMarginColor(UIColor marginColor) {
-    if ((marginColor != null) && (marginColor.getAlpha() == 0)) {
-      marginColor = null;
-    }
-
-    if (this.bottomMarginColor == this.marginColor) {
-      this.bottomMarginColor = null;
-    }
-
-    this.marginColor = marginColor;
-
-    if (this.bottomMarginColor == null) {
-      this.bottomMarginColor = marginColor;
-    }
-  }
-
-  /**
-   * @param pb
-   *          the headerPainter to set
-   */
-  public void setPressedHeaderPainter(PaintBucket pb) {
-    this.pressedHeaderPainter = pb;
-  }
-
-  public void setPropertyTabe(boolean propertyTabe) {
-    this.propertyTabe = propertyTabe;
-  }
-
-  public void setPropertyTableActions(List<UIAction> propertyTableActions) {
-    this.propertyTableActions = propertyTableActions;
-  }
-
-  public void setPropertyTableHeaderColumnDescription(Column propertyTableHeaderColumnDescription) {
-    this.propertyTableHeaderColumnDescription = propertyTableHeaderColumnDescription;
-  }
-
-  public void setSelectedIndex(int index) {
-    if (selectionModel != null) {
-      selectionModel.clearAndSelect(index);
-    }
-  }
-
-  public void setSelectedIndices(int[] indices) {
-    if (selectionModel != null) {
-      selectionModel.clearAndSelect(indices);
-    }
-  }
-
-  public void setShowHeaderMargin(boolean showHeaderMargin) {
-    this.showHeaderMargin = showHeaderMargin;
-  }
-
-  public void setSortColumn(int sortColumn, boolean descending) {
-    if (sortingAllowed) {
-      if ((this.sortColumn != -1) && (this.sortColumn != sortColumn) && isShowing()) {
-        repaintColumn(this.sortColumn);
-      }
-
-      this.sortColumn = sortColumn;
-      this.descending = descending;
-
-      if ((this.sortColumn != -1) && isShowing()) {
-        repaintColumn(this.sortColumn);
-      }
-    }
-  }
-
-  /**
-   * @param sortingAllowed
-   *          the sortingAllowed to set
-   */
-  public void setSortingAllowed(boolean sortingAllowed) {
-    this.sortingAllowed = sortingAllowed;
-  }
-
-  public UIColor getBottomMarginColor() {
-    return bottomMarginColor;
-  }
-
-  public Column getColumnAt(int index) {
-    if ((index > -1) && (index < columns.length)) {
-      return columns[index];
-    }
-
-    return null;
-  }
-
-  public abstract Column getColumnForViewAt(int viewColumn);
-
-  public int getColumnCount() {
-    return columns.length;
-  }
-
-  public abstract int getColumnIndexAt(float x, float y);
-
-  public Column[] getColumns() {
-    return columns;
-  }
-
-  public int getDynamicColumnsWidth() {
-    if ((columns == null) || (columns.length == 0)) {
-      return 0;
-    }
-
-    int n = columns[0].calculatePreferedWidth(getTableComponentEx(), 400);
-
-    return n * columns.length;
-  }
-
-  public int getFirstVisibleColumnInView() {
-    UIRectangle r = getTableComponent().getViewRect();
-    int         n = getColumnIndexAt(r.x, 0);
-
-    if (n == -1) {
-      if (r.x == 0) {
-        n = getFirstVisibleColumn();
-      } else {
-        n = getLastVisibleColumn();
-      }
-
-      if (n != -1) {
-        n = getTableComponent().convertModelIndexToView(n);
-      }
-    }
-
-    return n;
-  }
-
-  public int getLastVisibleColumnInView() {
-    UIRectangle r = getTableComponent().getViewRect();
-    int         n = getColumnIndexAt(r.x + r.width - 1, 0);
-
-    if (n == -1) {
-      n = getLastVisibleColumn();
-
-      if (n != -1) {
-        n = getTableComponent().convertModelIndexToView(n);
-      }
-    }
-
-    return n;
-  }
-
-  public int getFirstVisibleColumn() {
-    if (firstVisibleColumn == -1) {
-      Column[]  cols = columns;
-      final int len  = cols.length;
-
-      for (int i = 0; i < len; i++) {
-        if (cols[i].isVisible()) {
-          firstVisibleColumn = i;
-
-          break;
-        }
-      }
-    }
-
-    return firstVisibleColumn;
-  }
-
-  public int getLastVisibleColumn() {
-    if (lastVisibleColumn == -1) {
-      Column[]  cols = columns;
-      final int len  = cols.length;
-
-      for (int i = len - 1; i >= 0; i--) {
-        if (cols[i].isVisible()) {
-          lastVisibleColumn = i;
-
-          break;
-        }
-      }
-    }
-
-    return lastVisibleColumn;
-  }
-
-  public int getColumnX(int column) {
-    Column[]  cols = columns;
-    final int len  = cols.length;
-    int       x    = 0;
-    int       d    = ScreenUtils.PLATFORM_PIXELS_1;
-
-    for (int i = 0; i < len; i++) {
-      if (i == column) {
-        break;
-      }
-
-      if (cols[i].isVisible()) {
-        x += cols[i].getWidth();
-
-        if (i > 0) {
-          x += d;
-        }
-      }
-    }
-
-    return x;
-  }
-
-  public GridViewType getGridViewType() {
-    return gridViewMode;
-  }
-
-  public UIPoint getHotspotPopupLocation(int column) {
-    return null;
-  }
-
-  public UIColor getMarginColor() {
-    return marginColor;
-  }
-
-  public int getMeasuredHeight() {
-    if (measuredHeight == 0) {
-      return 0;
-    }
-
-    return (int) Math.ceil(measuredHeight + headerPadding.top + headerPadding.bottom + ScreenUtils.PLATFORM_PIXELS_1);
-  }
-
-  @Override
-  public UIDimension getMinimumSize(UIDimension size) {
-    if (size == null) {
-      size = new UIDimension();
-    }
-
-    getSize(size, true, 100);
-
-    return size;
-  }
-
-  public void getColumnSize(iPlatformItemRenderer renderer, int col, Column c, SizeType type, float tableWidth,
-                            UIDimension size) {
-    UIInsets    in = cellInsets;
-    PaintBucket pb = c.getHeaderPainter();
-
-    if (pb != null) {
-      iPlatformBorder b = pb.getBorder();
-
-      if (b != null) {
-        in = b.getBorderInsets(new UIInsets());
-      }
-    }
-
-    if (renderingComponent == null) {
-      renderingComponent = new UILabelRenderer();
-    }
-
-    UIFont f = c.getHeaderFont();
-
-    if (f == null) {
-      f = getFont();
-    }
-
-    renderer.configureRenderingComponent(this, renderingComponent, c, 0, false, false, null, null);
-    renderingComponent.setWordWrap(c.headerWordWrap);
-
-    if (f != null) {
-      renderingComponent.setFont(f);
-    }
-
-    renderingComponent.getComponent(c.getColumnTitle(), c).getPreferredSize(size);
-    size.width  += in.left + in.right;
-    size.height += in.top + in.bottom;
-
-    int w = 0;
-
-    switch(type) {
-      case MIN :
-        w = c.calculateMinimumWidth(getTableComponentEx(), (tableWidth == 0)
-                ? 100
-                : tableWidth);
-
-        break;
-
-      case PREFERRED :
-        if (c.preferedWidth != 0) {
-          w = c.calculatePreferedWidth(getTableComponentEx(), (tableWidth == 0)
-                  ? 100
-                  : tableWidth);
-        }
-
-        break;
-
-      default :
-        break;
-    }
-
-    size.width  = Math.max(size.width, w) + columnSizePad;
-    size.height += ScreenUtils.PLATFORM_PIXELS_1 + iconPadding;
-  }
-
-  @Override
-  public UIDimension getPreferredSize(UIDimension size) {
-    if (size == null) {
-      size = new UIDimension();
-    }
-
-    if (preferredSize != null) {
-      size.setSize(preferredSize);
-
-      return size;
-    }
-
-    size = super.getPreferredSize(size);
-
-    if (preferredSize == null) {
-      preferredSize = new UIDimension(size);
-    } else {
-      preferredSize.setSize(size);
-    }
-
-    return size;
-  }
-
-  @Override
-  public void getPreferredSizeEx(UIDimension size, float maxWidth) {
-    getSize(size, false, maxWidth);
-  }
-
-  public int getPreferredHeight() {
-    if (preferredSize != null) {
-      return preferredSize.intHeight();
-    }
-
-    return getPreferredSize(null).intHeight();
-  }
-
-  public List<UIAction> getPropertyTableActions() {
-    return propertyTableActions;
-  }
-
-  public Column getPropertyTableHeaderColumnDescription() {
-    return propertyTableHeaderColumnDescription;
-  }
-
-  public int getSelectedColumn() {
-    return (selectionModel == null)
-           ? -1
-           : selectionModel.getLeadIndex();
-  }
-
-  public int getSelectedColumnCount() {
-    return (selectionModel == null)
-           ? 0
-           : selectionModel.getSelectionCount();
-  }
-
-  public int[] getSelectedColumnIndices() {
-    return (selectionModel == null)
-           ? null
-           : selectionModel.getSelectedIndices();
-  }
-
-  public int getSelectionPaintEndColumn() {
-    return selectionPaintEndCol;
-  }
-
-  public int getSelectionPaintStartColumn() {
-    return selectionPaintStartCol;
-  }
-
-  public int getGridColumnWidth(UIDimension reuseableSize) {
-    Column c = columns[0];
-
-    if (reuseableSize == null) {
-      reuseableSize = new UIDimension();
-    }
-
-    aListItemRenderer renderer = (aListItemRenderer) getTableComponent().getItemRenderer();
-
-    getColumnSize(renderer, 0, c, SizeType.PREFERRED, 0, reuseableSize);
-
-    return reuseableSize.intWidth() + ScreenUtils.PLATFORM_PIXELS_1;
-  }
-
-  public int getOriginalsGridViewsRowCount() {
-    return flatCount;
-  }
-
-  public void getSize(UIDimension size, boolean minimum, float tableWidth) {
-    int      width  = 0;
-    int      height = 0;
-    Column[] cols   = columns;
-    int      len    = cols.length;
-    Column   c;
-
-    if (gridViewMode == GridViewType.VERTICAL_WRAP) {
-      len = 1;
-    }
-
-    aListItemRenderer renderer = (aListItemRenderer) getTableComponent().getItemRenderer();
-
-    if (autoSizedColumns && (measuredHeight > 0)) {
-      height = measuredHeight;
-    }
-
-    int d = ScreenUtils.PLATFORM_PIXELS_1;
-
-    for (int i = 0; i < len; i++) {
-      if ((c = cols[i]).isVisible()) {
-        if (autoSizedColumns && (measuredHeight > 0)) {
-          width += c.getWidth() + d;
-        } else {
-          getColumnSize(renderer, i, c, minimum
-                                        ? SizeType.MIN
-                                        : SizeType.PREFERRED, tableWidth, size);
-          width  += size.width + d;
-          height = Math.max(height, size.intHeight());
-        }
-      }
-    }
-
-    measuredHeight = height;
-    size.width     = width;
-    size.height    = height;
-    size.width     += headerPadding.left + headerPadding.right;
-    size.height    += headerPadding.top + headerPadding.bottom;
-    size.height    += d;
-
-    if (headerHeightNum > size.height) {
-      size.height = headerHeightNum;
-    }
-  }
-
-  public int getSpanWidth(int start, int span) {
-    return TableHelper.getSpanWidth(start, span, columns);
-  }
-
-  public abstract iTableComponent getTableComponent();
-
-  protected iPlatformComponent getTableComponentEx() {
-    return getTableComponent().getPlatformComponent();
-  }
-
-  public int getVisibleColumnCount() {
-    Column[]  cols  = columns;
-    final int len   = cols.length;
-    int       count = 0;
-
-    for (int i = 0; i < len; i++) {
-      if (cols[i].isVisible()) {
-        count++;
-      }
-    }
-
-    return count;
-  }
-
-  /**
-   * Get the height of a row for the table that the header belongs to.
-   * <p>
-   * This method is here so that it can be shared across platforms. It caches
-   * the height of the height property of the renderable data item for the row
-   * <p>
-   *
-   * @param row
-   *          the row
-   * @param renderer
-   *          the render to use to calculate the height
-   * @param defaultHeight
-   *          the default table row height
-   * @return the height of the row
-   */
-  public int getRowHeight(int row, iPlatformItemRenderer renderer, int defaultHeight) {
-    iTableComponent    tc          = getTableComponent();
-    iPlatformComponent pc          = tc.getPlatformComponent();
-    iTableModel        tm          = tc.getModel();
-    RenderableDataItem rowItem     = tm.getRow(row);
-    RenderableDataItem mainRowItem = tm.getRow(row);
-    int                h           = rowItem.getHeight();
-
-    if (h < 1) {
-      Column[] columns = multiTableColumns;
-
-      if (columns == null) {
-        columns = this.columns;
-      } else {
-        tm          = ((TableViewer) pc.getWidget()).getTableComponent().getModel();
-        mainRowItem = tm.getRow(row);
-        h           = mainRowItem.getHeight();
-      }
-
-      if (h < 1) {
-        h = TableHelper.calculateRowHeight(pc, renderer, tm, row, columns, false, defaultHeight);
-      }
-
-      rowItem.setHeight(h);
-
-      if (mainRowItem != null) {
-        mainRowItem.setHeight(h);
-      }
-    }
-
-    return h;
-  }
-
-  @Override
-  public int getWidth() {
-    if (!isVisible()) {
-      Column[]  cols  = columns;
-      final int len   = cols.length;
-      int       width = 0;
-
-      for (int i = 0; i < len; i++) {
-        if (cols[i].isVisible()) {
-          width += cols[i].getWidth();
-        }
-      }
-
-      return width;
-    }
-
-    return super.getWidth();
-  }
-
-  public boolean isAutoSizedColumns() {
-    return autoSizedColumns;
-  }
-
-  public boolean isColumnSelectionAllowed() {
-    return columnSelectionAllowed;
-  }
-
-  public boolean isColumnVisible(int col) {
-    return getColumnAt(col).isVisible();
-  }
-
-  public boolean isGridView() {
-    return gridViewMode != null;
-  }
-
-  public boolean isHeaderTracksSections() {
-    return headerTracksSections;
-  }
-
-  public boolean isPropertyTabe() {
-    return propertyTabe;
-  }
-
-  public boolean isShowHeaderMargin() {
-    return showHeaderMargin;
-  }
-
-  /**
-   * @return the sortingAllowed
-   */
-  public boolean isSortingAllowed() {
-    return sortingAllowed;
-  }
-
-  protected int calculateMinHeight() {
-    int h = 0;
-
-    if (headerHeight != null) {
-      h = ScreenUtils.toPlatformPixelHeight(headerHeight, this, 100);
-    }
-
-    String s = Platform.getUIDefaults().getString("Rare.Table.minimumTouchableHeaderHeight");
-
-    if (s != null) {
-      int hh = ScreenUtils.toPlatformPixelHeight(s, this, 100);
-
-      h = Math.max(hh, h);
-    }
-
-    return h;
-  }
-
-  protected boolean handleMousePress(MouseEvent e) {
-    return true;
-  }
-
-  protected void repaintColumn(int col) {
-    repaint();
-  }
-
-  public int getColumnIndexForClickedColumn(int col) {
-    iTableComponent tc   = getTableComponent();
-    TableType       type = tc.getTableType();
-
-    if ((type == null) || (type == TableType.HEADER)) {
-      return col;
-    }
-
-    iTableComponent mtc = ((TableViewer) getWidget()).getTableComponent();
-
-    tc = mtc.getRowHeaderTable();
-
-    if (tc != null) {
-      col += tc.getColumnCount();
-    }
-
-    if (type == TableType.FOOTER) {
-      col += mtc.getMainTable().getColumnCount();
-    }
-
-    return col;
-  }
-
-  protected void resetSelectionPaintColumns() {
-    Column[] cols = columns;
-    Column   c;
-    int      len = cols.length;
-
-    selectionPaintStartCol = 0;
-    selectionPaintEndCol   = len - 1;
-
-    for (int i = 0; i < len; i++) {
-      c = cols[i];
-
-      if (!c.overrideSelectionBackground && c.isVisible()) {
-        break;
-      }
-
-      selectionPaintStartCol++;
-    }
-
-    for (int i = len - 1; i > selectionPaintStartCol; i--) {
-      c = cols[i];
-
-      if (c.isVisible() &&!c.overrideSelectionBackground) {
-        break;
-      }
-
-      selectionPaintEndCol--;
-    }
-  }
-
-  protected void resetTableModel(iFilterableList<RenderableDataItem> rows) {
-    getTableComponent().getModel().resetModel(Arrays.asList(columns), rows);
-  }
-
-  protected void setupDafaultPainter() {
-    if (headerCellPainter == null) {
-      PaintBucket pb;
-
-      if (propertyTabe) {
-        pb = new PaintBucket(ColorUtils.getBackground());
-      } else {
-        pb = TableHelper.getDefaultPainter(getBackgroundEx());
-      }
-
-      setComponentPainter(pb.getCachedComponentPainter());
-    }
-  }
-
-  protected abstract void tableHadInteraction();
-
-  protected void updateGridColumnWidths(int width) {
-    for (Column c : columns) {
-      c.setWidth(width);
-    }
-  }
-
-  protected abstract void setColumnPressed(int col, boolean pressed);
-
-  protected abstract void setColumnsEx();
-
-  @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    getSize(size, true, 100);
-  }
-
-  protected PaintBucket getPressedPainter() {
-    if (pressedHeaderPainter == null) {
-      pressedHeaderPainter = TableHelper.getPressedPainter(getBackground());
-    }
-
-    return pressedHeaderPainter;
-  }
-
-  protected iPlatformIcon getSortIcon(boolean descending) {
-    if (sort_asc == null) {
-      sort_asc = Platform.getAppContext().getResourceAsIcon("Rare.icon.sort_asc");
-      sort_dsc = Platform.getAppContext().getResourceAsIcon("Rare.icon.sort_dsc");
-    }
-
-    return descending
-           ? sort_dsc
-           : sort_asc;
-  }
-
-  protected Column[] getWrappedColumns(int count) {
-    Column   c    = columns[0];
-    Column[] list = new Column[count];
-
-    for (int i = 0; i < count; i++) {
-      list[i] = c;
-    }
-
-    return list;
-  }
-
-  public boolean isPaintRightMargin() {
-    return paintRightMargin;
-  }
-
-  public void setPaintRightMargin(boolean paintRightMargin) {
-    this.paintRightMargin = paintRightMargin;
-  }
-
-  public boolean isPaintLeftMargin() {
-    return paintLeftMargin;
-  }
-
-  public void setPaintLeftMargin(boolean paintLeftMargin) {
-    this.paintLeftMargin = paintLeftMargin;
-  }
-
   protected class MouseListener implements iMouseListener, iMouseMotionListener {
     UIPoint       downPoint;
     float         downY;
@@ -1417,6 +1497,10 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
 
     @Override
     public void mousePressed(MouseEvent e) {
+      if (!isEnabled()) {
+        return;
+      }
+
       pressedColumn = -1;
 
       if (!getTableComponentEx().hasHadInteraction()) {
@@ -1456,6 +1540,10 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
 
     @Override
     public void mouseReleased(MouseEvent e) {
+      if (!isEnabled()) {
+        return;
+      }
+
       if (!handleMouseRelease(e)) {
         return;
       }
@@ -1513,4 +1601,7 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
       return false;
     }
   }
+
+
+  enum SizeType { MIN, PREFERRED, FIT }
 }

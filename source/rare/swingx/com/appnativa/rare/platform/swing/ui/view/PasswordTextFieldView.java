@@ -20,20 +20,6 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.swing.ui.text.DocumentChangeListener;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.iActionable;
-import com.appnativa.rare.ui.listener.iTextChangeListener;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -47,6 +33,22 @@ import java.awt.geom.AffineTransform;
 import javax.swing.JPasswordField;
 import javax.swing.JToolTip;
 import javax.swing.text.AbstractDocument;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.platform.swing.ui.text.DocumentChangeListener;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iActionable;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.listener.iTextChangeListener;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -230,21 +232,19 @@ public class PasswordTextFieldView extends JPasswordField
   public Color getForeground() {
     if (!isEnabled()) {
       Color c = (Color) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-
-      if (c != null) {
-        return c;
-      }
+      return c!=null ? c : ColorUtils.getDisabledForeground();
     }
 
     return super.getForeground();
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     Dimension d = getMinimumSize();
 
     size.width  = d.width;
     size.height = d.height;
+    Utils.adjustTextFieldSize(size);
   }
 
   @SuppressWarnings("deprecation")
@@ -258,6 +258,7 @@ public class PasswordTextFieldView extends JPasswordField
 
     size.width  = d.width;
     size.height = d.height;
+    Utils.adjustTextFieldSize(size);
   }
 
   @Override

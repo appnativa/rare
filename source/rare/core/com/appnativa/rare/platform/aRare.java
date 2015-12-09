@@ -20,14 +20,35 @@
 
 package com.appnativa.rare.platform;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.ClosedChannelException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.ResourceBundle;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.converters.Conversions;
-import com.appnativa.rare.converters.DateContext;
-import com.appnativa.rare.converters.aConverter;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.exception.AbortOperationException;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iAsyncLoadStatusHandler;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iConstants;
@@ -40,6 +61,12 @@ import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iWeakReference;
 import com.appnativa.rare.iWidgetCustomizer;
 import com.appnativa.rare.iWorkerTask;
+import com.appnativa.rare.converters.Conversions;
+import com.appnativa.rare.converters.DateContext;
+import com.appnativa.rare.converters.aConverter;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.exception.AbortOperationException;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.ActionLink.iErrorHandler;
 import com.appnativa.rare.net.CollectionURLConnection;
@@ -71,7 +98,6 @@ import com.appnativa.rare.spot.DateChooser;
 import com.appnativa.rare.spot.DateSpinner;
 import com.appnativa.rare.spot.DateTimeSpinner;
 import com.appnativa.rare.spot.DocumentPane;
-import com.appnativa.rare.spot.FileUploadField;
 import com.appnativa.rare.spot.Form;
 import com.appnativa.rare.spot.GridCell;
 import com.appnativa.rare.spot.GridPane;
@@ -107,7 +133,6 @@ import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.spot.WidgetPane;
 import com.appnativa.rare.ui.AlertPanel;
-import com.appnativa.rare.ui.BorderUtils;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.ScreenUtils;
@@ -165,36 +190,6 @@ import com.appnativa.util.SNumber;
 import com.appnativa.util.Streams.ISO88591Reader;
 import com.appnativa.util.iCancelable;
 import com.appnativa.util.json.JSONObject;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.nio.channels.ClosedChannelException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.ResourceBundle;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -867,18 +862,18 @@ public abstract class aRare implements iExceptionHandler, iAsyncLoadStatusHandle
 
       registerDefaultActions();
 
-      UIImageIcon ic = appContext.getResourceIcons().get("Rare.List.editorCheckedIcon");
+      UIImageIcon ic = appContext.getResourceAsIconEx("Rare.icon.list.editorCheckedIcon");
 
       if (ic == null) {
         ic = new UIImageIcon(UIImageHelper.createImage(new PainterUtils.ListEditorIcon(true)));
-        appContext.getResourceIcons().put("Rare.List.editorCheckedIcon", ic);
+        appContext.addResourceIcon("Rare.icon.list.editorCheckedIcon", ic);
       }
 
-      ic = appContext.getResourceIcons().get("Rare.List.editorUncheckedIcon");
+      ic = appContext.getResourceAsIconEx("Rare.icon.list.editorUncheckedIcon");
 
       if (ic == null) {
         ic = new UIImageIcon(UIImageHelper.createImage(new PainterUtils.ListEditorIcon(false)));
-        appContext.getResourceIcons().put("Rare.List.editorUncheckedIcon", ic);
+        appContext.addResourceIcon("Rare.icon.list.editorUncheckedIcon", ic);
       }
 
       int len;
@@ -1777,8 +1772,6 @@ public abstract class aRare implements iExceptionHandler, iAsyncLoadStatusHandle
     registerWidgetClass(name, TextAreaWidget.class);
     name = Platform.getSPOTName(PasswordField.class);
     registerWidgetClass(name, TextFieldWidget.class);
-    name = Platform.getSPOTName(FileUploadField.class);
-    registerWidgetClass(name, TextFieldWidget.class);
     name = Platform.getSPOTName(CheckBox.class);
     registerWidgetClass(name, CheckBoxWidget.class);
     name = Platform.getSPOTName(RadioButton.class);
@@ -2643,26 +2636,6 @@ public abstract class aRare implements iExceptionHandler, iAsyncLoadStatusHandle
     DataParser.INLINE_REGION_VIEWER_URLS             = false;
     DataParser.INLINE_SELECTED_STACKPANE_VIEWER_URLS = false;
   }
-
-  public static class AutoHilightPainter extends PaintBucket {
-    boolean lostFocus;
-
-    AutoHilightPainter(boolean lf) {
-      lostFocus = lf;
-      setBackgroundPainter(new UISimpleBackgroundPainter(Platform.getUIDefaults().getColor("Rare.textHighlight@25")));
-    }
-
-    @Override
-    public UIColor getBackgroundColor() {
-      return Platform.getUIDefaults().getColor("Rare.textHighlight@25");
-    }
-
-    @Override
-    public iPlatformBorder getBorder() {
-      return BorderUtils.ONE_POINT_EMPTY_BORDER;
-    }
-  }
-
 
   public class MultiScreenFallbackErrorHandler implements iErrorHandler {
     private iErrorHandler errorHandler;

@@ -149,7 +149,7 @@ public abstract class aTabPaneLayout implements iPopulateCallback {
   }
 
   public void checkOrientation(float width, float height) {
-    if (autoOrient) {
+    if (autoOrient && canChangeOrientationInCurrentState()) {
       boolean wider = width > height;
 
       if (tabPainter instanceof BoxTabPainter) {
@@ -505,7 +505,7 @@ public abstract class aTabPaneLayout implements iPopulateCallback {
         }
       }
 
-      if (tabPainter instanceof aBoxTabPainter) {
+      if (tabPainter instanceof aBoxTabPainter && (!((aBoxTabPainter)tabPainter).isBorderPainted())) {
         ((aBoxTabPainter) tabPainter).setBorderPainted(b == null);
       }
 
@@ -688,6 +688,10 @@ public abstract class aTabPaneLayout implements iPopulateCallback {
         bounds.y = -d.width;
       }
     }
+  }
+  
+  protected boolean canChangeOrientationInCurrentState() {
+    return true;
   }
 
   protected abstract void configureRotation(int degrees);

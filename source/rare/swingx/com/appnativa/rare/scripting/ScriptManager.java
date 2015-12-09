@@ -28,7 +28,6 @@ import javax.script.ScriptEngine;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.spot.Application;
-import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.util.Streams;
@@ -86,11 +85,7 @@ protected void addLoadedScript(String name) {
 
   @Override
   protected WindowViewer createWindowViewer(iPlatformAppContext ctx, String name, Object win, WindowViewer parent, iScriptHandler sh) {
-    WindowViewer v = new WindowViewer(ctx, name, (iWindow) win, parent, sh);
-    if (win instanceof Frame) {
-      ((Frame) win).setViewer(v);
-    }
-    return v;
+    return new WindowViewer(ctx, name, (iWindow) win, parent, sh);
   }
 
   @Override

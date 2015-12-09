@@ -20,15 +20,16 @@
 
 package com.appnativa.rare.ui.painter;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Displayed;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.iImageObserver;
 import com.appnativa.rare.ui.iPaintedButton;
 import com.appnativa.rare.ui.iPaintedButton.ButtonState;
@@ -37,14 +38,11 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformPaint;
 import com.appnativa.rare.ui.iPlatformShape;
+import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.util.PropertyChangeSupportEx;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /**
  *
@@ -52,16 +50,15 @@ import java.beans.PropertyChangeListener;
  */
 public abstract class aUIComponentPainter extends aUIPlatformPainter
         implements iPlatformComponentPainter, Cloneable, iImageObserver {
+  public static boolean             paintFocusDefault = !Platform.isTouchDevice();
+  public static PaintBucket         focusPaint;
   protected static boolean          isApple    = Platform.isIOS() || Platform.isMac();
-  public static boolean             paintFocus = !Platform.isTouchDevice();
-  protected static PaintBucket      focusPaint;
   int                               borderModCount;
   protected iBackgroundPainter      backgroundPainter;
   protected iPlatformPainter        bgOverlayPainter;
   protected iPlatformBorder         border;
   protected PropertyChangeListener  changeListener;
   protected PropertyChangeSupportEx changeSupport;
-  protected UIColor                 foregroundColor;
   protected UIInsets                insets;
   protected iPlatformPainter        overlayPainter;
   protected PainterHolder           painterHolder;
@@ -145,7 +142,6 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
     setBackgroundOverlayPainter(null);
     setBackgroundPainter(null, false);
     setBorder(null);
-    setForegroundColor(null);
     setSharedBorder(null);
     setPainterHolder(null);
   }
@@ -181,7 +177,6 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
     setBackgroundOverlayPainter(cp.getBackgroundOverlayPainter());
     setBackgroundPainter(cp.getBackgroundPainter(), false);
     setBorder(cp.getBorder());
-    setForegroundColor(cp.getForegroundColor());
     setSharedBorder(cp.getSharedBorder());
     setPainterHolder(cp.getPainterHolder());
   }
@@ -507,53 +502,6 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
         overlayPainter.paint(g, xx, yy, w, h, orientation);
       }
 
-      if ((pc != null) &&!enabled) {
-        UIColor c = pc.getDisabledColor();
-
-        if (c != null) {
-          UIInsets         in    = null;
-          iPlatformShape   shape = (b == null)
-                                   ? null
-                                   : b.getShape(g, 0, 0, width, height);
-          iPlatformPainter p     = ColorUtils.getPainter(c);
-          iPlatformPaint   pp    = (p == null)
-                                   ? c
-                                   : p.getPaint(width, height);
-
-          if ((shape != null) && (pp != null)) {
-            if (g.didComponentPainterClip()) {
-              g.restoreState();
-              g.setComponentPainterClipped(false);
-              g.setPaint(pp);
-              g.fillShape(shape, x, y);
-            }
-          } else {
-            if ((b != null) &&!g.didComponentPainterClip()) {
-              in = b.getBorderInsetsEx(insets);
-            }
-
-            float xx = x;
-            float yy = y;
-            float w  = width;
-            float h  = height;
-
-            if (in != null) {
-              xx += in.left;
-              yy += in.top;
-              w  -= (in.left + in.right);
-              h  -= (in.top + in.bottom);
-            }
-
-            if (p == null) {
-              g.setPaint(c);
-              g.fillRect(x, y, w, h);
-            } else {
-              p.paint(g, xx, yy, w, h, UNKNOWN);
-            }
-          }
-        }
-      }
-
       if (b != null) {
         if (g.didComponentPainterClip()) {
           g.restoreState();
@@ -562,47 +510,27 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
         b.paint(g, x, y, width, height, end);
       }
 
-      if (!paintAll && paintFocus && (pc != null) && ((b == null) || (b != sharedBorder)) && pc.isFocusPainted()) {
-        PaintBucket pb = pc.getFocusPaint(g, focusPaint);
-
-        if (pb != null) {
-          UIInsets in = pc.getFocusInsets(insets);
-
-          if (in != null) {
-            ox      += in.left;
-            oy      += in.top;
-            owidth  -= (in.left + in.right);
-            oheight -= (in.top + in.bottom);
+      if (!paintAll && paintFocusDefault && (pc != null && pc.isFocusPainted())) {
+        if(b==null || !b.isFocusAware()) {
+          PaintBucket pb = pc.getFocusPaint(focusPaint);
+          b=pb==null ? null : pb.getBorder();
+          if (b!=null) {
+            UIInsets in = pc.getFocusInsets(insets);
+  
+            if (in != null) {
+              ox      += in.left;
+              oy      += in.top;
+              owidth  -= (in.left + in.right);
+              oheight -= (in.top + in.bottom);
+            }
+            b.paint(g, ox, oy, owidth, oheight, b.isPaintLast());
           }
-
-          paint(g, ox, oy, owidth, oheight, pb);
         }
       }
     }
 
     g.setColor(oc);
     g.setPaint(op);
-  }
-
-  public static void paintFocus(iPlatformGraphics g, float x, float y, float width, float height) {
-    iPlatformComponent pc = g.getComponent();
-
-    if ((focusPaint != null) && paintFocus && (pc != null) && pc.isFocusPainted()) {
-      PaintBucket pb = pc.getFocusPaint(g, focusPaint);
-
-      if (pb != null) {
-        UIInsets in = pc.getFocusInsets(new UIInsets());
-
-        if (in != null) {
-          x      += in.left;
-          y      += in.top;
-          width  -= (in.left + in.right);
-          height -= (in.top + in.bottom);
-        }
-
-        paint(g, x, y, width, height, pb);
-      }
-    }
   }
 
   public static void paintPainter(iPlatformPainter p, iPlatformGraphics g, float width, float height) {
@@ -618,7 +546,6 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
     float           x      = 0;
     float           y      = 0;
     UIInsets        in     = null;
-    ;
 
     switch(p.getRenderSpace()) {
       case WITHIN_BORDER :
@@ -758,7 +685,7 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
       imagePainterCheckedAndOkToAdd(painter);
 
       if (checkOthers) {
-        fixPainterholder(false, false);
+        fixPainterholder(false);
       }
     }
   }
@@ -798,33 +725,8 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
       borderModCount = (b == null)
                        ? 0
                        : b.getModCount();
-      fixPainterholder(false, true);
+      fixPainterholder(true);
       firePropertyChange(PROPERTY_BORDER, ov, b);
-    }
-  }
-
-  @Override
-  public void setForegroundColor(UIColor fg) {
-    foregroundColor = fg;
-
-    if (fg != null) {
-      fixPainterholder(true, false);
-    }
-  }
-
-  @Override
-  public void setDisabledForegroundColor(UIColor fg) {
-    if (fg != null) {
-      PainterHolder ph = painterHolder;
-
-      if (ph != null) {
-        if (ph.isShared()) {
-          ph            = (PainterHolder) ph.clone();
-          painterHolder = ph;
-        }
-
-        ph.setDisabledForegroundColor(fg);
-      }
     }
   }
 
@@ -912,16 +814,11 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
            : b;
   }
 
+
   @Override
   public UIColor getForegroundColor() {
-    if ((foregroundColor != null) || (painterHolder == null)) {
-      return foregroundColor;
-    }
-    ;
-
-    return painterHolder.foregroundColor;
+    return painterHolder==null ? null : painterHolder.foregroundColor;
   }
-
   @Override
   public iPlatformPainter getOverlayPainter() {
     return overlayPainter;
@@ -1092,7 +989,7 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
     }
   }
 
-  protected void fixPainterholder(boolean forForeground, boolean forBorder) {
+  protected void fixPainterholder(boolean forBorder) {
     PainterHolder ph = painterHolder;
 
     if (ph != null) {
@@ -1107,9 +1004,7 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
         ph.normalPainter = (PaintBucket) ph.normalPainter.clone();
       }
 
-      if (forForeground) {
-        ph.normalPainter.setForegroundColor(foregroundColor);
-      } else if (forBorder) {
+      if (forBorder) {
         ph.normalPainter.setBorder(border);
       } else {
         ph.normalPainter.setBackgroundPainter(backgroundPainter);

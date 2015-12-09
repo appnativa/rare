@@ -57,7 +57,7 @@ public class UIInsets implements Cloneable {
   }
 
   public UIInsets addInsets(UIInsets in) {
-    addInsets(in.top, in.right, in.bottom, in.right);
+    addInsets(in.top, in.right, in.bottom, in.left);
 
     return this;
   }

@@ -80,7 +80,7 @@ public abstract class aLineWidget extends aPlatformWidget {
     lineHelper.setHorizontal(horizontal);
 
     if (borderPanel != null) {
-      borderPanel.setHorizontal(horizontal);
+      borderPanel.setUseCrossPattern(horizontal);
     }
   }
 

@@ -15,13 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.event;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.aUIAction;
+import com.appnativa.rare.ui.aUIMenuItem;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.widget.iWidget;
 
@@ -30,16 +31,15 @@ import com.appnativa.rare.widget.iWidget;
  * @author Don DeCoteau
  */
 public class ActionEvent extends EventBase {
-  public static final int ACTION_PERFORMED = 1;
   private String          actionCommand;
   private Object          sourceEvent;
 
   public ActionEvent(Object source) {
-    super(source, ACTION_PERFORMED);
+    super(source);
   }
 
   public ActionEvent(Object source, Object sourceEvent) {
-    super(source, ACTION_PERFORMED);
+    super(source);
     this.sourceEvent = sourceEvent;
   }
 
@@ -64,15 +64,24 @@ public class ActionEvent extends EventBase {
 
   @Override
   public iPlatformComponent getComponent() {
-    if (source instanceof aUIAction) {
+    Object o=getSource();
+    if (o instanceof aUIAction) {
       iWidget w = ((aUIAction) source).getContext();
 
       return (w == null)
              ? Platform.getPlatformComponent(sourceEvent)
              : w.getContainerComponent();
-    } else {
-      return super.getComponent();
     }
+
+    if (o instanceof aUIMenuItem) {
+      iWidget w = ((aUIMenuItem) o).getContextWidget();
+
+      if (w != null) {
+        return w.getContainerComponent();
+      }
+    }
+
+    return super.getComponent();
   }
 
   public Object getSourceEvent() {

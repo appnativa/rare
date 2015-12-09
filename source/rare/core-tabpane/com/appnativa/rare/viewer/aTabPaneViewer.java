@@ -15,15 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.net.URL;
+import java.util.List;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.Tab;
 import com.appnativa.rare.spot.TabPane;
@@ -33,7 +36,6 @@ import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.RenderType;
 import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIColorHelper;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIFontHelper;
@@ -41,14 +43,15 @@ import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.effects.aSizeAnimation;
-import com.appnativa.rare.ui.effects.iTransitionAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformWindowManager;
 import com.appnativa.rare.ui.iTabDocument;
 import com.appnativa.rare.ui.iTabPaneComponent;
 import com.appnativa.rare.ui.iWindowManager;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.effects.aSizeAnimation;
+import com.appnativa.rare.ui.effects.iTransitionAnimator;
 import com.appnativa.rare.ui.listener.iTabPaneListener;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.tabpane.TabDocument;
@@ -57,10 +60,6 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.MutableInteger;
 import com.appnativa.util.SNumber;
-
-import java.net.URL;
-
-import java.util.List;
 
 /**
  * A viewer that arranges a section of the screen into a set of regions only one
@@ -86,7 +85,6 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
   private int                 minimumHeight;
   private int                 minimumWidth;
   private boolean             tabChangeCancelable;
-  private boolean             targetsRegistered;
   private boolean             useMinimumVarsOnlyWhenEmpty;
 
   /**
@@ -236,8 +234,8 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
       }
     }
 
-    tabOptions.tabColorHolder         = UIColorHelper.configure(context, tc.getTabPainter(), null);
-    tabOptions.selectedTabColorHolder = UIColorHelper.configure(context, tc.getSelectedTabPainter(), null);
+    tabOptions.tabColorHolder         = ColorUtils.configure(context, tc.getTabPainter(), null);
+    tabOptions.selectedTabColorHolder = ColorUtils.configure(context, tc.getSelectedTabPainter(), null);
 
     if (tc.font.spot_hasValue()) {
       tabOptions.tabFont = UIFontHelper.getFont(context, tc.font);
@@ -293,10 +291,9 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
       if (tab.bgColor.getValue() != null) {
         if (colorHolder == null) {
           colorHolder = newColorHolder(tabOptions);
-          ;
         }
 
-        colorHolder = UIColorHelper.configureBackgroundColor(tab.bgColor, colorHolder);
+        ColorUtils.configureBackgroundPainter(colorHolder,tab.bgColor );
       }
     }
 
@@ -389,30 +386,29 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
   }
 
   @Override
+  public void targetAcquired(iTarget target) {
+    super.targetAcquired(target);
+  }
+
+  @Override
   public void register() {
-    callaViewerRegister();
+    super.register();
 
-    if (!targetsRegistered) {
-      targetsRegistered = true;
+    iPlatformWindowManager wm  = getAppContext().getWindowManager();
+    int                    len = tabPane.getTabCount();
 
-      int len = tabPane.getTabCount();
+    for (int i = 0; i < len; i++) {
+      iTabDocument doc = tabPane.getDocumentAt(i);
+      iTarget      t   = doc.getTarget();
 
-      for (int i = 0; i < len; i++) {
-        iTabDocument doc = tabPane.getDocumentAt(i);
-        iTarget      t   = doc.getTarget();
+      wm.registerTarget(t.getName(), t);
 
-        getAppContext().getWindowManager().registerTarget(t.getName(), t);
+      iViewer v = t.getViewer();
 
-        iViewer v = t.getViewer();
-
-        if (v != null) {
-          v.setParent(this);
-          v.targetAcquired(t);
-        }
+      if (v != null) {
+        v.register();
       }
     }
-
-    registerWidgets();
   }
 
   @Override
@@ -465,9 +461,7 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
                         ? null
                         : getAppContext().getWindowManager();
 
-    if ((wm != null) && targetsRegistered) {
-      targetsRegistered = false;
-
+    if ((wm != null)) {
       if (tabPane != null) {
         int len = tabPane.getTabCount();
 
@@ -475,13 +469,14 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
           iTabDocument doc = tabPane.getDocumentAt(i);
           iTarget      t   = doc.getTarget();
 
-          wm.unRegisterTarget(t.getName());
+          if (!disposing) {
+            wm.unRegisterTarget(t.getName());
+          }
 
           iViewer v = t.getViewer();
 
           if (v != null) {
-            v.targetLost(t);
-            v.setParent(null);
+            v.unregister(disposing);
           }
         }
       }
@@ -1048,7 +1043,7 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
       name = v.getName();
 
       if (name == null) {
-        name = "TabPane_" + Integer.toHexString((int)tpv.hashCode());
+        name = "TabPane_" + Integer.toHexString((int) tpv.hashCode());
       }
 
       name = name + ".tab." + Integer.toString(count.getAndIncrement());

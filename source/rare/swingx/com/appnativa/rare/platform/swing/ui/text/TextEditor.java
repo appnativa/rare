@@ -28,6 +28,7 @@ import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.Rare;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UISoundHelper;
 import com.appnativa.rare.ui.border.UIEmptyBorder;
@@ -58,7 +59,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +69,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.StringWriter;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -841,10 +840,7 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
   public Color getForeground() {
     if (!isEnabled()) {
       Color c = (Color) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-
-      if (c != null) {
-        return c;
-      }
+      return c!=null ? c : ColorUtils.getDisabledForeground();
     }
 
     return super.getForeground();

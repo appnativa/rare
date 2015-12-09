@@ -25,11 +25,9 @@ import com.appnativa.rare.platform.apple.ui.view.BorderLayoutView;
 import com.appnativa.rare.platform.apple.ui.view.LabelView;
 import com.appnativa.rare.ui.PainterUtils.ChevronIcon;
 import com.appnativa.rare.ui.PainterUtils.TwistyIcon;
-import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.listener.aMouseAdapter;
 import com.appnativa.rare.ui.listener.iMouseListener;
-
 import com.google.j2objc.annotations.Weak;
 
 /**
@@ -53,7 +51,6 @@ public class CollapsiblePane extends aCollapsiblePane {
    */
   public CollapsiblePane(String title, iPlatformComponent c) {
     super();
-    eventObject              = new ExpansionEvent(this);
     toggleOnTitleSingleClick = Platform.isTouchDevice();
     initComponents();
 

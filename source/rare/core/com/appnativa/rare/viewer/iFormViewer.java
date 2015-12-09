@@ -20,10 +20,11 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.HashMap;
+import java.util.List;
+
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.widget.iWidget;
-
-import java.util.List;
 
 /**
  * An interface for form viewers.
@@ -129,7 +130,15 @@ public interface iFormViewer extends iContainer {
    * @return the list of widgets registered with the form.
    */
   public List<iWidget> getFormWidgets();
-
+  
+  /**
+   * Gets a hash map of the values that would be submitted as part of an HTTP
+   * POST form submission
+   *
+   * @return the hash widget name and values
+   */
+  public HashMap getHTTPValuesHash();
+  
   /**
    * gets a submit attribute for the form
    *

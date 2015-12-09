@@ -22,6 +22,7 @@ package com.appnativa.rare.platform;
 
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.event.KeyEvent.Type;
 /*-[
 #import "com/appnativa/rare/platform/apple/ui/view/View.h"
 #import "APView+Component.h"
@@ -39,6 +40,10 @@ import com.appnativa.rare.ui.event.UITouch;
 public class EventHelper {
   public EventHelper() {}
 
+  public static com.appnativa.rare.ui.event.MouseEvent.Type getMouseEventType(Object source, Object motionEvent) {
+    return ((UITouch) motionEvent).type;
+  }
+   
   public native static UITouch getTouch(Object source, Object motionEvent)
   /*-[
     if([motionEvent isKindOfClass:[RAREUITouch class]]) {
@@ -71,6 +76,22 @@ public class EventHelper {
 
     t->clickCount_=(int)touch.tapCount;
     t->time_=((UIEvent*)motionEvent).timestamp*1000;
+    switch(touch.phase) {
+      case UITouchPhaseBegan:
+        t->type_=[RAREMouseEvent_TypeEnum MOUSE_DOWN];
+        break;
+      case UITouchPhaseCancelled:
+      case UITouchPhaseEnded:
+        t->type_=[RAREMouseEvent_TypeEnum MOUSE_UP];
+        break;
+      case UITouchPhaseMoved:
+        t->type_=[RAREMouseEvent_TypeEnum MOUSE_DRAG];
+        break;
+      default:
+        t->type_=[RAREMouseEvent_TypeEnum MOUSE_UNKNOWN];
+        break;
+        
+    }
     return t;
   ]-*/
   ;
@@ -232,5 +253,9 @@ public class EventHelper {
 
   public static boolean isUpArrowKeyPressed(Object keyEvent) {
     return false;
+  }
+
+  public static Type getKeyType(Object nativeEvent) {
+    return Type.KEY_UNKNOWN;
   }
 }

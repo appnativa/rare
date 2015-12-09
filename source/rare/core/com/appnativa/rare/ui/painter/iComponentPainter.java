@@ -113,26 +113,6 @@ public interface iComponentPainter extends iBackgroundPainter {
   void setBorder(iPlatformBorder border);
 
   /**
-   * Sets a foreground color that can be used for foreground drawing.
-   * By default painters don't do foreground drawing so the is generally
-   * for use external to the painter
-   *
-   * @param fg the color to set
-   */
-  void setForegroundColor(UIColor fg);
-
-  /**
-   * Sets a foreground color that can be used for foreground drawing when the component
-   * is disabled. You should only calls this method if you also called {@link iComponentPainter#setForegroundColor(UIColor)}
-   *
-   * By default painters don't do foreground drawing so the is generally
-   * for use external to the painter
-   *
-   * @param fg the color to set
-   */
-  void setDisabledForegroundColor(UIColor fg);
-
-  /**
    * Sets the overlay painter.
    * This painter paints after the component's contents have been painted
    *

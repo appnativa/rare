@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -61,7 +61,12 @@ import java.util.Locale;
 import java.util.Map;
 
 public class BorderUtils {
-  public static final UIEmptyBorder EMPTY_BORDER                    = new UIEmptyBorder(0, 0, 0, 0);
+  public static final UIEmptyBorder EMPTY_BORDER             = new UIEmptyBorder(0, 0, 0, 0);
+  public static final UIEmptyBorder EMPTY_FOCUS_AWARE_BORDER = new UIEmptyBorder(0, 0, 0, 0) {
+    public boolean isFocusAware() {
+      return true;
+    }
+  };
   public static final String        FOCUSBORDER_CONFIGURED_PROPERTY = "__RARE_FOCUSBORDER_CONFIGURED_PROPERTY";
   public static final UIEmptyBorder ONE_POINT_EMPTY_BORDER          = new UIEmptyBorder(ScreenUtils.PLATFORM_PIXELS_1);
   public static final String        TITLEBORDER_CONFIGURED_PROPERTY = "__RARE_TITLEBORDER_CONFIGURED_PROPERTY";
@@ -80,9 +85,10 @@ public class BorderUtils {
                                                                     ScreenUtils.PLATFORM_PIXELS_1, true);
   public static final UIEmptyBorder ONE_BOTTOM_POINT_EMPTY_BORDER = new UIEmptyBorder(0, 0,
                                                                       ScreenUtils.PLATFORM_PIXELS_1, 0);
+  private static iPlatformBorder defaultEmptyButtonBorder = null;
   private static iPlatformBorder defaultButtonBorder;
-  private static UILineBorder    textareaBorder;
-  private static UILineBorder    textfieldBorder;
+  private static iPlatformBorder textareaBorder;
+  private static iPlatformBorder textfieldBorder;
   private static iPlatformBorder toolbarPressedButtonBorder;
   private static iPlatformBorder widgetBorder;
 
@@ -497,12 +503,6 @@ public class BorderUtils {
 
         lb = UILineBorder.createBorder(context, c, thickness, arcW, arcH);
 
-        if ((ca != null) && (ca[1] != null)) {
-          lb = lb.setHilightColor(ca[1]);
-        } else if ((ca == null) || (ca[0] == null)) {
-          lb = lb.setHilightColor(Platform.getUIDefaults().getColor("controlHighlight"));
-        }
-
         if (noBottom) {
           lb = lb.setNoBottom(true);
         } else if (flatBottom) {
@@ -632,8 +632,12 @@ public class BorderUtils {
 
       case Widget.CBorder.balloon : {
         c = (color == null)
-            ? UILineBorder.getDefaultLineColor()
+            ? Platform.getUIDefaults().getColor("Rare.BalloonBorder.color")
             : ColorUtils.getColor(color);
+
+        if (c == null) {
+          c = UILineBorder.getDefaultLineColor();
+        }
 
         if (thickness < .25) {
           thickness = (thickness == 0)
@@ -1288,6 +1292,27 @@ public class BorderUtils {
     return defaultButtonBorder;
   }
 
+  public static iPlatformBorder getDefaultEmptyButtonBorder() {
+    if (defaultEmptyButtonBorder == null) {
+      UIEmptyBorder b;
+      UIInsets      insets = Platform.getUIDefaults().getInsets("Rare.PushButton.borderInsets");
+
+      if (insets != null) {
+        b = new UIEmptyBorder(insets);
+      } else {
+        int size = ScreenUtils.platformPixels(Platform.isTouchDevice()
+                ? 8
+                : 4);
+
+        b = new UIEmptyBorder(size);
+      }
+
+      defaultEmptyButtonBorder = b;
+    }
+
+    return defaultEmptyButtonBorder;
+  }
+
   public static UILineBorder getDefaultComboBoxBorder() {
     UIColor c = Platform.getUIDefaults().getColor("Rare.Widget.borderColor");
 
@@ -1338,17 +1363,23 @@ public class BorderUtils {
 
   public static iPlatformBorder getTextAreaBorder() {
     if (textareaBorder == null) {
-      UIColor c = Platform.getUIDefaults().getColor("Rare.Widget.borderColor");
+      iPlatformBorder b = Platform.getUIDefaults().getBorder("Rare.TextArea.border");
 
-      if (c == null) {
-        c = UILineBorder.getDefaultLineColor().darker();
+      if (b != null) {
+        textareaBorder = b;
+      } else {
+        UIColor c = Platform.getUIDefaults().getColor("Rare.Widget.borderColor");
+
+        if (c == null) {
+          c = UILineBorder.getDefaultLineColor().darker();
+        }
+
+        UILineBorder lb = new UILineBorder(c, ScreenUtils.PLATFORM_PIXELS_1, 0);
+
+        lb.setInsetsPadding(ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_2,
+                            ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_2);
+        textareaBorder = lb;
       }
-
-      UILineBorder b = new UILineBorder(c, ScreenUtils.PLATFORM_PIXELS_1, 0);
-
-      b.setInsetsPadding(ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_2,
-                         ScreenUtils.PLATFORM_PIXELS_2);
-      textareaBorder = b;
     }
 
     return textareaBorder;
@@ -1356,16 +1387,22 @@ public class BorderUtils {
 
   public static iPlatformBorder getTextFieldBorder() {
     if (textfieldBorder == null) {
-      UIColor c = Platform.getUIDefaults().getColor("Rare.Widget.borderColor");
+      iPlatformBorder b = Platform.getUIDefaults().getBorder("Rare.TextField.border");
 
-      if (c == null) {
-        c = UILineBorder.getDefaultLineColor().darker();
+      if (b != null) {
+        textfieldBorder = b;
+      } else {
+        UIColor c = Platform.getUIDefaults().getColor("Rare.Widget.borderColor");
+
+        if (c == null) {
+          c = UILineBorder.getDefaultLineColor().darker();
+        }
+
+        UILineBorder lb = new UILineBorder(c, ScreenUtils.PLATFORM_PIXELS_1, ScreenUtils.PLATFORM_PIXELS_6);
+
+        lb.setInsetsPadding(2, 2, 2, 2);
+        textfieldBorder = lb;
       }
-
-      UILineBorder b = new UILineBorder(c, ScreenUtils.PLATFORM_PIXELS_1, ScreenUtils.PLATFORM_PIXELS_6);
-
-      b.setInsetsPadding(2, 2, 2, 2);
-      textfieldBorder = b;
     }
 
     return textfieldBorder;

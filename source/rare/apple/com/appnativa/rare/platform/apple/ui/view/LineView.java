@@ -49,7 +49,7 @@ public class LineView extends View {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size,float maxWidth) {
     size.width = size.height = UIScreen.snapToSize(lineHelper.getThickness());
   }
 

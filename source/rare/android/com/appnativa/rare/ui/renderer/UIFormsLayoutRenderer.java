@@ -25,12 +25,10 @@ import android.content.Context;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.view.FormsView;
 import com.appnativa.rare.platform.android.ui.view.ViewGroupEx;
-import com.appnativa.rare.ui.FormsPanel;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
-
 import com.jgoodies.forms.layout.FormLayout;
 
 /**
@@ -40,7 +38,7 @@ import com.jgoodies.forms.layout.FormLayout;
  */
 public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
   public UIFormsLayoutRenderer(Context context) {
-    super(new FormsPanel(new FormsView(context, new FormLayout())) {
+    super(new FormsPanelEx(new FormsView(context, new FormLayout())) {
       @Override
       public void revalidate() {}
       @Override
@@ -49,7 +47,7 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
           super.setComponentPainter(null);
         }
 
-        view.setBackgroundDrawable((bg == null)
+        view.setBackground((bg == null)
                                    ? NullDrawable.getInstance()
                                    : bg.getDrawable());
         super.setBackground(bg);
@@ -58,7 +56,7 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
   }
 
   public UIFormsLayoutRenderer(Context context, String columns, String rows) {
-    super(new FormsPanel((new FormsView(context, new FormLayout(columns, rows)))) {
+    super(new FormsPanelEx((new FormsView(context, new FormLayout(columns, rows)))) {
       @Override
       public void revalidate() {}
     });
@@ -71,11 +69,7 @@ public class UIFormsLayoutRenderer extends aFormsLayoutRenderer {
       return new UIFormsLayoutRenderer(formsPanel.getView().getContext());
     }
 
-    UIFormsLayoutRenderer flr = new UIFormsLayoutRenderer(formsPanel.getView().getContext(), columns, rows);
-
-    setupNewCopy(flr);
-
-    return flr;
+    return setupNewCopy(new UIFormsLayoutRenderer(formsPanel.getView().getContext(), columns, rows));
   }
 
   public void setBlockRequestLayout(boolean block) {

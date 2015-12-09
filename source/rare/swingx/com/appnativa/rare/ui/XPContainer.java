@@ -73,8 +73,8 @@ public class XPContainer extends Container {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    super.getMinimumSizeEx(size);
+  protected void getMinimumSizeEx(UIDimension size,float maxWidth) {
+    super.getMinimumSizeEx(size,maxWidth);
 
     UIInsets in = margin;
 

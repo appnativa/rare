@@ -121,7 +121,20 @@ public interface iItemRenderer {
    * @see #setSelectionPaint(com.appnativa.rare.ui.painter.PaintBucket)
    */
   PaintBucket getSelectionPaintForExternalPainter(boolean focused);
-
+  
+  /**
+   * Gets the painter to use when automatically highlighting items
+   * 
+   * @return the painter
+   */
+  PaintBucket getAutoHilightPaint();
+  
+  /**
+   * Sets the painter to use when automatically highlighting items
+   * 
+   * @param autoHilightPaint the painter
+   */
+  void setAutoHilightPaint(PaintBucket autoHilightPaint);
   /**
    * Gets the custom paint that is use for pressed items
    *

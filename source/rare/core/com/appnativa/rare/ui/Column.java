@@ -139,6 +139,7 @@ public class Column extends RenderableDataItem {
   private Unit                        minWidthUnit;
   protected float                     headerIconScaleFactor;
   protected boolean                   scaleHeaderIcon;
+  
 
   @Override
   public float getIconScaleFactor() {
@@ -159,6 +160,8 @@ public class Column extends RenderableDataItem {
   }
 
   private iPlatformCellEditingComponent cellEditor;
+
+  private UIInsets insets;
 
   /**
    * Render detail
@@ -597,7 +600,30 @@ public class Column extends RenderableDataItem {
   public void setHeaderPainter(PaintBucket pb) {
     headerPainter = pb;
   }
+  
+  public void setMargin(int top, int right, int bottom, int left) {
+    if(insets==null) {
+      insets=new UIInsets(top, right, bottom, left);
+    }
+    else {
+      insets.set(top, right, bottom, left);
+    }
+  }
 
+  public void setMargin(UIInsets in) {
+    insets=in;
+  }
+  
+  public UIInsets getMargin() {
+    return insets;
+  }
+  
+  public void addMargin(UIInsets in) {
+    if(insets!=null) {
+      in.addInsets(insets);
+    }
+  }
+  
   /**
    * Sets the rollover painter for the header
    *

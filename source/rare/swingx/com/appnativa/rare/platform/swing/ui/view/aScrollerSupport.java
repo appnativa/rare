@@ -100,4 +100,10 @@ public class aScrollerSupport implements iScrollerSupport {
   public aScrollerSupport(iScrollerSupport scrollerSupport) {
     this.scrollerSupport = scrollerSupport;
   }
+
+  @Override
+  public void setContentOffset(float x, float y) {
+    scrollerSupport.setContentOffset(x, y);
+    
+  }
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -26,7 +26,6 @@ import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.iPlatformListHandler;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
@@ -84,10 +83,19 @@ public class TableViewer extends aTableViewer {
   }
 
   @Override
-  public void sizeColumnToFit(int col) {}
+  public int getEditingColumn() {
+    return getTableView().getEditingColumn();
+  }
 
   @Override
-  public void sizeColumnsToFit() {}
+  public int getEditingRow() {
+    return getTableView().getEditingRow();
+  }
+
+  @Override
+  public boolean isEditing() {
+    return getTableView().isEditing();
+  }
 
   @Override
   public void setAutoSizeRowsToFit(boolean autoSize) {
@@ -110,19 +118,10 @@ public class TableViewer extends aTableViewer {
   }
 
   @Override
-  public int getEditingColumn() {
-    return getTableView().getEditingColumn();
-  }
+  public void sizeColumnsToFit() {}
 
   @Override
-  public int getEditingRow() {
-    return getTableView().getEditingRow();
-  }
-
-  @Override
-  public boolean isEditing() {
-    return getTableView().isEditing();
-  }
+  public void sizeColumnToFit(int col) {}
 
   @Override
   protected void createModelAndComponents(Viewer vcfg) {
@@ -139,14 +138,9 @@ public class TableViewer extends aTableViewer {
     if (vcfg instanceof TreeTable) {
       TreeTable tcfg = (TreeTable) vcfg;
 
-      tableHandler = new TreeTableComponent(list, tcfg);
-      tableModel   = ((TreeTableComponent) tableHandler).getTableModel();
-      treeHandler  = ((TreeTableComponent) tableHandler).getTreeHandler();
-      treeHandler.setIndentBy(tcfg.indentBy.intValue());
-      ((TreeTableComponent) tableHandler).setExpandAll(tcfg.expandAll.booleanValue());
-      ((TreeTableComponent) tableHandler).setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
-          new PainterUtils.TwistyIcon(dataComponent,true));
-      ((TreeTableComponent) tableHandler).setExpandableColumn(tcfg.expandableColumn.intValue());
+      tableHandler  = new TreeTableComponent(list, tcfg);
+      tableModel    = ((TreeTableComponent) tableHandler).getTableModel();
+      treeHandler   = ((TreeTableComponent) tableHandler).getTreeHandler();
       listComponent = new TreeTableListHandler((TreeTableComponent) tableHandler, tableModel,
               ((TreeTableComponent) tableHandler).getTreeModel());
       lr = new TreeTableItemRenderer(cfg.columnSelectionAllowed.booleanValue());
@@ -247,21 +241,24 @@ public class TableViewer extends aTableViewer {
     formComponent = tableHandler.getPlatformComponent();
     formComponent = AppleHelper.configureScrollPane(this, formComponent, list, cfg.getScrollPane());
   }
-  
-  @Override
-  protected void handleViewerConfigurationWillChange(Object newConfig) {
-    super.handleViewerConfigurationWillChange(newConfig);
-    if(treeHandler!=null || Platform.getUIDefaults().getBoolean("Rare.Table.repaintOnRotation", true)){
-      ((TableComponent) tableHandler).repaintVisibleRows();
-    }
+
+  protected TableView getTableView() {
+    return ((TableComponent) tableHandler.getMainTable()).getTableView();
   }
+
+  @Override
   protected void handleCustomProperties(Widget cfg, Map<String, Object> properties) {
     super.handleCustomProperties(cfg, properties);
     ListBoxViewer.handleCustomProperties(getTableView(), cfg, properties);
   }
 
-  protected static void registerForUse() {
-    Platform.getAppContext().registerWidgetClass(Platform.getSPOTName(Table.class), TableViewer.class);
+  @Override
+  protected void handleViewerConfigurationWillChange(Object newConfig) {
+    super.handleViewerConfigurationWillChange(newConfig);
+
+    if ((treeHandler != null) || Platform.getUIDefaults().getBoolean("Rare.Table.repaintOnRotation", true)) {
+      repaint();
+    }
   }
 
   @Override
@@ -279,7 +276,7 @@ public class TableViewer extends aTableViewer {
     getTableView().setWholeViewFling(wholeViewFling);
   }
 
-  protected TableView getTableView() {
-    return ((TableComponent) tableHandler.getMainTable()).getTableView();
+  protected static void registerForUse() {
+    Platform.getAppContext().registerWidgetClass(Platform.getSPOTName(Table.class), TableViewer.class);
   }
 }

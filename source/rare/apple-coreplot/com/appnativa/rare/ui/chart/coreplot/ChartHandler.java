@@ -554,27 +554,19 @@ public class ChartHandler extends aChartHandler {
     ;
 
     @Override
-    protected void getMinimumSizeEx(UIDimension size) {
+    protected void getMinimumSizeEx(UIDimension size,float maxWidth) {
       size.width  = legendMaxWidth;
       size.height = legendHeight;
     }
 
     @Override
     protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-      if ((legendCount > 0) && (maxWidth > 0)) {
-        int cols = (int) Math.floor((maxWidth + legendMaxWidth - 5) / legendMaxWidth);
-        int rows = (int) Math.floor((legendCount + cols - 1) / cols);
-
-        size.width  = cols * legendMaxWidth;
-        size.height = rows & legendHeight;
+      if (horizontal) {
+        size.height = legendHeight;
+        size.width  = legendWidths;
       } else {
-        if (horizontal) {
-          size.height = legendHeight;
-          size.width  = legendWidths;
-        } else {
-          size.height = legendHeights;
-          size.width  = legendMaxWidth;
-        }
+        size.height = legendHeights;
+        size.width  = legendMaxWidth;
       }
     }
 

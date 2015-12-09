@@ -20,24 +20,22 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.Writer;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.RenderType;
-import com.appnativa.rare.ui.effects.iAnimator;
-import com.appnativa.rare.ui.event.iExpandedListener;
 import com.appnativa.rare.ui.iCollapsible;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPopup;
+import com.appnativa.rare.ui.effects.iAnimator;
+import com.appnativa.rare.ui.event.iExpandedListener;
 import com.appnativa.rare.ui.print.iPageSetup;
 import com.appnativa.rare.widget.iWidget;
-
-import java.io.Writer;
-
-import java.net.URL;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * This interface defines the functionality necessary for all viewers. A viewer

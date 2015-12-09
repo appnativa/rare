@@ -148,9 +148,8 @@ public interface iWindow {
    *
    * @param mb
    *          the menu bar
-   * @return a handle to the previous menu bar or null if there was not one
    */
-  iPlatformMenuBar setMenuBar(iPlatformMenuBar mb);
+  void setMenuBar(iPlatformMenuBar mb);
 
   /**
    * Sets whether the window is resizable by the user.
@@ -167,9 +166,8 @@ public interface iWindow {
    *
    * @param sb
    *          the status bar
-   * @return a handle to the previous status bar or null if there was not one
    */
-  iStatusBar setStatusBar(iStatusBar sb);
+  void setStatusBar(iStatusBar sb);
 
   /**
    * Sets the window's title
@@ -184,10 +182,8 @@ public interface iWindow {
    *
    * @param tbh
    *          the toolbar holder
-   * @return a handle to the previous toolbar holder or null if there was not
-   *         one
    */
-  iToolBarHolder setToolBarHolder(iToolBarHolder tbh);
+  void setToolBarHolder(iToolBarHolder tbh);
 
   /**
    * Get the bounds of the window
@@ -302,4 +298,5 @@ public interface iWindow {
    * @return the size of a window's content area
    */
   UIDimension getInnerSize(UIDimension size);
-}
+
+ }

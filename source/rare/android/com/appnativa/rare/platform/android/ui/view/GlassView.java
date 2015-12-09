@@ -57,5 +57,12 @@ public class GlassView extends ViewGroupEx {
   }
 
   @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent ev) {
+    return overlayContainer
+        ? super.dispatchGenericMotionEvent(ev)
+        : true;
+  }
+  
+  @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {}
 }

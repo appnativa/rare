@@ -60,7 +60,7 @@ public class WaitCursorHandler {
 
   public static void showProgressPopup(iPlatformComponent comp, final CharSequence message,
           final iCancelable cancelable) {
-    showProgressPopup(comp, message, cancelable, 0);
+    showProgressPopup(comp, message, cancelable,Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
   }
 
   public static void showProgressPopup(iPlatformComponent comp, final CharSequence message,
@@ -356,7 +356,7 @@ public class WaitCursorHandler {
       if (cancelable != null) {
         ImageButton b = new ImageButton(context);
 
-        b.setBackgroundDrawable(NullDrawable.getInstance());
+        b.setBackground(NullDrawable.getInstance());
         b.setPadding(ScreenUtils.PLATFORM_PIXELS_8, ScreenUtils.PLATFORM_PIXELS_4, ScreenUtils.PLATFORM_PIXELS_8,
                      ScreenUtils.PLATFORM_PIXELS_4);
 
@@ -382,11 +382,11 @@ public class WaitCursorHandler {
       LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 
       dialog.setContentView(l, lp);
-//      if (delay > 0) { // TODO: this code seem to not block touch input need to check out
-//        dialog.contentView = l;
-//        l.setVisibility(View.INVISIBLE);
-//        Platform.invokeLater(dialog, delay);
-//      }
+      if (delay > 0) { 
+        dialog.contentView = l;
+        l.setVisibility(View.INVISIBLE);
+        Platform.invokeLater(dialog, delay);
+      }
       dialog.show();
 
       return dialog;

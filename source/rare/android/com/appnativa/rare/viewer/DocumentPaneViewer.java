@@ -101,6 +101,7 @@ public class DocumentPaneViewer extends aDocumentPaneViewer {
   /**
    * Creates a new HTML document
    */
+  @Override
   public void newHTMLDocument() {
     htmlDocument = true;
     setText("");
@@ -110,6 +111,7 @@ public class DocumentPaneViewer extends aDocumentPaneViewer {
   /**
    * Creates a new plain text document
    */
+  @Override
   public void newPlainTextDocument() {
     htmlDocument = false;
     setText("");
@@ -124,6 +126,7 @@ public class DocumentPaneViewer extends aDocumentPaneViewer {
    *
    * @return the requested attributes
    */
+  @Override
   public iTextAttributes getAttributeSet(int pos, boolean paragraph) {
     return new TextAttributes(getSelectionStyles());
   }
@@ -135,6 +138,7 @@ public class DocumentPaneViewer extends aDocumentPaneViewer {
    *
    * @return the requested attributes
    */
+  @Override
   public iTextAttributes getAttributeSetAtCursor(boolean paragraph) {
     return new TextAttributes(getSelectionStyles());
   }
@@ -146,10 +150,12 @@ public class DocumentPaneViewer extends aDocumentPaneViewer {
    *
    * @return the requested attributes
    */
+  @Override
   public iTextAttributes getAttributeSetForSelection(boolean paragraph) {
     return new TextAttributes(getSelectionStyles());
   }
 
+  @Override
   public String getSelectionAsString() {
     EditTextEx e = getEditText();
     int        n = e.getSelectionStart();
@@ -168,6 +174,7 @@ public class DocumentPaneViewer extends aDocumentPaneViewer {
     return cs.toString();
   }
 
+  @Override
   protected iPlatformTextEditor createEditor(DocumentPane cfg) {
     return getAppContext().getComponentCreator().getDocumentPane(this, cfg);
   }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform;
@@ -23,7 +23,6 @@ package com.appnativa.rare.platform;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.net.CookieManager;
 import com.appnativa.rare.platform.swing.AppContext;
@@ -34,6 +33,7 @@ import com.appnativa.rare.platform.swing.ui.DataItemListModel;
 import com.appnativa.rare.platform.swing.ui.PopupListBoxHandler;
 import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
 import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
+import com.appnativa.rare.platform.swing.ui.util.MP3SoundClip;
 import com.appnativa.rare.platform.swing.ui.util.RectangleShape;
 import com.appnativa.rare.platform.swing.ui.util.SoundClip;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
@@ -42,8 +42,8 @@ import com.appnativa.rare.platform.swing.ui.view.AnimationPanel;
 import com.appnativa.rare.platform.swing.ui.view.ButtonView;
 import com.appnativa.rare.platform.swing.ui.view.FrameView;
 import com.appnativa.rare.platform.swing.ui.view.GlassPanel;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
 import com.appnativa.rare.platform.swing.ui.view.LabelView;
+import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
 import com.appnativa.rare.platform.swing.ui.view.SeparatorView;
 import com.appnativa.rare.platform.swing.ui.view.SpacerView;
 import com.appnativa.rare.platform.swing.ui.view.iView;
@@ -53,8 +53,8 @@ import com.appnativa.rare.spot.MenuBar;
 import com.appnativa.rare.spot.ScrollPane;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.AlertPanel;
 import com.appnativa.rare.ui.AnimationComponent;
+import com.appnativa.rare.ui.BorderUtils;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.Container;
@@ -66,6 +66,7 @@ import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.SimpleColorStateList;
 import com.appnativa.rare.ui.ToolBarHolder;
 import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.UIColor;
@@ -76,6 +77,8 @@ import com.appnativa.rare.ui.UIFont.UIFontResource;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIMenuItem;
+import com.appnativa.rare.ui.UIMenuItem.JMenuEx;
+import com.appnativa.rare.ui.UIMenuItem.JMenuItemEx;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UIScreen;
@@ -87,7 +90,6 @@ import com.appnativa.rare.ui.dnd.DefaultTransferHandler;
 import com.appnativa.rare.ui.dnd.DragSourceAdapter;
 import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformBorder;
@@ -103,6 +105,7 @@ import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.renderer.Renderers;
 import com.appnativa.rare.viewer.MenuBarViewer;
 import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.viewer.aViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.aWidget;
@@ -110,7 +113,6 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.FilterableList;
 
-import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -127,6 +129,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -150,7 +153,6 @@ import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -309,13 +311,13 @@ public class PlatformHelper extends aPlatformHelper {
   public static UIMenuItem createMenuItem(UIAction action, boolean topLevel) {
     if (action == null) {
       return new UIMenuItem(action, topLevel
-                                    ? new JMenu()
-                                    : new JMenuItem());
+                                    ? new JMenuEx()
+                                    : new JMenuItemEx());
     }
 
     return new UIMenuItem(action, topLevel
-                                  ? new JMenu()
-                                  : new JMenuItem());
+                                  ? new JMenuEx()
+                                  : new JMenuItemEx());
   }
 
   public static iActionComponent createNakedButton(iPlatformComponent context, boolean parentPaints,
@@ -332,6 +334,7 @@ public class PlatformHelper extends aPlatformHelper {
 
     a.setFont(FontUtils.getDefaultFont());
     a.setForeground(ColorUtils.getForeground());
+    v.setBorder(BorderUtils.TWO_POINT_EMPTY_BORDER);
 
     return a;
   }
@@ -527,18 +530,19 @@ public class PlatformHelper extends aPlatformHelper {
     executeBackgroundTask(ic, false);
   }
 
-  public static iPlatformComponent makeScrollPane(iWidget context, ScrollPane cfg, iPlatformComponent comp) {
-    JScrollPane sp = context.getAppContext().getComponentCreator().getScrollPane(context, cfg);
+  public static iPlatformComponent makeScrollPane(aViewer context, ScrollPane cfg, iPlatformComponent comp) {
+    JScrollPane        sp = context.getAppContext().getComponentCreator().getScrollPane(context, cfg);
+    iPlatformComponent fc = new Container(sp);;
 
     if (comp != null) {
       sp.setViewportView(comp.getView());
     }
 
     if (cfg != null) {
-      SwingHelper.configureScrollPane(context, sp, cfg);
+      fc = SwingHelper.configureScrollPane(context, fc, (ScrollPaneEx) sp, cfg);
     }
 
-    return new Container(sp);
+    return fc;
   }
 
   public static void paintIcon(iPlatformGraphics g, iPlatformIcon icon, float x, float y, float width, float height) {}
@@ -564,22 +568,6 @@ public class PlatformHelper extends aPlatformHelper {
 
   public static void showVirtualKeyboard(iWidget context) {}
 
-  public static void systemAlert(iWidget context, Object message, iPlatformIcon icon, final iActionListener listener) {
-    final AlertPanel  p  = AlertPanel.ok(context, null, message, icon);
-    iFunctionCallback cb = null;
-
-    if (listener != null) {
-      cb = new iFunctionCallback() {
-        @Override
-        public void finished(boolean canceled, Object returnValue) {
-          listener.actionPerformed(new com.appnativa.rare.ui.event.ActionEvent(Platform.getWindowViewer()));
-        }
-      };
-    }
-
-    p.showDialog(cb);
-  }
-
   public static UIRectangle toUIRectangle(Rectangle2D fxrect, UIRectangle rect) {
     if (rect == null) {
       return new UIRectangle((int) fxrect.getMinX(), (int) fxrect.getMinY(), (int) fxrect.getWidth(),
@@ -599,16 +587,6 @@ public class PlatformHelper extends aPlatformHelper {
     if (comp.getView() instanceof ButtonView) {
       ((ButtonView) comp.getView()).setAutoRepeats(interval);
     }
-  }
-
-  public static boolean setComponentAlpha(iPlatformComponent component, float alpha) {
-    if ((component != null) && (component.getView() instanceof JPanelEx) &&!component.isDisposed()) {
-      ((JPanelEx) component.getView()).setComposite(AlphaComposite.SrcOver.derive(alpha));
-
-      return true;
-    }
-
-    return false;
   }
 
   /**
@@ -942,14 +920,6 @@ public class PlatformHelper extends aPlatformHelper {
    */
   public static aFocusedAction getCutAction() {
     return ActionHelper.getCutAction();
-  }
-
-  public static String getDefaultRowHeight() {
-    String s = Platform.getUIDefaults().getString("Rare.List.rowHeight");
-
-    return (s == null)
-           ? "1ln"
-           : s;
   }
 
   /**
@@ -1304,6 +1274,14 @@ public class PlatformHelper extends aPlatformHelper {
     return true;
   }
 
+  public static boolean hasPhysicalKeyboard() {
+    return true;
+  }
+
+  public static boolean hasPointingDevice() {
+    return true;
+  }
+
   public static boolean isDarkTheme() {
     return !"light".equals(Platform.getUIDefaults().getString("Rare.theme"));
   }
@@ -1404,10 +1382,16 @@ public class PlatformHelper extends aPlatformHelper {
     }
 
     if (!sound.startsWith("/")) {
-      sound = Rare.makeResourcePath(sound);
+      sound = Rare.makeRawResourcePath(sound);
     }
 
-    return getSound(Platform.getAppContext().getResourceURL(sound));
+    URL url = Platform.getAppContext().getResourceURL(sound);
+
+    if (url == null) {
+      throw new FileNotFoundException(sound);
+    }
+
+    return getSound(url);
   }
 
   public static UISound getSound(URL url) throws Exception {
@@ -1415,10 +1399,13 @@ public class PlatformHelper extends aPlatformHelper {
     String    ext  = url.getFile().toLowerCase();
 
     if (ext.endsWith(".mp3")) {
-      Class cls = Platform.loadClass("javazoom.jl.decoder.Decoder");
+      try {
+        Class.forName("javazoom.jl.decoder.Decoder");
+      } catch(Exception e) {
+        throw new ApplicationException("MP3 files not supported, add the javazoom library for support");
+      }
 
-      cls  = Platform.loadClass("com.appnativa.rare.util.MP3SoundClip");
-      clip = (SoundClip) cls.getConstructor(URL.class).newInstance(url);
+      clip = new MP3SoundClip(url);
       clip.open();
     }
 
@@ -1432,8 +1419,8 @@ public class PlatformHelper extends aPlatformHelper {
            : new UISound(clip);
   }
 
-  public static void playSound(UISound uiSound) {
-    Clip clip = (Clip) uiSound.getPlatformSound();
+  public static void playSound(Object platformSound) {
+    Clip clip = (Clip) platformSound;
 
     if (clip != null) {
       if (!clip.isOpen()) {
@@ -1449,40 +1436,40 @@ public class PlatformHelper extends aPlatformHelper {
     }
   }
 
-  public static void pauseSound(UISound uiSound) {
-    Clip clip = (Clip) uiSound.getPlatformSound();
+  public static void pauseSound(Object platformSound) {
+    Clip clip = (Clip) platformSound;
 
     if ((clip != null) &&!clip.isRunning()) {
       clip.stop();
     }
   }
 
-  public static void resumeSound(UISound uiSound) {
-    Clip clip = (Clip) uiSound.getPlatformSound();
+  public static void resumeSound(Object platformSound) {
+    Clip clip = (Clip) platformSound;
 
     if ((clip != null) &&!clip.isRunning()) {
       clip.start();
     }
   }
 
-  public static void stopSound(UISound uiSound) {
-    Clip clip = (Clip) uiSound.getPlatformSound();
+  public static void stopSound(Object platformSound) {
+    Clip clip = (Clip) platformSound;
 
     if ((clip != null) && clip.isRunning()) {
       clip.stop();
     }
   }
 
-  public static void disposeOfSound(UISound uiSound) {
-    Clip clip = (Clip) uiSound.getPlatformSound();
+  public static void disposeOfSound(Object platformSound) {
+    Clip clip = (Clip) platformSound;
 
     if ((clip != null)) {
       clip.close();
     }
   }
 
-  public static Object setVolume(UISound uiSound, int percent) {
-    Clip clip = (Clip) uiSound.getPlatformSound();
+  public static Object setVolume(Object platformSound, int percent) {
+    Clip clip = (Clip) platformSound;
 
     try {
       if (clip.isControlSupported(FloatControl.Type.VOLUME)) {
@@ -1502,10 +1489,40 @@ public class PlatformHelper extends aPlatformHelper {
       Platform.ignoreException(null, e);
     }
 
-    return uiSound.getPlatformSound();
+    return clip;
   }
 
   public static void beep() {
-    UIManager.getLookAndFeel().provideErrorFeedback(null);
+    UIManager.getLookAndFeel().provideErrorFeedback(Platform.getWindowViewer().getDataView());
+  }
+
+  public static boolean lockOrientation(Boolean landscape) {
+    return false;
+  }
+
+  public static void unlockOrientation() {}
+
+  /**
+   * Returns a color shade for a the specified colors
+   *
+   * @return a color object represented by the specified colors as an android
+   *         color state list
+   */
+  public static UIColorShade getColorStateList(UIColor fg, UIColor disabled) {
+    return new UIColorShade(new SimpleColorStateList(fg, disabled));
+  }
+
+  /**
+   * Returns a color shade for a the specified colors
+   *
+   * @return a color object represented by the specified colors as an android
+   *         color state list
+   */
+  public static UIColorShade getColorStateList(UIColor fg, UIColor disabled, UIColor pressed) {
+    SimpleColorStateList csl = new SimpleColorStateList(fg, disabled);
+
+    csl.setSelectedPressedColor(pressed);
+
+    return new UIColorShade(csl);
   }
 }

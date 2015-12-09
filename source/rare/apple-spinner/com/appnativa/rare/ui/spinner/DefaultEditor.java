@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.spinner;
@@ -137,5 +137,17 @@ public class DefaultEditor extends aSpinnerEditor {
     v.setTextAlignment(HorizontalAlign.RIGHT, VerticalAlign.CENTER);
     v.setActionListener(this);
     v.setFocusListener(this);
+  }
+
+  @Override
+  public void selectAll() {
+    TextFieldView v = (TextFieldView) editorView;
+
+    v.selectAll();
+  }
+
+  @Override
+  public void selectField() {
+    selectAll();
   }
 }

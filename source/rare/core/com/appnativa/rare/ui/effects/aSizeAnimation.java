@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.ui.effects;
 
+import java.util.Locale;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.AnimationComponent;
@@ -28,11 +31,7 @@ import com.appnativa.rare.ui.RenderType;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.iPlatformComponent;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.util.Locale;
-import java.util.Map;
 
 public class aSizeAnimation extends aPlatformAnimator implements iTransitionSupport {
   protected boolean            horizontal     = true;
@@ -351,7 +350,7 @@ public class aSizeAnimation extends aPlatformAnimator implements iTransitionSupp
     super.clear();
 
     if ((inComponent != null) &&!inComponent.isDisposed()) {
-      PlatformHelper.setComponentAlpha(inComponent, 1);
+      inComponent.setAlpha( 1);
       inComponent.repaint();
     }
 
@@ -447,14 +446,14 @@ public class aSizeAnimation extends aPlatformAnimator implements iTransitionSupp
       }
 
       if (fadeIn) {
-        PlatformHelper.setComponentAlpha(inComponent, small
+        inComponent.setAlpha( small
                 ? 1 - fraction
                 : fraction);
         inComponent.repaint();
       }
 
       if (fadeOut && (outComponent != null)) {
-        PlatformHelper.setComponentAlpha(outComponent, 1 - fraction);
+        outComponent.setAlpha( 1 - fraction);
         outComponent.repaint();
       }
     } else {
@@ -464,7 +463,7 @@ public class aSizeAnimation extends aPlatformAnimator implements iTransitionSupp
       boolean fade = (fadeIn &&!small) || (fadeOut && small);
 
       if (fade) {
-        PlatformHelper.setComponentAlpha(component, small
+        component.setAlpha(  small
                 ? 1 - fraction
                 : fraction);
       }

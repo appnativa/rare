@@ -50,6 +50,7 @@ public class GroupBoxViewer extends aGroupBoxViewer {
    *
    * @return the forms panel
    */
+  @Override
   protected FormsPanel createFormsPanel() {
     return new FormsPanel(getAndroidContext());
   }
@@ -62,6 +63,7 @@ public class GroupBoxViewer extends aGroupBoxViewer {
    *
    * @return the forms panel
    */
+  @Override
   protected FormsPanel createFormsPanel(int rows, int cols) {
     return new FormsPanel(this, rows, cols);
   }

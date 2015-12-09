@@ -33,11 +33,17 @@
 #import "RAREGestures.h"
 #import "RARETableViewDelegate.h"
 #import "RARETableViewDataSource.h"
+#import "RAREAPTableView.h"
+#import "RAREAPTableHeaderView.h"
+
 @implementation RAREAPListView {
   RAREListSwipeRecoginizer* flingGesture;
   RARETableViewDelegate* delegate_;
   id<UITableViewDataSource> source_;
   BOOL hasSectionIndex_;
+  __weak RAREMouseHandlerGestureRecognizer *gestureListener;
+  int pressedColumn;
+
 }
 
 + (Class)layerClass
@@ -57,11 +63,11 @@
     ignoreChangeEvents_=NO;
     wantsDelesectEvents_=NO;
     singleClickAction_=YES;
+    pressedColumn=-1;
     list_=nil;
     if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_6_1){
       [self setSeparatorInset:UIEdgeInsetsZero];
     }
-    selectedRow_=-1;
     delegate_=[RARETableViewDelegate new];
     self.separatorStyle=UITableViewCellSeparatorStyleNone;
     disableNativeSelection_=YES;
@@ -82,6 +88,70 @@
   useSectionIndex_=use;
 }
 
+-(void)addGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer {
+  [super addGestureRecognizer:gestureRecognizer];
+  if([gestureRecognizer isKindOfClass:[RAREMouseHandlerGestureRecognizer class]]) {
+    gestureListener=(RAREMouseHandlerGestureRecognizer*)gestureRecognizer;
+  }
+}
+-(void)scrollViewWillBeginDragging {
+  if(gestureListener) {
+    [gestureListener cancelLongPress];
+  }
+}
+-(void)scrollViewDidScroll {
+  
+}
+- (void)willBeginReorderingRowAtIndexPath:(NSIndexPath *)indexPath {
+  if(gestureListener) {
+    [gestureListener cancelLongPress];
+  }
+  reordering_=YES;
+}
+- (void)didEndReorderingRowAtIndexPath:(NSIndexPath *)indexPath {
+  reordering_=NO;
+}
+- (void) didCancelReorderingRowAtIndexPath:(NSIndexPath *)indexPath {
+  reordering_=NO;
+}
+-(int)getPressedColumn {
+  return pressedColumn;
+}
+-(NSIndexPath *) willSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  if(ignoreTouchesEnded_ || self.dragging) return nil;
+  NSTimeInterval now= CFAbsoluteTimeGetCurrent();
+  if(lastHotspotTouchTime_+0.01>now) {
+    return nil;
+  }
+  int row=[self rowFromPath:indexPath];
+  RAREListView* lb=(RAREListView*)self.sparView;
+  if([lb isColumnSelectionAllowed]) {
+    if(pressedColumn==-1 || ![lb isSelectableWithInt:row withInt:pressedColumn withRARERenderableDataItem:nil]) {
+      return nil;
+    }
+  }
+  id<RAREiTreeItem> ti=nil;
+  RARERenderableDataItem* item=nil;
+  if(isTree_ && isTable_) {
+    RAREUITableViewCell *view=(RAREUITableViewCell*)[self cellForRowAtIndexPath:indexPath];
+    if(view) {
+      ti=view->treeItem;
+      item=view->rowItem;
+    }
+  }
+  if(![lb isSelectableWithInt:row withRARERenderableDataItem:item withRAREiTreeItem:ti]) {
+    return nil;
+  }
+  return indexPath;
+}
+
+-(NSIndexPath *) willDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
+  return indexPath;
+}
+- (void)setContextMenuIndexWithRAREMouseEvent:(RAREMouseEvent *)e {
+  RAREListView* lb=(RAREListView*)self.sparView;
+  [lb setContextMenuIndexWithRAREMouseEvent:e];
+}
 -(void) setCellStyle:(NSInteger) style {
   cellStyle=style;
 }
@@ -228,7 +298,9 @@
 }
 -(void)reloadData {
   RAREListView* lb=(RAREListView*)self.sparView;
-  hasSectionIndex_=lb->sectionIndex_!=nil;
+  if(lb) {
+    hasSectionIndex_=lb->sectionIndex_!=nil;
+  }
   [super reloadData];
 }
 -(int) lastVisiblePosition {
@@ -283,6 +355,7 @@
     }
   }];
 }
+
 -(void)  reloadVisibleRows{
   NSArray* a=[self indexPathsForVisibleRows];
   if(!a || a.count==0) {
@@ -290,6 +363,24 @@
   }
   [self reloadRowsAtIndexPaths: a withRowAnimation: NO];
 }
+
+-(void)  removePressedHilight: (int) row{
+  if(row<0 || row>=[list_ size]) return;
+  NSIndexPath* path=[self pathFromRow:row];
+  RAREUITableViewCell *view=(RAREUITableViewCell*)[self cellForRowAtIndexPath:path];
+  if(view && view.highlighted) {
+    view.highlighted=NO;
+    RAREaTableBasedView_RowView* rv=(RAREaTableBasedView_RowView*)view.sparView;
+    if(view->rowItem) {
+      [rv stateChanged];
+      [self repaintRow:row indexPath:path];
+    }
+  }
+  else {
+    [self repaintRow:row indexPath:path];
+  }
+}
+
 -(int) firstVisiblePosition {
   NSArray* a=[self indexPathsForVisibleRows];
   if(!a || a.count==0) {
@@ -452,27 +543,42 @@
         ignoreTouchesEnded_=NO;
       }
     }
-    [lb hideRowEditingComponentWithBoolean:YES];
+    if(ignoreTouchesEnded_) {
+      [lb hideRowEditingComponentWithBoolean:YES];
+    }
     return NO;
   }
   return ![self isEditing] || lb->editingSwipingAllowed_ ;
 }
+
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+  [super touchesBegan:touches withEvent:event];
+  if(isTable_) {
+    RAREListView* lb=(RAREListView*)self.sparView;
+    if([lb isColumnSelectionAllowed]) {
+      UITouch* t=touches.anyObject;
+      CGPoint touchPoint=[t locationInView:self];
+      pressedColumn=[((RAREAPTableView*)self)->headerProxy getColumnIndexAtX:touchPoint.x  andY:0];
+    }
+  }
+}
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
   [super touchesEnded:touches withEvent:event];
   if(self.dragging) {
     return;
   }
+  UITouch* t=touches.anyObject;
+  CGPoint touchPoint=[t locationInView:self];
+  NSIndexPath* p=[self indexPathForRowAtPoint:touchPoint];
+  int row=p ? [self rowFromPath:p] : -1;
   if(ignoreTouchesEnded_) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
       ignoreTouchesEnded_=NO;
     });
     return;
   }
-  UITouch* t=touches.anyObject;
-  CGPoint touchPoint=[t locationInView:self];
-  NSIndexPath* p=[self indexPathForRowAtPoint:touchPoint];
-  int row=p ? [self rowFromPath:p] : -1;
   if(row==-1) {
     return;
   }

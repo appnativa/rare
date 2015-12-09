@@ -22,6 +22,11 @@
 {
   return [RARECAGradientLayer class];
 }
+-(instancetype)initWithFrame:(CGRect)frame {
+  self=[super initWithFrame:frame];
+  self.userInteractionEnabled=NO;
+  return self;
+}
 -(CGSize)sizeThatFits:(CGSize)size {
   __block CGFloat height=0;
   __block CGFloat width=0;
@@ -53,30 +58,6 @@
   return height;
 }
 
--(int) getPressedViewIndex {
-  CGFloat px=pressedPoint.x;
-  NSArray* a=self.subviews;
-  NSUInteger len=a.count;
-  for(NSUInteger i=0;i<len;i++) {
-    UIView* v=(UIView*)[a objectAtIndex: i];
-    if(v.hidden) continue;
-    CGRect frame=v.frame;
-    CGFloat w=frame.size.width;
-    CGFloat x=frame.origin.x;
-    
-    if(px>=x && px<=(w+x)) {
-      return (int)i;
-    }
-  }
-  
-  return -1;
-}
-
--(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-  UITouch* t=touches.anyObject;
-  pressedPoint=[t locationInView:self];
-  [super touchesBegan:touches withEvent:event];
-}
 -(void) sparPrepareForReuse {
   CALayer* layer=self.layer;
   if([layer isKindOfClass:[RARECAGradientLayer class]]) {

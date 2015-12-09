@@ -20,7 +20,11 @@
 
 package com.appnativa.rare.ui.table;
 
-import com.appnativa.rare.Platform;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import com.appnativa.rare.ui.CheckListManager;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
@@ -32,11 +36,6 @@ import com.appnativa.rare.ui.tree.aDataItemTreeModel;
 import com.appnativa.rare.ui.tree.iExpansionHandler;
 import com.appnativa.rare.ui.tree.iTree;
 import com.appnativa.rare.ui.tree.iTreeItem;
-
-import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 public class TreeTableView extends TableView implements iTree {
   protected int                indentBy              = ScreenUtils.platformPixels(16);

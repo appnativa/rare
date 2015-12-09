@@ -35,6 +35,7 @@ public class MultipleListHandler extends aMultipleListHandler {
 
     if (handler1 != null) {
       list = (ListViewEx) handler1.getListComponent().getView();
+      list.setVerticalScrollBarEnabled(false);
       s.addListView(list);
       list.setListSynchronizer(s);
     }
@@ -42,6 +43,7 @@ public class MultipleListHandler extends aMultipleListHandler {
     if (handler2 != null) {
       list = (ListViewEx) handler2.getListComponent().getView();
       s.addListView(list);
+      main.getListComponent().getView().setVerticalScrollBarEnabled(false);
     }
   }
 }

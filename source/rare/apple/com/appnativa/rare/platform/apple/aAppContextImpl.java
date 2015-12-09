@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple;
@@ -31,7 +31,6 @@ import com.appnativa.rare.platform.apple.ui.view.DialogWindow;
 import com.appnativa.rare.platform.apple.ui.view.PopupWindow;
 import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.UIImage;
-import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIProperties;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -42,6 +41,7 @@ import com.appnativa.util.CharArray;
 import com.appnativa.util.IdentityArrayList;
 
 import java.net.URL;
+
 import java.util.HashMap;
 import java.util.logging.Logger;
 
@@ -87,6 +87,13 @@ public abstract class aAppContextImpl extends aAppContext {
                            "com.appnativa.rare.GenericInterfaceProxy");
     registerInterfaceProxy("com.appnativa.rare.ui.effects.iAnimatorValueListener",
                            "com.appnativa.rare.GenericInterfaceProxy");
+    registerInterfaceProxy("com.appnativa.rare.ui.event.iExpansionListener",
+        "com.appnativa.rare.GenericInterfaceProxy");
+    registerInterfaceProxy("com.appnativa.rare.ui.event.iPopupMenuListener",
+        "com.appnativa.rare.GenericInterfaceProxy");
+    registerInterfaceProxy("com.appnativa.rare.ui.event.iExpandedListener",
+        "com.appnativa.rare.GenericInterfaceProxy");
+    
   }
 
   @Override
@@ -100,6 +107,39 @@ public abstract class aAppContextImpl extends aAppContext {
     }
 
     return false;
+  }
+
+  @Override
+  public void handleConfigurationWillChange(Object newConfig) {
+    super.handleConfigurationWillChange(newConfig);
+
+    for (Object o : activeWindows) {
+      if (o instanceof DialogWindow) {
+        DialogWindow dialog = (DialogWindow) o;
+        Frame        f      = (Frame) dialog.getComponent();
+
+        f.getWindowViewer().onConfigurationWillChange(newConfig);
+        f.pack();
+        f.center();
+      }
+      else if(o instanceof PopupWindow) {
+        ((PopupWindow)o).cancelPopup(false);
+      }
+    }
+  }
+
+  @Override
+  public void handleConfigurationChanged(Object changes) {
+    super.handleConfigurationChanged(changes);
+
+    for (Object o : activeWindows) {
+      if (o instanceof DialogWindow) {
+        DialogWindow dialog = (DialogWindow) o;
+        Frame        f      = (Frame) dialog.getComponent();
+
+        f.getWindowViewer().onConfigurationChanged(resetOnConfigurationChange);
+      }
+    }
   }
 
   @Override
@@ -184,11 +224,6 @@ public abstract class aAppContextImpl extends aAppContext {
     return landscapeMode;
   }
 
-  @Override
-  public void lockOrientation(Boolean landscape) {
-    PlatformHelper.lockOrientation(landscape);
-  }
-
   public URL makeResourcePath(String file) {
     URL u = null;
 
@@ -251,11 +286,6 @@ public abstract class aAppContextImpl extends aAppContext {
     return null;
   }
 
-  @Override
-  public void oneLineErrorMessage(String title, String msg) {
-    throw new UnsupportedOperationException();
-  }
-
   public void registerInterfaceProxy(String interfaceName, String proxyClassName) {
     if (interfaceName.indexOf('.') != -1) {
       interfaceName = PlatformHelper.getIOSClassName(interfaceName);
@@ -266,11 +296,6 @@ public abstract class aAppContextImpl extends aAppContext {
     }
 
     interfaceProxies.put(interfaceName, proxyClassName);
-  }
-
-  @Override
-  public void unlockOrientation() {
-    PlatformHelper.unlockOrientation();
   }
 
   public void setLogger(Logger l) {
@@ -340,84 +365,33 @@ public abstract class aAppContextImpl extends aAppContext {
   }
 
   @Override
-  @SuppressWarnings("resource")
-  public UIImage getManagedResource(String name) {
+  protected UIImage getManagedResource(String name, String cname, boolean landscape, CharArray ca) {
     if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".gif")) {
       return PlatformHelper.getImageFromResourceFileName(name);
     }
-    if (name.startsWith("Rare.icon") ) {
-      return super.getManagedResource(name);
+
+    if (cname.startsWith("rare_icon_")) {
+      return super.getManagedResource(name, cname, landscape, ca);
     }
 
     if (!managedResourcePathInitialized) {
       initializeManagedResourcePaths();
-      useAssetCatalog=uiDefaults.getBoolean("Rare.Apple.useAssetCatalog", false);
+      useAssetCatalog = uiDefaults.getBoolean("Rare.Apple.useAssetCatalog", false);
+
       if (managedResourcePaths.length == 0) {
         useAssetCatalog = true;
       }
     }
 
     if (!useAssetCatalog) {
-      return super.getManagedResource(name);
-    }
-    String oname=name;
-    if(name.indexOf('.')!=-1) {
-      CharArray ca      = new CharArray(name);
-      ca.toLowerCase().replace('.', '_');
-      name=ca.toString();
-    }
-    Object proxy=ImageUtils.loadAssetCatalogImageProxy(name);
-    return proxy==null ? null : new UIImage(proxy,oname);
-  }
-
-  @Override
-  public UIImageIcon getResourceAsIconEx(String name) {
-    UIImageIcon icon = null;
-
-    if (resourceFinder != null) {
-      icon = resourceFinder.getResourceAsIcon(name);
-
-      if (icon != null) {
-        return icon;
-      }
+      return super.getManagedResource(name, cname, landscape, ca);
     }
 
-    if (appIcons != null) {
-      icon = appIcons.get(name);
+    Object proxy = ImageUtils.loadAssetCatalogImageProxy(cname);
 
-      if (icon != null) {
-        return icon;
-      }
-    }
-
-    icon = uiDefaults.getImageIcon(name);
-
-    if (icon != null) {
-      return icon;
-    }
-
-    UIImage img = getManagedResource(name);
-
-    if (img != null) {
-      UIImageIcon ic = new UIImageIcon(img, "", img.getLocation());
-
-      ic.setResourceName(name);
-
-      return ic;
-    }
-
-    return null;
-  }
-
-  @Override
-  public UIImage getResourceAsImage(String name) {
-    UIImageIcon icon = getResourceAsIcon(name);
-
-    if (icon != null) {
-      return icon.getUIImage();
-    }
-
-    return null;
+    return (proxy == null)
+           ? null
+           : new UIImage(proxy, name);
   }
 
   @Override

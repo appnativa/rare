@@ -20,14 +20,6 @@
 
 package com.appnativa.rare.net;
 
-import com.appnativa.rare.iConstants;
-import com.appnativa.util.ASCII85InputStream;
-import com.appnativa.util.Base64;
-import com.appnativa.util.ByteArray;
-import com.appnativa.util.CharScanner;
-import com.appnativa.util.Streams;
-import com.appnativa.util.io.BufferedReaderEx;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,6 +31,15 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Map;
+
+import com.appnativa.rare.iConstants;
+import com.appnativa.util.ASCII85InputStream;
+import com.appnativa.util.Base64;
+import com.appnativa.util.ByteArray;
+import com.appnativa.util.CharScanner;
+import com.appnativa.util.Streams;
+import com.appnativa.util.URLEncoder;
+import com.appnativa.util.io.BufferedReaderEx;
 
 /**
  *

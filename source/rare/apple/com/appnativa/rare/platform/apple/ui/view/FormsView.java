@@ -211,8 +211,8 @@ public class FormsView extends ParentView implements iAppleLayoutManager, iLayou
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    getLayout().getMinimumSize((iParentComponent) Component.fromView(this), size);
+  public void getMinimumSize(UIDimension size,float maxWidth) {
+    getLayout().getMinimumSize((iParentComponent) Component.fromView(this), size,maxWidth);
   }
 
   protected void adjustPainters(int[] columnOrigins, int[] rowOrigins) {

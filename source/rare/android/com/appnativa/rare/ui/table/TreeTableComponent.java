@@ -20,18 +20,22 @@
 
 package com.appnativa.rare.ui.table;
 
+import java.util.Comparator;
+import java.util.List;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.exception.ExpandVetoException;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iExpansionListener;
-import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.tree.DataItemTreeModel;
 import com.appnativa.rare.ui.tree.TreeViewEx;
 import com.appnativa.rare.ui.tree.aTreeHandler;
@@ -39,9 +43,6 @@ import com.appnativa.rare.ui.tree.iTreeItem;
 import com.appnativa.rare.util.SubItemComparator;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.iFilterableList;
-
-import java.util.Comparator;
-import java.util.List;
 
 /**
  *
@@ -56,27 +57,17 @@ public class TreeTableComponent extends TableComponent {
     super(table, cfg, true);
 
     TreeTable  tt = (TreeTable) cfg;
-    TreeViewEx tv = (TreeViewEx) table;
-
-    tv.setShowRootHandles(tt.showRootHandles.booleanValue());
-    tv.setParentItemsSelectable(tt.parentItemsSelectable.booleanValue());
-    tv.setToggleOnTwistyOnly(tt.parentItemsSelectable.booleanValue());
     treeModel.setExpandableColumn(tt.expandableColumn.intValue());
-    treeModel.setExpandAll(tt.expandAll.booleanValue());
+    setTreeIcons(new PainterUtils.TwistyIcon(this,false), new PainterUtils.TwistyIcon(this,true));
   }
   
   public void setTreeIcons(iPlatformIcon expanded, iPlatformIcon collapsed) {
-    if (view instanceof TreeViewEx) {
-      TreeViewEx tv = (TreeViewEx) view;
-      tv.setTreeIcons(expanded, collapsed);
-    }
+    TreeViewEx tv = (TreeViewEx) getListView();
+    tv.setTreeIcons(expanded, collapsed);
   }
 
   public void dispose() {
-    if (view instanceof TreeViewEx) {
-      ((TreeViewEx) view).setTreeModel(null);
-    }
-
+    
     super.dispose();
 
     try {

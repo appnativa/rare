@@ -20,6 +20,7 @@
 
 package com.appnativa.rare.ui;
 
+import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.event.iActionListener;
 
 /*-[
@@ -224,6 +225,13 @@ public class Menu extends MenuItem implements iMenuBarComponent {
 
     return true;
   }
+  
+  public native void setHeaderView(View view)
+  /*-[
+    RAREAPMenu* menu=(RAREAPMenu*)proxy_;
+    [menu setHeader: view ? (UIView*)[view getProxy] : nil];
+  ]-*/
+  ;
 
   native void addMenu(int pos, UIMenu menu, UIMenuItem subProxy)
   /*-[

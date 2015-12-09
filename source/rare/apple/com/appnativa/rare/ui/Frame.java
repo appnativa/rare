@@ -15,80 +15,73 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iAppContext;
-import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.apple.ui.view.ButtonView;
 import com.appnativa.rare.platform.apple.ui.view.Window;
-import com.appnativa.rare.scripting.iScriptHandler;
-import com.appnativa.rare.spot.StatusBar;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
+import com.appnativa.rare.ui.iWindowManager.iFrame;
+import com.appnativa.rare.ui.event.WindowEvent;
 import com.appnativa.rare.ui.event.iWindowListener;
-import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.aContainer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.SNumber;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Main window frame
  *
  * @author Don DeCoteau
  */
-public class Frame extends Container implements iWindow {
-  boolean                       located;
-  boolean                       sized;
-  protected int                 menuOffset  = 0;
-  boolean                       undecorated = false;
-  boolean                       transparent = false;
-  protected iPlatformAppContext appContext;
-  protected iPlatformMenuBar    menuBar;
-  protected iStatusBar          statusBar;
-  protected iTarget             target;
-  protected iWidget             titleWidget;
-  protected iToolBarHolder      toolbarHolder;
-  protected Window              window;
-  protected WindowViewer        windowViewer;
-  private boolean               autoDispose;
-  private String                defaultButton;
-  private boolean               dialog;
-  private boolean               mainWindow;
-  private UIPoint               partialLocation;
-  private UIDimension           partialSize;
-  private boolean               popup;
-  OverlayContainer              overlayContainer;
+public class Frame extends Container implements iFrame {
+  boolean                    closed = false;
+  boolean                    located;
+  boolean                    sized;
+  protected int              menuOffset  = 0;
+  boolean                    undecorated = false;
+  boolean                    transparent = false;
+  protected iTarget          target;
+  protected iWidget          titleWidget;
+  protected Window           window;
+  protected WindowViewer     windowViewer;
+  private boolean            autoDispose;
+  private String             defaultButton;
+  private boolean            mainWindow;
+  private UIPoint            partialLocation;
+  private UIDimension        partialSize;
+  OverlayContainer           overlayContainer;
+  protected WindowType       windowType;
+  private boolean runtimeDecorations;
 
-  public Frame(iPlatformAppContext app, Window win) {
+  public Frame(iPlatformAppContext app, Window win, String targetName, WindowType type) {
     super(win);
-    this.window = win;
-    appContext  = app;
-    mainWindow  = true;
-    setNeedsHiearachyInvalidated(false);
-  }
-
-  public Frame(iPlatformAppContext app, Window win, String targetName) {
-    super(win);
-    this.window = win;
-    appContext  = app;
+    this.windowType = type;
+    this.window     = win;
 
     if (targetName == null) {
-      targetName = "_new_window_" + Integer.toHexString((int)hashCode()); //int cast for java->objc
+      targetName = "_new_window_" + Integer.toHexString((int)hashCode());    //int cast for java->objc
     }
 
-    target = new WindowTarget(app, targetName, this);
+    target = new WindowTarget(Platform.getAppContext(), targetName, this);
+  }
+
+  public Frame(iPlatformAppContext app, Window win, WindowType type) {
+    super(win);
+    this.window     = win;
+    this.windowType = type;
+    this.mainWindow = true;
+    setNeedsHiearachyInvalidated(false);
   }
 
   @Override
@@ -127,7 +120,7 @@ public class Frame extends Container implements iWindow {
 
   @Override
   public void addWindowListener(iWindowListener l) {
-    window.addWindowListener(l);
+    getEventListenerList().add(iWindowListener.class, l);
   }
 
   @Override
@@ -137,55 +130,75 @@ public class Frame extends Container implements iWindow {
 
   @Override
   public void close() {
-    window.close();
+    if (!closed) {
+      WindowEvent e = Utils.fireWindowEvent(listenerList, this, WindowEvent.Type.WillClose);
+
+      if ((e == null) ||!e.isConsumed()) {
+        if ((windowViewer == null) || windowViewer.isClosingAllowed()) {
+          dispose();
+        }
+      }
+    }
   }
 
   @Override
   public void dispose() {
+    closed = true;
+
     if (window != null) {
-      window.close();
+      try {
+        window.close();
 
-      if (overlayContainer != null) {
-        overlayContainer.dispose();
+        if (overlayContainer != null) {
+          overlayContainer.dispose();
+        }
+
+        if (target != null) {
+          target.dispose(true);
+        }
+
+
+        if (titleWidget != null) {
+          titleWidget.dispose();
+        }
+
+        Utils.fireWindowEvent(listenerList, this, WindowEvent.Type.Closed);
+        super.dispose();
+      } finally {
+        titleWidget      = null;
+        window           = null;
+        windowViewer     = null;
+        target           = null;
+        window           = null;
+        overlayContainer = null;
       }
-
-      if (target != null) {
-        target.dispose(true);
-      }
-
-      if (menuBar != null) {
-        menuBar.dispose();
-      }
-
-      if (statusBar != null) {
-        statusBar.dispose();
-      }
-
-      if (toolbarHolder != null) {
-        toolbarHolder.dispose();
-      }
-
-      if (titleWidget != null) {
-        titleWidget.dispose();
-      }
-
-      super.dispose();
-      titleWidget      = null;
-      toolbarHolder    = null;
-      statusBar        = null;
-      window           = null;
-      windowViewer     = null;
-      menuBar          = null;
-      target           = null;
-      window           = null;
-      overlayContainer = null;
-      appContext       = null;
     }
   }
 
   @Override
   public void disposeOfWindow() {
     dispose();
+  }
+
+  public void finishWindowSetup(Map options) {
+    if (!undecorated && (titleWidget == null)) {
+      boolean show=Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
+      String s=options!=null ? (String)options.get("showCloseButton") : null;
+      if(s!=null) {
+        show=SNumber.booleanValue(s);
+      }
+      window.createDialogTitleBar(windowViewer,show);
+      runtimeDecorations=true;
+    }
+
+    String s = (String) options.get("keystrokes");
+
+    if ((s != null) &&!Platform.isIOS()) {
+      PlatformHelper.configureKeystrokes(windowViewer, this, s);
+    }
+
+    defaultButton = (String) options.get("defaultButton");
+    Utils.setupWindowOptions(this, options);
   }
 
   public iAppContext getAppContext() {
@@ -218,20 +231,7 @@ public class Frame extends Container implements iWindow {
 
   @Override
   public iPlatformMenuBar getMenuBar() {
-    return menuBar;
-  }
-
-  OverlayContainer getOverlayContainer() {
-    if (overlayContainer == null) {
-      WindowPane         p  = window.getWindowPane();
-      iPlatformComponent oc = p.getContent();
-
-      p.setContent(null);
-      overlayContainer = new OverlayContainer(oc);
-      p.setContent(overlayContainer);
-    }
-
-    return overlayContainer;
+    return window.getMenuBar();
   }
 
   /**
@@ -256,7 +256,7 @@ public class Frame extends Container implements iWindow {
 
   @Override
   public iStatusBar getStatusBar() {
-    return statusBar;
+    return window.getStatusBar();
   }
 
   @Override
@@ -286,7 +286,7 @@ public class Frame extends Container implements iWindow {
 
   @Override
   public iToolBarHolder getToolBarHolder() {
-    return toolbarHolder;
+    return window.getiToolBarHolder();
   }
 
   @Override
@@ -297,6 +297,10 @@ public class Frame extends Container implements iWindow {
   @Override
   public iContainer getViewer() {
     return windowViewer;
+  }
+
+  public WindowType getWindowType() {
+    return windowType;
   }
 
   public WindowViewer getWindowViewer() {
@@ -313,7 +317,7 @@ public class Frame extends Container implements iWindow {
   }
 
   public boolean isDialog() {
-    return dialog;
+    return windowType == WindowType.DIALOG;
   }
 
   public boolean isMainWindow() {
@@ -321,11 +325,24 @@ public class Frame extends Container implements iWindow {
   }
 
   public boolean isPopup() {
-    return popup;
+    return windowType == WindowType.POPUP;
+  }
+
+  @Override
+  public boolean isShowing() {
+    if (window != null) {
+      return window.isShowing();
+    }
+
+    return !closed && super.isShowing();
   }
 
   public boolean isTransparent() {
-    return undecorated;
+    return transparent;
+  }
+
+  public boolean isUsesRuntimeDecorations() {
+    return runtimeDecorations;
   }
 
   public boolean isUndecorated() {
@@ -347,20 +364,7 @@ public class Frame extends Container implements iWindow {
   @Override
   public void pack() {
     if (!mainWindow) {
-      UIDimension d = getPreferredSize();
-
-      if (!isUndecorated()) {
-        UIDimension dd = PlatformHelper.getWindowDecorationSize();
-
-        d.width  += dd.width;
-        d.height += dd.height;
-      }
-
-      UIDimension sd = ScreenUtils.getSize();
-
-      d.width  = Math.min(sd.width - 4, d.width);
-      d.height = Math.min(sd.height - 24, d.height);
-      setSize(d.width, d.height);
+      window.pack();
     }
   }
 
@@ -396,7 +400,14 @@ public class Frame extends Container implements iWindow {
 
   @Override
   public void removeWindowListener(iWindowListener l) {
-    window.removeWindowListener(l);
+    if (listenerList != null) {
+      listenerList.remove(iWindowListener.class, l);
+    }
+  }
+
+  @Override
+  public void revalidate() {
+    window.revalidate();
   }
 
   public void setAutoDispose(boolean autoDispose) {
@@ -423,13 +434,8 @@ public class Frame extends Container implements iWindow {
   }
 
   @Override
-  public iPlatformMenuBar setMenuBar(iPlatformMenuBar mb) {
-    iPlatformMenuBar omb = menuBar;
-
+  public void setMenuBar(iPlatformMenuBar mb) {
     window.setMenuBar(mb);
-    menuBar = mb;
-
-    return omb;
   }
 
   public void setMovable(boolean movable) {
@@ -456,13 +462,8 @@ public class Frame extends Container implements iWindow {
   }
 
   @Override
-  public iStatusBar setStatusBar(iStatusBar sb) {
-    iStatusBar osb = statusBar;
-
+  public void setStatusBar(iStatusBar sb) {
     window.setStatusBar(sb);
-    statusBar = sb;
-
-    return osb;
   }
 
   public void setTarget(iTarget target) {
@@ -486,102 +487,10 @@ public class Frame extends Container implements iWindow {
   }
 
   @Override
-  public iToolBarHolder setToolBarHolder(iToolBarHolder tbh) {
-    iToolBarHolder otbh = toolbarHolder;
-
-    toolbarHolder = tbh;
-    window.setToolBar(tbh);
-
-    return otbh;
+  public void setToolBarHolder(iToolBarHolder tbh) {
+    window.setToolBarHolder(tbh);
   }
 
-  protected void setupWindow(WindowViewer parent, Map options, boolean emulate) {
-    if (parent == null) {
-      parent = appContext.getWindowViewer();
-    }
-
-    Frame              main          = (Frame) appContext.getWindowManager().getMainWindow().getComponent();
-    iPlatformComponent mainComponent = main.getComponent();
-    iScriptHandler     sh            = parent.getScriptHandler();
-
-    windowViewer = new WindowViewer(appContext, target.getName(), this, parent, sh);
-    sh.setScriptingContext(windowViewer, null, null, null, true);
-
-    if (emulate) {
-      PaintBucket pb = (PaintBucket) mainComponent.getClientProperty(iConstants.RARE_PAINTBUCKET_PROPERTY);
-
-      pb.install(this);
-
-      ActionLink link = (ActionLink) mainComponent.getClientProperty(iConstants.RARE_WINDOW_TITLELINK);
-
-      if (link != null) {
-        iWidget w = aContainer.createWidget(windowViewer, link);
-
-        if (w != null) {
-          setTitleWidget(w);
-        }
-      }
-    }
-
-    if (options == null) {
-      return;
-    }
-
-    Object          o = options.get("cpborder");
-    iPlatformBorder b = null;
-
-    if (o instanceof iPlatformBorder) {
-      b = (iPlatformBorder) o;
-    } else if (o != null) {
-      b = UIBorderHelper.createBorder(o.toString());
-    }
-
-    if (b != null) {
-      setBorder(b);
-    }
-
-    String s = (String) options.get("status");
-
-    if ((s != null) && (s.length() > 0)) {
-      s = s.trim();
-
-      if (statusBar == null) {
-        StatusBar sb = null;
-
-        if (SNumber.booleanValue((String) options.get("resizable"))
-            &&!"false".equalsIgnoreCase((String) options.get("resizeCorner"))) {
-          sb = new StatusBar();
-          sb.showMemoryUsage.setValue(false);
-          sb.showInsertOverwrite.setValue(false);
-          sb.showTime.setValue(false);
-          sb.showResizeCorner.setValue(true);
-        }
-
-        setStatusBar(appContext.getWindowManager().createStatusBar(sb));
-      }
-
-      statusBar.showMessage(s);
-    }
-
-    s = (String) options.get("keystrokes");
-
-    if (s != null) {
-      PlatformHelper.configureKeystrokes(appContext.getRootViewer(), this, s);
-    }
-
-    Map map = WidgetListener.createEventMap(options);
-
-    if (map != null) {
-      windowViewer.setWidgetListener(new WidgetListener(windowViewer, map, windowViewer.getScriptHandler()));
-    }
-
-    defaultButton = (String) options.get("defaultButton");
-    Utils.setupWindowOptions(this, options);
-  }
-
-  public void setViewer(WindowViewer wv) {
-    windowViewer = wv;
-  }
 
   @Override
   public void setVisible(boolean visible) {
@@ -635,116 +544,20 @@ public class Frame extends Container implements iWindow {
   public void update() {
     window.revalidate();
   }
-
-  @Override
-  public void revalidate() {
-    window.revalidate();
+  public void setWindowViewer(WindowViewer windowViewer) {
+    this.windowViewer = windowViewer;
   }
 
-  public static Frame create(iWidget context, String title, String target, boolean modal, boolean decorated) {
-    Map map = new HashMap();
+  OverlayContainer getOverlayContainer() {
+    if (overlayContainer == null) {
+      WindowPane         p  = window.getWindowPane();
+      iPlatformComponent oc = p.getContent();
 
-    if (title != null) {
-      map.put("title", title);
+      p.setContent(null);
+      overlayContainer = new OverlayContainer(oc);
+      p.setContent(overlayContainer);
     }
 
-    map.put("modal", modal);
-    map.put("decorated", decorated);
-
-    return createFromOptions(context, target, map);
-  }
-
-  public static Frame createFromOptions(iWidget context, String targetName, Map options) {
-    iPlatformAppContext app    = context.getAppContext();
-    boolean             modal  = true;
-    boolean             dialog = false;
-    boolean             popup  = false;
-    String              type   = "frame";
-    Object              o;
-
-    o = options.get("modal");
-
-    if (o instanceof Boolean) {
-      modal = (Boolean) o;
-    } else if (o instanceof String) {
-      modal = SNumber.booleanValue((String) o);
-    }
-
-    type = (String) options.get("windowtype");
-
-    if (type == null) {
-      type = (String) options.get("dialog");
-
-      if ("true".equalsIgnoreCase(type) || Platform.isIOS()) {
-        type = "dialog";
-      } else {
-        type = "frame";
-      }
-    }
-
-    Window win;
-
-    o = options.get("emulateMainWindow");
-
-    if (o == null) {
-      o = app.getUIDefaults().get("Rare.emulateMainWindow");
-    }
-
-    boolean emulate     = ((o == Boolean.TRUE) || "true".equals(o));
-    boolean decorated   = true;
-    boolean transparent = false;
-
-    if (emulate) {
-      Frame main = (Frame) app.getWindowManager().getMainWindow().getComponent();
-
-      decorated   = !main.isUndecorated();
-      transparent = main.isTransparent();
-    }
-
-    o = options.get("decorated");
-
-    if (o != null) {
-      decorated = "true".equals(o) || (o == Boolean.TRUE);
-
-      if (!emulate) {
-        transparent = !decorated;
-      }
-    }
-
-    o = options.get("opaque");
-
-    if (o != null) {
-      transparent = "false".equals(o) || (o == Boolean.FALSE);
-    }
-
-    if (type.equalsIgnoreCase("dialog")) {
-      dialog = true;
-      win    = PlatformHelper.createDialog(context.getDataComponent().getView().getWindow(), transparent, decorated,
-              modal);
-      popup = true;
-    } else if (type.equalsIgnoreCase("popup")) {
-      win   = PlatformHelper.createPopup(true, transparent);
-      popup = true;
-    } else if (type.equalsIgnoreCase("popup_orphan")) {
-      win = PlatformHelper.createPopup(false, transparent);
-    } else {
-      win = PlatformHelper.createWindow(modal, transparent, decorated);
-    }
-
-    Frame        frame  = new Frame(app, win, targetName);
-    WindowViewer parent = Platform.getWindowViewer(context);
-
-    frame.dialog      = dialog;
-    frame.popup       = popup;
-    frame.undecorated = !decorated;
-
-    if (decorated) {
-      win.setTitle(Platform.getAppContext().getWindowManager().getTitle());
-      win.setIcon(Platform.getAppContext().getWindowManager().getWindowIcons().get(0));
-    }
-
-    frame.setupWindow(parent, options, emulate);
-
-    return frame;
+    return overlayContainer;
   }
 }

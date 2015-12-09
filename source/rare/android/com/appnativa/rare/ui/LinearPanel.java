@@ -84,12 +84,12 @@ public class LinearPanel extends aLinearPanel {
     ((FormsView) view).setFormLayout(new FormLayout(colSpec, rowSpec));
   }
 
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (view.isLayoutRequested()) {
       getFormLayout().invalidateMinimumCache();
     }
 
-    super.getMinimumSizeEx(size);
+    super.getMinimumSizeEx(size, maxWidth);
   }
 
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {

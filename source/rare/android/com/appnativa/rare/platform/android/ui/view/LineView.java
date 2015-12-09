@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
@@ -27,6 +27,7 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 
 import com.appnativa.rare.platform.android.ui.iComponentView;
+import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.aLineHelper;
 import com.appnativa.rare.ui.painter.iPainterSupport;
@@ -64,6 +65,7 @@ public class LineView extends ViewEx implements iPainterSupport, iComponentView 
     lineHelper = new LineHelper(horizontal);
   }
 
+  @Override
   public void onDraw(Canvas g) {
     int l = getPaddingLeft();
     int r = getPaddingRight();
@@ -77,14 +79,18 @@ public class LineView extends ViewEx implements iPainterSupport, iComponentView 
     return lineHelper;
   }
 
-  private void setMinimums(boolean horizontal, int thickness) {
-    if (horizontal) {
-      setMinimumWidth(1);
-      setMinimumHeight(thickness);
-    } else {
-      setMinimumWidth(thickness);
-      setMinimumHeight(1);
-    }
+  @Override
+  public int getSuggestedMinimumHeight() {
+    return lineHelper.isHorizontal()
+           ? ScreenUtils.PLATFORM_PIXELS_1
+           : UIScreen.snapToSize(lineHelper.getThickness());
+  }
+
+  @Override
+  public int getSuggestedMinimumWidth() {
+    return !lineHelper.isHorizontal()
+           ? ScreenUtils.PLATFORM_PIXELS_1
+           : UIScreen.snapToSize(lineHelper.getThickness());
   }
 
   class LineHelper extends aLineHelper {
@@ -94,7 +100,6 @@ public class LineView extends ViewEx implements iPainterSupport, iComponentView 
 
     @Override
     protected void thicknessRecalculated() {
-      setMinimums(horizontal, UIScreen.snapToSize(thickness));
     }
   }
 }

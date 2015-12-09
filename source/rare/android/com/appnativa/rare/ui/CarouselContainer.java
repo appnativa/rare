@@ -21,10 +21,7 @@
 package com.appnativa.rare.ui;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
-
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 
@@ -102,14 +99,14 @@ public class CarouselContainer extends BorderPanel {
       return motionHandler.isScrolling();
     }
 
-    protected void getMinimumSizeEx(UIDimension size) {
+    protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
       size.setSize(0, 0);
 
       if (getComponentCount() == 1) {
         iPlatformComponent c = getComponentAt(0);
 
         if (c.isVisible()) {
-          c.getMinimumSize(size);
+          c.getMinimumSize(size,maxWidth);
         }
       }
     }
@@ -157,12 +154,9 @@ public class CarouselContainer extends BorderPanel {
   class ScrollView extends ViewGroupEx {
     public ScrollView(Context context) {
       super(context);
+      setClickable(true);
     }
 
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-      return true;
-    }
 
     public void draw(Canvas canvas) {
       if (matrix != null) {

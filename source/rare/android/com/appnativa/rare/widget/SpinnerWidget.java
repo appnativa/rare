@@ -48,6 +48,7 @@ public class SpinnerWidget extends aSpinnerWidget {
     super(parent);
   }
 
+  @Override
   protected iSpinner createSpinnerAndComponents(Spinner cfg) {
     SpinnerComponent spinner = new SpinnerComponent(getAndroidContext());
 
@@ -56,6 +57,7 @@ public class SpinnerWidget extends aSpinnerWidget {
     return spinner;
   }
 
+  @Override
   protected void registerEditorWithWidget(iSpinnerEditor editor) {
     if (editor != null) {
       Component c = (Component) editor.getComponent();
@@ -76,6 +78,7 @@ public class SpinnerWidget extends aSpinnerWidget {
     }
   }
 
+  @Override
   protected void unregisterEditorWithWidget(iSpinnerEditor editor) {
     if (editor != null) {
       WidgetListener l = (WidgetListener) getWidgetListener();

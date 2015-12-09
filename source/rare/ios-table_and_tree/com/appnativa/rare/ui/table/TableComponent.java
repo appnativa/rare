@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -53,8 +53,7 @@ public class TableComponent extends aTableComponent implements iScrollerSupport 
 
     if (horizontalScroll) {
       ScrollView sv = new ScrollView();
-
-      sv.setHasVerticalScrollBar(false);
+      sv.setShowsVerticalScrollIndicator(false);
       setView(sv);
 
       if (UIScrollingEdgePainter.isPaintHorizontalScrollEdge()) {
@@ -97,6 +96,41 @@ public class TableComponent extends aTableComponent implements iScrollerSupport 
     }
 
     return p;
+  }
+
+  public void setHeaderView(iScrollerSupport ss) {
+    if(horizontalScroll) {
+      ((ScrollView)view).setHeaderView(ss);
+    }
+    else {
+      getTableView().setHeaderView(ss);
+    }
+  }
+
+  public void setFooterView(iScrollerSupport ss) {
+    if(horizontalScroll) {
+      ((ScrollView)view).setFooterView(ss);
+    }
+    else {
+      getTableView().setFooterView(ss);
+    }
+  }
+
+  public void setRowHeaderView(iScrollerSupport ss) {
+      getTableView().setRowHeaderView(ss);
+  }
+
+  public void setRowFooterView(iScrollerSupport ss) {
+     getTableView().setRowFooterView(ss);
+  }
+
+  @Override
+  public void setContentOffset(float x, float y) {
+    if (horizontalScroll) {
+      ((ScrollView) view).setContentOffset(x, y);
+    } else {
+      getTableView().setContentOffset(x, y);
+    }
   }
 
   @Override
@@ -210,9 +244,9 @@ public class TableComponent extends aTableComponent implements iScrollerSupport 
     }
 
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size, float maxWidth) {
       if (headerSize.height == 0) {
-        tableHeader.getPreferredSizeEx(headerSize, 0);
+        tableHeader.getPreferredSizeEx(headerSize, maxWidth);
       }
 
       size.height = headerSize.height * 2;

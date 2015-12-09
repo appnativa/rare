@@ -20,10 +20,23 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Date;
+import java.util.EventObject;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iDataCollection;
@@ -32,6 +45,7 @@ import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iTimer;
 import com.appnativa.rare.iWorkerTask;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.ActionLink.ReturnDataType;
 import com.appnativa.rare.net.InlineURLConnection;
@@ -57,6 +71,7 @@ import com.appnativa.rare.ui.UIFontHelper;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageHelper;
 import com.appnativa.rare.ui.UIImageIcon;
+import com.appnativa.rare.ui.UINotifier;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UIScreen;
@@ -65,12 +80,7 @@ import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.ViewerCreator;
 import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.aUIImageIcon;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iWindowListener;
-import com.appnativa.rare.ui.iFrame;
+import com.appnativa.rare.ui.aWidgetListener;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformMenuBar;
@@ -79,6 +89,11 @@ import com.appnativa.rare.ui.iStatusBar;
 import com.appnativa.rare.ui.iToolBarHolder;
 import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.ui.iWindowManager;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.ui.event.EventBase;
+import com.appnativa.rare.ui.event.iWindowListener;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.painter.iImagePainter;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
@@ -94,22 +109,6 @@ import com.appnativa.util.CharScanner;
 import com.appnativa.util.Helper;
 import com.appnativa.util.SimpleDateFormatEx;
 import com.appnativa.util.iCancelable;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import java.util.Date;
-import java.util.EventObject;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 public abstract class aWindowViewer extends aContainer implements iWindow {
   private static WindowLocation    _location;
@@ -150,7 +149,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     windowManager   = getAppContext().getWindowManager();
     droppingAllowed = true;
     theWindow       = win;
-    theEvent        = new ScriptingEvent(sh, iConstants.ATTRIBUTE_ON_CONFIGURE, new EventObject(win), win, null);
+    theEvent        = new ScriptingEvent(sh, iConstants.ATTRIBUTE_ON_CONFIGURE, new EventBase(win), win, null);
   }
 
   /**
@@ -347,7 +346,6 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
    *          the callback to be notified when the dialog closes
    */
   public void alert(String title, Object message, iFunctionCallback cb) {
-    message = expandString(message.toString(), false);
 
     AlertPanel d = AlertPanel.ok(this, title, message, null);
 
@@ -479,7 +477,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
         @Override
         public void run() {
           if (theWindow != null) {
-            dispose();
+            theWindow.close();
           }
         }
       };
@@ -552,7 +550,6 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     title   = (title == null)
               ? getTitle()
               : expandString(title.toString(), false);
-    message = expandString(message.toString(), false);
 
     AlertPanel d = AlertPanel.yesNo(this, title.toString(), message, null, ok, cancel, true);
 
@@ -1374,6 +1371,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     return JavaURLConnection.toExternalForm(PlatformHelper.fileToURL(file));
   }
 
+ 
   /**
    * Formats the specified for display using the default date format
    *
@@ -1729,7 +1727,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   }
 
   /**
-   * Displays a ok/no dialog box, allowing the user to choose one of those
+   * Displays a ok/cancel dialog box, allowing the user to choose one of those
    * options
    * <p>
    * Calls back with a <code>Boolean</code> object representing yes or no or a
@@ -1748,7 +1746,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   }
 
   /**
-   * Displays a ok/no dialog box, allowing the user to choose one of those
+   * Displays a ok/cancel dialog box, allowing the user to choose one of those
    * options
    * <p>
    * Calls back with a <code>Boolean</code> object representing yes or no or a
@@ -2258,26 +2256,6 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
 
   public void submitForm() {}
 
-  /**
-   * Displays a system alert using the native platform's alert mechanism
-   *
-   * @param message the message can be a string (or a widget or platform component for supported platforms)
-   */
-  public void systemAlert(Object message) {
-    systemAlert(message, null, null);
-  }
-
-  /**
-   * Displays a system alert using the native platform's alert mechanism
-   *
-   * @param message the message can be a string (or a widget or platform component for supported platforms)
-   * @param icon a icon for the alert (if supported by platform)
-   * @param listener a custom lister for when the alert is interacted with (if supported by platform)
-   */
-  public void systemAlert(Object message, iPlatformIcon icon, iActionListener listener) {
-    PlatformHelper.systemAlert(this, message, icon, listener);
-  }
-
   @Override
   public void toBack() {
     theWindow.toBack();
@@ -2543,21 +2521,6 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     theEvent = e;
   }
 
-  /**
-   * Sets the title and icon for a frame
-   *
-   * @param frame
-   *          the name of the frame to set the title and icon for
-   * @param title
-   *          the title for the frame
-   * @param icon
-   *          the icon for the frame
-   */
-  public void setFrameTitleAndIcon(String frame, String title, iPlatformIcon icon) {
-    iFrame f = windowManager.getFrame(frame);
-
-    f.setTitleAndIcon(title, icon);
-  }
 
   /**
    * Sets the status bar insert/overwrite mode indicator
@@ -2595,8 +2558,8 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   }
 
   @Override
-  public iPlatformMenuBar setMenuBar(iPlatformMenuBar mb) {
-    return theWindow.setMenuBar(mb);
+  public void setMenuBar(iPlatformMenuBar mb) {
+    theWindow.setMenuBar(mb);
   }
 
   /**
@@ -2640,11 +2603,14 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     if (sb != null) {
       sb.showMessage(status);
     }
+    else if(Platform.getUIDefaults().getBoolean("Rare.StatusBar.useNotifier", true)) {
+      UINotifier.showMessage(status);
+    }
   }
 
   @Override
-  public iStatusBar setStatusBar(iStatusBar sb) {
-    return theWindow.setStatusBar(sb);
+  public void setStatusBar(iStatusBar sb) {
+    theWindow.setStatusBar(sb);
   }
 
   /**
@@ -2756,8 +2722,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   }
 
   @Override
-  public iToolBarHolder setToolBarHolder(iToolBarHolder tbh) {
-    return null;
+  public void setToolBarHolder(iToolBarHolder tbh) {
   }
 
   /**
@@ -2848,7 +2813,21 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   public iPlatformComponent getComponent() {
     return theWindow.getComponent();
   }
-
+  
+  @Override
+  public iTarget getTarget() {
+    return theWindow.getTarget();
+  }
+  
+  /**
+   * Gets the workspace viewer for the window
+   *
+   * @return the workspace viewer
+   */
+  public iViewer getWorkspaceViewer() {
+    return theWindow.getTarget().getViewer();
+  }
+  
   /**
    * Get the content, in the requested format, for the specified link via a
    * background task.
@@ -3207,27 +3186,6 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   }
 
   /**
-   * Gets the frame with the specified name
-   *
-   * @param name
-   *          the name of the frame
-   *
-   * @return the frame or null if no such frame exists
-   */
-  public iFrame getFrame(String name) {
-    return windowManager.getFrame(name);
-  }
-
-  /**
-   * Gets the list of frames
-   *
-   * @return the list of frames or null
-   */
-  public iFrame[] getFrames() {
-    return windowManager.getFrames();
-  }
-
-  /**
    * Gets the list of dynamically loaded resource icons. Only icons loaded via
    * an icon properties URL are available via this map
    *
@@ -3583,11 +3541,11 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
    *
    * @return the top most window
    */
-  public aWindowViewer getTop() {
+  public WindowViewer getTop() {
     iViewer v = getAppContext().getWindowManager().getRootViewer();
 
-    if (v instanceof aWindowViewer) {
-      return (aWindowViewer) v;
+    if (v instanceof WindowViewer) {
+      return (WindowViewer) v;
     }
 
     aWindowViewer top = windowParent;
@@ -3601,7 +3559,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
       }
     }
 
-    return top;
+    return (WindowViewer)top;
   }
 
   @Override
@@ -3731,11 +3689,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
 
   @Override
   public WindowViewer getWindow() {
-    iContainer p = getParent();
-
-    return (p == null)
-           ? Platform.getWindowViewer()
-           : p.getWindow();
+    return (WindowViewer) this;
   }
 
   /**
@@ -3794,13 +3748,28 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
    */
   protected ScriptingEvent getTimerEvent() {
     if (timerEvent == null) {
-      timerEvent = new ScriptingEvent(getScriptHandler(), iConstants.ATTRIBUTE_TIMER, new EventObject(theWindow),
+      timerEvent = new ScriptingEvent(getScriptHandler(), iConstants.ATTRIBUTE_TIMER, new EventBase(theWindow),
                                       theWindow, null);
     }
 
     return timerEvent;
   }
-
+   @Override
+  protected void initializeListeners(aWidgetListener listener) {
+     super.initializeListeners(listener);
+     if(listener!=null) {
+       theWindow.addWindowListener(listener);
+     }
+  }
+  
+  @Override
+  protected void uninitializeListeners(aWidgetListener listener) {
+    super.uninitializeListeners(listener);
+    if(listener!=null) {
+      theWindow.removeWindowListener(listener);
+    }
+  }
+  
   @Override
   protected List<iWidget> getWidgetListEx() {
     widgetList.clear();

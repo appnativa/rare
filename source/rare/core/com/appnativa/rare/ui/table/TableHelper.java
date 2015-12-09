@@ -239,7 +239,7 @@ public class TableHelper {
   }
 
   public static int calculateRowHeight(iPlatformComponent component, iPlatformItemRenderer renderer,
-          iPlatformListDataModel tm, int row, Column[] columns, boolean preferred, int minHeight) {
+          iPlatformListDataModel tm, int row, Column[] columns, boolean preferred, int minHeight,int[] viewPositions) {
     RenderableDataItem rowItem = tm.get(row);
     RenderableDataItem item;
     int                len    = columns.length;
@@ -266,7 +266,7 @@ public class TableHelper {
           if (preferred) {
             w = 0;
           } else {
-            w = getSpanWidth(i, span, columns);
+            w = getSpanWidth(i, span, columns,viewPositions);
           }
 
           calculateItemSize(component, renderer, c, item, row, rowItem, size, w, minHeight);
@@ -405,7 +405,7 @@ public class TableHelper {
     return pb;
   }
 
-  public static int getSpanWidth(int start, int span, Column[] columns) {
+  public static int getSpanWidth(int start, int span, Column[] columns,int[] viewPositions) {
     int width = 0;
     int len   = columns.length;
 
@@ -422,7 +422,12 @@ public class TableHelper {
     float d = ScreenUtils.PLATFORM_PIXELS_1;
 
     while(start < span) {
-      Column c = columns[start++];
+      Column c;
+      if(viewPositions!=null) {
+        c=columns[viewPositions[start++]];
+      }else {
+        c= columns[start++];
+      }
 
       if (c.isVisible()) {
         width += c.getWidth() + d;
@@ -437,7 +442,7 @@ public class TableHelper {
   }
 
   public static int getPreferredSpanWidth(iPlatformComponent comp, int tableWidth, int start, int span,
-          Column[] columns) {
+          Column[] columns,int[] viewPositions) {
     int width = 0;
     int len   = columns.length;
 
@@ -454,8 +459,12 @@ public class TableHelper {
     float d = ScreenUtils.PLATFORM_PIXELS_1;
 
     while(start < span) {
-      Column c = columns[start++];
-
+      Column c;
+      if(viewPositions!=null) {
+        c=columns[viewPositions[start++]];
+      }else {
+        c= columns[start++];
+      }
       if (c.isVisible()) {
         width += c.calculatePreferedWidth(comp, tableWidth) + d;
       }

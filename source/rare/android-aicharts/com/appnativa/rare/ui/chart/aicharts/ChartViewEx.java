@@ -57,7 +57,7 @@ public class ChartViewEx extends ChartView implements iPainterSupport {
 
   public ChartViewEx(Context context, AttributeSet attrs) {
     super(context, attrs);
-    setBackgroundDrawable(NullDrawable.getInstance());
+    setBackground(NullDrawable.getInstance());
 
     if (attrs == null) {
       UIColor bg = Platform.getUIDefaults().getColor("Rare.Chart.background");

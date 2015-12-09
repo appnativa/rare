@@ -37,7 +37,7 @@ public class WaitCursorHandler {
 
   public static void showProgressPopup(final iPlatformComponent comp, final CharSequence message,
           final iCancelable cancelable) {
-    Platform.runOnUIThread(new StartRunnable(message, cancelable, 0));
+    Platform.runOnUIThread(new StartRunnable(message, cancelable, Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200)));
   }
 
   public static void showProgressPopup(final iPlatformComponent comp, final CharSequence message,

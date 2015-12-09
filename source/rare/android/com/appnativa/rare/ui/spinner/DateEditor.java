@@ -15,13 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.spinner;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -29,26 +29,29 @@ import java.text.AttributedCharacterIterator;
 import java.text.CharacterIterator;
 import java.text.DateFormat;
 import java.text.Format;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+
+import com.appnativa.rare.ui.KeyboardType;
 
 /**
  *
  * @author Don DeCoteau
  */
+@SuppressLint("ClickableViewAccessibility")
 public class DateEditor extends DefaultEditor
         implements View.OnTouchListener, SpinnerDateModel.iIncrementFiedlCallback {
   private static final Format.Field[]   EMPTY_FIELD_ARRAY = new Format.Field[0];
   protected AttributedCharacterIterator iterator;
-  private boolean                       incrementFieldDirty;
+  private boolean                       incrementFieldDirty=true;
 
   public DateEditor(Context context, SpinnerDateModel model) {
     super(context, model);
     model.setIncrementFiedlCallback(this);
   }
 
+  @Override
   public void setValue(Object value) {
     String v = spinnerModel.toString(value);
 
@@ -62,6 +65,7 @@ public class DateEditor extends DefaultEditor
     }
   }
 
+  @Override
   public int getIncrementField(SpinnerDateModel model) {
     int oldcf = model.getIncrementField();
     int cf    = -1;
@@ -76,24 +80,26 @@ public class DateEditor extends DefaultEditor
   }
 
   boolean select(DateFormat.Field field) {
-    iterator.first();
+    if (iterator != null) {
+      iterator.first();
 
-    int max = editorView.getText().length();
+      int max = editorView.getText().length();
 
-    do {
-      Map attrs = iterator.getAttributes();
+      do {
+        Map attrs = iterator.getAttributes();
 
-      if ((attrs != null) && attrs.containsKey(field)) {
-        int start = iterator.getRunStart(field);
-        int end   = iterator.getRunLimit(field);
+        if ((attrs != null) && attrs.containsKey(field)) {
+          int start = iterator.getRunStart(field);
+          int end   = iterator.getRunLimit(field);
 
-        if ((start != -1) && (end != -1) && (start <= max) && (end <= max)) {
-          editorView.setSelection(start, end);
+          if ((start != -1) && (end != -1) && (start <= max) && (end <= max)) {
+            editorView.setSelection(start, end);
+          }
+
+          return true;
         }
-
-        return true;
-      }
-    } while(iterator.next() != CharacterIterator.DONE);
+      } while(iterator.next() != CharacterIterator.DONE);
+    }
 
     return false;
   }
@@ -102,6 +108,8 @@ public class DateEditor extends DefaultEditor
   protected void customizeEditor() {
     super.customizeEditor();
     editorView.setOnTouchListener(this);
+    editorView.setKeyboardType(KeyboardType.NUMBER_PUNCTUATION_TYPE);
+
   }
 
   @Override
@@ -109,30 +117,22 @@ public class DateEditor extends DefaultEditor
     super.onFocusChange(view, hasFocus);
 
     if (hasFocus) {
-      selectFeild();
+      selectField();
     }
   }
 
-  protected void selectFeild() {
+  @Override
+  public void selectField() {
     int              cf    = ((SpinnerDateModel) spinnerModel).getIncrementField();
     DateFormat.Field field = DateFormat.Field.ofCalendarField(cf);
+
+    if (field == DateFormat.Field.HOUR0) {
+      field = DateFormat.Field.HOUR1;
+    }
 
     if (field != null) {
       select(field);
       ((SpinnerDateModel) spinnerModel).setIncrementField(cf);
-    }
-  }
-
-  protected void selectFeildUnderCursor() {
-    int cf = getCalendarField();
-
-    if (cf != -1) {
-      DateFormat.Field field = DateFormat.Field.ofCalendarField(cf);
-
-      if (field != null) {
-        select(field);
-        ((SpinnerDateModel) spinnerModel).setIncrementField(cf);
-      }
     }
   }
 
@@ -170,24 +170,27 @@ public class DateEditor extends DefaultEditor
   }
 
   private Format.Field[] getFields(int index) {
-    Map attrs = null;
+    if (iterator != null) {
+      Map attrs = null;
 
-    if ((index >= 0) && (index <= iterator.getEndIndex())) {
-      iterator.setIndex(index);
-      attrs = iterator.getAttributes();
-    }
+      if ((index >= 0) && (index <= iterator.getEndIndex())) {
+        iterator.setIndex(index);
+        attrs = iterator.getAttributes();
+      }
 
-    if ((attrs != null) && (attrs.size() > 0)) {
-      ArrayList al = new ArrayList();
+      if ((attrs != null) && (attrs.size() > 0)) {
+        ArrayList al = new ArrayList();
 
-      al.addAll(attrs.keySet());
+        al.addAll(attrs.keySet());
 
-      return (Format.Field[]) al.toArray(EMPTY_FIELD_ARRAY);
+        return (Format.Field[]) al.toArray(EMPTY_FIELD_ARRAY);
+      }
     }
 
     return EMPTY_FIELD_ARRAY;
   }
 
+  @Override
   public boolean onTouch(View view, MotionEvent me) {
     if (me.getAction() == MotionEvent.ACTION_UP) {
       incrementFieldDirty = true;

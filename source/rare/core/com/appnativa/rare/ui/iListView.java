@@ -32,7 +32,7 @@ public interface iListView {
 
   void addSelectionIndex(int index);
 
-  void clearPopupMenuIndex();
+  void clearContextMenuIndex();
 
   void scrollRowToVisible(int row);
 
@@ -76,7 +76,7 @@ public interface iListView {
 
   iPlatformComponent getListComponent();
 
-  int getPopupMenuIndex();
+  int getContextMenuIndex();
 
   int getSelectedIndex();
 
@@ -98,6 +98,8 @@ public interface iListView {
 
   void makeSelectionVisible();
 
+  public void repaintRow(int row);
+  
   /**
    * Gets whether the table should keep it's selection visible
    * when the size of the table is changed.

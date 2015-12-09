@@ -21,6 +21,7 @@
 package com.appnativa.rare.platform.apple.ui.view;
 
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIPoint;
@@ -44,6 +45,7 @@ public class PopupWindow extends Window implements iPopup {
   float           x                     = Short.MIN_VALUE;
   float           y                     = Short.MIN_VALUE;
   private boolean requestFocusWhenShown = true;
+  EventListenerList listenerList;
 
   public PopupWindow() {
     this(false);
@@ -56,7 +58,11 @@ public class PopupWindow extends Window implements iPopup {
       setDecorated(decorated);
     }
   }
-
+  @Override
+  public void disposeEx() {
+    super.disposeEx();
+    listenerList=null;
+  }
   protected PopupWindow(Object nsview) {
     super(nsview);
   }
@@ -122,7 +128,7 @@ public class PopupWindow extends Window implements iPopup {
   public void showPopup() {
     showPopup(null, x, y);
   }
-
+  
   @Override
   public void showPopup(float x, float y) {
     showPopup(null, x, y);
@@ -146,6 +152,7 @@ public class PopupWindow extends Window implements iPopup {
   public void showPopup(iPlatformComponent ref, float x, float y) {
     this.x = x;
     this.y = y;
+    PlatformHelper.hideVirtualKeyboard(ref);
 
     if (!sizeSet) {
       pack();
@@ -203,7 +210,6 @@ public class PopupWindow extends Window implements iPopup {
 
   @Override
   public void setOptions(Map<String, String> options) {
-    // TODO Auto-generated method stub
   }
 
   @Override
@@ -224,7 +230,7 @@ public class PopupWindow extends Window implements iPopup {
   @Override
   public native void setTimeout(int timeout)
   /*-[
-        ((RAREAPPopupWindow*)proxy_).timeout=(NSInteger)ceil(timeout/1000);
+        ((RAREAPPopupWindow*)proxy_).timeout=(NSInteger)ceil(timeout/1000.0);
   ]-*/
   ;
 
@@ -239,9 +245,9 @@ public class PopupWindow extends Window implements iPopup {
 
         return true;
       }
+      return false;
     }
-
-    return false;
+    return true;
   }
 
   @Override

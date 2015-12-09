@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: appNativa Rare
 Bundle-SymbolicName: com.appnativa.rare
-Bundle-Version: 1.4
+Bundle-Version: 1.5.1
 Bundle-ClassPath: js.jar,
  swingx-all-1.6.4.jar,
  jlayer.jar,

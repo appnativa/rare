@@ -15,22 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.iScrollerSupport;
-import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -45,6 +33,18 @@ import javax.swing.JComponent;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.iScrollerSupport;
+import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -83,11 +83,8 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
     super(view, vsbPolicy, hsbPolicy);
     setLayout(new ScrollPaneLayoutEx());
     setViewportBorder(BorderUtils.EMPTY_BORDER);
-    SwingHelper.configureScrollPaneCornerFromUIProperty(this, Platform.getUIDefaults().get("Rare.ScrollPane.urCorner"),
-            ScrollPaneLayoutEx.RARE_SCROLLBAR_UR_CORNER);
-    SwingHelper.configureScrollPaneCornerFromUIProperty(this, Platform.getUIDefaults().get("Rare.ScrollPane.lrCorner"),
-            ScrollPaneLayoutEx.RARE_SCROLLBAR_LR_CORNER);
     setBorder(BorderUtils.EMPTY_BORDER);
+    setBackground(ColorUtils.getBackground());
   }
 
   public void addSlaveViewport(JViewportEx vp, boolean horizontal) {
@@ -162,24 +159,8 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   }
 
   @Override
-  public java.awt.Component getCorner(String key) {
-    if (key.startsWith("HORIZONTAL") || key.startsWith("VERTICAL")) {
-      return getCorner(key);
-    } else if (!key.startsWith("RARE_") ||!(getLayout() instanceof ScrollPaneLayoutEx)) {
-      return super.getCorner(key);
-    }
-
-    ScrollPaneLayoutEx l = (ScrollPaneLayoutEx) getLayout();
-
-    if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_UR_CORNER)) {
-      return l._urCorner;
-    } else if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_LR_CORNER)) {
-      return l._lrCorner;
-    } else if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_LL_CORNER)) {
-      return l._llCorner;
-    }
-
-    return null;
+  public void setContentOffset(float x, float y) {
+    getViewport().setViewPosition(new Point((int) x, (int) y));
   }
 
   /**
@@ -190,7 +171,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     Dimension d = getMinimumSize();
 
     size.width  = d.width;
@@ -466,6 +447,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
     if (columnFooter == null) {
       columnFooter = new JViewportEx();
       add(columnFooter, ScrollPaneLayoutEx.RARE_COLUMN_FOOTER);
+      addSlaveViewport(columnFooter, true);
     }
 
     columnFooter.setView(view);
@@ -474,54 +456,6 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     this.componentPainter = cp;
-  }
-
-  @Override
-  public void setCorner(String key, java.awt.Component corner) {
-    if (key.startsWith("HORIZONTAL") || key.startsWith("VERTICAL")) {
-      super.setCorner(key, corner);
-
-      return;
-    }
-
-    if (!(getLayout() instanceof ScrollPaneLayoutEx)) {
-      super.setCorner(key, corner);
-
-      return;
-    }
-
-    ScrollPaneLayoutEx l     = (ScrollPaneLayoutEx) getLayout();
-    java.awt.Component old   = null;
-    boolean            found = false;
-
-    if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_UR_CORNER)) {
-      old   = l._urCorner;
-      found = true;
-    } else if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_LR_CORNER)) {
-      old   = l._lrCorner;
-      found = true;
-    } else if (key.equals(ScrollPaneLayoutEx.RARE_SCROLLBAR_LL_CORNER)) {
-      old   = l._llCorner;
-      found = true;
-    }
-
-    if (!found) {
-      super.setCorner(key, corner);
-
-      return;
-    }
-
-    if (old != null) {
-      remove(old);
-    }
-
-    if (corner != null) {
-      add(corner, key);
-    }
-
-    firePropertyChange(key, old, corner);
-    revalidate();
-    repaint();
   }
 
   /**
@@ -567,6 +501,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
     if (rowFooter == null) {
       rowFooter = new JViewportEx();
       add(rowFooter, ScrollPaneLayoutEx.RARE_ROW_FOOTER);
+      addSlaveViewport(rowFooter, false);
     }
 
     rowFooter.setView(view);

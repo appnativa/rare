@@ -51,6 +51,7 @@ public class ImageDrawable extends ShapeDrawable {
     setImage(image);
   }
 
+  @Override
   public void draw(Canvas g) {
     if (theImage == null) {
       return;

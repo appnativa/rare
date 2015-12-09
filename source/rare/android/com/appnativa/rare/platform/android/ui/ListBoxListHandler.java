@@ -45,12 +45,14 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     super(view, model);
   }
 
+  @Override
   public void addSelectionIndex(int index) {
     if ((index > -1) && (index < getItemCount())) {
       getListView().setItemChecked(index, true);
     }
   }
 
+  @Override
   public void clear() {
     final boolean empty = isEmpty();
 
@@ -62,14 +64,15 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
   }
 
   @Override
-  public void clearPopupMenuIndex() {
+  public void clearContextMenuIndex() {
     ListView v = getListView();
 
     if (v instanceof ListViewEx) {
-      ((ListViewEx) getListView()).clearPopupMenuIndex();
+      getListView().clearContextMenuIndex();
     }
   }
 
+  @Override
   public void removeSelection(int index) {
     if ((index > -1) && (index < getItemCount())) {
       ListView lv = getListView();
@@ -77,7 +80,12 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
       lv.setItemChecked(index, false);
     }
   }
-
+  
+  @Override
+  public void repaintRow(int row) {
+    getListView().invalidate();
+    
+  }
   @Override
   public void scrollRowToTop(int row) {
     getListView().scrollRowToTop(row);
@@ -88,10 +96,12 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     getListView().scrollRowToBottom(row);
   }
 
+  @Override
   public void scrollRowToVisible(final int row) {
     getListView().scrollRowToVisible(row);
   }
 
+  @Override
   public void selectAll() {
     int      len = listModel.size();
     ListView lv  = getListView();
@@ -101,34 +111,47 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     }
   }
 
+  @Override
   public void sizeRowsToFit() {
     getAdapterView().requestLayout();
   }
 
+  @Override
   public boolean isAtBottomEdge() {
     return getListView().isAtBottomEdge();
   }
 
+  @Override
   public boolean isAtLeftEdge() {
     return getListView().isAtLeftEdge();
   }
 
+  @Override
   public boolean isAtRightEdge() {
     return getListView().isAtRightEdge();
   }
 
+  @Override
   public boolean isAtTopEdge() {
     return getListView().isAtTopEdge();
   }
 
+  @Override
   public UIPoint getContentOffset() {
     return getListView().getContentOffset();
   }
-
+  
+  @Override
+  public void setContentOffset(float x, float y) {
+    getListView().setContentOffset(x, y);
+  }
+  
+  @Override
   public boolean isScrolling() {
     return getListView().isScrolling();
   }
 
+  @Override
   public void setListSelectable(boolean selectable) {
     if (!selectable) {
       choiceMode = getListView().getChoiceMode();
@@ -138,6 +161,7 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     }
   }
 
+  @Override
   public void setSelectedIndex(int index) {
     ListView lv = getListView();
 
@@ -159,6 +183,7 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     lv.setItemChecked(index, true);
   }
 
+  @Override
   public void setSelectedIndexes(int[] indexes) {
     ListView lv = getListView();
 
@@ -173,19 +198,22 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     }
   }
 
+  @Override
   public int getMaxSelectionIndex() {
     return getListView().getMaxSelectionIndex();
   }
 
+  @Override
   public int getMinSelectionIndex() {
     return getListView().getMinSelectionIndex();
   }
 
   @Override
-  public int getPopupMenuIndex() {
-    return getListView().getPopupMenuIndex();
+  public int getContextMenuIndex() {
+    return getListView().getContextMenuIndex();
   }
 
+  @Override
   public int getPreferredHeight(int row) {
     if ((row < 0) || (row > getItemCount())) {
       return ScreenUtils.lineHeight(getListComponent());
@@ -196,8 +224,9 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     return v.getMeasuredHeight();
   }
 
+  @Override
   public UIRectangle getRowBounds(int row0, int row1) {
-    ListViewEx lv  = (ListViewEx) getListView();
+    ListViewEx lv  = getListView();
     int        len = lv.getCount();
 
     if ((row0 < 0) || (row0 > row1) || (row0 > len) || (row1 > len)) {
@@ -228,22 +257,27 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
     return new UIRectangle(0, 0, 0, 0);
   }
 
+  @Override
   public int getRowIndexAt(float x, float y) {
     return ((ListView) getAdapterView()).pointToPosition((int) x, (int) y);
   }
 
+  @Override
   public int getSelectedIndex() {
     return getListView().getSelectedIndex();
   }
 
+  @Override
   public int getSelectedIndexCount() {
     return getListView().getSelectedIndexCount();
   }
 
+  @Override
   public int[] getSelectedIndexes() {
     return getListView().getSelectedIndexes();
   }
 
+  @Override
   public RenderableDataItem getSelectedItem() {
     int n = getSelectedIndex();
 
@@ -252,10 +286,12 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
            : listModel.get(n);
   }
 
+  @Override
   public boolean isListSelectable() {
     return getListView().getChoiceMode() != ListView.CHOICE_MODE_NONE;
   }
 
+  @Override
   public boolean isRowSelected(int row) {
     return getListView().isItemChecked(row);
   }

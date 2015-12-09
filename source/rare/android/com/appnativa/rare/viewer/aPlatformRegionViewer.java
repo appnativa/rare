@@ -50,6 +50,7 @@ public abstract class aPlatformRegionViewer extends aRegionViewer {
     super(parent);
   }
 
+  @Override
   protected iParentComponent createPanel(CollapsibleInfo cinfo) {
     iParentComponent panel;
 
@@ -82,8 +83,10 @@ public abstract class aPlatformRegionViewer extends aRegionViewer {
    *
    * @return the new target
    */
+  @Override
   protected iTarget createTarget(String name, iParentComponent container) {
     UITarget t = new UITarget(getAppContext(), name, container) {
+      @Override
       public void setVisible(boolean visible) {
         if (isVisible() != visible) {
           super.setVisible(visible);

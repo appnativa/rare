@@ -35,7 +35,7 @@ public abstract class aTabStripComponent extends XPContainer {
   public abstract void setTabPainter(aPlatformTabPainter painter);
 
   @Override
-  public void getMinimumSizeEx(UIDimension size) {
+  public void getMinimumSizeEx(UIDimension size, float maxWidth) {
     getTabPainter().getMinimumSize(size);
   }
 

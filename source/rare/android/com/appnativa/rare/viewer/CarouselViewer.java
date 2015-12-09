@@ -32,10 +32,12 @@ import com.appnativa.rare.ui.carousel.aCarouselPanel.DataType;
  * @author Don DeCcoteau
  */
 public class CarouselViewer extends aCarouselViewer {
+  @Override
   protected iExecutionHandler createExecutionHandler(int threads) {
     return new ExecutionHandler(threads);
   }
 
+  @Override
   protected aCarouselPanel createComponents(Carousel cfg, DataType type) {
     CarouselContainer comp = new CarouselContainer(dataType, getAppContext().getActivity());
 

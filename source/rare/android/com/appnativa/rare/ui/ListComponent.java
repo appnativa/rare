@@ -15,25 +15,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
-import android.widget.AbsListView;
+import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 
 public class ListComponent extends ScrollPanePanel {
-  public ListComponent(AbsListView view) {
+  public ListComponent(ListViewEx view) {
     super(view);
     setForeground(ColorUtils.getListForeground());
     setBackground(ColorUtils.getListBackground());
+  }
 
-    UIColor c = ColorUtils.getListDisabledForeground();
-
-    if (c == null) {
-      c = ColorUtils.getDisabledForeground();
-    }
-
-    setDisabledColor(c);
+  @Override
+  public void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    ((ListViewEx) view).getPreferredSize(this, size, maxWidth);
   }
 }

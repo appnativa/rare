@@ -62,6 +62,7 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
   LinearPanel                   toolbarComponent;
   int                           visibleButtons;
   private boolean               showTitleText;
+  private iActionListener actionListener;
 
   public ActionBar(iWidget context, MenuBar cfg) {
     super("f:d,f:d:g,f:d", "c:d,c:d:g,c:d");
@@ -259,16 +260,24 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
 
   @Override
   public void remove(UIMenuItem mi) {
-    if (popupMenu != null) {
+    if (popupMenu != null && mi!=null) {
       int i = popupMenu.indexOf(mi);
 
       if (i != -1) {
+        popupMenu.remove(i);
         buttons.remove(i);
-
+        
         if (!separators.isEmpty()) {
           separators.remove(separators.size() - 1);
         }
+        reset();
       }
+    }
+  }
+  
+  public void remove(String actionName) {
+    if (popupMenu != null) {
+      remove(popupMenu.getMenuItem(actionName));
     }
   }
 
@@ -317,11 +326,14 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
   }
 
   public void setMenu(UIPopupMenu pm) {
+    popupMenu=pm;
+    buttons.clear();
+    separators.clear();
     if (showButtons) {
       int len = pm.size();
 
       for (int i = 0; i < len; i++) {
-        iActionComponent c = createButton(popupMenu.getMenuItem(i));
+        iActionComponent c = createButton(pm.getMenuItem(i));
 
         buttons.add(c);
 
@@ -330,6 +342,7 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
         }
       }
     }
+    reset();
   }
 
   public void setSecondaryTitle(iPlatformComponent comp) {
@@ -396,7 +409,6 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
       if (getForegroundEx() != null) {
         titleComponent.setForeground(getForegroundEx());
       }
-
       if (getFontEx() != null) {
         titleComponent.setFont(getFontEx());
       }
@@ -407,8 +419,12 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
     }
   }
 
-  public void setTitleAction(UIAction a) {
-    titleComponent.setAction(a);
+  public void setTitleAction(iActionListener l) {
+    if(actionListener!=null) {
+      titleComponent.removeActionListener(actionListener);
+    }
+    actionListener=l;
+    titleComponent.addActionListener(l);
   }
 
   @Override
@@ -453,8 +469,8 @@ public class ActionBar extends BorderPanel implements iActionListener, iMenuBarC
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    getPreferredSizeEx(size, 0);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    getPreferredSizeEx(size, maxWidth);
 
     float h = size.height;
 

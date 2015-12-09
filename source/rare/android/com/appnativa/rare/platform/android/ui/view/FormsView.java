@@ -58,6 +58,7 @@ public class FormsView extends ViewGroupEx {
     this.layout = layout;
   }
 
+  @Override
   public void addView(View child, int index, LayoutParams params) {
     super.addView(child, index, params);
 
@@ -83,6 +84,7 @@ public class FormsView extends ViewGroupEx {
     }
   }
 
+  @Override
   public void draw(Canvas canvas) {
     if (matrix != null) {
       canvas.concat(matrix);
@@ -103,6 +105,7 @@ public class FormsView extends ViewGroupEx {
     graphics.clear();
   }
 
+  @Override
   public void requestLayout() {
     if (layout != null) {
       getLayout().invalidateCaches();
@@ -210,6 +213,7 @@ public class FormsView extends ViewGroupEx {
     }
   }
 
+  @Override
   protected void callSuperDraw(Canvas canvas) {
     super.draw(canvas);
   }
@@ -225,6 +229,7 @@ public class FormsView extends ViewGroupEx {
    *   a height of {@link android.view.ViewGroup.LayoutParams#WRAP_CONTENT}
    *   and with the coordinates (0, 0).
    */
+  @Override
   protected ViewGroup.LayoutParams generateDefaultLayoutParams() {
     return new CellConstraintsEx();
   }
@@ -243,6 +248,7 @@ public class FormsView extends ViewGroupEx {
     paintCells(canvas);
   }
 
+  @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     if (isAnimating(this)) {
       return;
@@ -263,6 +269,7 @@ public class FormsView extends ViewGroupEx {
     adjustPainters(x, y);
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     iParentComponent container = (iParentComponent) Component.fromView(this);
 
@@ -319,6 +326,7 @@ public class FormsView extends ViewGroupEx {
     }
   }
 
+  @Override
   protected int getSuggestedMinimum(boolean forHeight) {
     iParentComponent container = (iParentComponent) Component.fromView(this);
 
@@ -342,6 +350,7 @@ public class FormsView extends ViewGroupEx {
       this.cc = cc;
     }
 
+    @Override
     protected Object clone() {
       try {
         CellConstraintsEx c = (CellConstraintsEx) super.clone();

@@ -265,4 +265,14 @@ public class NullDrawable extends ColorDrawable implements iPlatformIcon, iPlatf
   public iPlatformPath getPath(iPlatformPath p, float x, float y, float width, float height, boolean forClip) {
     return null;
   }
+
+  @Override
+  public boolean isFocusAware() {
+    return false;
+  }
+
+  @Override
+  public boolean isEnabledStateAware() {
+    return false;
+  }
 }

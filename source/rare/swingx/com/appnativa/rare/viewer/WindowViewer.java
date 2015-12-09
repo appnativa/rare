@@ -15,11 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.ui.DragHandler;
 import com.appnativa.rare.scripting.iScriptHandler;
@@ -28,6 +29,7 @@ import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
+import com.appnativa.rare.ui.UISoundHelper;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iWindow;
@@ -41,6 +43,8 @@ import com.appnativa.rare.widget.iWidget;
 import java.io.IOException;
 
 import java.net.URL;
+
+import java.util.List;
 
 import javax.swing.JComponent;
 
@@ -71,6 +75,28 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     }
 
     dragHandler.addAsWindowDragger(c);
+  }
+
+  @Override
+  public void setIcon(iPlatformIcon icon) {
+    super.setIcon(icon);
+
+    if (theWindow instanceof Frame) {
+      ((Frame) theWindow).setIcon(icon);
+    }
+  }
+
+  @Override
+  public iPlatformIcon getIcon() {
+    if (windowParent == null) {
+      List<UIImageIcon> list = Platform.getAppContext().getWindowManager().getWindowIcons();
+
+      if ((list != null) &&!list.isEmpty()) {
+        return list.get(0);
+      }
+    }
+
+    return super.getIcon();
   }
 
   @Override
@@ -147,6 +173,11 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     }
 
     super.dispose();
+  }
+
+  @Override
+  public void buzz() {
+    UISoundHelper.beep();
   }
 
   @Override

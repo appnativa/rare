@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -34,6 +34,7 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
   protected boolean          sizeSet;
   protected boolean          square;
   protected int              widthPad;
+  protected int modCount;
 
   /**
    * Creates a new instance
@@ -71,6 +72,10 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
       label.setFont(font);
     }
 
+    if (fg != null) {
+      setForegroundColor(fg);
+    }
+
     setBorder(border);
     setText(text);
   }
@@ -80,33 +85,39 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
     aUITextIcon ic = (aUITextIcon) super.clone();
 
     ic.label = (iActionComponent) label.copy();
-
+    ic.modCount=0;
     return ic;
   }
 
   public void setBackgroundColor(UIColor bg) {
     label.setBackground(bg);
+    modCount++;
   }
 
   public void setBorder(iPlatformBorder border) {
     if (border != this.border) {
       this.border = border;
       label.setBorder(border);
+      modCount++;
+      updateSize();
     }
   }
 
   public void setFont(UIFont font) {
     label.setFont(font);
+    modCount++;
   }
 
   public void setForegroundColor(UIColor fg) {
     label.setForeground(fg);
+    modCount++;
   }
 
   public void setPadding(int width, int height) {
     heightPad = height;
     widthPad  = width;
     updateSize();
+    modCount++;
   }
 
   @Override
@@ -185,6 +196,7 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
 
         break;
     }
+    modCount++;
   }
 
   /**
@@ -201,6 +213,7 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
       label.setSize(size.width, size.height);
       this.size.setSize(size);
     }
+    modCount++;
   }
 
   public void setSquare(boolean square) {
@@ -212,6 +225,7 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
 
       size.setSize(s, s);
       label.setSize(size.width, size.height);
+      modCount++;
     }
   }
 
@@ -223,6 +237,7 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
   public void setText(CharSequence text) {
     label.setText(text);
     updateSize();
+    modCount++;
   }
 
   @Override
@@ -310,12 +325,20 @@ public abstract class aUITextIcon extends aUIPlatformPainter implements iPlatfor
 
   protected abstract iActionComponent createComponent();
 
+  /**
+   * Resets the size of the icon to its default
+   */
+  public void resetSize() {
+    sizeSet = false;
+    updateSize();
+  }
+
   protected void updateSize() {
     if (!sizeSet) {
       size             = label.getPreferredSize();
       this.size.width  += widthPad;
       this.size.height += heightPad;
-      label.setSize(size.width, size.height);
+      label.setBounds(0, 0,size.width, size.height);
       setSquare(square);
     }
   }

@@ -247,7 +247,7 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     size.width  = 0;
     size.height = 0;
   }
@@ -276,7 +276,8 @@ public class JPanelEx extends JPanel implements iPainterSupport, iView, LayoutMa
     return !shapedBorder && super.isOpaque();
   }
 
-  protected void layoutContainerEx(int width, int height) {}
+  protected void layoutContainerEx(int width, int height) {
+  }
 
   @Override
   protected void paintBorder(Graphics g) {

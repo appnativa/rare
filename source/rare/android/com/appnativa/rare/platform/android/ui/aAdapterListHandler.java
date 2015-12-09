@@ -169,7 +169,7 @@ public abstract class aAdapterListHandler extends AbstractList<RenderableDataIte
     listModel.clear();
   }
 
-  public abstract void clearPopupMenuIndex();
+  public abstract void clearContextMenuIndex();
 
   public void clearSelection() {
     lastSelected = null;
@@ -297,7 +297,7 @@ public abstract class aAdapterListHandler extends AbstractList<RenderableDataIte
    * @return true if the component is the current focus owner; false otherwise
    */
   public static boolean focusEvent(iListHandler listComponent, FocusEvent e, boolean focusOwner) {
-    if (e.getID() == FocusEvent.FOCUS_GAINED) {
+    if (e.wasFocusGained()) {
       boolean hs = listComponent.hasSelection();
 
       if (!focusOwner && hs) {
@@ -929,10 +929,10 @@ public abstract class aAdapterListHandler extends AbstractList<RenderableDataIte
     return minVisibleRowCount;
   }
 
-  public abstract int getPopupMenuIndex();
+  public abstract int getContextMenuIndex();
 
-  public RenderableDataItem getPopupMenuItem() {
-    final int n = getPopupMenuIndex();
+  public RenderableDataItem getContextMenuItem() {
+    final int n = getContextMenuIndex();
 
     return (n == -1)
            ? null

@@ -79,12 +79,7 @@ public class FunctionHelper {
       [NSException raise:@"Unable to encrypt value" format:@"error code is %d", result];
     }
     if(base64) {
-      if([cipherData respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
-        return [cipherData base64EncodedStringWithOptions:0];
-      }
-      else {
-        return [cipherData base64Encoding];
-      }
+      return [cipherData base64EncodedStringWithOptions:kNilOptions];
     }
 
     return [[NSString alloc] initWithData:cipherData encoding:NSISOLatin1StringEncoding];
@@ -205,12 +200,7 @@ public class FunctionHelper {
      CCHmac(kCCHmacAlgMD5, cKey, (CC_LONG)strlen(cKey), cData, (CC_LONG)strlen(cData), digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_MD5_DIGEST_LENGTH];
-        if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
-          return [data base64EncodedStringWithOptions:0];
-        }
-        else {
-          return [data base64Encoding];
-        }
+        return [data base64EncodedStringWithOptions:kNilOptions];
      }
      return [[NSString alloc] initWithBytes:digest
      length:CC_MD5_DIGEST_LENGTH
@@ -229,12 +219,7 @@ public class FunctionHelper {
     CCHmac(kCCHmacAlgSHA256, cKey, (CC_LONG)strlen(cKey), cData, (CC_LONG)strlen(cData), digest);
     if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_SHA256_DIGEST_LENGTH];
-        if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
-          return [data base64EncodedStringWithOptions:0];
-        }
-        else {
-          return [data base64Encoding];
-        }
+        return [data base64EncodedStringWithOptions:kNilOptions];
     }
     return [[NSString alloc] initWithBytes:digest
                                     length:CC_SHA256_DIGEST_LENGTH
@@ -251,12 +236,7 @@ public class FunctionHelper {
      CC_MD5(bytes, (CC_LONG)strlen(bytes), digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_MD5_DIGEST_LENGTH];
-        if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
-          return [data base64EncodedStringWithOptions:0];
-        }
-        else {
-          return [data base64Encoding];
-        }
+        return [data base64EncodedStringWithOptions:kNilOptions];
      }
      return [[NSString alloc] initWithBytes:digest
                                      length:CC_MD5_DIGEST_LENGTH
@@ -273,12 +253,7 @@ public class FunctionHelper {
      CC_SHA1(bytes, (CC_LONG)val->size_, digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
-        if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
-          return [data base64EncodedStringWithOptions:0];
-        }
-        else {
-          return [data base64Encoding];
-        }
+        return [data base64EncodedStringWithOptions:kNilOptions];
      }
      return [[NSString alloc] initWithBytes:digest
                                      length:CC_SHA1_DIGEST_LENGTH
@@ -295,12 +270,7 @@ public class FunctionHelper {
      CC_SHA1(bytes, (CC_LONG)strlen(bytes), digest);
      if(base64) {
         NSData* data=[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH];
-        if([data respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
-          return [data base64EncodedStringWithOptions:0];
-        }
-        else {
-          return [data base64Encoding];
-        }
+        return [data base64EncodedStringWithOptions:kNilOptions];
      }
      return [[NSString alloc] initWithBytes:digest
                                      length:CC_SHA1_DIGEST_LENGTH

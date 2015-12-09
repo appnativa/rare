@@ -32,11 +32,11 @@ public interface iConstants {
   static final String   APPLICATION_DOCBASE               = "%documentBase";
   static final String   APPLICATION_DOC_SERVERBASE        = "%documentServerBase";
   static final String   APPLICATION_NAME_STRING           = "Rare";
-  static final String   APPLICATION_NAME_VERSION_STRING   = "Rare v3.3";
+  static final String   APPLICATION_NAME_VERSION_STRING   = "Rare v3.5";
   static final String   APPLICATION_SERVERBASE            = "%serverBase";
   static final String   APPLICATION_URL                   = "%applicationURL";
-  static final double   APPLICATION_VERSION               = 3.3;
-  static final String   APPLICATION_VERSION_STRING        = "3.3";
+  static final double   APPLICATION_VERSION               = 3.5;
+  static final String   APPLICATION_VERSION_STRING        = "3.5";
   static final String   APP_ACTION_PREFIX                 = "rareapp.action.";
   static final String   ATTRIBUTE_FOCUS_CHANGE            = "onFocusChange";
   static final String   ATTRIBUTE_FUNCTION_EVAL           = "functonEvaluation";
@@ -217,13 +217,13 @@ public interface iConstants {
   static final String   REPLACE_ACTION_NAME               = "Rare.action.replace";
   static final String   RESET_ACTION_NAME                 = "Rare.action.reset";
   static final String   RESOURCE_PREFIX                   = "resource:";
+  static final String   UIPROPERTY_PREFIX                 = "uiproperty:";
   static final String   RICHTEXT_MIME_TYPE                = "text/richtext";
   static final String   RJAR_PROTOCOL_STRING              = "rjar";
   static final String   RTF_MIME_TYPE                     = "application/rtf";
   static final String   RARE_ACTIONS_PROPERTY             = "__RARE_ACTIONS_PROPERTY__";
   static final String   RARE_CREATEPRESSED_ICON           = "__RARE_CREATEPRESSED_ICON__";
   static final String   RARE_DISABLEDCOLOR_PROPERTY       = "__RARE_DISABLEDCOLOR_PROPERTY__";
-  static final String   RARE_PAINTBUCKET_PROPERTY         = "__RARE_PAINTBUCKET_PROPERTY__";
   static final String   RARE_FILLCOLOR_PROPERTY           = "__RARE_FILLCOLOR_PROPERTY__";
   static final String   RARE_FOCUSPAINTED_PROPERTY        = "__RARE_FOCUSPAINTED_PROPERTY__";
   static final String   RARE_MIN_HEIGHT_PROPERTY          = "__RARE_MIN_HEIGHT_PROPERTY__";
@@ -257,7 +257,6 @@ public interface iConstants {
   static final String   RARE_WINDOW_TRANSLUCENCY          = "__RARE_WINDOW_TRANSLUCENCY__";
   static final String   RARE_WINDOW_USEBORDERSHAPE        = "__RARE_WINDOW_USEBORDERSHAPE__";
   static final String   RARE_WINDOW_BORDERSIZE            = "__RARE_WINDOW_BORDERSIZE__";
-  static final String   RARE_WINDOW_TITLELINK             = "__RARE_WINDOW_TITLELINK__";
   static final String   RARE_WINDOW_RESIZABLE             = "__RARE_WINDOW_RESIZABLE__";
   static final String   RARE_WINDOW_RESIZECORNER          = "__RARE_WINDOW_RESIZECORNER__";
   static final String   RARE_UNMANAGED_COMPONENT          = "__RARE_UNMANAGED_COMPONENT__";
@@ -276,7 +275,7 @@ public interface iConstants {
   static final String   FILE_OPEN_ACTION_NAME             = "Rare.action.fileOpen";
   static final String   FILE_SAVE_ACTION_NAME             = "Rare.action.fileSave";
   static final String   UNDO_MANAGER_NAME                 = "_rare_undo_manager";
-  static String         UNKNOWN_MIME_TYPE                 = "content/unknown";
+  static final String         UNKNOWN_MIME_TYPE                 = "content/unknown";
   static final String   VSCROLLBAR_BEAN_NAME              = "Rare.bean.verticalScrollbar";
   static final String   WAV_MIME_TYPE                     = "audio/x-wav";
   static final String   WIDGET_ATT_COLUMN_NAME            = "%columnName";
@@ -289,6 +288,7 @@ public interface iConstants {
   static final String   WIDGET_ATT_SELECTION_ROW          = "%selectionRow";
   static final String   WIDGET_ATT_SELECTION_ROWS         = "%selectionRows";
   static final String   WIDGET_ATT_SELECTION_VALUE        = "%selectionValue";
+  static final String   WIDGET_ATT_CTXMENU_ROW            = "%contextMenuRow";
   static final String   WIDGET_ATT_SUBMIT_VALUE           = "%submitValue";
   static final String   WIDGET_ATT_TITLE                  = "%title";
   static final String   WIDGET_ATT_VALUE                  = "%value";
@@ -306,4 +306,6 @@ public interface iConstants {
   static String         focusIndicatorForComboBoxes       = "Rare.ComboBox.focusIndicatorForComboBoxes";
   static final short    ITEM_SELECTED                     = 64;
   static final short    ITEM_INDETERMINATE                = 128;
+  static final String   PROPERTY_ENABLED = "enabled";
+ 
 }

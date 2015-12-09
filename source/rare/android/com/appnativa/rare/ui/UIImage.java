@@ -88,7 +88,6 @@ public class UIImage extends aUIImage implements Cloneable {
 
   public Object clone() {
     UIImage img = (UIImage) super.clone();
-
     img.bitmap = Bitmap.createBitmap(bitmap);
 
     return img;

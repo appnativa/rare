@@ -80,10 +80,6 @@ public class Container extends Component implements iParentComponent {
     } else {
       components.add(position, c);
     }
-
-    if (isShowing()) {
-      revalidate();
-    }
   }
 
   public int indexOf(iPlatformComponent c) {
@@ -134,10 +130,6 @@ public class Container extends Component implements iParentComponent {
   @Override
   public void removeAll() {
     removeAllEx();
-
-    if (isShowing()) {
-      revalidate();
-    }
   }
 
   public void setNeedsHiearachyInvalidated(boolean needs) {

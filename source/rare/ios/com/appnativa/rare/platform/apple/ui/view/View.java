@@ -42,7 +42,7 @@ import com.appnativa.rare.ui.iPlatformGraphics;
  ]-*/
 public class View extends aView {
   Object interactionGestureListener;
-
+  boolean removingFromSuperview;
   public View(Object nsview) {
     super(nsview);
   }
@@ -61,7 +61,7 @@ public class View extends aView {
   public native void setAlpha(float alpha)
   /*-[
     UIView * v=(UIView*)proxy_;
-  [v setAlpha:alpha];
+    [v setAlpha:alpha];
   ]-*/
   ;
 
@@ -119,7 +119,7 @@ public class View extends aView {
    [v.layer renderInContext:ctx];
   ]-*/
   ;
-
+ 
   public native void performClick()
   /*-[
     if ([proxy_ isKindOfClass:[UIControl class]]) {
@@ -128,6 +128,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void repaint()
   /*-[
     if([NSThread isMainThread]) {
@@ -154,6 +155,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void revalidate()
   /*-[
     if([NSThread isMainThread]) {
@@ -182,6 +184,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void set3DTransform(Object tx)
   /*-[
     UIView *v=(UIView*)proxy_;
@@ -197,6 +200,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void setBounds(float x, float y, float w, float h)
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -205,12 +209,14 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void setClipMask(Object nativepath)
   /*-[
      [AppleHelper setClipMaskWithLayer: [((UIView*)proxy_) layer] withPath: nativepath];
     ]-*/
   ;
 
+  @Override
   public void setComponent(Component component) {
     this.component = component;
 
@@ -219,6 +225,7 @@ public class View extends aView {
     }
   }
 
+  @Override
   public native void setFlingGestureListener(iGestureListener l)
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -227,6 +234,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public void setFont(UIFont f) {
     font = f;
   }
@@ -248,6 +256,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void setLongPressGestureListener(iGestureListener l)
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -256,6 +265,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public void setMargin(UIInsets insets) {
     if (insets == null) {
       setMargin(0, 0, 0, 0);
@@ -264,12 +274,14 @@ public class View extends aView {
     }
   }
 
+  @Override
   public native void setPaintHandlerEnabled(boolean enabled)
   /*-[
     [((UIView*)proxy_) setPaintHandlerEnabled: enabled];
   ]-*/
   ;
 
+  @Override
   public void setProxy(Object proxy) {
     this.proxy = proxy;
 
@@ -278,6 +290,7 @@ public class View extends aView {
     }
   }
 
+  @Override
   public native void setRotateGestureListener(iGestureListener l)
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -302,6 +315,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void setScaleGestureListener(iGestureListener l)
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -320,6 +334,7 @@ public class View extends aView {
    ]-*/
   ;
 
+  @Override
   public native UIRectangle getBounds(UIRectangle rect)
   /*-[
     CGRect frame= [((UIView*)proxy_) frame];
@@ -380,10 +395,26 @@ public class View extends aView {
   ]-*/
   ;
 
-  public View getParent() {
-    return (View) parentView;
-  }
+  public native View getParent() 
+  /*-[
+    UIView* view=(UIView*)proxy_;
+    view=view==nil ? nil : view.superview;
+    RAREView *v=view==nil ? nil : view.sparView;
+    if(!v && view) {
+      do {
+        view=view.superview;
+        v=view==nil ? nil :view.sparView;
+        if(v) {
+          break;
+        }
+      }while(view);
+    }
+    return v;
+  ]-*/
+  ;
 
+
+  @Override
   public native void getPreferredSize(UIDimension size, float maxWidth)
   /*-[
     CGSize s= [((UIView*)proxy_) getPreferredSize: maxWidth];
@@ -392,6 +423,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native void getSize(UIDimension size)
   /*-[
     CGRect frame= [((UIView*)proxy_) frame];
@@ -457,11 +489,11 @@ public class View extends aView {
 
   public native boolean isFocusable()
   /*-[
-     UIView* v=(UIView*)proxy_;
-     if(v.hidden) {
-       return NO;
-     }
-    return [v canBecomeFirstResponder];
+   UIView* v=(UIView*)proxy_;
+   if(v.hidden) {
+     return NO;
+   }
+   return [v canBecomeFirstResponder];
   ]-*/
   ;
 
@@ -500,6 +532,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   public native boolean isVisible()
   /*-[
     return ![((UIView*)proxy_) isHidden];
@@ -515,6 +548,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   protected native void addMouseGestureListener()
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -523,8 +557,10 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   protected native void disposeEx()
   /*-[
+    interactionGestureListener_=nil;
     UIView* v=(UIView*)proxy_;
     NSArray  *a=[v gestureRecognizers];
     NSUInteger len=a.count;
@@ -550,6 +586,7 @@ public class View extends aView {
     }
   }
 
+  @Override
   protected void handleWantsFirstInteraction() {
     if ((interactionGestureListener == null) &&!hasHadInteraction()) {
       interactionGestureListener = addInteractionGestureListener();
@@ -568,6 +605,7 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   protected native void setEnabledEx(boolean b)
   /*-[
     UIView* v=(UIView*)proxy_;
@@ -584,21 +622,24 @@ public class View extends aView {
       else {
         enabledAlpha_=v.alpha;
         enabledInteraction_=v.userInteractionEnabled;
-        v.alpha=v.alpha*0.5;
+        v.alpha=0.5;
         v.userInteractionEnabled = NO ;
       }
     }
   ]-*/
   ;
 
+  @Override
   protected native void setFocusListenerEnabled(boolean enabled)
   /*-[
     [((UIView*)proxy_) setFocusListenerEnabled: enabled];
   ]-*/
   ;
 
+  @Override
   protected void setForegroundColorEx(UIColor fg) {}
 
+  @Override
   protected native void setKeyBoardListenerEnabled(boolean enabled)
   /*-[
     [((UIView*)proxy_) setKeyBoardListenerEnabled: enabled];
@@ -629,18 +670,21 @@ public class View extends aView {
   ]-*/
   ;
 
+  @Override
   protected native void setVisibleEx(boolean visible)
   /*-[
     [((UIView*)proxy_) setHidden:!visible];
   ]-*/
   ;
 
+  @Override
   protected native Object getLayer()
   /*-[
     return ((UIView*)proxy_).layer;
   ]-*/
   ;
 
+  @Override
   protected native boolean isPaintEnabled()
   /*-[
     return [((UIView*)proxy_) isPaintEnabled];

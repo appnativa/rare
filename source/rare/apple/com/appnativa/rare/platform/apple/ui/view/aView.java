@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.platform.apple.ui.view;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.apple.ui.iApplePainterSupport;
 import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
@@ -30,15 +33,20 @@ import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
-import com.appnativa.rare.ui.SimpleColorStateList;
 import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UICursor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iGestureListener;
+import com.appnativa.rare.ui.iPaintedButton;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.border.UIEmptyBorder;
@@ -49,13 +57,6 @@ import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.iGestureListener;
-import com.appnativa.rare.ui.iPaintedButton;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.listener.iFocusListener;
 import com.appnativa.rare.ui.listener.iKeyListener;
 import com.appnativa.rare.ui.listener.iMouseListener;
@@ -70,9 +71,6 @@ import com.appnativa.rare.ui.painter.iComponentPainter;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 /*-[
  #import "AppleHelper.h"
@@ -113,7 +111,6 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   private float                       oldWidth;
   protected Object                    overlayLayer;
   protected iPlatformPainter          overlayPainter;
-  protected aView                     parentView;
   protected boolean                   pressed;
   protected Object                    proxy;
   protected int                       rotation;
@@ -200,7 +197,6 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
       mouseMotionListener = null;
       keyListener         = null;
       viewListener        = null;
-      parentView          = null;
       proxy               = null;
       clip                = null;
       borderPath          = null;
@@ -243,7 +239,6 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   }
 
   public void makeOrphan() {
-    parentView = null;
   }
 
   public native void makeTransparent()
@@ -570,7 +565,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   public void setForegroundColor(UIColor fg) {
     if (fg != foregroundColor) {
       foregroundColor = fg;
-      setForegroundColorEx(fg);
+      checkForegroundColor();
     }
   }
 
@@ -642,10 +637,6 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
 
   public abstract void setPaintHandlerEnabled(boolean enabled);
 
-  public void setParentView(View parentView) {
-    this.parentView = parentView;
-  }
-
   public void setPressedIcon(iPlatformIcon pressedIcon) {}
 
   public abstract void setProxy(Object proxy);
@@ -665,7 +656,13 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   public void setUseMainLayerForPainter(boolean useMainLayerForPainter) {
     this.useMainLayerForPainter = useMainLayerForPainter;
   }
-
+  public void updateForStateChange(iPlatformBorder border) {
+    handleBorder(border);
+  }
+  
+  public boolean usesForegroundColor() {
+   return false;
+  }
   public void setUsePainterBackgroundColor(boolean usePainterBackgroundColor) {
     this.usePainterBackgroundColor = usePainterBackgroundColor;
   }
@@ -706,12 +703,12 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (c != null) {
       return c;
     }
-
-    if (parentView == null) {
+    View p=getParent();
+    if (p == null) {
       return ColorUtils.getBackground();
     }
 
-    return parentView.getBackgroundColorAlways();
+    return p.getBackgroundColorAlways();
   }
 
   public iPlatformBorder getBorder() {
@@ -760,12 +757,12 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (font != null) {
       return font;
     }
-
-    if (parentView == null) {
+    View p=getParent();
+    if (p == null) {
       return FontUtils.getDefaultFont();
     }
 
-    return parentView.getFontAlways();
+    return p.getFontAlways();
   }
 
   public UIColor getForegroundColor() {
@@ -786,12 +783,13 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (fg != null) {
       return fg;
     }
+    View p=getParent();
 
-    if (parentView == null) {
+    if (p == null) {
       return ColorUtils.getForeground();
     }
 
-    return parentView.getForegroundColorAlways();
+    return p.getForegroundColorAlways();
   }
 
   public int getIconGap() {
@@ -806,7 +804,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     return null;
   }
 
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, float maxWidth) {
     size.width  = 0;
     size.height = 0;
   }
@@ -826,7 +824,8 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
 
     return d.height;
   }
-
+  public abstract View getParent();
+  
   public abstract void getPreferredSize(UIDimension size, float maxWidth);
 
   public iPlatformIcon getPressedIcon() {
@@ -916,14 +915,10 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
       } else {
         setForegroundColorEx(ColorUtils.getDisabledForeground());
       }
-    } else if (foregroundColor instanceof UIColorShade) {
-      SimpleColorStateList csl = ((UIColorShade) foregroundColor).getColorStateList();
-
-      if (csl != null) {
-        setForegroundColorEx(csl.getColor(enabled
+    } else if (foregroundColor!=null) {
+        setForegroundColorEx(foregroundColor.getColor(enabled
                                           ? ButtonState.DEFAULT
                                           : ButtonState.DISABLED));
-      }
     }
   }
 
@@ -954,7 +949,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
         UILineBorder lb = (UILineBorder) ib;
 
         if (lb.usesPath()) {
-          setPathLineBorder(lb.getLineColor(), lb.getPathWidth(), lb.getLineStyle());
+          setPathLineBorder(lb.getPaintColor(component), lb.getPathWidth(), lb.getLineStyle());
           setLayerLayoutEnabled(true);
 
           return;
@@ -966,11 +961,11 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
       UILineBorder lb = (UILineBorder) b;
 
       if (lb.canUseMainLayer()) {
-        setLineBorder(lb.getLineColor(), lb.getPathWidth(), lb.getArcHeight());
+        setLineBorder(lb.getPaintColor(component), lb.getPathWidth(), lb.getArcHeight());
 
         return;
       } else if (lb.usesPath()) {
-        setPathLineBorder(lb.getLineColor(), lb.getPathWidth(), lb.getLineStyle());
+        setPathLineBorder(lb.getPaintColor(component), lb.getPathWidth(), lb.getLineStyle());
         setLayerLayoutEnabled(true);
       } else {
         if (border.isPaintLast()) {

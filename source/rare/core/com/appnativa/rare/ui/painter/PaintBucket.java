@@ -238,6 +238,16 @@ public class PaintBucket implements Cloneable {
     return backgroundColor;
   }
 
+  public UIColor getBackgroundColorAlways() {
+    if(backgroundColor!=null) {
+      return backgroundColor;
+    }
+    if(backgroundPainter!=null) {
+      return backgroundPainter.getBackgroundColor();
+    }
+    return null;
+  }
+
   public static UIColor getBackgroundColor(RenderableDataItem item) {
     iPlatformComponentPainter cp = item.getComponentPainter();
     UIColor                   bg = item.getBackground();
@@ -427,7 +437,6 @@ public class PaintBucket implements Cloneable {
            : cp;
       cp.setBackgroundOverlayPainter(imagePainter);
       cp.setBackgroundPainter(backgroundPainter, false);
-      cp.setForegroundColor(foregroundColor);
 
       if ((backgroundPainter == null) && (backgroundColor != null)) {
         cp.setBackgroundPainter(new UISimpleBackgroundPainter(backgroundColor), false);
@@ -439,11 +448,7 @@ public class PaintBucket implements Cloneable {
     } else if ((cp != null) && (backgroundColor != null)) {
       cp.setBackgroundPainter(new UISimpleBackgroundPainter(backgroundColor), false);
     }
-
-    if ((cp != null) && (foregroundColor != null)) {
-      cp.setForegroundColor(foregroundColor);
-    }
-
+    
     if ((cp != null) && (border != null)) {
       cp.setBorder(border);
     }

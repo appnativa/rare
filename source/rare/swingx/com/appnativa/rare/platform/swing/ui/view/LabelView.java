@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -29,6 +29,7 @@ import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
+import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformIcon;
@@ -53,7 +54,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -75,17 +75,12 @@ import javax.swing.text.html.HTML;
  * @version    0.3, 2007-05-14
  * @author     Don DeCoteau
  */
-public class LabelView extends JLabel implements iPainterSupport, MouseListener, MouseMotionListener {
-  private static Rectangle _iconR;
-  private static Insets    _insets;
-  private static Rectangle _textR;
-  private static Rectangle _viewR;
-  iHyperlinkListener       listener;
-  Point                    mousePressedPoint;
-  long                     mousePressedTime;
-  int                      rgba;
-  UIDimension              size;
-  AffineTransform          transform;
+public class LabelView extends JLabel implements iPainterSupport, MouseListener, MouseMotionListener, iView {
+  iHyperlinkListener listener;
+  Point              mousePressedPoint;
+  long               mousePressedTime;
+  int                rgba;
+  AffineTransform    transform;
 
   /**  */
   protected iPlatformComponentPainter componentPainter;
@@ -308,7 +303,6 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
       iPlatformBorder sb = (iPlatformBorder) border;
 
       shapedBorder = !sb.isRectangular();
-      sb.setPadForArc(false);
     }
 
     super.setBorder(border);
@@ -366,6 +360,7 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     super.setText(text);
   }
 
+  @Override
   public void setTransformEx(AffineTransform tx) {
     transform = tx;
   }
@@ -517,15 +512,11 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
 
   @Override
   public Color getForeground() {
-    if (!isEnabled()) {
-      Color c = (Color) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-
-      if (c != null) {
-        return c;
-      }
+    Color c=super.getForeground();
+    if(c instanceof UIColor && !isEnabled()) {
+      c=((UIColor)c).getDisabledColor();
     }
-
-    return super.getForeground();
+    return c;
   }
 
   @Override
@@ -594,13 +585,6 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     }
   }
 
-  public void getMinimumSize(UIDimension size) {
-    Dimension d = getMinimumSize();
-
-    size.width  = d.width;
-    size.height = d.height;
-  }
-
   public Orientation getOrientation() {
     return _orientation;
   }
@@ -661,15 +645,14 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
            : s.length();
   }
 
-  public int getPreferredHeight(int width) {
+  public int getPreferredHeight(float width) {
     View view = (View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
 
     if (view != null) {
       width -= 16;
     }
 
-    initRectVars();
-    SwingHelper.calculateLabelRects(this, _viewR, _iconR, _textR, _insets, width, Short.MAX_VALUE);
+    SwingHelper.calculateLabelRects(this, _viewR, _iconR, _textR, _insets, (int) width, Short.MAX_VALUE);
 
     int    y1 = Math.min(_iconR.y, _textR.y);
     int    y2 = Math.max(_iconR.y + _iconR.height, _textR.y + _textR.height);
@@ -679,57 +662,11 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
   }
 
   @Override
-  public Dimension getPreferredSize() {
-    if (size == null) {
-      size = new UIDimension();
-    }
+  public void getMinimumSize(UIDimension size, int maxWidth) {
+    Dimension d = super.getMinimumSize();
 
-    getPreferredSize(size);
-
-    return new Dimension(size.intWidth(), size.intHeight());
-  }
-
-  public void getPreferredSize(UIDimension d) {
-    boolean blocked = blockRevalidateAndRepaint;
-
-    blockRevalidateAndRepaint = true;
-
-    try {
-      Number num = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
-
-      if ((num != null) && (num.intValue() > 0)) {
-        d.width  = num.floatValue();
-        d.height = getPreferredHeight(d.intWidth());
-        num      = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-
-        if ((num != null) && (num.intValue() > d.height)) {
-          d.height = num.intValue();
-        }
-
-        return;
-      }
-
-      getPreferredSizeEx(d);
-      num = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
-
-      if ((num != null) && (num.intValue() > d.height)) {
-        d.height = num.intValue();
-      }
-
-      if (getOrientation() != Orientation.HORIZONTAL) {
-        Insets in = this.getInsets();
-
-        if (in != null) {
-          d.width  -= (in.left + in.right);
-          d.height -= (in.top + in.bottom);
-          d.setSize(d.height, d.width);
-          d.width  += (in.left + in.right);
-          d.height += (in.top + in.bottom);
-        }
-      }
-    } finally {
-      blockRevalidateAndRepaint = blocked;
-    }
+    size.width  = d.width;
+    size.height = d.height;
   }
 
   public Rectangle getTextRectangle() {
@@ -764,6 +701,7 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     return null;
   }
 
+  @Override
   public AffineTransform getTransformEx() {
     return transform;
   }
@@ -890,7 +828,6 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
         return;
       }
 
-      initRectVars();
       SwingHelper.calculateLabelRects(this, _viewR, _iconR, _textR, _insets, -1, -1);
 
       int x = _viewR.x;
@@ -917,22 +854,7 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     super.paintComponent(g);
   }
 
-  protected void getPreferredSizeEx(UIDimension size) {
-    Dimension d = super.getPreferredSize();
-
-    if (isFontSet() && getFont().isItalic()) {
-      if (getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) == null) {
-        d.width += 4;
-      }
-    }
-
-    size.width  = d.width;
-    size.height = d.height;
-  }
-
   protected Rectangle getTextRectangle(boolean updateView) {
-    initRectVars();
-
     View view = (View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
 
     SwingHelper.calculateLabelRects(this, _viewR, _iconR, _textR, _insets, -1, -1);
@@ -945,12 +867,80 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     return _textR;
   }
 
-  private void initRectVars() {
-    if (_insets == null) {
-      _insets = new Insets(0, 0, 0, 0);
-      _viewR  = new Rectangle();
-      _iconR  = new Rectangle();
-      _textR  = new Rectangle();
+  private static Rectangle   _iconR  = new Rectangle();
+  private static Insets      _insets = new Insets(0, 0, 0, 0);
+  private static Rectangle   _textR  = new Rectangle();
+  private static Rectangle   _viewR  = new Rectangle();
+  private static UIDimension size    = new UIDimension();
+
+  @Override
+  public Dimension getPreferredSize() {
+    if (size == null) {
+      size = new UIDimension();
     }
+
+    Number num      = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
+    int    maxWidth = 0;
+
+    if ((num != null) && (num.intValue() > 0)) {
+      maxWidth = num.intValue();
+    }
+
+    getPreferredSize(size, maxWidth);
+
+    return new Dimension(size.intWidth(), size.intHeight());
+  }
+
+  @Override
+  public void getPreferredSize(UIDimension size, int maxWidth) {
+    blockRevalidateAndRepaint = true;
+
+    if ((maxWidth > 0) && isWordWrap()) {
+      View view = (View) getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+
+      if ((view != null) && (maxWidth > 32)) {
+        maxWidth -= 16;
+      }
+
+      SwingHelper.calculateLabelRects(this, _viewR, _iconR, _textR, _insets, maxWidth, Short.MAX_VALUE);
+
+      int    y1 = Math.min(_iconR.y, _textR.y);
+      int    y2 = Math.max(_iconR.y + _iconR.height, _textR.y + _textR.height);
+      int    x1 = Math.min(_iconR.x, _textR.x);
+      int    x2 = Math.max(_iconR.x + _iconR.width, _textR.x + _textR.width);
+      Insets in = _insets;
+
+      size.height = (y2 - y1) + (in.top + in.bottom);
+      size.width  = (x2 - x1) + (in.left + in.right);
+
+      if (view != null) {
+        size.width += 2;
+      }
+    } else {
+      Dimension d = super.getPreferredSize();
+
+      size.width  = d.width;
+      size.height = d.height;
+    }
+
+    if (isFontSet() && getFont().isItalic()) {
+      if (getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) == null) {
+        size.width += 4;
+      }
+    }
+
+    if (getOrientation() != Orientation.HORIZONTAL) {
+      Insets in = this.getInsets();
+
+      if (in != null) {
+        size.width  -= (in.left + in.right);
+        size.height -= (in.top + in.bottom);
+        size.setSize(size.height, size.width);
+        size.width  += (in.left + in.right);
+        size.height += (in.top + in.bottom);
+      }
+    }
+
+    blockRevalidateAndRepaint = false;
   }
 }

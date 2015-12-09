@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
@@ -50,7 +50,7 @@ public class ViewEx extends View implements iPainterSupport, iComponentView {
 
   public ViewEx(Context context) {
     super(context);
-    this.setBackgroundDrawable(NullDrawable.getInstance());
+    this.setBackground(NullDrawable.getInstance());
   }
 
   public ViewEx(Context context, AttributeSet attrs) {
@@ -61,6 +61,7 @@ public class ViewEx extends View implements iPainterSupport, iComponentView {
     super(context, attrs, defStyle);
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -68,6 +69,7 @@ public class ViewEx extends View implements iPainterSupport, iComponentView {
     }
   }
 
+  @Override
   public void draw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -95,18 +97,22 @@ public class ViewEx extends View implements iPainterSupport, iComponentView {
     this.blockRequestLayout = blockRequestLayout;
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     return super.getSuggestedMinimumHeight();
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     return super.getSuggestedMinimumWidth();
   }
@@ -123,21 +129,52 @@ public class ViewEx extends View implements iPainterSupport, iComponentView {
     super.draw(canvas);
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    setMeasuredDimension(getDefaultSizeEx(getSuggestedMinimumWidth(), widthMeasureSpec),
+                         getDefaultSizeEx(getSuggestedMinimumHeight(), heightMeasureSpec));
+  }
+
+  public static int getDefaultSizeEx(int size, int measureSpec) {
+    int result   = size;
+    int specMode = MeasureSpec.getMode(measureSpec);
+    int specSize = MeasureSpec.getSize(measureSpec);
+
+    switch(specMode) {
+      case MeasureSpec.AT_MOST :
+      case MeasureSpec.UNSPECIFIED :
+        result = size;
+
+        break;
+
+      case MeasureSpec.EXACTLY :
+        result = specSize;
+
+        break;
+    }
+
+    return result;
+  }
+
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

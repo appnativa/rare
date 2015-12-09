@@ -21,5 +21,5 @@
 package com.appnativa.rare.ui.listener;
 
 public interface iFocusListener {
-  void focusChanged(Object view, boolean hasFocus, Object oppositeView);
+  void focusChanged(Object view, boolean hasFocus, Object oppositeView,boolean temporary);
 }

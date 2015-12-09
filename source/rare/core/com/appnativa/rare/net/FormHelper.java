@@ -15,17 +15,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.net;
 
-import com.appnativa.rare.util.JSONHelper;
 import com.appnativa.rare.util.MIMEMap;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.Streams;
 import com.appnativa.util.StringCache;
+import com.appnativa.util.URLEncoder;
 import com.appnativa.util.UTF8Helper;
+import com.appnativa.util.json.JSONException;
+import com.appnativa.util.json.JSONWriter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -524,141 +526,51 @@ public class FormHelper {
   /**
    * Writes a JSON field value
    *
-   * @param first true if this is the first set of output values for the connection; false otherwise
-   * @param writer the writer to use
-   * @param name the name of the value
-   * @param value the value
-   *
-   * @return true if data was written; false otherwise
-   * @throws IOException
-   */
-  public static boolean writeJSONValue(boolean first, Writer writer, String name, int[] value) throws IOException {
-    final int len = (value == null)
-                    ? 0
-                    : value.length;
-
-    if (len == 0) {
-      return false;
-    }
-
-    if (!first) {
-      writer.write(",\n\t");
-    }
-
-    JSONHelper.encode(name, writer);
-    writer.write(": [");
-
-    int i = 0;
-
-    while(i < len) {
-      if (i != 0) {
-        writer.write(',');
-      }
-
-      writer.write(StringCache.valueOf(value[i++]));
-    }
-
-    writer.write(']');
-
-    return true;
-  }
-
-  /**
-   * Writes a JSON field value
-   *
-   * @param first true if this is the first set of output values for the connection; false otherwise
-   * @param writer the writer to use
-   * @param name the name of the value
-   * @param value the value
-   * @return true if data was written; false otherwise
-   * @throws IOException
-   */
-  public static boolean writeJSONValue(boolean first, Writer writer, String name, String[] value) throws IOException {
-    final int len = (value == null)
-                    ? 0
-                    : value.length;
-
-    if (len == 0) {
-      return false;
-    }
-
-    if (!first) {
-      writer.write(",\n\t");
-    }
-
-    JSONHelper.encode(name, writer);
-    writer.write(": [");
-
-    String s;
-    int    i = 0;
-
-    while(i < len) {
-      if (i != 0) {
-        writer.write(',');
-      }
-
-      s = value[i++];
-
-      if (s == null) {
-        writer.write("null");
-      } else {
-        JSONHelper.encode(s, writer);
-      }
-    }
-
-    writer.write(']');
-
-    return true;
-  }
-
-  /**
-   * Writes a JSON field value
-   *
    * @param context the context
    * @param writer the writer
    * @param values the map of values
-   * @param first true if this is the first set of output values for the connection; false otherwise
    * @param expand  true to expand the string values using the specified context; false otherwise
    *
    * @return true if data was written; false otherwise
    * @throws IOException
    */
-  public static boolean writeJSONValues(iWidget context, Writer writer, Map values, boolean first, boolean expand)
+  public static boolean writeJSONValues(iWidget context, JSONWriter writer, Map values, boolean expand)
           throws IOException {
+    boolean written = false;
+
     if ((values != null) && (!values.isEmpty())) {
-      Iterator<Map.Entry> it = values.entrySet().iterator();
-      Map.Entry           e;
-      String              value;
-      Object              o;
+      try {
+        Iterator<Map.Entry> it = values.entrySet().iterator();
+        Map.Entry           e;
+        String              value;
+        Object              o;
 
-      while(it.hasNext()) {
-        if (!first) {
-          writer.write(",\n\t");
-        } else {
-          first = false;
+        while(it.hasNext()) {
+          e     = it.next();
+          o     = e.getValue();
+          value = (o == null)
+                  ? null
+                  : o.toString();
+
+          if ((value != null) && expand && (context != null)) {
+            value = context.expandString(value, false);
+          }
+
+          if (value != null) {
+            if (!written) {
+              written = true;
+            }
+
+            writer.key((String) e.getKey());
+            writer.value(value);
+          }
         }
-
-        e = it.next();
-        JSONHelper.encode((String) e.getKey(), writer);
-        writer.write(": ");
-        o     = e.getValue();
-        value = (o == null)
-                ? null
-                : o.toString();
-
-        if ((value != null) && expand && (context != null)) {
-          value = context.expandString(value, false);
-        }
-
-        if (value != null) {
-          JSONHelper.encode(value, writer);
-        } else {
-          writer.write("null");
-        }
+      } catch(JSONException e) {
+        throw new IOException(e);
       }
     }
 
-    return !first;
+    return written;
   }
 
   /**

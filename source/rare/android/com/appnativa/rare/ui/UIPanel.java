@@ -44,8 +44,6 @@ public class UIPanel extends aUIPanel implements iAndroidLayoutManager {
     v.setLayoutManager(this);
   }
 
-  public void addViewListener(iViewListener l) {}
-
   public void layout(ViewGroup parent, float width, float height) {
     layout(width, height);
   }

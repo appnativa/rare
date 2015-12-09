@@ -188,7 +188,6 @@ public class Html {
     }
   }
 
-  @SuppressWarnings("unused")
 	private static void withinDiv(StringBuilder out, Spanned text, int start, int end) {
     int next;
 
@@ -1001,6 +1000,8 @@ class HtmlToSpannedConverter implements ContentHandler {
       endSpan(mSpannableStringBuilder);
     } else if (tag.equalsIgnoreCase("u")) {
       end(mSpannableStringBuilder, Underline.class, new UnderlineSpan());
+    } else if (tag.equalsIgnoreCase("s") || tag.equalsIgnoreCase("strike")) {
+      end(mSpannableStringBuilder, Strikethrough.class, new StrikethroughSpan());
     } else if (tag.equalsIgnoreCase("center")) {
       end(mSpannableStringBuilder, Center.class, new CenterSpan());
     } else if (tag.equalsIgnoreCase("sup")) {
@@ -1073,6 +1074,8 @@ class HtmlToSpannedConverter implements ContentHandler {
       startSpan(mSpannableStringBuilder, attributes);
     } else if (tag.equalsIgnoreCase("u")) {
       start(mSpannableStringBuilder, newUnderline());
+    } else if (tag.equalsIgnoreCase("s") || tag.equalsIgnoreCase("strike")) {
+      start(mSpannableStringBuilder, newStrikethrough());
     } else if (tag.equalsIgnoreCase("center")) {
       start(mSpannableStringBuilder, newCenter());
     } else if (tag.equalsIgnoreCase("sup")) {
@@ -1206,6 +1209,7 @@ class HtmlToSpannedConverter implements ContentHandler {
 
 
   private static class Underline {}
+  private static class Strikethrough {}
   private static class Center {}
   private static Center center;
   private static Sub sub;
@@ -1217,6 +1221,7 @@ class HtmlToSpannedConverter implements ContentHandler {
   private static Blockquote blockquote;
   private static Monospace monospace;
   private static Underline underline;
+  private static Strikethrough strikethrough;
   private static Center newCenter() {if(center==null)  {center=new Center();} return center;}
   private static Sub newSub() {if(sub==null)  {sub=new Sub();} return sub;}
   private static Super newSuper() {if(ssuper==null)  {ssuper=new Super();} return ssuper;}
@@ -1227,6 +1232,7 @@ class HtmlToSpannedConverter implements ContentHandler {
   private static Blockquote newBlockquote() {if(blockquote==null)  {blockquote=new Blockquote();} return blockquote;}
   private static Monospace newMonospace() {if(monospace==null)  {monospace=new Monospace();} return monospace;}
   private static Underline newUnderline() {if(underline==null)  {underline=new Underline();} return underline;}
+  private static Strikethrough newStrikethrough() {if(strikethrough==null)  {strikethrough=new Strikethrough();} return strikethrough;}
   
 
 }

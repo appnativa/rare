@@ -57,18 +57,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-
 import java.net.CookieHandler;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -178,6 +175,14 @@ public class aPlatformHelper {
 
   public static File toFile(URL url) throws URISyntaxException {
     return new File(url.toURI());
+  }
+  
+  public static String getDefaultRowHeight() {
+    String s = Platform.getUIDefaults().getString("Rare.List.rowHeight");
+    if(s==null) {
+      s=Platform.hasPointingDevice() ? "1ln" : "1.75ln";
+    }
+    return s;
   }
 
   /**

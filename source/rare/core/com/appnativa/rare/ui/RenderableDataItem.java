@@ -73,9 +73,6 @@ import java.util.Map;
 public class RenderableDataItem
         implements iFilterableList<RenderableDataItem>, Cloneable, iPainterSupport, Comparable<RenderableDataItem> {
 
-  /** for internal use only */
-  public static final String TREE_MODEL_DATA = "TREE_MODEL_DATA";
-
   /** value is a one-dimensional array */
   public static final int TYPE_ARRAY = 0x200;
 
@@ -242,19 +239,19 @@ public class RenderableDataItem
 
   /** whether dragging is allowed */
   protected boolean                 draggingAllowed = true;
-  private CharSequence              _toString;
-  private iPlatformComponentPainter componentPainter;
-  private boolean                   converted;
-  private String                    cursorName;
+  protected CharSequence              _toString;
+  protected iPlatformComponentPainter componentPainter;
+  protected boolean                   converted;
+  protected String                    cursorName;
 
   /** custom attributes for the item */
-  private Map                customProperties;
-  private int                height;
-  private boolean            linkedConverted;
-  private ObjectHolder       oneProperty;
-  private Orientation        orientation;
-  private iPlatformComponent renderingComponent;
-  private int                width;
+  protected Map                customProperties;
+  protected int                height;
+  protected boolean            linkedConverted;
+  protected ObjectHolder       oneProperty;
+  protected Orientation        orientation;
+  protected iPlatformComponent renderingComponent;
+  protected int                width;
 
   /**
    * CUrsor types
@@ -1418,10 +1415,6 @@ public class RenderableDataItem
       if (e != null) {
         p = e;
       }
-    }
-
-    if ((p != null) && (p.getModelData() == TREE_MODEL_DATA)) {
-      return o == this;
     }
 
     if (!(o instanceof RenderableDataItem)) {
@@ -3940,7 +3933,7 @@ public class RenderableDataItem
   public void setVisible(boolean visible) {
     if (!visible) {
       stateFlags |= ITEM_HIDDEN;
-    } else if ((stateFlags & ITEM_HIDDEN) > 0) {
+    } else if ((stateFlags & ITEM_HIDDEN) != 0) {
       stateFlags -= ITEM_HIDDEN;
     }
   }

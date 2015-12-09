@@ -16,7 +16,6 @@ import com.appnativa.rare.spot.MainWindow;
 import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.WindowManager;
 import com.appnativa.rare.ui.iParentComponent;
-import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.viewer.aPlatformViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iTarget;
@@ -33,7 +32,7 @@ public class DesignWindowManager extends WindowManager {
     DesignWindowViewer wv = new DesignWindowViewer(this, appContext, iTarget.TARGET_WORKSPACE, designFrame, null,
                               scriptHandler);
 
-    designFrame.setViewer(wv);
+    designFrame.setWindowViewer(wv);
     ((aPlatformViewer) getRootViewer()).setDesignMode(true);
     configureStandardStuff(cfg);
 
@@ -82,7 +81,7 @@ public class DesignWindowManager extends WindowManager {
     super.dispose();
   }
   @Override
-  protected iWindow createMainFrame() {
+  protected iFrame createMainFrame() {
     designFrame = new DesignFrame(appContext);
     designFrame.setTarget(new DesignWorkspaceTarget(appContext, iTarget.TARGET_WORKSPACE, designFrame, false));
 

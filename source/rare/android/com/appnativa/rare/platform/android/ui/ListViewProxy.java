@@ -42,8 +42,8 @@ public class ListViewProxy implements iListView {
     handler.addSelectionIndex(index);
   }
 
-  public void clearPopupMenuIndex() {
-    handler.clearPopupMenuIndex();
+  public void clearContextMenuIndex() {
+    handler.clearContextMenuIndex();
   }
 
   public UIColor getAlternatingRowColor() {
@@ -57,6 +57,11 @@ public class ListViewProxy implements iListView {
   @Override
   public int getHilightedIndex() {
     return 0;
+  }
+  
+  @Override
+  public void repaintRow(int row) {
+    handler.repaintRow(row);
   }
 
   @Override
@@ -72,8 +77,8 @@ public class ListViewProxy implements iListView {
     return handler.getListComponent();
   }
 
-  public int getPopupMenuIndex() {
-    return handler.getPopupMenuIndex();
+  public int getContextMenuIndex() {
+    return handler.getContextMenuIndex();
   }
 
   public int getSelectedIndex() {

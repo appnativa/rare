@@ -15,48 +15,47 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
 import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.exception.ExpandVetoException;
-import com.appnativa.rare.iConstants;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.CollapsibleInfo;
 import com.appnativa.rare.spot.Region;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.spot.WidgetPane;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UIBorderHelper;
-import com.appnativa.rare.ui.UIColorHelper;
 import com.appnativa.rare.ui.UIImageHelper;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.ViewerCreator;
 import com.appnativa.rare.ui.ViewerCreator.iCallback;
 import com.appnativa.rare.ui.aWidgetListener;
 import com.appnativa.rare.ui.aWidgetListener.MiniWidgetListener;
-import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.event.ExpansionEvent;
-import com.appnativa.rare.ui.event.iExpandedListener;
-import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.iCollapsible;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iWindowManager;
+import com.appnativa.rare.ui.border.UICompoundBorder;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.iExpandedListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.widget.iWidget;
-
-import java.net.MalformedURLException;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Base class for region viewers
@@ -65,7 +64,6 @@ import java.util.Map;
  */
 public abstract class aRegionViewer extends aContainer {
   private static CreatorCallback _creatorCallback = new CreatorCallback();
-  private boolean                targetsRegistered;
 
   /** list of targets */
   private ArrayList<iTarget> theTargets;
@@ -163,25 +161,20 @@ public abstract class aRegionViewer extends aContainer {
 
   @Override
   public void register() {
-    callaViewerRegister();
+    super.register();
 
-    if (!targetsRegistered) {
-      targetsRegistered = true;
+    if (theTargets != null) {
+      int     len = theTargets.size();
+      iTarget t;
 
-      if (theTargets != null) {
-        int     len = theTargets.size();
-        iTarget t;
+      for (int i = 0; i < len; i++) {
+        t = theTargets.get(i);
+        getAppContext().getWindowManager().registerTarget(t.getName(), t);
 
-        for (int i = 0; i < len; i++) {
-          t = theTargets.get(i);
-          getAppContext().getWindowManager().registerTarget(t.getName(), t);
+        iViewer v = t.getViewer();
 
-          iViewer v = t.getViewer();
-
-          if (v != null) {
-            v.setParent(this);
-            v.targetAcquired(t);
-          }
+        if (v != null) {
+          v.register();
         }
       }
     }
@@ -306,27 +299,27 @@ public abstract class aRegionViewer extends aContainer {
       return;
     }
 
-    callaViewerunRegister(disposing);
+    super.unregister(disposing);
 
     iWindowManager wm = (getAppContext() == null)
                         ? null
                         : getAppContext().getWindowManager();
 
-    if ((wm != null) && targetsRegistered && (theTargets != null)) {
-      targetsRegistered = false;
-
+    if ((wm != null) && (theTargets != null)) {
       int     len = theTargets.size();
       iTarget t;
 
       for (int i = 0; i < len; i++) {
         t = theTargets.get(i);
-        getAppContext().getWindowManager().unRegisterTarget(t.getName());
+
+        if (!disposing) {
+         wm.unRegisterTarget(t.getName());
+        }
 
         iViewer v = t.getViewer();
 
         if (v != null) {
-          v.targetLost(t);
-          v.setParent(null);
+          v.unregister(disposing);
         }
       }
     }
@@ -742,7 +735,7 @@ public abstract class aRegionViewer extends aContainer {
     configureSize(container, region);
 
     if (region.bgColor.getValue() != null) {
-      UIColorHelper.configureBackgroundColor(container, region.bgColor);
+      ColorUtils.configureBackgroundPainter(container, region.bgColor);
     }
 
     if (!region.visible.booleanValue()) {    // don't call target.setVisible let
@@ -836,7 +829,6 @@ public abstract class aRegionViewer extends aContainer {
       iTarget t = rv.getAppContext().getWindowManager().getTarget(link.getTargetName());
 
       if (t != null) {
-        rv.registerNamedItem(viewer.getName(), viewer);
         t.setViewer(viewer);
         rv.update();
       }

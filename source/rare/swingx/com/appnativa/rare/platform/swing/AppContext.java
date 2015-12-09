@@ -20,6 +20,18 @@
 
 package com.appnativa.rare.platform.swing;
 
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.URL;
+import java.util.logging.Logger;
+
+import javax.swing.JDialog;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionHandler;
@@ -35,30 +47,14 @@ import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIMenu;
 import com.appnativa.rare.ui.UIProperties;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformComponentFactory;
 import com.appnativa.rare.ui.iPlatformWindowManager;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.IdentityArrayList;
-
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import java.io.File;
-
-import java.net.URL;
-
-import java.util.logging.Logger;
-
-import javax.swing.JDialog;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
 
 /**
  * This class represents an instance of a running application. It acts as a
@@ -169,9 +165,6 @@ public class AppContext extends aAppContext {
     }
   }
 
-  @Override
-  public void lockOrientation(Boolean landscape) {}
-
   protected boolean isLowIconDensity() {
     return "ldpi".equals(ImageHelper.defaultIconDensity);
   }
@@ -199,54 +192,14 @@ public class AppContext extends aAppContext {
     return AppContext.this.getResourceURL(name);
   }
 
-  @Override
-  public void oneLineErrorMessage(String title, String msg) {
-    throw new UnsupportedOperationException();
+  public void onEscapeKeyPressed() {
+    int len=activeWindows.size();
+    closePopupWindows(false);
+    if(len==activeWindows.size()) {
+      ((Main)RARE).onEscapeKeyPressed();
+    }
   }
-
-  // static class StartupTask implements iWorkerTask {
-  // private boolean done;
-  // Throwable error;
-  // public Object compute() {
-  // try {
-  // createRareInstance();
-  // } catch(Exception e) {
-  // error = e;
-  // }
-  // finally {
-  // done=true;
-  // }
-  // return null;
-  // }
-  // public void finish(Object result) {
-  // if (error != null) {
-  // error.printStackTrace();
-  // AlertDialog alertDialog = AlertDialog.startupError(error);
-  // alertDialog.show();
-  // return;
-  // }
-  // try {
-  //
-  // _instance.setContentView(a);
-  // } catch (Throwable e) {
-  // showError(a, e);
-  // return;
-  // }
-  // a.setRareInstance((Rare)((AppContext)_instance).RARE);
-  // }
-  // public void cancel(boolean canInterrupt) {
-  // }
-  // public boolean isCanceled() {
-  // return false;
-  // }
-  // public boolean isDone() {
-  // return done ;
-  // }
-  //
-  // }
-  @Override
-  public void unlockOrientation() {}
-
+ 
   public void setLogger(Logger l) {
     logger = l;
   }
@@ -588,7 +541,9 @@ public class AppContext extends aAppContext {
           iWidget w = focusOwner.getWidget();
 
           if (w != null) {
-            w.repaint();
+            if(!w.isDisposed()) {
+              w.repaint();
+            }
           } else {
             focusOwner.repaint();
           }

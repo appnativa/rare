@@ -453,7 +453,7 @@ public class NonViewView extends ParentView {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {}
+  public void getMinimumSize(UIDimension size,float maxWidth) {}
 
   @Override
   public iMouseListener getMouseListener() {

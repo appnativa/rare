@@ -50,6 +50,7 @@ public abstract class aPlatformViewer extends aViewer {
     super(parent);
   }
 
+  @Override
   public iPageSetup createPageSetup() {
     return null;
   }
@@ -59,6 +60,7 @@ public abstract class aPlatformViewer extends aViewer {
     return new PopupWindowEx(getContainerView().getContext(), width, height);
   }
 
+  @Override
   protected void configureEx(Viewer cfg, boolean border, boolean textMenus, boolean margin) {
     super.configureEx(cfg, border, textMenus, margin);
 
@@ -89,6 +91,6 @@ public abstract class aPlatformViewer extends aViewer {
       return null;
     }
 
-    return (View) w.getContainerComponent().getView();
+    return w.getContainerComponent().getView();
   }
 }

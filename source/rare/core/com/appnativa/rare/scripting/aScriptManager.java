@@ -15,34 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
-
-import com.appnativa.rare.ErrorInformation;
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iDebugHandler;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.spot.Application;
-import com.appnativa.rare.ui.UIBorderHelper;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorHelper;
-import com.appnativa.rare.ui.UIImageHelper;
-import com.appnativa.rare.ui.UIScreen;
-import com.appnativa.rare.ui.iEventHandler;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.aWindowViewer;
-import com.appnativa.rare.viewer.iFormViewer;
-import com.appnativa.rare.viewer.iViewer;
-import com.appnativa.rare.widget.aWidget;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.CharScanner;
-import com.appnativa.util.iCancelable;
-
-import com.google.j2objc.annotations.Weak;
 
 import java.util.ArrayList;
 import java.util.EventObject;
@@ -50,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,6 +41,29 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.script.SimpleScriptContext;
+
+import com.appnativa.rare.ErrorInformation;
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iDebugHandler;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.spot.Application;
+import com.appnativa.rare.ui.UIBorderHelper;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIColorHelper;
+import com.appnativa.rare.ui.UIImageHelper;
+import com.appnativa.rare.ui.UIScreen;
+import com.appnativa.rare.ui.iEventHandler;
+import com.appnativa.rare.ui.event.EventBase;
+import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.viewer.iFormViewer;
+import com.appnativa.rare.viewer.iViewer;
+import com.appnativa.rare.widget.aWidget;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.CharScanner;
+import com.appnativa.util.iCancelable;
+import com.google.j2objc.annotations.Weak;
 
 /**
  *
@@ -569,7 +569,7 @@ public abstract class aScriptManager implements iScriptHandler {
 
     if (source != null) {
       try {
-        EventObject    e   = new EventObject(viewer);
+        EventObject    e   = new EventBase(viewer);
         ScriptingEvent evt = new ScriptingEvent(this, iConstants.ATTRIBUTE_FUNCTION_EVAL, e, viewer, null);
 
         this.evaluate(oc, source, evt);
@@ -810,7 +810,7 @@ public abstract class aScriptManager implements iScriptHandler {
   }
 
   @Override
-  public aWindowViewer getWindowViewer() {
+  public WindowViewer getWindowViewer() {
     return theWindow;
   }
 
@@ -960,7 +960,7 @@ public abstract class aScriptManager implements iScriptHandler {
     String fileName = (String) context.getAttribute(ScriptEngine.FILENAME, ScriptContext.ENGINE_SCOPE);
 
     try {
-      String source = engine.getFactory().getLanguageName().toLowerCase() + ".init";
+      String source = engine.getFactory().getLanguageName().toLowerCase(Locale.US) + ".init";
       String code   = getInitScript(source);
 
       if (code != null) {
@@ -1068,10 +1068,31 @@ public abstract class aScriptManager implements iScriptHandler {
         } else if (scriptManager.isNativeScriptFunctionObject(o)) {
           scriptManager.InvokeNativeScriptFunctionObject(o, engine, context, widgetContext.scriptObject);
         } else if (o instanceof String) {
-          o = compile((String) o, context);
-          ((CompiledScript) o).eval(context);
+          String code = (String) o;
+
+          if (code.startsWith("class:")) {
+            aWidget w = (aWidget) widgetContext.getWidget();
+
+            w    = Platform.getWindowViewer();
+            code = w.expandString(code);
+
+            EventHandlerInterfaceScript eis = new EventHandlerInterfaceScript(engine, context,
+                                                new EventHandlerInterface(code));
+
+            eis.setEnvironment(scriptManager, widgetContext, scriptEvent);
+            list.set(i, eis);
+            eis.eval(context);
+          } else {
+            CompiledScriptEx cs = (CompiledScriptEx) compile((String) o, context);
+
+            list.set(i, cs);
+            cs.setEnvironment(scriptManager, widgetContext, scriptEvent);
+            cs.eval(context);
+          }
         } else if (o instanceof Runnable) {
           ((Runnable) o).run();
+        } else if (o instanceof EventHandlerInterfaceScript) {
+          ((EventHandlerInterfaceScript) o).eval(context);
         }
       }
 
@@ -1416,6 +1437,11 @@ public abstract class aScriptManager implements iScriptHandler {
         scriptContext = (ScriptContext) win.getScriptingContext().scriptContext;
       }
 
+      if (scriptContext == null) {
+        scriptContext =
+          (ScriptContext) Platform.getAppContext().getMainWindowViewer().getScriptingContext().scriptContext;
+      }
+
       Object          savedWidget         = null;
       Object          savedForm           = null;
       Object          savedName           = null;
@@ -1565,7 +1591,6 @@ public abstract class aScriptManager implements iScriptHandler {
     public EventHandlerInterfaceScript(ScriptEngine engine, ScriptContext context, EventHandlerInterface handler) {
       super(engine, context);
       this.handler = handler;
-//      this.eventHandler=handler.getHandler(); //hold on to this so that it does not get garbage collected
       usesBindings = false;
     }
 
@@ -1606,6 +1631,8 @@ public abstract class aScriptManager implements iScriptHandler {
     @Weak
     WidgetContext  widgetContext;
     boolean        usesBindings = true;
+    @Weak
+    ScriptingEvent scriptEvent;
 
     public aCompiledScript(ScriptEngine engine, ScriptContext context) {
       this.engine  = engine;
@@ -1646,6 +1673,7 @@ public abstract class aScriptManager implements iScriptHandler {
     public void setEnvironment(aScriptManager sm, WidgetContext wc, ScriptingEvent event) {
       scriptManager = sm;
       widgetContext = wc;
+      scriptEvent   = event;
     }
 
     @Override

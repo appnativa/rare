@@ -15,15 +15,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIColorHelper;
 import com.appnativa.rare.ui.UIProperties;
@@ -37,19 +42,12 @@ import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.CharScanner;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 /**
  *
  * @author Don DeCoteau
  */
 public class PainterHolder implements Cloneable {
   public boolean       usesPresedAsOverlay = true;
-  public UIColor       disabledForegroundColor;
   public iPlatformIcon disabledIcon;
   public PaintBucket   disabledPainter;
   public iPlatformIcon disabledSelectedIcon;
@@ -112,7 +110,6 @@ public class PainterHolder implements Cloneable {
     this.pressedPainter          = null;
     this.normalPainter           = null;
     this.disabledPainter         = null;
-    this.disabledForegroundColor = null;
     this.disabledSelectedIcon    = null;
     this.disabledSelectedPainter = null;
     this.pressedSelectedIcon     = null;
@@ -250,17 +247,9 @@ public class PainterHolder implements Cloneable {
     switch(state) {
       case DISABLED :
       case DISABLED_SELECTED :
-        if (disabledForegroundColor != null) {
-          color = disabledForegroundColor;
-        } else {
-          color = (disabledPainter == null)
-                  ? null
-                  : disabledPainter.getForegroundColor();
-
-          if ((color == null) && returnDefaults) {
-            color = ColorUtils.getDisabledForeground();
-          }
-        }
+        color = (disabledPainter == null)
+                ? null
+                : disabledPainter.getForegroundColor();
 
         break;
 
@@ -274,8 +263,8 @@ public class PainterHolder implements Cloneable {
         break;
     }
 
-    if (color == null) {
-      color = foregroundColor;
+    if (color == null && foregroundColor!=null) {
+      color=foregroundColor.getColor(state);
     }
 
     if ((color == null) && returnDefaults) {
@@ -557,10 +546,6 @@ public class PainterHolder implements Cloneable {
     }
   }
 
-  public void setDisabledForegroundColor(UIColor color) {
-    disabledForegroundColor = color;
-  }
-
   public void setDisabledIcon(iPlatformIcon disabledIcon) {
     this.disabledIcon = disabledIcon;
   }
@@ -625,20 +610,13 @@ public class PainterHolder implements Cloneable {
                 np  = null,
                 sp  = null,
                 dsp = null;
-    UIColor     fg  = null,
-                dfg = null;
+    UIColor     fg  = null;
     String      s;
 
     s = cfg.spot_getAttribute("fgColor");
 
     if (s != null) {
       fg = UIColorHelper.getColor(s);
-    }
-
-    s = cfg.spot_getAttribute("disabledColor");
-
-    if (s != null) {
-      dfg = UIColorHelper.getColor(s);
     }
 
     s = cfg.spot_getAttribute("bgColor");
@@ -715,7 +693,7 @@ public class PainterHolder implements Cloneable {
       pi = context.getIcon(s, null);
     }
 
-    if ((pi != null) || (si != null) || (ni != null) || (di != null) || (fg != null) || (dfg != null)) {
+    if ((pi != null) || (si != null) || (ni != null) || (di != null) || (fg != null) ) {
       if (ph == null) {
         ph = new PainterHolder(ni, si, null, pi, di);
       } else {
@@ -726,7 +704,6 @@ public class PainterHolder implements Cloneable {
       }
 
       ph.foregroundColor         = fg;
-      ph.disabledForegroundColor = dfg;
     }
 
     return ph;
@@ -751,15 +728,6 @@ public class PainterHolder implements Cloneable {
     }
 
     ph.foregroundColor = props.getColor(sb.toString());
-    sb.setLength(sblen);
-    sb.append("disabledForeground");
-
-    if (themed) {
-      sb.append(theme);
-    }
-
-    ph.disabledForegroundColor = props.getColor(sb.toString());
-
     if (!paintOnly) {
       sb.setLength(sblen);
       sb.append("icon");

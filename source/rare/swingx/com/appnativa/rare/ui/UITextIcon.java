@@ -20,12 +20,11 @@
 
 package com.appnativa.rare.ui;
 
-import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
-import com.appnativa.rare.ui.painter.aUIPainter;
-
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Paint;
+
+import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
 
 /**
  * An icon that draws text
@@ -47,18 +46,10 @@ public class UITextIcon extends aUITextIcon {
 
   @Override
   public void paint(iPlatformGraphics g, float x, float y, float width, float height) {
+    label.setSize(width, height);
     paintIcon(g.getView(), g.getGraphics(), UIScreen.snapToPosition(x), UIScreen.snapToPosition(y));
   }
-
-  public void paint(Component c, Graphics g, int x, int y, int width, int height, boolean hasValue, int orientation) {
-    UIRectangle rect = aUIPainter.getRenderLocation(c, renderSpace, renderType, x, y, width, height, size.width,
-                         size.height, null);
-
-    g.translate((int) rect.x, (int) rect.y);
-    this.paintIcon(c, g, x, y);
-    g.translate(-(int) rect.x, -(int) rect.y);
-  }
-
+  
   @Override
   public void paintIcon(Component c, Graphics g, int x, int y) {
     g.translate(x, y);
@@ -75,5 +66,11 @@ public class UITextIcon extends aUITextIcon {
     LabelRenderer r = new LabelRenderer();
 
     return new ActionComponent(r);
+  }
+  
+  @Override
+  protected void updateSize() {
+    super.updateSize();
+    label.setSize(size.width, size.height);
   }
 }

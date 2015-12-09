@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -26,6 +26,7 @@ import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.ItemDescription;
 import com.appnativa.rare.spot.ListBox;
 import com.appnativa.rare.spot.Table;
+import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Column;
@@ -58,17 +59,16 @@ import com.appnativa.rare.ui.table.iTableComponent.TableType;
 import com.appnativa.rare.util.DataItemCollection;
 import com.appnativa.rare.util.ListHelper;
 import com.appnativa.rare.util.SubItemComparator;
+import com.appnativa.util.CharScanner;
 import com.appnativa.util.FilterableList;
 import com.appnativa.util.Helper;
 import com.appnativa.util.MutableInteger;
 import com.appnativa.util.SNumber;
-import com.appnativa.util.StringCache;
 import com.appnativa.util.iFilter;
 import com.appnativa.util.iFilterableList;
 import com.appnativa.util.iStringConverter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1507,6 +1507,29 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
   }
 
   @Override
+  public void setParentItemsSelectable(boolean parentItemsSelectable) {
+    if (treeHandler != null) {
+      treeHandler.setParentItemsSelectable(parentItemsSelectable);
+    }
+  }
+
+  @Override
+  public boolean isParentItemsSelectable() {
+    if (treeHandler != null) {
+      return treeHandler.isParentItemsSelectable();
+    }
+
+    return true;
+  }
+
+  @Override
+  public void setExpandAll(boolean expandAll) {
+    if (treeHandler != null) {
+      treeHandler.setExpandAll(expandAll);
+    }
+  }
+
+  @Override
   public void setTreeEventsEnabled(boolean enabled) {
     if (treeHandler != null) {
       treeHandler.setTreeEventsEnabled(enabled);
@@ -1873,24 +1896,6 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
     return -1;
   }
 
-  @Override
-  public int getPopupMenuIndex() {
-    final int n = listComponent.getPopupMenuIndex();
-
-    return (n == -1)
-           ? getSelectedIndex()
-           : n;
-  }
-
-  @Override
-  public RenderableDataItem getPopupMenuItem() {
-    int row = getPopupMenuIndex();
-
-    return (row == -1)
-           ? null
-           : tableModel.get(row);
-  }
-
   /**
    * Returns a list of rows as they are stored within the table model
    *
@@ -2096,8 +2101,20 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
     return tableHandler.getSortColumn();
   }
 
+  /**
+   * Gets the table component associated with the viewer
+   * @return the table component associated with the viewer
+   */
   public iTableComponent getTableComponent() {
     return tableHandler;
+  }
+
+  /**
+   * Gets the tree handler associated with the viewer
+   * @return the tree handler associated with the viewer or null if not a tree table
+   */
+  public iTreeHandler getTreeHandler() {
+    return treeHandler;
   }
 
   @Override
@@ -2322,7 +2339,12 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
 
     this.setSubItems(tableModel);
     comp.setDeselectEventsDisabled(!cfg.deselectEventsEnabled.booleanValue());
-    comp.setSingleClickAction(cfg.singleClickActionEnabled.booleanValue());
+    if (cfg.singleClickActionEnabled.spot_valueWasSet()) {
+      comp.setSingleClickAction(cfg.singleClickActionEnabled.booleanValue());
+    }
+    else if(Platform.isTouchDevice()) {
+      comp.setSingleClickAction(true);
+    }
 
     switch(cfg.selectionMode.intValue()) {
       case ListBox.CSelectionMode.multiple :
@@ -2387,8 +2409,8 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
       table.setHeaderBackground(UIColorHelper.getPaintBucket(cfg.headerBgColor));
     }
 
-    tableStyle.headerCellPainter   = UIColorHelper.configure(this, cfg.getHeaderCell(), null);
-    tableStyle.headerFillerPainter = UIColorHelper.configure(this, cfg.getHeaderRightFillerCell(), null);
+    tableStyle.headerCellPainter   = ColorUtils.configure(this, cfg.getHeaderCell(), null);
+    tableStyle.headerFillerPainter = ColorUtils.configure(this, cfg.getHeaderRightFillerCell(), null);
 
     if ((tableStyle.sortColumnHiliteColor == null) && tableStyle.hiliteSortColumn) {
       tableStyle.sortColumnHiliteColor = new UIColor(0, 0, 0, 10);
@@ -2559,6 +2581,22 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
 
     gridViewType           = tableHandler.getGridViewType();
     columnSelectionAllowed = tableStyle.columnSelectionAllowed || (gridViewType != null);
+
+    if (treeHandler != null) {
+      TreeTable tt = (TreeTable) cfg;
+
+      treeHandler.setParentItemsSelectable(tt.parentItemsSelectable.booleanValue());
+      treeHandler.setIndentBy(UIScreen.platformPixels(tt.indentBy.intValue()));
+      treeHandler.setExpandAll(tt.expandAll.booleanValue());
+      treeHandler.setShowRootHandles(tt.showRootHandles.booleanValue());
+
+      if (tt.toggleOnTwistyOnly.spot_hasValue()) {
+        treeHandler.setToggleOnTwistyOnly(tt.toggleOnTwistyOnly.booleanValue());
+      } else {
+        treeHandler.setToggleOnTwistyOnly(!Platform.isTouchDevice());
+      }
+    }
+
     table.setStyle(tableStyle);
     table.setTable();
   }
@@ -2630,6 +2668,7 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
     }
   }
 
+  @SuppressWarnings("resource")
   @Override
   protected String getWidgetAttribute(String name) {
     int n   = name.indexOf('[');
@@ -2637,17 +2676,17 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
     int col = -1;
 
     if (n != -1) {
-      int c = n;
+      CharScanner sc = new CharScanner(name);
 
-      col = SNumber.intValue(name.substring(n + 1));
-      n   = name.indexOf(',', n + 1);
+      sc.trim();
+      sc.chop(1);    // remove ']'
+      name = sc.nextToken('[');
+      col  = SNumber.intValue(resolvePotentialVariableOrFunction(sc.nextToken(',', true)));
 
-      if (n != -1) {
+      if (sc.foundDelimiter == ',') {
         row = col;
-        col = SNumber.intValue(name.substring(n + 1));
+        col = SNumber.intValue(resolvePotentialVariableOrFunction(sc.nextToken(',', true)));
       }
-
-      name = name.substring(0, c);
     }
 
     if (row == -1) {
@@ -2678,24 +2717,8 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
                : Helper.toString(di.getItems(), ",");
       }
 
-      if (name.equals(iConstants.WIDGET_ATT_SELECTION_ROW)) {
-        return SNumber.toString(this.getSelectedIndex());
-      }
-
       if (name.equals(iConstants.WIDGET_ATT_COLUMN_NAME)) {
         return this.getColumnName(col);
-      }
-
-      if (name.equals(iConstants.WIDGET_ATT_SELECTION_ROWS)) {
-        int[] rows = getSelectedIndexes();
-
-        return (rows == null)
-               ? ""
-               : Arrays.toString(rows);
-      }
-
-      if (name.equals(iConstants.WIDGET_ATT_ROW_COUNT)) {
-        return StringCache.valueOf(getItemCount());
       }
 
       return super.getWidgetAttribute(name);

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -90,7 +90,7 @@ public class ColorUtils {
   private static final float       twoThirds    = 2f / 3f;
   static UISimpleBackgroundPainter whitePainter = new UISimpleBackgroundPainter(UIColor.WHITE);
   private static PaintBucket       backgroundBucket;
-  private static UIColor           disabledForeground;
+  private static float             disabledAlpha = 0.5f;
 
   static {
     colorMap.put("transparent", TRANSPARENT_COLOR);
@@ -240,6 +240,14 @@ public class ColorUtils {
   public static enum Shade {
     DARKER, DARKER_DARKER, BRIGHTER, BRIGHTER_BRIGHTER, LUM_ADJUSTMENT, DYN_LUM_ADJUSTMENT, ALPHA, UIMANAGER, BGPAINT,
     COLOR_LIST, DRAWABLE_LIST, DRAWABLE
+  }
+
+  public static void clearCache() {
+    foreground           = null;
+    background           = null;
+    backgroundBucket     = null;
+    Utils.clearCache();
+    PainterUtils.clearCache();
   }
 
   public static int HSVToColor(float[] hsv) {
@@ -1387,15 +1395,19 @@ public class ColorUtils {
   }
 
   public static UIColor getDisabledForeground() {
-    if (disabledForeground == null) {
-      disabledForeground = Platform.getUIDefaults().getColor("Rare.disabledForeground");
-    }
-
-    return disabledForeground;
+    return getForeground().getDisabledColor();
   }
 
   public static UIColor getDisabledVersion(UIColor fg) {
-    return fg.alpha(128);
+    return fg.alpha((int) (fg.getAlpha() * disabledAlpha));
+  }
+
+  public static float getDisabledAplhaPercent() {
+    return disabledAlpha;
+  }
+
+  public void setDisabledAplhaPercent(float percent) {
+    disabledAlpha = percent;
   }
 
   public static UIColor getForeground() {
@@ -1424,10 +1436,6 @@ public class ColorUtils {
 
   public static UIColor getListBackground() {
     return Platform.getUIDefaults().getColor("Rare.List.background");
-  }
-
-  public static UIColor getListDisabledForeground() {
-    return Platform.getUIDefaults().getColor("Rare.List.disabledForeground");
   }
 
   public static UIColor getListDividerColor() {
@@ -1628,6 +1636,40 @@ public class ColorUtils {
 
   public static UIColor getTextHilight() {
     return Platform.getUIDefaults().getColor("Rare.textHighlight");
+  }
+
+  public static UIColor getTextFieldForeground() {
+    UIColor fg = Platform.getUIDefaults().getColor("Rare.TextField.foreground");
+
+    return (fg == null)
+           ? UIColor.BLACK
+           : fg;
+  }
+
+  public static UIColor getTextFieldBackground() {
+    UIColor fg = Platform.getUIDefaults().getColor("Rare.TextField.background");
+
+    return (fg == null)
+           ? UIColor.WHITE
+           : fg;
+  }
+
+
+
+  public static UIColor getTextAreaForeground() {
+    UIColor fg = Platform.getUIDefaults().getColor("Rare.TextArea.foreground");
+
+    return (fg == null)
+           ? UIColor.BLACK
+           : fg;
+  }
+
+  public static UIColor getTextAreaBackground() {
+    UIColor fg = Platform.getUIDefaults().getColor("Rare.TextArea.background");
+
+    return (fg == null)
+           ? UIColor.WHITE
+           : fg;
   }
 
   public static UIColor getTextHilightText() {

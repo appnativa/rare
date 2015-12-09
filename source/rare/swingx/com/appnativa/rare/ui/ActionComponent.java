@@ -15,19 +15,33 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
-import com.appnativa.rare.exception.ApplicationException;
+import java.awt.Insets;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.AbstractButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.ButtonView;
 import com.appnativa.rare.platform.swing.ui.view.CheckBoxView;
 import com.appnativa.rare.platform.swing.ui.view.LabelView;
 import com.appnativa.rare.platform.swing.ui.view.RadioButtonView;
+import com.appnativa.rare.platform.swing.ui.view.ToggleButtonView;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
@@ -37,23 +51,8 @@ import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.widget.aGroupableButton;
-
-import java.awt.Insets;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import javax.swing.AbstractButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
 
 /**
  *
@@ -69,19 +68,23 @@ public class ActionComponent extends Component
   protected float         scaleFactor;
   protected boolean       scaleIcon;
   protected iPlatformIcon selectedIcon;
-  private int             iconGap = 4;
-  private boolean         hasChangeListener;
-  private boolean         minHeightSet;
-  private boolean         scrollview;
-  private boolean         textWrapped;
+  protected int           iconGap = 4;
+  protected boolean       hasChangeListener;
+  protected boolean       minHeightSet;
+  protected boolean       scrollview;
+  protected boolean       textWrapped;
+  protected UIColor       fgColor;
+  protected boolean       adjustSize;
 
   public ActionComponent(JComponent view) {
     super(view);
 
-    // sageMinHeight = "1ln";
     if (view instanceof AbstractButton) {
       ((AbstractButton) view).addActionListener(this);
       ((AbstractButton) view).addItemListener(this);
+      if(view instanceof ButtonView || view instanceof ToggleButtonView) {
+        adjustSize=true;
+      }      
     } else if (view instanceof JTextField) {
       ((JTextField) view).addActionListener(this);
     } else {
@@ -128,6 +131,36 @@ public class ActionComponent extends Component
   @Override
   public boolean adjustMinimumHeightForWidth() {
     return textWrapped;
+  }
+
+  @Override
+  public UIColor getForegroundEx() {
+    if (!foregroundSet ||!view.isForegroundSet()) {
+      return null;
+    }
+
+    if (fgColor != null) {
+      return fgColor;
+    }
+
+    return super.getForegroundEx();
+  }
+
+  @Override
+  public void setForeground(UIColor fg) {
+    super.setForeground(fg);
+    fgColor = fg;
+    if(componentPainter!=null) {
+      PainterHolder ph=componentPainter.getPainterHolder();
+      
+      if(ph!=null) {
+        if(ph.isShared()) {
+          ph=(PainterHolder) ph.clone();
+          componentPainter.setPainterHolder(ph);
+        }
+        ph.setForegroundColor(fg);
+      }
+    }
   }
 
   @Override
@@ -191,7 +224,7 @@ public class ActionComponent extends Component
     UIAction a        = (UIAction) pce.getSource();
     String   property = pce.getPropertyName();
 
-    if (property.equals("enabled")) {
+    if (property.equals(aUIAction.ENABLED)) {
       if (a.isEnabled()) {
         setEnabled(true);
 
@@ -205,11 +238,11 @@ public class ActionComponent extends Component
           setIcon(a.getDisabledIcon());
         }
       }
-    } else if (property.equals("ActionText")) {
+    } else if (property.equals(aUIAction.ACTION_TEXT)) {
       setText((String) pce.getNewValue());
-    } else if (property.equals("SmallIcon")) {
+    } else if (property.equals(aUIAction.ICON)) {
       setIcon((iPlatformIcon) pce.getNewValue());
-    } else if (property.equals("DisabledIcon")) {
+    } else if (property.equals(aUIAction.DISABLED_ICON)) {
       setDisabledIcon((iPlatformIcon) pce.getNewValue());
     }
   }
@@ -413,6 +446,11 @@ public class ActionComponent extends Component
     getComponentPainter(true).setPainterHolder(painterHolder);
   }
 
+  @Override
+  public void setAutoAdjustSize(boolean adjustSize) {
+    this.adjustSize = adjustSize;
+  }
+
   /**
    * @param icon
    *          the pressedIcon to set
@@ -518,15 +556,6 @@ public class ActionComponent extends Component
   @Override
   public iPlatformIcon getDisabledIcon() {
     return disabledIcon;
-  }
-
-  @Override
-  public PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket def) {
-    if (!isFocusOwner()) {
-      return null;
-    }
-
-    return super.getFocusPaint(g, def);
   }
 
   @Override
@@ -644,7 +673,7 @@ public class ActionComponent extends Component
   @Override
   public boolean isPressed() {
     if (view instanceof AbstractButton) {
-      return ((AbstractButton) view).getModel().isPressed();
+      return ((AbstractButton) view).getModel().isArmed();
     }
 
     return false;
@@ -680,39 +709,24 @@ public class ActionComponent extends Component
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    boolean addBackIconWidth = false;
+  protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    super.getPreferredSizeEx(size, maxWidth);
+
+    if (adjustSize) {
+      Utils.adjustButtonSize(size);
+    }
+  }
+
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    boolean addBackIconWidth = true;
 
     if (scrollview) {
-      super.getMinimumSizeEx(size);
+      super.getMinimumSizeEx(size, maxWidth);
       size.width       = FontUtils.getCharacterWidth(getFont()) * 3;
       addBackIconWidth = true;
     } else {
-      super.getPreferredSizeEx(size, 0);
-
-      CharSequence s   = getText();
-      int          len = (s == null)
-                         ? 0
-                         : s.length();
-
-      if (len > 0) {
-        int n = 0;
-
-        for (int i = 0; i < len; i++) {
-          if (Character.isWhitespace(s.charAt(i))) {
-            n = i;
-
-            break;
-          }
-        }
-
-        if (n > 0) {
-          n                *= FontUtils.getCharacterWidth(getFont());
-          size.width       = Math.min(n, size.width);
-          size.height      = Math.max(size.height, ScreenUtils.lineHeight(this));
-          addBackIconWidth = true;
-        }
-      }
+      super.getMinimumSizeEx(size, maxWidth);
     }
 
     if (addBackIconWidth) {

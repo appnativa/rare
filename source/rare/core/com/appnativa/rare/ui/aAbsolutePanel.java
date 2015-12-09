@@ -53,7 +53,7 @@ public class aAbsolutePanel extends XPContainer {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     super.getPreferredSizeEx(size, 0);
   }
 

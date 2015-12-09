@@ -37,7 +37,7 @@ public class SpacerView extends View {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size,float maxWidth) {
     size.width  = (width > -1)
                   ? width
                   : 0;

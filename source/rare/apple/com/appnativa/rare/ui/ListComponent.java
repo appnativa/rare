@@ -27,13 +27,5 @@ public class ListComponent extends Container {
     super(lv);
     setForeground(ColorUtils.getListForeground());
     setBackground(ColorUtils.getListBackground());
-
-    UIColor c = ColorUtils.getListDisabledForeground();
-
-    if (c == null) {
-      c = ColorUtils.getDisabledForeground();
-    }
-
-    setDisabledColor(c);
   }
 }

@@ -43,13 +43,7 @@ public class UICompositeRenderer extends aCompositeRenderer {
     iPlatformRenderingComponent rc = (renderingComponent == null)
                                      ? new UILabelRenderer()
                                      : renderingComponent.newCopy();
-    UICompositeRenderer         cr = new UICompositeRenderer(rc);
-
-    cr.setIconPosition(iconPosition);
-    cr.backgroundSurface = backgroundSurface;
-    Renderers.setupNewCopy(this, cr);
-
-    return cr;
+    return setupNewCopy( new UICompositeRenderer(rc));
   }
 
   @Override
@@ -67,9 +61,6 @@ public class UICompositeRenderer extends aCompositeRenderer {
     super.clearRenderer();
     view.clearVisualState();
   }
-
-  @Override
-  public void setColumnWidth(int width) {}
 
   @Override
   public void setNativeView(Object proxy) {

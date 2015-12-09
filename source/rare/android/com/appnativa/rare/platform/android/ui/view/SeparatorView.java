@@ -21,7 +21,6 @@
 package com.appnativa.rare.platform.android.ui.view;
 
 import android.content.Context;
-
 import android.util.AttributeSet;
 
 import com.appnativa.rare.ui.ScreenUtils;
@@ -51,7 +50,24 @@ public class SeparatorView extends LineView {
   public int getSuggestedMinimumWidth() {
     return ScreenUtils.PLATFORM_PIXELS_8;
   }
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    int width  = MeasureSpec.getSize(widthMeasureSpec);
+    int height = MeasureSpec.getSize(heightMeasureSpec);
 
+    if (height == 0) {
+      height = Short.MAX_VALUE;
+    }
+
+    if (MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.EXACTLY) {
+      width=width==0 ? getSuggestedMinimumWidth() : Math.min(getSuggestedMinimumWidth(), width);
+    }
+    if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.EXACTLY) {
+      height=height==0 ? getSuggestedMinimumWidth() : Math.min(getSuggestedMinimumHeight(), height);
+    }
+    setMeasuredDimension(width, height);
+  }
+  
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     if (!lineCreated) {

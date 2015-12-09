@@ -91,7 +91,7 @@ public class DateViewManager extends aDateViewManager
       initializePicker(timePicker);
     }
 
-    if (!showTimeOnly || (timePicker == null)) {
+    if (!showTimeOnly) {
       if (datePicker == null) {
         datePicker = new DatePicker(context);
         datePicker.init(year, month, dayOfMonth, this);
@@ -113,7 +113,7 @@ public class DateViewManager extends aDateViewManager
     this.dayOfMonth = dayOfMonth;
     updateCalendar();
 
-    if (okButton == null) {
+    if (okButton == null && !isShowingDialog()) {
       fireEvent();
     }
 
@@ -132,7 +132,7 @@ public class DateViewManager extends aDateViewManager
       updateCalendar();
       valueSet = true;
 
-      if (okButton == null) {
+      if (okButton == null && !isShowingDialog()) {
         fireEvent();
       }
     }

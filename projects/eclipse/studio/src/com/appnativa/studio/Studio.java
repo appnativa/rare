@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -691,7 +693,26 @@ public class Studio {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          
+          String className=null;
+          try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+              String s=info.getName().toLowerCase(Locale.US);
+              if(s.startsWith("windows")) {
+                className=info.getClassName();
+                break;
+              }
+              if(s.startsWith("mac ")) {
+                className=info.getClassName();
+                break;
+              }
+            }
+            if(className!=null) {
+              UIManager.setLookAndFeel(className);
+            }
+          }
+          catch(Exception e) {
+            e.printStackTrace();
+          }
           main.startApplication(null);
           DataParser.DISABLE_ALL_INLINING_OF_URLS=true;
           ColorUtils.KEEP_COLOR_KEYS=Boolean.TRUE;

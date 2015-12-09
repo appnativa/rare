@@ -15,19 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
-
 import android.util.AttributeSet;
-
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -35,6 +34,7 @@ import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.iAndroidLayoutManager;
 import com.appnativa.rare.platform.android.ui.iComponentView;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.Utils;
@@ -64,6 +64,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
   protected boolean                   nullLayout;
   protected int                       viewGap;
   protected int                       widthPad;
+  protected float                     enabledAlpha = 1;
 
   public enum MeasureType { HORIZONTAL, VERTICAL, UNKNOWN }
 
@@ -75,7 +76,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     super(context, attrs);
 
     if (attrs == null) {
-      this.setBackgroundDrawable(NullDrawable.getInstance());
+      this.setBackground(NullDrawable.getInstance());
     }
   }
 
@@ -87,6 +88,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     getListenerList().add(iChangeListener.class, l);
   }
 
+  @Override
   public void dispose() {
     changeEvent      = null;
     componentPainter = null;
@@ -102,6 +104,47 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     }
   }
 
+  @Override
+  public void setAlpha(float alpha) {
+    enabledAlpha = alpha;
+    super.setAlpha(alpha);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+
+    if (enabled) {
+      super.setAlpha(enabledAlpha*ColorUtils.getDisabledAplhaPercent());
+    } else {
+      super.setAlpha(0.5f);
+    }
+  }
+  
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent ev) {
+    if(!isEnabled()) {
+      return true;
+    }
+    return super.dispatchTouchEvent(ev);
+  }
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if(!isEnabled()) {
+      return true;
+    }
+    
+    return super.dispatchKeyEvent(event);
+  }
+  
+  @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if(!isEnabled()) {
+      return true;
+    }
+    return super.dispatchGenericMotionEvent(event);
+  }
+  
   public static void measureExactly(View view, int width, int height) {
     view.measure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
                  MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
@@ -152,6 +195,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     this.blockRequestLayout = blockRequestLayout;
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
@@ -189,7 +233,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
 
       v.getHitRect(r);
 
-      if (r.contains((int) x, (int) y)) {
+      if (r.contains(x, y)) {
         if (v == this) {
           return null;
         }
@@ -212,6 +256,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     return null;
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
@@ -235,10 +280,12 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     return measureType;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     return Math.max(super.getSuggestedMinimumHeight(), getSuggestedMinimum(true));
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     return Math.max(super.getSuggestedMinimumWidth(), getSuggestedMinimum(false));
   }
@@ -285,6 +332,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     }
   }
 
+  @Override
   protected void measureChild(View child, int parentWidthMeasureSpec, int parentHeightMeasureSpec) {
     Component c = Component.fromView(child);
 
@@ -319,11 +367,13 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     super.measureChild(child, parentWidthMeasureSpec, parentHeightMeasureSpec);
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
@@ -346,6 +396,7 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     }
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     if ((MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY)
         && (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY)) {
@@ -416,11 +467,13 @@ public class ViewGroupEx extends ViewGroup implements iPainterSupport, iDisposab
     setMeasuredDimension(resolveSize(maxWidth, widthMeasureSpec), resolveSize(maxHeight, heightMeasureSpec));
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

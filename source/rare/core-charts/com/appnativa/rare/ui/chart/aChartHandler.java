@@ -1721,6 +1721,7 @@ public abstract class aChartHandler {
       return label.compareTo(((LabelData) o).label);
     }
 
+    @Override
     public String toString() {
       return label;
     }
@@ -2008,6 +2009,7 @@ public abstract class aChartHandler {
       return label;
     }
 
+    @Override
     public String toString() {
       return (legend == null)
              ? super.toString()
@@ -2153,7 +2155,7 @@ public abstract class aChartHandler {
             data.seriesIndex = i;
             data.dataIndex   = sd.size();
             data.chartType   = getSeriesChartType(cd, series);
-            data.legend      = (String) series.toString();
+            data.legend      = series.toString();
 
             switch(data.chartType) {
               case RANGE_AREA :

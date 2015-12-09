@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
@@ -26,6 +26,8 @@ import android.graphics.Canvas;
 
 import android.util.AttributeSet;
 
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 
 import android.widget.LinearLayout;
@@ -33,6 +35,7 @@ import android.widget.LinearLayout;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.iComponentView;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.painter.iPainterSupport;
@@ -46,7 +49,8 @@ import com.appnativa.rare.ui.painter.iPlatformPainter;
 public class LinearLayoutEx extends LinearLayout implements iPainterSupport, iComponentView {
   protected iPlatformComponentPainter componentPainter;
   protected AndroidGraphics           graphics;
-  private UIDimension                 size = new UIDimension();
+  private UIDimension                 size         = new UIDimension();
+  protected float                     enabledAlpha = 1;
 
   public LinearLayoutEx(Context context) {
     this(context, null);
@@ -56,10 +60,11 @@ public class LinearLayoutEx extends LinearLayout implements iPainterSupport, iCo
     super(context, attrs);
 
     if (attrs == null) {
-      this.setBackgroundDrawable(NullDrawable.getInstance());
+      this.setBackground(NullDrawable.getInstance());
     }
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -67,6 +72,7 @@ public class LinearLayoutEx extends LinearLayout implements iPainterSupport, iCo
     }
   }
 
+  @Override
   public void draw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -83,26 +89,71 @@ public class LinearLayoutEx extends LinearLayout implements iPainterSupport, iCo
     graphics.clear();
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     return Math.max(super.getSuggestedMinimumHeight(), getSuggestedMinimum(true));
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     return Math.max(super.getSuggestedMinimumWidth(), getSuggestedMinimum(false));
   }
 
-  public final View getView() {
-    return this;
+  @Override
+  public void setAlpha(float alpha) {
+    enabledAlpha = alpha;
+    super.setAlpha(alpha);
   }
 
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+
+    if (enabled) {
+      super.setAlpha(enabledAlpha * ColorUtils.getDisabledAplhaPercent());
+    } else {
+      super.setAlpha(0.5f);
+    }
+  }
+
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent ev) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchTouchEvent(ev);
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchKeyEvent(event);
+  }
+
+  @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchGenericMotionEvent(event);
+  }
+
+  @Override
   protected void measureChild(View child, int parentWidthMeasureSpec, int parentHeightMeasureSpec) {
     Component c = Component.fromView(child);
 
@@ -137,21 +188,25 @@ public class LinearLayoutEx extends LinearLayout implements iPainterSupport, iCo
     super.measureChild(child, parentWidthMeasureSpec, parentHeightMeasureSpec);
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

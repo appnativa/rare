@@ -82,6 +82,20 @@ NSString *protocolFirstMethod(Protocol *p) {
   return sig;
 }
 
+NSArray *protocolMethods(Protocol *p) {
+  unsigned int numMethods = 0;
+  struct objc_method_description *methods = protocol_copyMethodDescriptionList(p, YES, YES, &numMethods);
+  NSMutableArray *a = nil;
+  if (numMethods > 0) {
+    a=[NSMutableArray arrayWithCapacity:numMethods];
+    for(int i=0;i<numMethods;i++) {
+      [a addObject: NSStringFromSelector(methods[i].name)];
+    }
+  }
+  if (methods) free(methods);
+  return a;
+}
+
 @implementation RAREJSEngine {
   JSContextGroupRef jscGroup;
   
@@ -373,9 +387,12 @@ NSString *protocolFirstMethod(Protocol *p) {
     NSObject *o = [app getInterfaceProxyObjectWithNSString:type];
     if (o) {
       if ([o conformsToProtocol:@protocol(RAREiInterfaceProxy)]) {
-        NSString *method = protocolFirstMethod(p);
-        if (method) {
-          [((id <RAREiInterfaceProxy>) o) spar_addMethodWithNSString:method withId:value];
+        NSArray *a=protocolMethods(p);
+        if (a) {
+          NSInteger len=a.count;
+          for (NSInteger i = 0; i < len; i++) {
+            [((id <RAREiInterfaceProxy>) o) spar_addMethodWithNSString:(NSString*)[a objectAtIndex:i] withId:value];
+          }
         }
       }
       value = o;

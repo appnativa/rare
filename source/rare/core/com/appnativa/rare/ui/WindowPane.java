@@ -15,13 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.event.EventListenerList;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 
@@ -29,16 +30,19 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class WindowPane extends FormsPanel {
-  CellConstraints ccTitlebar  = new CellConstraints(1, 1, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
-  CellConstraints ccMenubar   = new CellConstraints(1, 2, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
-  CellConstraints ccToolbar   = new CellConstraints(1, 3, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
-  CellConstraints ccStatusbar = new CellConstraints(1, 5, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
-  CellConstraints ccContent   = new CellConstraints(1, 4, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
-  iPlatformIcon   icon;
-  String          title;
-  private boolean autoCreateTitlePane;
-  private boolean combineMenuBarAndTitle;
-  private boolean firstTime;
+  CellConstraints  ccTitlebar  = new CellConstraints(1, 1, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
+  CellConstraints  ccMenubar   = new CellConstraints(1, 2, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
+  CellConstraints  ccToolbar   = new CellConstraints(1, 3, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
+  CellConstraints  ccStatusbar = new CellConstraints(1, 5, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
+  CellConstraints  ccContent   = new CellConstraints(1, 4, 1, 1, CellConstraints.FILL, CellConstraints.FILL);
+  iPlatformIcon    icon;
+  String           title;
+  private boolean  autoCreateTitlePane;
+  private boolean  combineMenuBarAndTitle;
+  private boolean  firstTime;
+  iStatusBar       statusBar;
+  iPlatformMenuBar menuBar;
+  iToolBarHolder   toolbarHolder;
 
   public WindowPane(iWidget context) {
     super(context, createPaneFormLayout());
@@ -69,34 +73,21 @@ public class WindowPane extends FormsPanel {
     setContent(c);
   }
 
-  public static FormLayout createPaneFormLayout() {
-    return new FormLayout("f:d:g", "f:d,f:d,f:d,f:d:g,f:d");
+  public TitlePane createDialogTitleBar(iWidget context, iActionListener closeAction) {
+    TitlePane tp = TitlePane.createDialogTitle(context, closeAction);
+
+    setTitileBar(tp);
+
+    return tp;
   }
 
-  public void windowGainedFocus() {
-    if (firstTime) {
-      firstTime = false;
-
-      iPlatformComponent c = getGridComponentAt(1, ccContent.gridY);
-
-      if (c != null) {
-        c.requestFocus();
-      }
-    }
-
-    TitlePane tp = getTitlePane(false);
-
-    if (tp != null) {
-      tp.repaint();
-    }
+  public iPlatformComponent getContent() {
+    return getGridComponentAt(1, ccContent.gridY);
   }
 
-  public void windowLostFocus() {
-    TitlePane tp = getTitlePane(false);
-
-    if (tp != null) {
-      tp.repaint();
-    }
+  @Override
+  public EventListenerList getEventListenerList() {
+    return super.getEventListenerList();
   }
 
   @Override
@@ -146,12 +137,54 @@ public class WindowPane extends FormsPanel {
     return size;
   }
 
+  public iPlatformMenuBar getMenuBar() {
+    return menuBar;
+  }
+
   public int getPlatformDecorationsHeight() {
     return 0;
   }
 
   public int getPlatformWindowOffset() {
     return 0;
+  }
+
+  public iStatusBar getStatusBar() {
+    return statusBar;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public TitlePane getTitlePane(boolean create) {
+    iPlatformComponent c = getGridComponentAt(1, ccTitlebar.gridY);
+
+    if (c instanceof TitlePane) {
+      return (TitlePane) c;
+    }
+
+    if ((c == null) && create) {
+      TitlePane tp = new TitlePane(Platform.getWindowViewer());
+
+      setTitileBar(tp);
+
+      return tp;
+    }
+
+    return null;
+  }
+
+  public iToolBarHolder getToolBarHolder() {
+    return toolbarHolder;
+  }
+
+  public boolean isAutoCreateTitlePane() {
+    return autoCreateTitlePane;
+  }
+
+  public boolean isCombineMenuBarAndTitle() {
+    return combineMenuBarAndTitle;
   }
 
   public void setAutoCreateTitlePane(boolean autoCreateTitlePane) {
@@ -185,6 +218,8 @@ public class WindowPane extends FormsPanel {
   }
 
   public void setMenuBar(iPlatformMenuBar mb) {
+    menuBar = mb;
+
     if (combineMenuBarAndTitle) {
       TitlePane tp = getTitlePane(true);
 
@@ -205,6 +240,8 @@ public class WindowPane extends FormsPanel {
   }
 
   public void setStatusBar(iStatusBar sb) {
+    statusBar = sb;
+
     iPlatformComponent c = getGridComponentAt(1, ccStatusbar.gridY);
 
     if (c != null) {
@@ -221,17 +258,13 @@ public class WindowPane extends FormsPanel {
 
     if (c != null) {
       remove(c);
+      if(c instanceof TitlePane) {
+        c.dispose();
+      }
     }
 
     if (tb != null) {
       add(tb, ccTitlebar);
-    }
-
-    TitlePane tp = getTitlePane(false);
-
-    if (tp != null) {
-      tp.setTitle(title);
-      tp.setIcon(icon);
     }
   }
 
@@ -251,54 +284,71 @@ public class WindowPane extends FormsPanel {
     w.addWindowDragger(tp);
   }
 
-  public void setToolBar(iToolBarHolder tb) {
+  public void setToolBarHolder(iToolBarHolder tbh) {
+    toolbarHolder = tbh;
+
     iPlatformComponent c = getGridComponentAt(1, ccToolbar.gridY);
 
     if (c != null) {
       remove(c);
     }
 
-    if (tb != null) {
-      add(tb.getComponent(), ccToolbar);
+    if (tbh != null) {
+      add(tbh.getComponent(), ccToolbar);
     }
   }
 
-  public iPlatformComponent getContent() {
-    return getGridComponentAt(1, ccContent.gridY);
+  public void windowGainedFocus() {
+    if (firstTime) {
+      firstTime = false;
+
+      iPlatformComponent c = getGridComponentAt(1, ccContent.gridY);
+
+      if (c != null) {
+        c.requestFocus();
+      }
+    }
+
+    TitlePane tp = getTitlePane(false);
+
+    if (tp != null) {
+      tp.repaint();
+    }
+  }
+
+  public void windowLostFocus() {
+    TitlePane tp = getTitlePane(false);
+
+    if (tp != null) {
+      tp.repaint();
+    }
   }
 
   @Override
-  public EventListenerList getEventListenerList() {
-    return super.getEventListenerList();
-  }
+  public void dispose() {
+    super.dispose();
 
-  public String getTitle() {
-    return title;
-  }
+    try {
+      if (menuBar != null) {
+        menuBar.dispose();
+        menuBar = null;
+      }
 
-  public boolean isAutoCreateTitlePane() {
-    return autoCreateTitlePane;
-  }
+      if (statusBar != null) {
+        statusBar.dispose();
+        statusBar = null;
+      }
 
-  public boolean isCombineMenuBarAndTitle() {
-    return combineMenuBarAndTitle;
-  }
-
-  private TitlePane getTitlePane(boolean create) {
-    iPlatformComponent c = getGridComponentAt(1, ccTitlebar.gridY);
-
-    if (c instanceof TitlePane) {
-      return (TitlePane) c;
+      if (toolbarHolder != null) {
+        toolbarHolder.dispose();
+        toolbarHolder = null;
+      }
+    } catch(Throwable e) {
+      Platform.ignoreException(null, e);
     }
+  }
 
-    if ((c == null) && create) {
-      TitlePane tp = new TitlePane(Platform.getWindowViewer());
-
-      setTitileBar(tp);
-
-      return tp;
-    }
-
-    return null;
+  public static FormLayout createPaneFormLayout() {
+    return new FormLayout("f:d:g", "f:p,f:p,f:p,f:d:g,f:p");
   }
 }

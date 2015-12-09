@@ -15,7 +15,6 @@ CheckBox^Studio.icon.toolbox.checkbox
 Label^Studio.icon.toolbox.label
 TextField^Studio.icon.toolbox.textfield
 PasswordField^Studio.icon.toolbox.passwordfield
-FileUploadField^Studio.icon.toolbox.fileuploadfield
 TextArea^Studio.icon.toolbox.textarea
 DocumentPane^Studio.icon.toolbox.documentpane
 NumberSpinner^Studio.icon.toolbox.number_spinner

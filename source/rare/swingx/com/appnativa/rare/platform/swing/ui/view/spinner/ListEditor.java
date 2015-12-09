@@ -20,11 +20,14 @@
 
 package com.appnativa.rare.platform.swing.ui.view.spinner;
 
+import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.listener.iTextChangeListener;
 import com.appnativa.rare.ui.spinner.SpinnerListModel;
 
 import java.util.List;
 import java.util.Locale;
+
+import javax.swing.text.AbstractDocument;
 
 /**
  *
@@ -41,8 +44,8 @@ public class ListEditor extends DefaultEditor implements iTextChangeListener {
   @Override
   protected void customizeEditor() {
     super.customizeEditor();
-    getTextField().removeTextChangeListener(this);
-    getTextField().addTextChangeListener(this);
+    updateTextChangeListener(this);
+    
   }
 
   @Override
@@ -97,8 +100,11 @@ public class ListEditor extends DefaultEditor implements iTextChangeListener {
       int    slen = s.length();
       int    vlen = val.length();
 
-      getTextField().replaceText(0, slen, val);
-
+      try {
+        ((AbstractDocument) getTextField().getDocument()).replace(0, slen, val, null);
+      } catch(Exception ignore) {
+        Platform.ignoreException(null, ignore);
+      }
       if (slen < vlen) {
         getTextField().select(slen, vlen);
       }

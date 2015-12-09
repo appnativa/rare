@@ -21,19 +21,15 @@
 package com.appnativa.rare.platform.android.ui;
 
 import android.content.Context;
-
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
-
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
-
 import android.widget.AbsListView.LayoutParams;
 import android.widget.CheckedTextView;
 import android.widget.Filter;
@@ -45,6 +41,7 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.android.AppContext;
 import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
+import com.appnativa.rare.platform.android.ui.view.ListViewEx.iListViewRow;
 import com.appnativa.rare.ui.CheckListManager;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.Component;
@@ -282,6 +279,13 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
     this.rowHeight = rowHeight;
   }
 
+  @Override
+  public void setRowEditingSupported(boolean supported) {
+    if(supported) {
+      needsRowContainer=true;
+    }
+  }
+  
   public void setSelectable(boolean selectable) {
     this.selectable = selectable;
   }
@@ -561,7 +565,7 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
 
         v  = rcc.getComponent().getView();
         lc = (ListRowContainer) v;
-
+        lc.hilightPainter=itemRenderer.getAutoHilightPaint().getCachedComponentPainter();
         PaintBucket pb = itemRenderer.getPressedPaint();
 
         if (pb != null) {
@@ -715,7 +719,6 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
         editingSelectionAllowed = (mode == EditingMode.SELECTION) || (mode == EditingMode.REORDERING_AND_SELECTION);
         deletingAllowed         = listComponent.getWidget().canDelete();
         needsRowContainer       = deletingAllowed || draggingAllowed || editingSelectionAllowed || needsRowContainer;
-
         if (draggingAllowed) {
           draggableIcon = new GripperIcon(false, listComponent.getForeground());
           draggableIcon.setSize(ScreenUtils.platformPixels(24), ScreenUtils.platformPixels(24));
@@ -724,18 +727,19 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
     }
   }
 
-  public class ListRow extends LabelView {
+  public class ListRow extends LabelView implements iListViewRow{
     public int           indent;
     public iPlatformIcon indicator;
     public int           position;
     public boolean       selected;
     public int           fixedHeight;
+    private boolean hilight;
 
     public ListRow(Context context) {
       super(context);
       setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
                                        Gravity.CENTER_VERTICAL | Gravity.LEFT));
-      setBackgroundDrawable(NullDrawable.getInstance());
+      setBackground(NullDrawable.getInstance());
     }
 
     @Override
@@ -767,9 +771,16 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
           if (pb != null) {
             pb.getCachedComponentPainter().paint(this, canvas, 0, 0, right, bottom, iPainter.UNKNOWN);
           }
-        } else if (selected && selectable) {
-          PaintBucket pb = itemRenderer.getSelectionPaintForExternalPainter(false);
-
+        } else {
+          PaintBucket pb;
+          if(hilight) {
+            pb=itemRenderer.getAutoHilightPaint();
+          }
+          else { 
+            pb= (selected && selectable)
+                                       ? itemRenderer.getSelectionPaintForExternalPainter(false)
+                                       : null;
+          }
           if (pb != null) {
             pb.getCachedComponentPainter().paint(this, canvas, 0, 0, right, bottom, iPainter.UNKNOWN);
           }
@@ -810,6 +821,14 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
       indent        = 0;
       indicator     = null;
       fixedHeight   = 0;
+      hilight=false;
+      ListViewEx lv=(ListViewEx)parent;
+      int ci=lv.getContextMenuIndex();
+      if(ci!=-1) {
+        if(ci==row || (selected && lv.isItemChecked(ci))) {
+          hilight=true;
+        }
+      }
     }
 
     @Override
@@ -865,6 +884,12 @@ public abstract class aDataItemListModelEx extends aDataItemListModel
       }
 
       super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
+    public void setHilight(boolean hilight) {
+      this.hilight=hilight;
+      invalidate();
     }
   }
 

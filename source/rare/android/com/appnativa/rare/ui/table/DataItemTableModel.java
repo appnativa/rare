@@ -44,4 +44,8 @@ public class DataItemTableModel extends aTableAdapter implements ListAdapter, iP
   public iTableModel createEmptyCopy() {
     return new DataItemTableModel(getWidget());
   }
+
+  @Override
+  public void setRowEditingSupported(boolean supported) {
+  }
 }

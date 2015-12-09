@@ -99,6 +99,7 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     this.isTriState = tristate;
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -110,14 +111,17 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     return Utils.getState(isEnabled(), isPressed(), isSelected(), false);
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     return super.getSuggestedMinimumHeight();
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     return super.getSuggestedMinimumWidth();
   }
@@ -152,6 +156,7 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     super.setChecked(checked);
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
@@ -171,11 +176,13 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     onCheckedChangeListener = listener;
   }
 
+  @Override
   public void setText(CharSequence text, BufferType type) {
     text = LabelView.checkText(text, (ImageGetter) Platform.findWidgetForComponent(Component.fromView(this)));
     super.setText(text, type);
   }
 
+  @Override
   public String toString() {
     CharSequence s = getText();
 
@@ -190,6 +197,7 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     resolveStateValues();
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
@@ -206,11 +214,13 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     return states;
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onDraw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -227,11 +237,13 @@ public class CheckBoxView extends CheckBox implements iPainterSupport, iComponen
     graphics.clear();
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

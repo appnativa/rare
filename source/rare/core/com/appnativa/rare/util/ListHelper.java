@@ -15,35 +15,36 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.util;
+
+import java.util.Arrays;
+import java.util.List;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iListHandler;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.dnd.DnDConstants;
 import com.appnativa.rare.ui.dnd.DropInformation;
 import com.appnativa.rare.ui.dnd.RenderableDataItemTransferable;
 import com.appnativa.rare.ui.dnd.TransferFlavor;
 import com.appnativa.rare.ui.dnd.iTransferable;
 import com.appnativa.rare.ui.event.FocusEvent;
-import com.appnativa.rare.ui.iListHandler;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.listener.iHyperlinkListener;
+import com.appnativa.rare.ui.renderer.aListItemRenderer;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.CharScanner;
 import com.appnativa.util.IntList;
 import com.appnativa.util.SNumber;
 import com.appnativa.util.StringCache;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class ListHelper {
   public static final String  CALL_SUPER_METHOD      = new String();
@@ -141,7 +142,7 @@ public class ListHelper {
    * @return true if the component is the current focus owner; false otherwise
    */
   public static boolean focusEvent(iListHandler listComponent, FocusEvent e, boolean focusOwner) {
-    if (e.getID() == FocusEvent.FOCUS_GAINED) {
+    if (e.wasFocusGained()) {
       boolean hs = listComponent.hasSelection();
 
       if (!focusOwner && hs) {
@@ -238,6 +239,35 @@ public class ListHelper {
     }
   }
 
+  /**
+   * Flashes the specified row using the hilighting painter
+   * @param row the row
+   * @param on tree if the initial state should be on; false otherwise
+   * @param count the number to times for the flash
+   * @param runnable  a runnable to run once the flashing has completed
+   */
+  public static void flashHilight(final iListHandler list, final int row, final boolean on, final int count,final Runnable runnable) {
+    final aListItemRenderer r = (aListItemRenderer) list.getItemRenderer();
+    
+    Platform.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        r.setHilightIndex(on
+                          ? row
+                          : -1);
+        list.repaintRow(row);
+
+        if (count == 0) {
+          if(runnable!=null) {
+            Platform.invokeLater(runnable, 50);
+          }
+        } else {
+          flashHilight(list, row, !on, count - 1, runnable);
+        }
+      }
+    }, 50);
+  }
+
   public static void runLater(iListHandler listComponent, RunType type) {
     Platform.invokeLater(new Runner(listComponent, type));
   }
@@ -282,13 +312,19 @@ public class ListHelper {
    * @param name the name of the attribute
    * @return the attribute's value
    */
-  public static String getWidgetAttribute(iListHandler listComponent, String name) {
+  @SuppressWarnings("resource")
+  public static String getWidgetAttribute(aWidget widget, iListHandler listComponent, String name) {
     int n   = name.indexOf('[');
     int row = -1;
 
     if (n != -1) {
-      row  = SNumber.intValue(name.substring(n + 1));
-      name = name.substring(0, n);
+      CharScanner sc = new CharScanner(name);
+
+      sc.trim();
+      sc.chop(1);    // remove ']'
+      name = sc.nextToken('[', true);
+      sc.trim();
+      row = SNumber.intValue(widget.resolvePotentialVariableOrFunction(sc.getLeftOver()));
     }
 
     if (row != -1) {
@@ -312,6 +348,14 @@ public class ListHelper {
 
       return null;
     } else {
+      if (name.equals(iConstants.WIDGET_ATT_SELECTION_ROW)) {
+        return StringCache.valueOf(listComponent.getSelectedIndex());
+      }
+
+      if (name.equals(iConstants.WIDGET_ATT_CTXMENU_ROW)) {
+        return StringCache.valueOf(listComponent.getContextMenuIndex());
+      }
+
       if (name.equals(iConstants.WIDGET_ATT_SELECTION_ROWS)) {
         int[] rows = listComponent.getSelectedIndexes();
 

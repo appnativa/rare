@@ -15,23 +15,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
+
+import java.util.Arrays;
 
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
-
 import android.annotation.SuppressLint;
-
 import android.content.Context;
-
 import android.database.DataSetObserver;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -40,19 +38,17 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.SparseBooleanArray;
-
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewTreeObserver;
-
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AbsListView.RecyclerListener;
@@ -63,7 +59,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.platform.android.MainActivity;
 import com.appnativa.rare.platform.android.MainActivity.iBackPressListener;
 import com.appnativa.rare.platform.android.iActivity;
@@ -76,7 +71,6 @@ import com.appnativa.rare.platform.android.ui.iComponentView;
 import com.appnativa.rare.platform.android.ui.iFlingSupport;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
 import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
-import com.appnativa.rare.spot.PushButton;
 import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.CheckListManager;
 import com.appnativa.rare.ui.ColorUtils;
@@ -89,13 +83,9 @@ import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIStroke;
-import com.appnativa.rare.ui.dnd.DnDConstants;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.dnd.RenderableDataItemTransferable;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iListHandler.SelectionMode;
 import com.appnativa.rare.ui.iListHandler.SelectionType;
 import com.appnativa.rare.ui.iListView.EditingMode;
@@ -104,6 +94,13 @@ import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformListDataModel;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.iToolBar;
+import com.appnativa.rare.ui.dnd.DnDConstants;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.dnd.RenderableDataItemTransferable;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
 import com.appnativa.rare.ui.painter.iPainter;
@@ -114,14 +111,10 @@ import com.appnativa.rare.ui.table.TableHeader;
 import com.appnativa.rare.ui.table.TableHelper;
 import com.appnativa.rare.ui.table.aTableAdapter;
 import com.appnativa.rare.ui.table.aTableAdapter.TableRow;
-import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.aListViewer;
-import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.IntList;
-
-import java.util.Arrays;
 
 /**
  *
@@ -136,23 +129,7 @@ public class ListViewEx extends ListView
           ? 24
           : 5);
   protected static final int ICON_GAP       = aDataItemListModelEx.ICON_GAP;
-  // /**
-  // * This TypeEvaluator is used to animate the BitmapDrawable back to its
-  // * final location when the user lifts his finger by modifying the
-  // * BitmapDrawable's bounds.
-  // */
-  // private final static TypeEvaluator<Rect> sBoundEvaluator = new
-  // TypeEvaluator<Rect>() {
-  // public Rect evaluate(float fraction, Rect startValue, Rect endValue) {
-  // return new Rect(interpolate(startValue.left, endValue.left, fraction),
-  // interpolate(startValue.top, endValue.top, fraction),
-  // interpolate(startValue.right, endValue.right, fraction),
-  // interpolate(startValue.bottom, endValue.bottom, fraction));
-  // }
-  // public int interpolate(int start, int end, float fraction) {
-  // return (int) (start + fraction * (end - start));
-  // }
-  // };
+  private static int[]       EMPTY_ARRAY    = new int[0];
   iBackPressListener                          backPressListener;
   UIAction                                    markAll;
   protected int                               editingRow                = -1;
@@ -217,14 +194,17 @@ public class ListViewEx extends ListView
   private OnItemLongClickListener             savedLongClickListener;
   private OnScrollListener                    scrollListener;
   private boolean                             showLastDivider;
-  private static int[]                        EMPTY_ARRAY = new int[0];
   private IntList                             ids;
   private ListSynchronizer                    listSynchronizer;
   private UIScrollingEdgePainter              scrollingEdgePainter;
   boolean                                     drawableInvalidated;
   protected TableHeader                       header;
   private boolean                             scrolling;
-  private iFunctionCallback                   editModeNotifier;
+  private iExpansionListener                   editModeListener;
+  private iExpansionListener                   rowEditModeListener;
+  protected iScrollerSupport                  rowHeader;
+  protected iScrollerSupport                  rowFooter;
+  protected float                             enabledAlpha = 1;
 
   public ListViewEx(Context context) {
     this(context, null);
@@ -274,13 +254,58 @@ public class ListViewEx extends ListView
     }
   }
 
-  public void clearPopupMenuIndex() {
+  public void clearContextMenuIndex() {
+    int n = popupMenuIndex;
+
     popupMenuIndex = -1;
+
+    if (n != -1) {
+      changeHilight(n, false);
+    }
+  }
+
+  @Override
+  public void setAlpha(float alpha) {
+    enabledAlpha = alpha;
+    super.setAlpha(alpha);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+
+    if (enabled) {
+      super.setAlpha(enabledAlpha * ColorUtils.getDisabledAplhaPercent());
+    } else {
+      super.setAlpha(0.5f);
+    }
+  }
+
+  @Override
+  public boolean dispatchKeyEvent(KeyEvent event) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchKeyEvent(event);
+  }
+
+  @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if (!isEnabled()) {
+      return true;
+    }
+
+    return super.dispatchGenericMotionEvent(event);
   }
 
   @Override
   @SuppressLint("Recycle")
   public boolean dispatchTouchEvent(MotionEvent ev) {
+    if (!isEnabled()) {
+      return true;
+    }
+
     if (animator != null) {
       animator.cancel();
       animator = null;
@@ -499,6 +524,10 @@ public class ListViewEx extends ListView
     return new UIPoint(0, getChildAt(0).getTop());
   }
 
+  public int getContextMenuIndex() {
+    return popupMenuIndex;
+  }
+
   public Paint getDividerPaint() {
     if (dividerPaint == null) {
       UIColor c = lineColor;
@@ -582,11 +611,15 @@ public class ListViewEx extends ListView
            ? -1
            : list.A[0];
   }
+  public void getPreferredSize(iPlatformComponent comp,UIDimension size, float maxWidth) {
+    TableHelper.calculateListSize(listModel, comp, listModel.getItemRenderer(), null, size, -1, (int) maxWidth, rowHeight);
 
-  public int getPopupMenuIndex() {
-    return popupMenuIndex;
+    int h = TableHelper.getPreferredListHeight(comp, Math.max(minVisibleRowCount, visibleRowCount),
+              rowHeight, getAdapter().getCount()+1);
+
+    size.height = Math.max(h, size.height);
+    size.height += getPaddingTop() + getPaddingBottom();
   }
-
   public int getPreferredHeight() {
     int h = TableHelper.getPreferredListHeight(Component.findFromView(this),
               Math.max(minVisibleRowCount, visibleRowCount), rowHeight, getAdapter().getCount());
@@ -600,56 +633,18 @@ public class ListViewEx extends ListView
     return pressedPoint;
   }
 
-  public iPlatformComponent getRowEditingComponent(int index) {
-    editingRow    = index;
-    lastEditedRow = index;
+  public int getReorderingRow() {
+    return (reorderingSupport == null)
+           ? -1
+           : reorderingSupport.mMobileItemId;
+  }
 
-    if (editingComponent == null) {
-      centerEditingComponentVertically = Platform.getUIDefaults().getBoolean("Rare.List.centerDeleteButton", false);
+  public iScrollerSupport getRowFooter() {
+    return rowFooter;
+  }
 
-      WindowViewer w   = Platform.getWindowViewer();
-      PushButton   cfg = (PushButton) Platform.getWindowViewer().createConfigurationObject("PushButton",
-                           "Rare.List.deleteButton");
-
-      if (cfg.value.getValue() == null) {
-        cfg.value.setValue(Platform.getResourceAsString("Rare.action.delete"));
-      }
-
-      if (cfg.bgColor.getValue() == null) {
-        if (centerEditingComponentVertically) {
-          cfg.bgColor.setValue("red,");
-          cfg.addBorder("line").spot_setAttribute("cornerArc", "4");
-          ;
-          cfg.addBorder("empty").spot_setAttribute("insets", "6,6,6,6");
-        } else {
-          cfg.bgColor.setValue("red");
-          cfg.addBorder("matte").spot_setAttribute("insets", "0,0,0,1");
-          cfg.addBorder("empty").spot_setAttribute("insets", "6,6,6,6");
-        }
-
-        cfg.fgColor.setValue("white");
-      }
-
-      PushButtonWidget pb = PushButtonWidget.create(w, cfg);
-
-      pb.addActionListener(new iActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          if ((editingRow > -1) && (editingRow < getAdapter().getCount())) {
-            RenderableDataItemTransferable t =
-              new RenderableDataItemTransferable((RenderableDataItem) getAdapter().getItem(editingRow));
-            aListViewer lv = (aListViewer) Component.fromView(ListViewEx.this).getWidget();
-
-            hideRowEditingComponent(false);
-            lv.removeData(t);
-            updateActions();
-          }
-        }
-      });
-      editingComponent = pb.getDataComponent();
-    }
-
-    return editingComponent;
+  public iScrollerSupport getRowHeader() {
+    return rowHeader;
   }
 
   /**
@@ -753,13 +748,37 @@ public class ListViewEx extends ListView
   }
 
   public void handleLongpressSelection(AdapterContextMenuInfo mi) {
-    popupMenuIndex = mi.position;
+    if (popupMenuIndex != -1) {
+      clearContextMenuIndex();
+    }
+
+    int n = mi.position;
+
+    if (n != -1) {
+      RenderableDataItem row = listModel.get(n);
+
+      if (!isSelectable(row)) {
+        n = -1;
+      }
+    }
+
+    popupMenuIndex      = n;
+    ignoreLastItemClick = true;
+
+    if (popupMenuIndex != -1) {
+      changeHilight(popupMenuIndex, true);
+    }
   }
 
   public void hideRowEditingComponent(boolean animate) {
     int row = editingRow;
 
     editingRow = -1;
+    if(row!=-1) {
+      if(rowEditModeListener!=null) {
+        rowEditModeListener.itemWillCollapse(new ExpansionEvent(editingComponent,ExpansionEvent.Type.WILL_COLLAPSE));
+      }
+    }
 
     View v = (row == -1)
              ? null
@@ -927,6 +946,13 @@ public class ListViewEx extends ListView
   }
 
   @Override
+  public void onMovedToScrapHeap(View view) {
+    if (view.getVisibility() == INVISIBLE) {
+      view.setVisibility(VISIBLE);
+    }
+  }
+
+  @Override
   public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
     if ((listSynchronizer != null) && listSynchronizer.isSyncScrolling()) {
       listSynchronizer.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
@@ -934,6 +960,19 @@ public class ListViewEx extends ListView
 
     if (scrollListener != null) {
       scrollListener.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+    }
+
+    if ((rowFooter != null) && (rowHeader != null) && (totalItemCount > 0)) {
+      View c = getChildAt(0);
+      int  y = -c.getTop() + firstVisibleItem * c.getHeight();
+
+      if (rowHeader != null) {
+        rowHeader.setContentOffset(0, y);
+      }
+
+      if (rowFooter != null) {
+        rowFooter.setContentOffset(0, y);
+      }
     }
   }
 
@@ -1006,10 +1045,14 @@ public class ListViewEx extends ListView
       if (ignoreLastItemClick && (lastClickTime + 100) > System.currentTimeMillis()) {
         ignoreLastItemClick = false;
 
+        if (popupMenuIndex != -1) {
+          invalidate();
+        }
+
         return true;
       }
 
-      if (!((RenderableDataItem) getItemAtPosition(position)).isSelectable()) {
+      if (!isSelectable((RenderableDataItem) getItemAtPosition(position))) {
         return true;
       }
 
@@ -1158,7 +1201,7 @@ public class ListViewEx extends ListView
         @Override
         public void onInvalidated() {
           lastEditedRow = -1;
-          hideRowEditingComponentEx();
+          editingRow=-1;
         }
       };
     }
@@ -1169,6 +1212,7 @@ public class ListViewEx extends ListView
     if (adapter instanceof iPlatformListDataModel) {
       listModel = (iPlatformListDataModel) adapter;
       listModel.setShowLastDivider(showLastDivider);
+      listModel.setRowEditingSupported(editingComponent != null);
     }
   }
 
@@ -1224,6 +1268,11 @@ public class ListViewEx extends ListView
     setCacheColorHint(0);
   }
 
+  @Override
+  public void setContentOffset(float x, float y) {
+    scrollTo(0, (int) y);
+  }
+
   public void setDividerLine(UIColor color, UIStroke stroke) {
     lineColor    = color;
     lineStroke   = stroke;
@@ -1237,10 +1286,6 @@ public class ListViewEx extends ListView
     drawCallback = cb;
 
     return ocb;
-  }
-
-  public void setEditModeNotifier(iFunctionCallback cb) {
-    editModeNotifier = cb;
   }
 
   public void setEditingMode(EditingMode mode) {
@@ -1268,6 +1313,10 @@ public class ListViewEx extends ListView
     if (tb != null) {
       tb.getComponent().setVisible(false);
     }
+  }
+
+  public void setEditModeListener(iExpansionListener l) {
+    editModeListener = l;
   }
 
   public void setExtendBackgroundRendering(boolean extendBackgroundRendering) {
@@ -1434,12 +1483,24 @@ public class ListViewEx extends ListView
     centerEditingComponentVertically = centerVertically;
 
     if (c != null) {
+      if (listModel != null) {
+        listModel.setRowEditingSupported(true);
+      }
+
       if (flingGestureListener == null) {
         flingGestureListener = new RowEditingGestureListener();
       }
     } else {
       flingGestureListener = null;
     }
+  }
+
+  public void setRowFooter(iScrollerSupport rowFooter) {
+    this.rowFooter = rowFooter;
+  }
+
+  public void setRowHeader(iScrollerSupport rowHeader) {
+    this.rowHeader = rowHeader;
   }
 
   /**
@@ -1504,6 +1565,14 @@ public class ListViewEx extends ListView
     this.showDivider = showDivider;
   }
 
+  public void setShowLastDivider(boolean show) {
+    showLastDivider = show;
+
+    if (listModel != null) {
+      listModel.setShowLastDivider(showLastDivider);
+    }
+  }
+
   public void setVisibleRowCount(int rows) {
     if (minVisibleRowCount == 0) {
       int rh = getRowHeight();
@@ -1560,6 +1629,9 @@ public class ListViewEx extends ListView
           }
         };
         ((MainActivity) Platform.getAppContext().getActivity()).addBackPressListener(backPressListener);
+      }
+      if (editModeListener != null) {
+        editModeListener.itemWillExpand(new ExpansionEvent(this,ExpansionEvent.Type.WILL_EXPAND));
       }
 
       if (actions == null) {
@@ -1646,9 +1718,6 @@ public class ListViewEx extends ListView
         animateX = -distance;
         animateEditMode(true, -distance, start, end);
       } else if (draggingAllowed) {
-        if (editModeNotifier != null) {
-          editModeNotifier.finished(false, Platform.findWidgetForComponent(this));
-        }
 
         if (reorderingSupport == null) {
           reorderingSupport = new RowReordingSupport();
@@ -1724,13 +1793,13 @@ public class ListViewEx extends ListView
       @Override
       public void onAnimationCancel(Animator animation) {
         animator = null;
+        if (editModeListener != null && !in) {
+          editModeListener.itemWillCollapse(new ExpansionEvent(this,ExpansionEvent.Type.WILL_COLLAPSE));
+        }
 
         if (!in) {
           stopEditingEx();
         } else if (draggingAllowed) {
-          if (editModeNotifier != null) {
-            editModeNotifier.finished(false, Platform.findWidgetForComponent(this));
-          }
 
           if (reorderingSupport == null) {
             reorderingSupport = new RowReordingSupport();
@@ -1842,14 +1911,6 @@ public class ListViewEx extends ListView
     }
   }
 
-  protected void hideRowEditingComponentEx() {
-    int row = editingRow;
-
-    if (row > -1) {
-      editingRow = -1;
-    }
-  }
-
   protected boolean isEditingComponentTouched(MotionEvent e) {
     float x     = e.getRawX();
     float y     = e.getRawY();
@@ -1898,6 +1959,10 @@ public class ListViewEx extends ListView
     }
 
     return (x >= sx - slop) && (x <= (sx + checkboxWidth + slop));
+  }
+
+  protected boolean isSelectable(RenderableDataItem item) {
+    return item.isEnabled() && item.isSelectable();
   }
 
   protected void itemClicked(View v, int index, long id) {
@@ -2124,10 +2189,6 @@ public class ListViewEx extends ListView
 
     requestLayout();
     invalidate();
-
-    if (editModeNotifier != null) {
-      editModeNotifier.finished(true, Platform.findWidgetForComponent(this));
-    }
   }
 
   protected void toggleCheckedState(int row) {
@@ -2158,6 +2219,29 @@ public class ListViewEx extends ListView
     }
   }
 
+  private void changeHilight(int row, boolean hilight) {
+    if (isItemChecked(row) && (getSelectedIndexCount() > 1)) {
+      int len = getChildCount();
+      int n   = getFirstVisiblePosition();
+
+      for (int i = 0; i < len; i++) {
+        if (isItemChecked(i + n)) {
+          View view = getChildAt(i);
+
+          if (view instanceof iListViewRow) {
+            ((iListViewRow) view).setHilight(hilight);
+          }
+        }
+      }
+    } else {
+      View view = getViewForRow(row);
+
+      if (view instanceof iListViewRow) {
+        ((iListViewRow) view).setHilight(hilight);
+      }
+    }
+  }
+
   private IntList getSelectedIndexesList() {
     SparseBooleanArray a   = getCheckedItemPositions();
     int                len = (a == null)
@@ -2182,6 +2266,19 @@ public class ListViewEx extends ListView
   private void setOnScrollListenerEx(OnScrollListener l) {
     super.setOnScrollListener(l);
   }
+
+  public iExpansionListener getRowEditModeListener() {
+    return rowEditModeListener;
+  }
+
+  public void setRowEditModeListener(iExpansionListener rowEditModeListener) {
+    this.rowEditModeListener = rowEditModeListener;
+  }
+
+  public interface iListViewRow {
+    void setHilight(boolean hilight);
+  }
+
 
   /*
    * Portions of the code Copyright (C) 2013 The Android Open Source Project
@@ -2827,7 +2924,13 @@ public class ListViewEx extends ListView
         ListRowContainer lc = (ListRowContainer) v;
 
         if ((editingRow == -1) && (e1.getX() > e2.getX())) {
-          lc.showRowEditingComponent(getRowEditingComponent(row), true, centerEditingComponentVertically);
+          editingRow    = row;
+          lastEditedRow = row;
+         clearChoices();
+          if(rowEditModeListener!=null) {
+            rowEditModeListener.itemWillExpand(new ExpansionEvent(editingComponent,ExpansionEvent.Type.WILL_EXPAND));
+          }
+          lc.showRowEditingComponent(editingComponent, true, centerEditingComponentVertically);
         }
       }
 
@@ -2848,28 +2951,6 @@ public class ListViewEx extends ListView
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
       return false;
-    }
-  }
-
-
-  @Override
-  public void onMovedToScrapHeap(View view) {
-    if (view.getVisibility() == INVISIBLE) {
-      view.setVisibility(VISIBLE);
-    }
-  }
-
-  public int getReorderingRow() {
-    return (reorderingSupport == null)
-           ? -1
-           : reorderingSupport.mMobileItemId;
-  }
-
-  public void setShowLastDivider(boolean show) {
-    showLastDivider = show;
-
-    if (listModel != null) {
-      listModel.setShowLastDivider(showLastDivider);
     }
   }
 }

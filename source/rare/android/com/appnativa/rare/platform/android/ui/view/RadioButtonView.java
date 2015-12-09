@@ -104,6 +104,7 @@ public class RadioButtonView extends RadioButton implements iPainterSupport {
     return Utils.getState(isEnabled(), isPressed(), isSelected(), false);
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
@@ -112,15 +113,18 @@ public class RadioButtonView extends RadioButton implements iPainterSupport {
     return this;
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
 
+  @Override
   public void setText(CharSequence text, BufferType type) {
     text = LabelView.checkText(text, (ImageGetter) Platform.findWidgetForComponent(Component.fromView(this)));
     super.setText(text, type);
   }
 
+  @Override
   public String toString() {
     CharSequence s = getText();
 
@@ -135,16 +139,19 @@ public class RadioButtonView extends RadioButton implements iPainterSupport {
     resolveStateValues();
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onDraw(Canvas canvas) {
     if (offsettingDrawable != null) {
       CharSequence s = getText();
@@ -169,11 +176,13 @@ public class RadioButtonView extends RadioButton implements iPainterSupport {
     graphics.clear();
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

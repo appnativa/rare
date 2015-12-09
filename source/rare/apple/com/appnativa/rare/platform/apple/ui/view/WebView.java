@@ -15,11 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
@@ -65,7 +67,6 @@ public class WebView extends ParentView implements iPlatformTextEditor {
 
   @Override
   public void addActionListener(iActionListener listener) {
-    // TODO Auto-generated method stub
   }
 
   @Override
@@ -307,7 +308,36 @@ public class WebView extends ParentView implements iPlatformTextEditor {
 
   public native void setScaleToFit(boolean scaleToFit)
   /*-[
-  [((RAREAPWebView*)proxy_) setScaleToFit: scaleToFit];
+   [((RAREAPWebView*)proxy_) setScaleToFit: scaleToFit];
   ]-*/
   ;
+
+  public void executeScript(String script, final iFunctionCallback cb) {
+    final Object value = executeScriptEx(script);
+
+    if (cb != null) {
+      Platform.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          cb.finished(false, value);
+        }
+      });
+    }
+  }
+
+  public native void setWindowProperty(String name, Object value)
+  /*-[
+  return [((RAREAPWebView*)proxy_) setWindowProperty: name value: value];
+ ]-*/
+  ;
+
+  public native String executeScriptEx(String script)
+  /*-[
+   return [((RAREAPWebView*)proxy_) stringByEvaluatingJavaScriptFromString: script];
+  ]-*/
+  ;
+
+  @Override
+  public void setChangeEventsEnabled(boolean enabled) {
+  }
 }

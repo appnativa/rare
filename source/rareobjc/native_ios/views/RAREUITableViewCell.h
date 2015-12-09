@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "com/appnativa/rare/ui/RenderableDataItem.h"
+
 @class RAREUIRectangle;
 @class RAREAppleGraphics;
 @class RAREListView;
@@ -46,8 +47,11 @@
 -(void) showRowEditingView: (UIView*) view animate: (BOOL) animate centerVertically: (BOOL) center;
 -(void) hideRowEditingView: (BOOL) animate;
 -(BOOL) isRowEditorOrChild:(UIView*) view;
--(int) getPressedContentViewIndex;
 -(UIView*) getPressedContentViewAtIndex: (int) index;
++(NSLineBreakMode) getDefaultLineBreakMode;
++(void) setDefaultLineBreakMode:(NSLineBreakMode) mode;
+
+
 
 @end
 

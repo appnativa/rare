@@ -230,7 +230,7 @@ public class AnimationComponent extends XPContainer {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (!useBoundsForPreferredSize && (minSize != null)) {
       size.setSize(minSize);
     } else {

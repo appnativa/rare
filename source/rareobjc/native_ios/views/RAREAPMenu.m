@@ -24,6 +24,9 @@
 }
 -(void)setSubmenu: (RAREAPMenu*) subMenu forItem: (RAREAPMenuItem*) item{
 }
+-(void) setHeader: (UIView*) view {
+  
+}
 +(void) setMenuBarVisible: (BOOL) visible {
   
 }

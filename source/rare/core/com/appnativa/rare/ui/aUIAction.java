@@ -29,7 +29,6 @@ import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.widget.iWidget;
-
 import com.google.j2objc.annotations.Weak;
 
 import java.beans.PropertyChangeListener;
@@ -40,6 +39,13 @@ import java.beans.PropertyChangeListener;
  * @author Don DeCoteau
  */
 public abstract class aUIAction implements iActionListener {
+  public static final String ICON = "Icon";
+  public static final String LARGE_ICON = "LargeIcon";
+  public static final String SHORT_DESCRIPTION = "ShortDescription";
+  public static final String DISABLED_ICON = "DisabledIcon";
+  public static final String ACTION_TEXT = "ActionText";
+  public static final String ACTION_NAME = "ActionName";
+  public static final String ENABLED = iConstants.PROPERTY_ENABLED;
   protected boolean           enabled = true;
   protected iActionListener   actionListener;
   protected String            actionName;
@@ -61,7 +67,7 @@ public abstract class aUIAction implements iActionListener {
   protected iPlatformIcon     selectedIcon;
   protected CharSequence      shortDescription;
   protected iPlatformIcon     smallIcon;
-
+  
   /**
    * Constructs a new instance
    *
@@ -72,7 +78,7 @@ public abstract class aUIAction implements iActionListener {
     setActionText(a.actionText);
     setShortDescription(a.shortDescription);
     setLongDescription(a.longDescription);
-    setSmallIcon(a.smallIcon);
+    setIcon(a.smallIcon);
     setMnemonic(a.mnemonic);
     setActionName(a.actionName);
     this.setActionListener(a);
@@ -147,7 +153,7 @@ public abstract class aUIAction implements iActionListener {
     enabledIfHasValueOnly  = item.enabledIfHasValueOnly.booleanValue();
 
     if (icon != null) {
-      setSmallIcon(icon);
+      setIcon(icon);
     }
 
     setEnabled(item.enabled.booleanValue());
@@ -301,6 +307,12 @@ public abstract class aUIAction implements iActionListener {
   public synchronized void removePropertyChangeListener(PropertyChangeListener pcl) {
     if ((listenerList != null) && (pcl != null)) {
       listenerList.remove(PropertyChangeListener.class, pcl);
+      if(pcl instanceof Component) {
+        iWidget w=((Component)pcl).getWidget();
+        if(w==contextWidget) {
+          contextWidget=null;
+        }
+      }
     }
   }
 
@@ -389,7 +401,7 @@ public abstract class aUIAction implements iActionListener {
     this.actionName = actionName;
 
     if ((listenerList != null) && (ot != actionName) && ((actionName != null) &&!actionName.equals(ot))) {
-      firePropertyChange("ActionName", ot, actionName);
+      firePropertyChange(ACTION_NAME, ot, actionName);
     }
   }
 
@@ -441,7 +453,7 @@ public abstract class aUIAction implements iActionListener {
     }
 
     if ((listenerList != null) && (ot != actionText) && ((actionText != null) &&!actionText.equals(ot))) {
-      firePropertyChange("ActionText", ot, actionText);
+      firePropertyChange(ACTION_TEXT, ot, actionText);
     }
   }
 
@@ -465,14 +477,14 @@ public abstract class aUIAction implements iActionListener {
     this.disabledIcon = icon;
 
     if ((listenerList != null) && (oc != icon)) {
-      firePropertyChange("DisabledIcon", oc, icon);
+      firePropertyChange(DISABLED_ICON, oc, icon);
     }
   }
 
   public void setEnabled(boolean enabled) {
     if (enabled != this.enabled) {
       this.enabled = enabled;
-      firePropertyChange("enabled", !enabled, enabled);
+      firePropertyChange(ENABLED,!enabled, enabled);
     }
   }
 
@@ -509,7 +521,13 @@ public abstract class aUIAction implements iActionListener {
    * @param icon the icon for the action
    */
   public void setIcon(iPlatformIcon icon) {
-    setSmallIcon(icon);
+    iPlatformIcon oc = this.smallIcon;
+
+    this.smallIcon = icon;
+
+    if (oc != smallIcon) {
+      firePropertyChange(ICON, oc, smallIcon);
+    }
   }
 
   /**
@@ -521,7 +539,7 @@ public abstract class aUIAction implements iActionListener {
     this.largeIcon = largeIcon;
 
     if ((listenerList != null) && (oc != smallIcon)) {
-      firePropertyChange("LargeIcon", oc, largeIcon);
+      firePropertyChange(LARGE_ICON, oc, largeIcon);
     }
   }
 
@@ -544,7 +562,7 @@ public abstract class aUIAction implements iActionListener {
 
     if ((listenerList != null) && (ot != shortDescription)
         && ((shortDescription != null) &&!shortDescription.equals(ot))) {
-      firePropertyChange("ShortDescription", ot, shortDescription);
+      firePropertyChange(SHORT_DESCRIPTION, ot, shortDescription);
     }
   }
 
@@ -573,22 +591,10 @@ public abstract class aUIAction implements iActionListener {
     this.shortDescription = showrDescription;
 
     if ((ot != shortDescription) && ((shortDescription != null) &&!shortDescription.equals(ot))) {
-      firePropertyChange("ShortDescription", ot, shortDescription);
+      firePropertyChange(SHORT_DESCRIPTION, ot, shortDescription);
     }
   }
 
-  /**
-   * @param smallIcon the smallIcon to set
-   */
-  public void setSmallIcon(iPlatformIcon smallIcon) {
-    iPlatformIcon oc = this.smallIcon;
-
-    this.smallIcon = smallIcon;
-
-    if (oc != smallIcon) {
-      firePropertyChange("SmallIcon", oc, smallIcon);
-    }
-  }
 
   /**
    * Sets the text for the action
@@ -663,10 +669,20 @@ public abstract class aUIAction implements iActionListener {
    * @return the disabled icon
    */
   public iPlatformIcon getDisabledIcon() {
-    if ((disabledIcon == null) && (getIcon() != null)) {
+    if ((disabledIcon == null) && (smallIcon != null)) {
       disabledIcon = getIcon().getDisabledVersion();
     }
 
+    return disabledIcon;
+  }
+
+
+  /**
+   * Gets the disabled icon if one was set
+   *
+   * @return the disabled icon of null if one was not set
+   */
+  public iPlatformIcon getDisabledIconEx() {
     return disabledIcon;
   }
 
@@ -741,16 +757,9 @@ public abstract class aUIAction implements iActionListener {
   public CharSequence getShortDescription() {
     return shortDescription;
   }
-
+ 
   /**
-   * @return the smallIcon
-   */
-  public iPlatformIcon getSmallIcon() {
-    return smallIcon;
-  }
-
-  /**
-   * Retrurns whether an action will be performed when actionPerformed is called
+   * Returns whether an action will be performed when actionPerformed is called
    *
    * @return true is an action will be performed; false otherwise
    */

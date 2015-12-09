@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -44,11 +44,14 @@ public abstract class aUIPlatformBorder extends aUIBorder implements iPlatformBo
     return false;
   }
 
+  @Override
   public float getPathWidth() {
     return 0;
   }
 
+  @Override
   public float getPathOffset() {
     return getPathWidth() / 2;
   }
+
 }

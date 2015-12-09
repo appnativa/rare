@@ -51,6 +51,7 @@ public class BackgroundDrawable extends PaintDrawable {
     super.draw(canvas);
   }
 
+  @Override
   public void setAlpha(int alpha) {}
 
   public void setColor(UIColor bg) {

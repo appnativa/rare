@@ -15,14 +15,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.util.List;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.platform.apple.ui.DataItemListModel;
 import com.appnativa.rare.platform.apple.ui.ListBoxListHandler;
 import com.appnativa.rare.platform.apple.ui.util.AppleHelper;
@@ -35,12 +37,10 @@ import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.iListView.EditingMode;
 import com.appnativa.rare.ui.iToolBar;
+import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.FilterableList;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  *  A widget that allows a user to select one or more choices from a
@@ -91,6 +91,20 @@ public class ListBoxViewer extends aListViewer {
     listModel = null;
   }
 
+  @Override
+  public int getEditingRow() {
+    ListView v = (ListView) getDataView();
+
+    return v.getEditingRow();
+  }
+
+  @Override
+  public int getLastEditedRow() {
+    ListView v = (ListView) getDataView();
+
+    return v.getLastEditedRow();
+  }
+
   /**
    * Notifies the list that the contents of the specified row has changed
    *
@@ -127,27 +141,26 @@ public class ListBoxViewer extends aListViewer {
   }
 
   @Override
-  public void startEditing(boolean animate, UIAction... actions) {
-    ((ListView) getDataView()).startEditing(actions, animate);
-  }
-
-  @Override
-  public void stopEditing(boolean animate) {
-    ((ListView) getDataView()).stopEditing(animate);
-  }
-
-  @Override
   public void setAutoSizeRowsToFit(boolean autoSize) {
     ((ListView) getDataView()).setAutoSizeRows(autoSize);
   }
 
   @Override
-  public void setEditModeNotifier(iFunctionCallback cb) {
-    ((ListView) getDataView()).setEditModeNotifier(cb);
+  public void setEditModeListener(iExpansionListener l) {
+    ListView v = (ListView) getDataView();
+    v.setEditModeListener(l);
+  }
+  
+  @Override
+  public void setRowEditModeListener(iExpansionListener l) {
+    ListView v = (ListView) getDataView();
+    v.setRowEditModeListener(l);
   }
 
   @Override
   public void setRowEditingWidget(iWidget widget, boolean centerVertically) {
+    super.setRowEditingWidget(widget, centerVertically);
+
     ListView v = (ListView) getDataView();
 
     v.setRowEditingComponent(widget.getContainerComponent(), centerVertically);
@@ -172,49 +185,13 @@ public class ListBoxViewer extends aListViewer {
   }
 
   @Override
-  public int getEditingRow() {
-    ListView v = (ListView) getDataView();
-
-    return v.getEditingRow();
+  public void startEditing(boolean animate, UIAction... actions) {
+    ((ListView) getDataView()).startEditing(actions, animate);
   }
 
   @Override
-  public int getLastEditedRow() {
-    ListView v = (ListView) getDataView();
-
-    return v.getLastEditedRow();
-  }
-
-  static void handleCustomProperties(ListView v, Widget cfg, Map<String, Object> properties) {
-    String s = (String) properties.get("cellStyle");
-
-    if (s != null) {
-      v.setCellStyle(s);
-    }
-
-    s = (String) properties.get("accessoryType");
-
-    if (s != null) {
-      v.setAccessoryType(s, false);
-    }
-
-    s = (String) properties.get("separatorStyle");
-
-    if (s != null) {
-      v.setSeparatorStyle(s);
-    }
-
-    s = (String) properties.get("editingAccessoryType");
-
-    if (s != null) {
-      v.setAccessoryType(s, true);
-    }
-
-    s = (String) properties.get("allowsSelectionDuringEditing");
-
-    if ((s != null) && s.equals("true")) {
-      v.setAllowsSelectionDuringEditing(true);
-    }
+  public void stopEditing(boolean animate) {
+    ((ListView) getDataView()).stopEditing(animate);
   }
 
   @Override
@@ -278,20 +255,10 @@ public class ListBoxViewer extends aListViewer {
   protected void handleViewerConfigurationWillChange(Object newConfig) {
     selectedIndexes = getSelectedIndexes();
     super.handleViewerConfigurationWillChange(newConfig);
-    if( Platform.getUIDefaults().getBoolean("Rare.Table.repaintOnRotation", true)){
+
+    if (Platform.getUIDefaults().getBoolean("Rare.Table.repaintOnRotation", true)) {
       ((ListView) getDataView()).repaintVisibleRows();
     }
-  }
-
-  @Override
-  protected List<RenderableDataItem> updateListWithFilteringIndex(FilterableList<RenderableDataItem> list) {
-    if (Platform.isIOS()) {
-      ((ListView) getDataView()).setSectionIndex(list.getFilteringIndex(), list.size(), prototypeSectionItem);
-
-      return list;
-    }
-
-    return super.updateListWithFilteringIndex(list);
   }
 
   @Override
@@ -316,5 +283,48 @@ public class ListBoxViewer extends aListViewer {
   @Override
   protected void setWholeViewFling(boolean wholeViewFling) {
     ((ListView) getDataView()).setWholeViewFling(wholeViewFling);
+  }
+
+  @Override
+  protected List<RenderableDataItem> updateListWithFilteringIndex(FilterableList<RenderableDataItem> list) {
+    if (Platform.isIOS()) {
+      ((ListView) getDataView()).setSectionIndex(list.getFilteringIndex(), list.size(), prototypeSectionItem);
+
+      return list;
+    }
+
+    return super.updateListWithFilteringIndex(list);
+  }
+
+  static void handleCustomProperties(ListView v, Widget cfg, Map<String, Object> properties) {
+    String s = (String) properties.get("cellStyle");
+
+    if (s != null) {
+      v.setCellStyle(s);
+    }
+
+    s = (String) properties.get("accessoryType");
+
+    if (s != null) {
+      v.setAccessoryType(s, false);
+    }
+
+    s = (String) properties.get("separatorStyle");
+
+    if (s != null) {
+      v.setSeparatorStyle(s);
+    }
+
+    s = (String) properties.get("editingAccessoryType");
+
+    if (s != null) {
+      v.setAccessoryType(s, true);
+    }
+
+    s = (String) properties.get("allowsSelectionDuringEditing");
+
+    if ((s != null) && s.equals("true")) {
+      v.setAllowsSelectionDuringEditing(true);
+    }
   }
 }

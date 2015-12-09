@@ -20,10 +20,14 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EventObject;
+import java.util.Locale;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iExecutionHandler;
-import com.appnativa.rare.net.URLEncoder;
 import com.appnativa.rare.spot.Carousel;
 import com.appnativa.rare.spot.Margin;
 import com.appnativa.rare.spot.Viewer;
@@ -35,6 +39,8 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iAdjustable;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.carousel.CachingURLImageCreator;
 import com.appnativa.rare.ui.carousel.aCarouselPanel;
 import com.appnativa.rare.ui.carousel.aCarouselPanel.DataType;
@@ -42,18 +48,12 @@ import com.appnativa.rare.ui.carousel.iImageCreator;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.iAdjustable;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.rare.ui.renderer.aListItemRenderer;
 import com.appnativa.util.SNumber;
+import com.appnativa.util.URLEncoder;
 import com.appnativa.util.iFilterableList;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EventObject;
-import java.util.Locale;
 
 /**
  *

@@ -1122,9 +1122,6 @@ public class Utilities {
       case Slider :
         return Studio.getResourceAsBufferedImage("Studio.icon.toolbox.hslider");
 
-      case FileUploadField :
-        return Studio.getResourceAsBufferedImage("Studio.icon.toolbox.fileuploadfield");
-
       case TextField :
         return Studio.getResourceAsBufferedImage("Studio.icon.toolbox.textfield");
 
@@ -1177,7 +1174,6 @@ public class Utilities {
       case ScrollPane :
         return Studio.getResourceAsBufferedImage("Studio.icon.toolbox.scrollpane");
 
-      case FlashPlayer :
       case MediaPlayer :
       case WebBrowser :
         return Studio.getResourceAsBufferedImage("Studio.icon.toolbox.browser");

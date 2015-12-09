@@ -15,12 +15,26 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
 
-import com.appnativa.rare.Platform;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.KeyboardFocusManager;
+import java.awt.LayoutManager;
+import java.awt.Paint;
+import java.awt.Rectangle;
+
+import javax.swing.JComponent;
+import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.MouseInputListener;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.ui.ColorUtils;
@@ -29,17 +43,6 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.iLayoutManager;
 import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.LayoutManager;
-import java.awt.Rectangle;
-
-import javax.swing.JComponent;
-import javax.swing.Scrollable;
-import javax.swing.border.TitledBorder;
 
 /**
  * A general purpose panel
@@ -48,7 +51,8 @@ import javax.swing.border.TitledBorder;
  * @author Don DeCoteau
  */
 public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable {
-  protected boolean locked;
+  public static boolean PAINT_GLASS = false;
+  protected boolean     locked;
 
   /** minimum height */
   protected int minimumHeight;
@@ -60,11 +64,16 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
    * whether the minimumWidth/minimumHeight values should only be used when the
    * component is empty
    */
-  protected boolean      useMinimumVarsOnlyWhenEmpty;
-  private boolean        blockLayout;
-  private iLayoutTracker layoutTracker;
-  private boolean        lockViewHeight;
-  private boolean        lockViewWidth;
+  protected boolean          useMinimumVarsOnlyWhenEmpty;
+  private boolean            blockLayout;
+  private iLayoutTracker     layoutTracker;
+  private boolean            lockViewHeight;
+  private boolean            lockViewWidth;
+  private JComponent         glassPane;
+  private MouseInputListener glassPaneMouseListener;
+  private UIColor            lockedColor;
+  private Cursor             lockedCursor;
+  private java.awt.Component recentFocusOwner;
 
   /**
    * Constructs a new instance
@@ -154,12 +163,149 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
   }
 
   @Override
+  public Object getConstraints(iPlatformComponent c) {
+    return null;
+  }
+
+  public JComponent getGlassPane() {
+    return glassPane;
+  }
+
+  public iLayoutTracker getLayoutTracker() {
+    return layoutTracker;
+  }
+
+  /**
+   * Returns the mouse cursor to be used for the locked layer, it is a
+   * <code>Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)</code> by default
+   *
+   * @return the cursor to be used for the locked layer
+   *
+   * @see #setLocked(boolean)
+   */
+  public Cursor getLockedCursor() {
+    return lockedCursor;
+  }
+
+  /**
+   * Gets the paint used when the view is locked
+   *
+   * @return the paint
+   */
+  public Paint getLockedPainter() {
+    return lockedColor;
+  }
+
+  @Override
+  public Dimension getMinimumSize() {
+    Dimension d = super.getMinimumSize();
+
+    if (!useMinimumVarsOnlyWhenEmpty || (this.getComponentCount() == 0)) {
+      if (d.width < minimumWidth) {
+        d.width = minimumWidth;
+      }
+
+      if (d.height < minimumHeight) {
+        d.height = minimumHeight;
+      }
+    }
+
+    return d;
+  }
+
+  @Override
+  public void getMinimumSize(UIDimension size, int maxWidth) {
+    Dimension d = getMinimumSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+  }
+
+  @Override
+  public Dimension getPreferredScrollableViewportSize() {
+    return getPreferredSize();
+  }
+
+  @Override
+  public void getPreferredSize(UIDimension size, int maxWidth) {
+    Dimension d = getPreferredSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+  }
+
+  public UIDimension getPreferrredSize(UIDimension size, int maxWidth) {
+    Component c = (Component) Component.fromView(this);
+
+    return c.getPreferredSize(size, maxWidth);
+  }
+
+  @Override
+  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+    return 40;
+  }
+
+  @Override
+  public boolean getScrollableTracksViewportHeight() {
+    return lockViewHeight;
+  }
+
+  @Override
+  public boolean getScrollableTracksViewportWidth() {
+    return lockViewWidth;
+  }
+
+  @Override
+  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+    return 10;
+  }
+
+  @Override
   public boolean imageUpdate(Image img, int infoflags, int x, int y, int w, int h) {
     if (!SwingHelper.isContinueImageUpdate(this, img)) {
       return false;
     }
 
     return super.imageUpdate(img, infoflags, x, y, w, h);
+  }
+
+  /**
+   * @return the blockLayout
+   */
+  public boolean isBlockLayout() {
+    return blockLayout;
+  }
+
+  /**
+   * Returns <code>true</code> is this layer is locked, <code>false</code>
+   * otherwise
+   *
+   * @return <code>true</code> is this layer is locked, <code>false</code>
+   *         otherwise
+   *
+   * @see #setLocked(boolean)
+   * @see #setLockedCursor(java.awt.Cursor)
+   */
+  public boolean isLocked() {
+    return locked;
+  }
+
+  /**
+   *  Gets whether the height of the view is locked (not scrollable)
+   * 
+   *  @return true if it is locked; false otherwise
+   */
+  public boolean isLockViewHeight() {
+    return lockViewHeight;
+  }
+
+  /**
+   * Gets whether the width of the view is locked (not scrollable)
+   *
+   * @return true if it is locked; false otherwise
+   */
+  public boolean isLockViewWidth() {
+    return lockViewWidth;
   }
 
   @Override
@@ -177,9 +323,130 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
     this.blockLayout = blockLayout;
   }
 
+  /**
+   * Sets the glassPane of this layer
+   *
+   * @param glassPane
+   *          the glassPane of this layer
+   */
+  public void setGlassPane(JComponent glassPane) {
+    if (glassPane == null) {
+      throw new IllegalArgumentException("GlassPane can't be set to null");
+    }
+
+    JComponent oldGlassPane = getGlassPane();
+
+    if (oldGlassPane != null) {
+      super.remove(oldGlassPane);
+    }
+
+    super.addImpl(glassPane, null, 0);
+    this.glassPane = glassPane;
+
+    if (PAINT_GLASS) {
+      if (glassPane instanceof GlassPanel) {
+        UIColor c = (UIColor) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
+
+        if (c != null) {
+          ((GlassPanel) glassPane).setLockedColor(c);
+        }
+      }
+    }
+  }
+
+  /**
+   * Sets the listener to use for the glass pane
+   *
+   * @param l
+   *          the listener
+   */
+  public void setGlassPaneMouseListener(MouseInputListener l) {
+    this.glassPaneMouseListener = l;
+  }
+
   @Override
   public void setLayoutTracker(iLayoutTracker layoutTracker) {
     this.layoutTracker = layoutTracker;
+  }
+
+  /**
+   * Sets if this layer is locked or not.
+   *
+   * @param locked
+   *          <code>true</code> if this layer should be locked
+   *          <code>false</code> otherwise
+   *
+   * @see #setLockedCursor(java.awt.Cursor)
+   */
+  public void setLocked(boolean locked) {
+    if (locked != isLocked()) {
+      if (glassPane == null) {
+        setGlassPane(new GlassPanel(false));
+      }
+
+      java.awt.Component focusOwner         =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+      boolean            isFocusInsideLayer = (focusOwner != null) && SwingUtilities.isDescendingFrom(focusOwner, this);
+
+      if (locked) {
+        getGlassPane().addMouseListener(glassPaneMouseListener);
+        getGlassPane().addMouseMotionListener(glassPaneMouseListener);
+        setFocusTraversalPolicyProvider(true);
+
+        if (isFocusInsideLayer) {
+          recentFocusOwner = focusOwner;
+          requestFocusInWindow();
+        }
+
+        getGlassPane().setVisible(true);
+        getGlassPane().setCursor(getLockedCursor());
+      } else {
+        getGlassPane().removeMouseListener(glassPaneMouseListener);
+        getGlassPane().removeMouseMotionListener(glassPaneMouseListener);
+        setFocusTraversalPolicyProvider(false);
+
+        if (isFocusInsideLayer && (recentFocusOwner != null)) {
+          recentFocusOwner.requestFocusInWindow();
+        }
+
+        recentFocusOwner = null;
+        getGlassPane().setVisible(false);
+        getGlassPane().setCursor(null);
+      }
+
+      this.locked = locked;
+      repaint();
+    }
+  }
+
+  /**
+   * Sets the mouse cursor to be used for the locked layer
+   *
+   * @param lockedCursor
+   *          the mouse cursor to be used for the locked layer
+   *
+   * @see #setLocked(boolean)
+   */
+  public void setLockedCursor(Cursor lockedCursor) {
+    this.lockedCursor = lockedCursor;
+
+    if (isLocked()) {
+      getGlassPane().setCursor(lockedCursor);
+    }
+  }
+
+  /**
+   * Sets the paint to use when the view is locked
+   *
+   * @param paint
+   *          the paint
+   */
+  public void setLockedPaint(UIColor paint) {
+    this.lockedColor = paint;
+
+    if (getGlassPane() instanceof GlassPanel) {
+      ((GlassPanel) getGlassPane()).setLockedColor(lockedColor);
+    }
   }
 
   /**
@@ -219,116 +486,13 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
     this.repaint();
   }
 
-  public void setLocked(boolean lock) {
-    locked = lock;
+  @Override
+  protected void addImpl(java.awt.Component comp, Object constraints, int index) {
+    super.addImpl(comp, constraints, index);
 
-    if (lock) {
-      iPlatformComponent pc = Component.fromView(this);
-
-      if (componentPainter == null) {
-        pc.setComponentPainter(new UIComponentPainter());
-      }
-
-      UIColor c = (UIColor) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-
-      if (c == null) {
-        c = Platform.getUIDefaults().getColor("Rare.disabledBackgroundColor");
-      }
-
-      if (c == null) {
-        c = ColorUtils.DISABLED_TRANSPARENT_COLOR;
-      }
-
-      pc.setDisabledColor(c);
+    if ((comp != glassPane) && (glassPane != null)) {
+      setComponentZOrder(glassPane, 0);
     }
-
-    setEnabled(!lock);
-  }
-
-  @Override
-  public Object getConstraints(iPlatformComponent c) {
-    return null;
-  }
-
-  public iLayoutTracker getLayoutTracker() {
-    return layoutTracker;
-  }
-
-  @Override
-  public Dimension getMinimumSize() {
-    Dimension d = super.getMinimumSize();
-
-    if (!useMinimumVarsOnlyWhenEmpty || (this.getComponentCount() == 0)) {
-      if (d.width < minimumWidth) {
-        d.width = minimumWidth;
-      }
-
-      if (d.height < minimumHeight) {
-        d.height = minimumHeight;
-      }
-    }
-
-    return d;
-  }
-
-  @Override
-  public Dimension getPreferredScrollableViewportSize() {
-    return getPreferredSize();
-  }
-
-  public UIDimension getPreferrredSize(UIDimension size, int maxWidth) {
-    Component c = (Component) Component.fromView(this);
-
-    return c.getPreferredSize(size, maxWidth);
-  }
-
-  @Override
-  public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return 40;
-  }
-
-  @Override
-  public boolean getScrollableTracksViewportHeight() {
-    return lockViewHeight;
-  }
-
-  @Override
-  public boolean getScrollableTracksViewportWidth() {
-    return lockViewWidth;
-  }
-
-  @Override
-  public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return 10;
-  }
-
-  /**
-   * @return the blockLayout
-   */
-  public boolean isBlockLayout() {
-    return blockLayout;
-  }
-
-  /**
-   * Gets whether the height of the view is locked (not scrollable)
-   *
-   * @return true if it is locked; false otherwise
-   */
-  public boolean isLockViewHeight() {
-    return lockViewHeight;
-  }
-
-  /**
-   * Gets whether the width of the view is locked (not scrollable)
-   *
-   * @return true if it is locked; false otherwise
-   */
-  public boolean isLockViewWidth() {
-    return lockViewWidth;
-  }
-
-  public boolean isLocked() {
-    return locked;
   }
 
   /**
@@ -341,18 +505,9 @@ public class UtilityPanel extends JPanelEx implements iLayoutManager, Scrollable
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    Dimension d = getMinimumSize();
-
-    size.width  = d.width;
-    size.height = d.height;
-  }
-
-  @Override
-  public void getPreferredSize(UIDimension size, int maxWidth) {
-    Dimension d = getPreferredSize();
-
-    size.width  = d.width;
-    size.height = d.height;
+  protected void layoutContainerEx(int width, int height) {
+    if (glassPane != null) {
+      glassPane.setBounds(0, 0, width, height);
+    }
   }
 }

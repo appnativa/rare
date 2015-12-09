@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.renderer;
@@ -38,6 +38,7 @@ import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIInsets;
@@ -61,6 +62,7 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   private final int            _origFgColor;
   private final ColorStateList _origFgColors;
   private CharSequence         text;
+  protected int                columnWidth;
 
   public UILabelRenderer() {
     this(Platform.getAppContext().getActivity());
@@ -173,14 +175,7 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   }
 
   public iPlatformRenderingComponent newCopy() {
-    final TextView  otv = (TextView) view;
-    final LabelView tv  = new LabelView(otv.getContext());
-
-    tv.setGravity(otv.getGravity());
-
-    final UILabelRenderer r = new UILabelRenderer(tv);
-
-    return Renderers.setupNewCopy(this, r);
+    return setupNewCopy(new UILabelRenderer(view.getContext()));
   }
 
   public void setComponentPainter(iPlatformComponentPainter cp) {
@@ -195,9 +190,9 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
       super.setComponentPainter(null);
     }
 
-    view.setBackgroundDrawable((bg == null)
-                               ? NullDrawable.getInstance()
-                               : bg.getDrawable());
+    view.setBackground((bg == null)
+                       ? NullDrawable.getInstance()
+                       : bg.getDrawable());
     super.setBackground(bg);
   }
 
@@ -241,6 +236,23 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   @Override
   public void setSize(float width, float height) {
     ((LabelView) view).setSize((int) Math.ceil(width), (int) Math.ceil(height));
+  }
+
+  @Override
+  protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    int n = columnWidth;
+
+    if (n < 0) {
+      maxWidth += n;
+
+      if (maxWidth < 0) {
+        maxWidth = 0;
+      }
+    } else if ((n > 0) && (maxWidth > n)) {
+      maxWidth = n;
+    }
+
+    super.getPreferredSizeEx(size, maxWidth);
   }
 
   public void setText(CharSequence text) {
@@ -330,6 +342,27 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
           tv.setTextColor(_origFgColor);
         }
       }
+    }
+  }
+
+  protected iPlatformRenderingComponent setupNewCopy(UILabelRenderer r) {
+    final TextView  otv = (TextView) view;
+    final TextView tv  = (TextView) r.view;
+
+    tv.setGravity(otv.getGravity());
+    r.columnWidth=columnWidth;
+    r.setWordWrap(isWordWrap());
+    return Renderers.setupNewCopy(this, r);
+  }
+  
+  @Override
+  public void setColumnWidth(int width) {
+    if(columnWidth>0) {
+      ((TextView) view).setEms(width);
+      columnWidth=0;
+    }
+    else {
+      this.columnWidth = width;
     }
   }
 }

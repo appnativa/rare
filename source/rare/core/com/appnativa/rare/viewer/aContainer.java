@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -412,9 +412,52 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
 
   @Override
   public void register() {
-    super.register();
-    registerWidgets();
-    labelWdgets = null;
+    if (!registered) {
+      super.register();
+      labelWdgets = null;
+
+      List<iWidget> list = getWidgetListEx();
+
+      for (iWidget w : list) {
+        if (w instanceof iViewer) {
+          ((iViewer) w).register();
+        }
+      }
+    }
+  }
+
+  @Override
+  public void unregister(boolean disposing) {
+    if (registered) {
+      super.unregister(disposing);
+
+      if (!disposing) {
+        List<iWidget> list = getWidgetListEx();
+
+        for (iWidget w : list) {
+          if (w instanceof iViewer) {
+            ((iViewer) w).unregister(false);
+          }
+        }
+      }
+    }
+  }
+
+  @Override
+  public void targetAcquired(iTarget target) {
+    super.targetAcquired(target);
+
+    iFormViewer fv = getFormViewerEx();
+
+    registerWidgets(fv);
+  }
+
+  @Override
+  public void targetLost(iTarget target) {
+    iFormViewer fv = getFormViewer();
+
+    super.targetLost(target);
+    unregisterWidgets(fv);
   }
 
   @Override
@@ -534,6 +577,15 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
   }
 
   @Override
+  public boolean requestFocus() {
+    if (isDesignMode()) {
+      return true;
+    }
+
+    return handleFocus(null, true);
+  }
+
+  @Override
   public void resetForm() {}
 
   @Override
@@ -545,17 +597,6 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
 
   @Override
   public void submitForm(iFunctionCallback cb) {}
-
-  @Override
-  public void unregister(boolean disposing) {
-    super.unregister(disposing);
-
-    if (isDisposed()) {
-      return;
-    }
-
-    unregisterWidgets();
-  }
 
   @Override
   public void unregisterFormWidget(iWidget widget) {
@@ -707,6 +748,19 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
            : fv;
   }
 
+  @Override
+  protected iFormViewer getFormViewerEx() {
+    if (actAsFormViewer) {
+      return this;
+    }
+
+    iFormViewer fv = super.getFormViewerEx();
+
+    return (fv == null)
+           ? this
+           : fv;
+  }
+
   /**
    * Gets the list of widgets registered with the form. That is the widgets that
    * has the viewer registered as their form viewer
@@ -749,6 +803,18 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
     }
 
     return map;
+  }
+
+  @Override
+  public Object getValue() {
+    return theValue;
+  }
+
+  @Override
+  public String getValueAsString() {
+    return (_toString == null)
+           ? super.getValueAsString()
+           : _toString.toString();
   }
 
   @Override
@@ -955,6 +1021,19 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
 
   @Override
   public boolean isFocusableInCurrentState() {
+    List<iWidget> list = getWidgetListEx();
+    int           len  = (list == null)
+                         ? 0
+                         : list.size();
+
+    for (int i = 0; i < len; i++) {
+      aWidget w = (aWidget) list.get(i);
+
+      if (w.isFocusableInCurrentState()) {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -991,20 +1070,6 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
    */
   protected iWidget addWidgetEx(iParentComponent panel, Widget cfg, Layout layout) {
     throw new UnsupportedOperationException("Not supported for " + getClass().getName());
-  }
-
-  /**
-   * Call the aPlatformViewer.register()
-   */
-  protected void callaViewerRegister() {
-    super.register();
-  }
-
-  /**
-   * Call the aPlatformViewer.register()
-   */
-  protected void callaViewerunRegister(boolean disposing) {
-    super.unregister(disposing);
   }
 
   /**
@@ -1106,6 +1171,12 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
     return widget.getContainerComponent().getClientProperty(iConstants.RARE_CONSTRAINTS_PROPERTY);
   }
 
+  /**
+   * Registers the widget as being part of the container
+   *
+   * @param w
+   *          the widget to register
+   */
   protected void registerWidget(iWidget w) {
     String        name = w.getName();
     List<iWidget> list = getWidgetListEx();
@@ -1133,9 +1204,8 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
   /**
    * Registers widgets
    */
-  protected void registerWidgets() {
+  protected void registerWidgets(iFormViewer fv) {
     List<iWidget> list = getWidgetListEx();
-    iFormViewer   fv   = getFormViewer();
 
     for (iWidget w : list) {
       if (w instanceof iViewer) {
@@ -1151,6 +1221,20 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
 
           Platform.ignoreException(s, null);
         }
+
+        if (w instanceof aContainer) {
+          aContainer c = (aContainer) w;
+
+          if (c.actAsFormViewer == false) {
+            c.registerWidgets(fv);
+          }
+        }
+      }
+    }
+
+    if ((fv != this) && (fv != null) &&!actAsFormViewer && (formWidgets != null)) {
+      for (iWidget fw : formWidgets.values()) {
+        fv.registerFormWidget(fw);
       }
     }
   }
@@ -1158,24 +1242,43 @@ public abstract class aContainer extends aPlatformViewer implements iFormViewer 
   /**
    * Registers widgets
    */
-  protected void unregisterWidgets() {
-    iFormViewer fv = getFormViewer();
+  protected void unregisterWidgets(iFormViewer fv) {
+    List<iWidget> list = getWidgetListEx();
 
-    if (fv != null) {
-      List<iWidget> list = getWidgetListEx();
-
+    if (list != null) {
       for (iWidget w : list) {
         if (w instanceof iViewer) {
           ((iViewer) w).unregister(false);
         }
 
-        if (fv != this) {
+        if ((fv != this) && (fv != null)) {
           fv.unregisterFormWidget(w);
+
+          if (w instanceof aContainer) {
+            aContainer c = (aContainer) w;
+
+            if (c.actAsFormViewer == false) {
+              c.unregisterWidgets(fv);
+            }
+          }
+
+          if (!actAsFormViewer && (formWidgets != null)) {
+            for (iWidget fw : formWidgets.values()) {
+              fv.unregisterFormWidget(fw);
+            }
+          }
         }
       }
     }
   }
 
+  /**
+   * Unregisters the widget as being part of the container;
+   *
+   * @param w
+   *          the widget to unregister
+   *
+   */
   protected void unregisterWidget(iWidget w) {
     String name = w.getName();
 

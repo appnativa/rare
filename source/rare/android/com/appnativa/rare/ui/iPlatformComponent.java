@@ -31,11 +31,9 @@ public interface iPlatformComponent extends iComponent {
 
   void setLocked(boolean lock);
 
-  UIColor getDisabledColor();
-
   UIInsets getFocusInsets(UIInsets insets);
 
-  PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket defFocusPaint);
+  PaintBucket getFocusPaint(PaintBucket defFocusPaint);
 
   View getView();
 

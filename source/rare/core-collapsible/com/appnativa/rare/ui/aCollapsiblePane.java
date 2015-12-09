@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -33,6 +33,7 @@ import com.appnativa.rare.ui.effects.SizeAnimation;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.effects.iTransitionAnimator;
 import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent.Type;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.event.iExpandedListener;
@@ -59,7 +60,10 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
   protected iPlatformIcon       collapseIcon;
   protected CharSequence        collapseTip;
   protected CharSequence        collapsedTitle;
-  protected ExpansionEvent      eventObject;
+  protected ExpansionEvent      eventCollapsed;
+  protected ExpansionEvent      eventExpanded;
+  protected ExpansionEvent      eventWillCollapse;
+  protected ExpansionEvent      eventWillExpand;
   protected iPlatformIcon       expandIcon;
   protected CharSequence        expandTip;
   protected volatile boolean    inAnimation;
@@ -137,7 +141,10 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
     titleBorder        = null;
     mainComponent      = null;
     expandIcon         = null;
-    eventObject        = null;
+    eventWillCollapse  = null;
+    eventWillExpand    = null;
+    eventCollapsed     = null;
+    eventExpanded      = null;
     collapseIcon       = null;
   }
 
@@ -249,7 +256,6 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
     }
 
     mainComponent = c;
-    eventObject.setItem(c);
     setMainComponentVisible(c, paneExpanded);
 
     CharSequence title = null;
@@ -544,11 +550,19 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
       expandedListener = w.getViewer().getExpandedListener();
     }
 
+    if (eventCollapsed == null) {
+      eventCollapsed = new ExpansionEvent(this, Type.HAS_COLLAPSED);
+      eventExpanded  = new ExpansionEvent(this, Type.HAS_EXPANDED);
+    }
+
+    eventCollapsed.setItem(mainComponent);
+    eventExpanded.setItem(mainComponent);
+
     if (expandedListener != null) {
       if (expanded) {
-        expandedListener.itemHasExpanded(eventObject);
+        expandedListener.itemHasExpanded(eventExpanded);
       } else {
-        expandedListener.itemHasCollapsed(eventObject);
+        expandedListener.itemHasCollapsed(eventCollapsed);
       }
     }
 
@@ -560,9 +574,9 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
         t = (iExpandedListener) listeners[i + 1];
 
         if (expanded) {
-          t.itemHasExpanded(eventObject);
+          t.itemHasExpanded(eventExpanded);
         } else {
-          t.itemHasCollapsed(eventObject);
+          t.itemHasCollapsed(eventCollapsed);
         }
       }
     }
@@ -573,6 +587,14 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
       return;
     }
 
+    if (eventWillCollapse == null) {
+      eventWillCollapse = new ExpansionEvent(this, Type.WILL_COLLAPSE);
+      eventWillExpand   = new ExpansionEvent(this, Type.WILL_EXPAND);
+    }
+
+    eventWillCollapse.setItem(mainComponent);
+    eventWillExpand.setItem(mainComponent);
+
     Object[]           listeners = listenerList.getListenerList();
     iExpansionListener t;
 
@@ -581,9 +603,9 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
         t = (iExpansionListener) listeners[i + 1];
 
         if (expanded) {
-          t.itemWillExpand(eventObject);
+          t.itemWillExpand(eventWillExpand);
         } else {
-          t.itemWillCollapse(eventObject);
+          t.itemWillCollapse(eventWillCollapse);
         }
       }
     }
@@ -742,6 +764,8 @@ public abstract class aCollapsiblePane extends BorderPanel implements iCollapsib
     public aTitleComponent(Object view) {
       super(view);
     }
+
+    public void setAutoAdjustSize(boolean adjustSize) {}
 
     @Override
     public void addActionListener(iActionListener l) {}

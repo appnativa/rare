@@ -112,6 +112,7 @@ import javax.swing.tree.ExpandVetoException;
  */
 public class Rare extends aRare implements AWTEventListener {
   static final String    resourcePath = "com/appnativa/rare/resources/drawable";
+  static final String    rawResourcePath = "com/appnativa/rare/resources/raw";
   static boolean         anApplet;
   static boolean         debuggingEnabled;
   static boolean         inSandbox;
@@ -203,6 +204,19 @@ public class Rare extends aRare implements AWTEventListener {
    */
   public static String makeResourcePath(String relativePath) {
     return resourcePath + "/" + relativePath;
+  }
+
+
+  /**
+   * Creates and returns a path to the resources location
+   * from the specified relative path
+   *
+   * @param relativePath the relative resource path
+   *
+   * @return the absolute path corresponding to the relative path
+   */
+  public static String makeRawResourcePath(String relativePath) {
+    return rawResourcePath + "/" + relativePath;
   }
 
   public void setupApplicationObjectEx(iURLConnection ic, String local) throws Exception {
@@ -840,7 +854,13 @@ public class Rare extends aRare implements AWTEventListener {
         windowManager.showWindow();
 
         if (windowManager.getWorkspaceViewer() != null) {
-          windowManager.getWorkspaceViewer().requestFocus();
+          Platform.invokeLater(new Runnable() {
+            
+            @Override
+            public void run() {
+              windowManager.getWorkspaceViewer().requestFocus();
+            }
+          });
         }
       }
 

@@ -50,6 +50,7 @@ public class ChartViewer extends aChartViewer {
     super(parent);
   }
 
+  @Override
   public ChartDataItem addSeries(ChartDataItem series) {
     ChartDataItem aseries = super.addSeries(series);
 
@@ -59,16 +60,19 @@ public class ChartViewer extends aChartViewer {
     return aseries;
   }
 
+  @Override
   public void setHorizontalScrollingEnabled(boolean enable) {
     horizontalScrollingEnabled = enable;
     chartHandler.setHorizontalScrollingEnabled(chartComponent, enable);
   }
 
+  @Override
   public void setVerticalScrollingEnabled(boolean enable) {
     verticalScrollingEnabled = enable;
     chartHandler.setVerticalScrollingEnabled(chartComponent, enable);
   }
 
+  @Override
   protected void configureEx(Chart cfg) {
     super.configureEx(cfg);
 

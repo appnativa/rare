@@ -20,7 +20,11 @@
 
 package com.appnativa.rare.ui.calendar;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.converters.DateConverter;
 import com.appnativa.rare.converters.DateTimeConverter;
 import com.appnativa.rare.converters.TimeConverter;
@@ -29,6 +33,8 @@ import com.appnativa.rare.ui.AlertPanel;
 import com.appnativa.rare.ui.LinearPanel;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.border.UILineBorder;
 import com.appnativa.rare.ui.border.UIMatteBorder;
 import com.appnativa.rare.ui.event.ActionEvent;
@@ -36,18 +42,10 @@ import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformWindowManager;
-import com.appnativa.rare.ui.iWindow;
-import com.appnativa.rare.viewer.WidgetPaneViewer;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 
-import java.util.Calendar;
-import java.util.Date;
-
-public abstract class aDateViewManager implements iDateViewManager, iActionListener {
+public abstract class aDateViewManager implements iDateViewManager, iActionListener,iFunctionCallback {
   protected Calendar           date              = Calendar.getInstance();
   protected Calendar           endDate           = Calendar.getInstance();
   protected EventListenerList  listenerList      = new EventListenerList();
@@ -56,7 +54,7 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
   protected ChangeEvent        changeEvent;
   protected Object             converterContext;
   protected iDataConverter     dateConverter;
-  protected iWindow            dialog;
+  protected AlertPanel         dialog;
   protected String             dialogTitle;
   protected boolean            ignoreChangeEvent;
   protected Calendar           maxDate;
@@ -88,17 +86,29 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
       valueSet = false;
       fireEvent();
 
-      if (dialog != null) {
-        dialog.close();
-      }
     } else if (e.getComponent() == okButton) {
-      if (dialog != null) {
-        dialog.close();
-      } else {
-        fireEvent();
-      }
+      fireEvent();
     }
   }
+  
+  @Override
+  public void finished(boolean canceled, Object returnValue) {
+    dialog=null;
+   if(!canceled && returnValue!=null) {
+     if(Boolean.FALSE.equals(returnValue)) {
+       date = Calendar.getInstance();
+       fireEvent();
+     }
+     else {
+       fireEvent();
+     }
+   }
+   else {
+     valueSet = false;
+     fireEvent();
+   }
+  }
+ 
 
   @Override
   public void addActionListener(iActionListener l) {
@@ -161,14 +171,10 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
   public void removeChangeListener(iChangeListener l) {
     listenerList.remove(iChangeListener.class, l);
   }
-
+  
   public void showDialog(iPlatformComponent owner) {
     if (dialog != null) {
-      if (dialog.getComponent().isShowing()) {
         return;
-      }
-
-      dialog.disposeOfWindow();
     }
 
     String title = getDialogTitle();
@@ -184,28 +190,31 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
         title = Platform.getResourceAsString("Rare.runtime.text.dateChooser.chooseDate");
       }
     }
-
-    iPlatformWindowManager wm = Platform.getAppContext().getWindowManager();
-    iWindow                w  = wm.createDialog(owner.getWidget(), null, title, true);
-    LinearPanel            p  = new LinearPanel(owner.getWidget(), false);
-
-    p.addComponent(getDatePickerComponent(), "f:d:g");
-
-    String spec = null;
-
-    if (Platform.isTouchDevice()) {
-      spec = "FILL:[25dlu,d]:NONE";
-    } else {
-      spec = "FILL:[15dlu,d]:NONE";
+    iWidget w=owner.getWidget();
+    String none=Platform.getResourceAsString("Rare.runtime.text.dateChooser.none");
+    String done=Platform.getResourceAsString("Rare.runtime.text.dateChooser.done");
+    String today=Platform.getResourceAsString("Rare.runtime.text.dateChooser.today");
+    AlertPanel p;
+    if(showNoneButton) {
+      if(showTodayButton) {
+        p=AlertPanel.yesNoCancel(w, title, getDatePickerComponent(), null, done, today, none);
+      }
+      else {
+        p=AlertPanel.yesNo(w, title, getDatePickerComponent(), null, done, none, true);
+      }
     }
-
-    p.addComponent(getButtonPanel(owner.getWidget()), spec);
-
-    WidgetPaneViewer wp = new WidgetPaneViewer(p);
-
-    wm.setViewer(w.getTargetName(), owner.getWidget(), wp, null);
-    dialog = w;
-    w.showWindow();
+    else {
+      if(showTodayButton) {
+        p=AlertPanel.yesNo(w, title, getDatePickerComponent(), null, done, today, true);
+        p=AlertPanel.yesNoCancel(w, title, p, null, done, today, none);
+      }
+      else {
+        p=AlertPanel.ok(w, title, getDatePickerComponent(), null);
+        p.getYesOrOkButton().setText(done);
+      }
+    }
+    dialog = p;
+    p.showDialog(this);
   }
 
   @Override
@@ -403,6 +412,10 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
     return showTimeOnly;
   }
 
+  public boolean isShowingDialog() {
+    return dialog!=null;
+  }
+
   @Override
   public boolean isUseAmPmTimeFormat() {
     return useAmPmTimeFormat;
@@ -415,16 +428,12 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
     rspec = "FILL:[15dlu,d]:GROW";
 
     LinearPanel p = new LinearPanel(context, true, rspec, cspec);
-//
-//    if (!Platform.isTouchDevice()) {
-//      p.addComponent(PlatformHelper.createSpacerComponent(p), "FILL:DEFAULT:GROW");
-//    }
     int              count = 0;
     PushButtonWidget w     = null;
 
     if (showNoneButton) {
       w = AlertPanel.createButton(Platform.getResourceAsString("Rare.runtime.text.dateChooser.none"),
-                                  "Rare.dateChooser.button", "0,0,0,1", this);
+                                  "Rare.dateChooser.button", this);
       noneButton = w.getContainerComponent();
       p.addComponent(noneButton);
       count++;
@@ -439,8 +448,7 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
         s = "Rare.runtime.text.dateChooser.today";
       }
 
-      w           = AlertPanel.createButton(Platform.getResourceAsString(s), "Rare.dateChooser.button", "0,0,0,1",
-              this);
+      w           = AlertPanel.createButton(Platform.getResourceAsString(s), "Rare.dateChooser.button", this);
       todayButton = w.getContainerComponent();
       p.addComponent(todayButton);
       count++;
@@ -448,7 +456,7 @@ public abstract class aDateViewManager implements iDateViewManager, iActionListe
 
     if (showOkButton) {
       w = AlertPanel.createButton(Platform.getResourceAsString("Rare.runtime.text.dateChooser.done"),
-                                  "Rare.dateChooser.button", "0,0,0,1", this);
+                                  "Rare.dateChooser.button", this);
       okButton = w.getContainerComponent();
       p.addComponent(okButton);
       count++;

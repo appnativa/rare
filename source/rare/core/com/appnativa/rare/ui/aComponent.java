@@ -20,9 +20,11 @@
 
 package com.appnativa.rare.ui;
 
+import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.effects.aAnimator;
 import com.appnativa.rare.ui.event.ChangeEvent;
@@ -40,13 +42,9 @@ import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.util.PropertyChangeSupportEx;
+import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
-
 import com.jgoodies.forms.layout.CellConstraints;
-
-import java.beans.PropertyChangeListener;
-
-import java.util.HashMap;
 
 public abstract class aComponent
         implements iPainterSupport, iPlatformComponent, iMouseListener, iMouseMotionListener, iKeyListener,
@@ -57,7 +55,6 @@ public abstract class aComponent
   protected boolean                 checkMinWhenCalculatingPreferred = true;
   protected PropertyChangeSupportEx changeSupport;
   protected Object                  constraints;
-  protected UIColor                 disabledColor;
   protected boolean                 disposed;
   protected PaintBucket             focusPaint;
   protected boolean                 focusPainted;
@@ -80,7 +77,6 @@ public abstract class aComponent
 
   @Override
   public void addFocusListener(iFocusListener l) {
-    getEventListenerList().remove(iFocusListener.class, l);
     getEventListenerList().add(iFocusListener.class, l);
   }
 
@@ -104,7 +100,6 @@ public abstract class aComponent
     }
 
     if (l != null) {
-      getEventListenerList().remove(iKeyListener.class, l);
       getEventListenerList().add(iKeyListener.class, l);
     }
   }
@@ -116,7 +111,6 @@ public abstract class aComponent
     }
 
     if (l != null) {
-      getEventListenerList().remove(iMouseListener.class, l);
       getEventListenerList().add(iMouseListener.class, l);
     }
   }
@@ -129,7 +123,6 @@ public abstract class aComponent
 
     if (l != null) {
       wantsMoveEvents = l.wantsMouseMovedEvents();
-      getEventListenerList().remove(iMouseMotionListener.class, l);
       getEventListenerList().add(iMouseMotionListener.class, l);
     }
   }
@@ -152,23 +145,17 @@ public abstract class aComponent
     }
 
     if (l != null) {
-      getEventListenerList().remove(iTextChangeListener.class, l);
       getEventListenerList().add(iTextChangeListener.class, l);
     }
   }
 
   @Override
   public void addViewListener(iViewListener l) {
-    getEventListenerList().remove(iViewListener.class, l);
     getEventListenerList().add(iViewListener.class, l);
 
     if (l.wantsResizeEvent()) {
       wantsViewResizeEvent = true;
     }
-  }
-
-  public boolean setAlpha(float alpha) {
-    return PlatformHelper.setComponentAlpha(this, alpha);
   }
 
   @Override
@@ -201,7 +188,7 @@ public abstract class aComponent
   }
 
   @Override
-  public void focusChanged(Object view, boolean hasFocus, Object oppositeView) {
+  public void focusChanged(Object view, boolean hasFocus, Object oppositeView,boolean temporary) {
     if ((view == null) || disposed) {    // got an event after disposal
       return;
     }
@@ -221,7 +208,7 @@ public abstract class aComponent
 
       for (int i = listeners.length - 2; i >= 0; i -= 2) {
         if ((listeners[i] == iFocusListener.class) && (listeners[i + 1] != this)) {
-          ((iFocusListener) listeners[i + 1]).focusChanged(view, hasFocus, oppositeView);
+          ((iFocusListener) listeners[i + 1]).focusChanged(view, hasFocus, oppositeView,temporary);
         }
       }
     }
@@ -643,17 +630,6 @@ public abstract class aComponent
     setBounds((float) x, (float) y, (float) width, (float) height);
   }
 
-  @Override
-  public void setDisabledColor(UIColor color) {
-    disabledColor = color;
-  }
-
-  public void setDisabledForeground(UIColor fg) {
-    iPlatformComponentPainter cp = getComponentPainter(true);
-
-    cp.setDisabledForegroundColor(fg);
-  }
-
   public void setFocusPaint(PaintBucket focusPaint) {
     this.focusPaint = focusPaint;
   }
@@ -774,20 +750,29 @@ public abstract class aComponent
   }
 
   @Override
-  public UIColor getDisabledColor() {
-    return disabledColor;
-  }
-
-  @Override
   public UIInsets getFocusInsets(UIInsets insets) {
     return null;
   }
 
   @Override
-  public PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket def) {
-    if (!focusPainted ||!isFocusOwner()) {
+  public PaintBucket getFocusPaint(PaintBucket def) {
+    if (!focusPainted) {
       return null;
     }
+    if(widget!=null) {
+      if(((aWidget)widget).isPopupMenuShowing()) {
+        return (focusPaint == null)
+            ? def
+            : focusPaint;
+      }
+      if(!widget.isFocusOwner()) {
+        return null;
+      }
+    }
+    else if(!isFocusOwner()) {
+      return null;
+    }
+  
 
     return (focusPaint == null)
            ? def
@@ -801,11 +786,6 @@ public abstract class aComponent
     if (f != null) {
       return f;
     }
-
-    if (getParent() != null) {
-      return getParent().getFont();
-    }
-
     return UIFontHelper.getDefaultFont();
   }
 
@@ -910,6 +890,11 @@ public abstract class aComponent
 
   @Override
   public UIDimension getMinimumSize(UIDimension size) {
+    return getMinimumSize(size, 0);
+  }
+  
+  @Override
+  public UIDimension getMinimumSize(UIDimension size, float maxWidth) {
     if (sizeLocked) {
       return getSize(size);
     }
@@ -950,7 +935,7 @@ public abstract class aComponent
       return new UIDimension(w, h);
     }
 
-    getMinimumSizeEx(size);
+    getMinimumSizeEx(size, maxWidth);
 
     if (useBorderInSizeCalculation) {
       iPlatformBorder b  = getBorder();
@@ -1212,6 +1197,7 @@ public abstract class aComponent
     return opaque;
   }
 
+  @Override
   public void setOpaque(boolean opaque) {
     this.opaque = opaque;
 
@@ -1370,7 +1356,7 @@ public abstract class aComponent
     return (CellConstraints) o;
   }
 
-  protected abstract void getMinimumSizeEx(UIDimension size);
+  protected abstract void getMinimumSizeEx(UIDimension size, float maxWidth);
 
   protected abstract void getPreferredSizeEx(UIDimension size, float maxWidth);
 
@@ -1394,9 +1380,7 @@ public abstract class aComponent
             ((iViewListener) listeners[i + 1]).viewResized(changeEvent);
           } else if (shown) {
             ((iViewListener) listeners[i + 1]).viewShown(changeEvent);
-          } else if (shown) {
-            ((iViewListener) listeners[i + 1]).viewShown(changeEvent);
-          } else {
+          } else if(!moved) {
             ((iViewListener) listeners[i + 1]).viewHidden(changeEvent);
           }
         }

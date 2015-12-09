@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
@@ -41,6 +41,8 @@ public class EventHandlerInterface {
   Method                                           method;
 
   public EventHandlerInterface(String unparsedString) {
+    unparsedString = Platform.getWindowViewer().expandString(unparsedString);
+
     int n = unparsedString.indexOf("#");
 
     if (n == -1) {
@@ -102,16 +104,31 @@ public class EventHandlerInterface {
 
   public void createHandler(String eventName, iWidget widget) {
     if (eventHandler == null) {
-      iWeakReference ref = handlerMap.get(className);
+      try {
+        iWeakReference ref = handlerMap.get(className);
 
-      eventHandler = (iEventHandler) ((ref == null)
-                                      ? null
-                                      : ref.get());
-
-      if (eventHandler == null) {
-        eventHandler = (iEventHandler) Platform.createObject(className);
-        handlerMap.put(className, Platform.createWeakReference(eventHandler));
-      }
+        eventHandler = (iEventHandler) ((ref == null)
+                                        ? null
+                                        : ref.get());
+        if (eventHandler == null) {
+          Class cls = Platform.loadClass(className);
+  
+          if (cls != null) {
+            ref = handlerMap.get(cls.getName());
+            eventHandler = (iEventHandler) ((ref == null)
+                ? null
+                : ref.get());
+            if (eventHandler == null) {
+              eventHandler = (iEventHandler) cls.newInstance();
+              handlerMap.put(className, Platform.createWeakReference(eventHandler));
+              String name=cls.getName();
+              if(!name.equals(className)) {
+                handlerMap.put(name, Platform.createWeakReference(eventHandler));
+              }
+            }
+          }
+        }
+      } catch(Exception ignore) {}
 
       if (eventHandler == null) {
         throw new ApplicationException("could not create event handler:" + className);

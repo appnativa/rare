@@ -20,6 +20,18 @@
 
 package com.appnativa.rare.platform;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+
 import com.appnativa.rare.CancelableFutureWrapper;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iCancelableFuture;
@@ -73,10 +85,8 @@ import com.appnativa.rare.ui.UIMenuItem;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UIScreen;
-import com.appnativa.rare.ui.UISound;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.aFocusedAction;
-import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iParentComponent;
@@ -89,6 +99,7 @@ import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iPlatformShape;
 import com.appnativa.rare.ui.iPopup;
+import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
@@ -108,23 +119,7 @@ import com.appnativa.util.CharScanner;
 import com.appnativa.util.OrderedProperties;
 import com.appnativa.util.iPackageHelper;
 import com.appnativa.util.iPreferences;
-
 import com.google.j2objc.annotations.Weak;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import java.lang.reflect.Constructor;
-
-import java.net.URL;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 
 /*-[
  #import "java/lang/reflect/Field.h"
@@ -244,12 +239,6 @@ public class aPlatformHelper {
 
   public static Window createDialog(Window parent, boolean transparent, boolean decorated, boolean modal) {
     DialogWindow w = new DialogWindow(parent, decorated);
-
-    if (transparent) {
-      w.setBackgroundColor(ColorUtils.TRANSPARENT_COLOR);
-    } else {
-      w.setBackgroundColor(ColorUtils.getBackground());
-    }
 
     w.setModal(modal);
 
@@ -848,6 +837,15 @@ public class aPlatformHelper {
   ]-*/
   ;
 
+  
+  public static String getDefaultRowHeight() {
+    String s = Platform.getUIDefaults().getString("Rare.List.rowHeight");
+    if(s==null) {
+      s=Platform.hasPointingDevice() ? "1ln" : "1.75ln";
+    }
+    return s;
+  }
+
   /**
    * Returns an action to perform a copy operation.
    *
@@ -1254,17 +1252,4 @@ public class aPlatformHelper {
   }
 
 
-  public static void stopSound(UISound uiSound) {}
-
-  public static void disposeOfSound(UISound uiSound) {}
-
-  public static void playSound(UISound uiSound) {}
-
-  public static void pauseSound(UISound uiSound) {}
-
-  public static void resumeSound(UISound uiSound) {}
-
-  public static Object setVolume(UISound uiSound, int percent) {
-    return uiSound.getPlatformSound();
-  }
 }

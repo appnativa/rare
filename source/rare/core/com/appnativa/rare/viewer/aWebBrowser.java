@@ -20,10 +20,15 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.spot.Browser;
@@ -33,13 +38,6 @@ import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.iPlatformComponent;
-
-import java.io.IOException;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import java.util.Map;
 
 /**
  *

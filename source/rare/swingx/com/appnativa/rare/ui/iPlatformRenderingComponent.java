@@ -67,4 +67,6 @@ public interface iPlatformRenderingComponent extends iRenderingComponent {
   iPlatformComponent getComponent(iPlatformComponent list, Object value, RenderableDataItem item, int row,
                                   boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem,
                                   boolean handleAll);
+
+  void setColumnWidth(int width);
 }

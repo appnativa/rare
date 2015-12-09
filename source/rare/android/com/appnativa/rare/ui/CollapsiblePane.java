@@ -21,11 +21,8 @@
 package com.appnativa.rare.ui;
 
 import android.annotation.SuppressLint;
-
 import android.content.Context;
-
 import android.graphics.Canvas;
-
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,7 +32,6 @@ import com.appnativa.rare.platform.android.ui.view.BorderLayoutView;
 import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.ui.PainterUtils.ChevronIcon;
 import com.appnativa.rare.ui.PainterUtils.TwistyIcon;
-import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 
 /**
@@ -63,7 +59,6 @@ public class CollapsiblePane extends aCollapsiblePane {
    */
   public CollapsiblePane(Context context, String title, iPlatformComponent c) {
     super(new BorderLayoutView(context));
-    eventObject              = new ExpansionEvent(this);
     toggleOnTitleSingleClick = true;
     initComponents();
 

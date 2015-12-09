@@ -15,20 +15,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
 
-import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.iPlatformGraphics;
 
 /**
  *
  * @author Don DeCoteau
  */
 public class UIIconBorder extends aUIIconBorder {
+
   public UIIconBorder(UIInsets insets) {
     super(insets);
   }
@@ -37,7 +36,4 @@ public class UIIconBorder extends aUIIconBorder {
     super(top, left, bottom, right);
   }
 
-  protected void paintPattern(UIImage image, iPlatformGraphics g, float x, float y, float width, float height) {
-    // TODO Auto-generated method stub
-  }
 }

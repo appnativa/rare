@@ -15,30 +15,57 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.TemplateHandler;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.border.UIEmptyBorder;
+import com.appnativa.rare.ui.border.UILineBorder;
 import com.appnativa.rare.ui.border.UIMatteBorder;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.LabelWidget;
 import com.appnativa.rare.widget.iWidget;
+import com.appnativa.spot.SPOTPrintableString;
+import com.appnativa.spot.SPOTSet;
 
 public class TitlePane extends BorderPanel {
-  LabelWidget                iconWidget;
-  LabelWidget                titleWidget;
-  private boolean            iconOnLeft = true;
-  private iPlatformComponent otherComponent;
-
+  protected LabelWidget        iconWidget;
+  protected LabelWidget        titleWidget;
+  protected boolean            iconOnLeft = true;
+  protected iPlatformComponent otherComponent;
+  private static Boolean hasTemplate;
   public TitlePane(iWidget context) {
     super(context);
-    titleWidget = LabelWidget.create(context.getContainerViewer());
+    if(hasTemplate==null)  {
+      hasTemplate=TemplateHandler.hasWidgetTemplate("Rare.TitlePane.title");
+    }
+    String template=hasTemplate ? "Rare.TitlePane.title" : "Rare.Alert.title";
+    Label l = (Label) Platform.getWindowViewer().createConfigurationObject("Label", template);
+    SPOTSet borders = l.getBorders();
+    l.setBorders(null);
+    SPOTPrintableString ps=(SPOTPrintableString) l.bgColor.clone();
+    l.bgColor.spot_clear();
+    titleWidget = LabelWidget.create(context.getContainerViewer(), l);
     setCenterView(titleWidget.getContainerComponent());
+    
+    Object bg=null;
+    if(ps.getValue()!=null) {
+      bg=ColorUtils.getBackgroundColor(ps);
+    }
+    if(bg==null) {
+      bg= Platform.getUIDefaults().get("Rare.TitlePane.background");
+    }
 
-    Object bg = Platform.getUIDefaults().get("Rare.TitlePane.background");
+    if (bg == null) {
+      bg = Platform.getUIDefaults().getColor("Rare.Alert.title.backgroundColor");
+    }
 
     if (bg == null) {
       bg = ColorUtils.getBackground();
@@ -47,22 +74,39 @@ public class TitlePane extends BorderPanel {
     if (bg != null) {
       Utils.setBackground(this, bg);
     }
-
-    UIColor fg = Platform.getUIDefaults().getColor("Rare.TitlePane.foreground");
-
-    if (fg != null) {
-      titleWidget.setForeground(fg);
+    if(l.fgColor.getValue()==null) {
+      UIColor fg = Platform.getUIDefaults().getColor("Rare.TitlePane.foreground");
+  
+      if (fg == null) {
+        fg = Platform.getUIDefaults().getColor("Rare.Alert.foregroundColor");
+      }
+  
+      if (fg != null) {
+        titleWidget.setForeground(fg);
+      }
     }
 
     UIFont f = Platform.getUIDefaults().getFont("Rare.TitlePane.font");
 
-    if (f == null) {
-      f = FontUtils.getDefaultFont();
+    if ((f == null) &&!l.font.spot_hasValue()) {
+      f = UIFontHelper.getDefaultFont();
       f = f.deriveFontSize(f.getSize2D() + 2);
     }
 
-    titleWidget.setFont(f);
-    setBorder(getTitlePaneBorder());
+    if (f != null) {
+      titleWidget.setFont(f);
+    }
+    iPlatformBorder b=null;
+    if(borders!=null) {
+      b=BorderUtils.createBorder(titleWidget, borders, null);
+    }
+
+    if(b!=null) {
+      setBorder(b);
+    }
+    else {
+      setBorder(getTitlePaneBorder());
+    }
   }
 
   @Override
@@ -84,7 +128,13 @@ public class TitlePane extends BorderPanel {
 
   public void setIcon(iPlatformIcon icon) {
     if (iconWidget == null) {
-      iconWidget = LabelWidget.create(titleWidget.getContainerViewer());
+      Label l = (Label) Platform.getWindowViewer().createConfigurationObject("Label", "Rare.Dialog.iconWidget");
+
+      iconWidget = LabelWidget.create(titleWidget.getContainerViewer(), l);
+
+      if (l.getBorders() == null) {
+        iconWidget.setBorder(new UIEmptyBorder(0, UIScreen.PLATFORM_PIXELS_8, 0, 0));
+      }
 
       if (iconOnLeft) {
         setLeftView(iconWidget.getContainerComponent());
@@ -123,16 +173,41 @@ public class TitlePane extends BorderPanel {
       }
 
       if (c == null) {
-        c = ColorUtils.getDisabledForeground();
+        c = Platform.getUIDefaults().getColor("Rare.Alert.lineColor");
       }
 
-      b = new UIMatteBorder(0, 0, 2, 0, c);
+      if (c == null) {
+        c = UILineBorder.getDefaultLineColor();
+      }
+
+      b = new UIMatteBorder(0, 0, ScreenUtils.PLATFORM_PIXELS_2, 0, c);
       b = new UICompoundBorder(b, new UIEmptyBorder(ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_2,
-              ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_8));
+              ScreenUtils.PLATFORM_PIXELS_2, ScreenUtils.PLATFORM_PIXELS_4));
       Platform.getUIDefaults().put("Rare.TitlePane.border", b);
     }
 
     return b;
+  }
+
+  public static TitlePane createDialogTitle(iWidget context, iActionListener closeAction) {
+    WindowViewer w  = context.getWindow().getWindow();
+    TitlePane    tp = new TitlePane(context);
+
+    tp.setTitle(w.getTitle());
+
+    if (Platform.getUIDefaults().getBoolean("Rare.Dialog.showIcon", true)) {
+      tp.setIcon(w.getIcon());
+    }
+
+    if (closeAction!=null) {
+      iActionComponent close = PlatformHelper.createNakedButton(context.getContainerComponent(), false, 0);
+
+      close.addActionListener(closeAction);
+      close.setIcon(Platform.getResourceAsIcon("Rare.icon.close"));
+      tp.setOtherComponent(close);
+    }
+
+    return tp;
   }
 
   protected void setEdgeComponents() {

@@ -47,6 +47,7 @@ public class CollapsibleView extends ViewGroupEx {
     setMeasureType(MeasureType.VERTICAL);
   }
 
+  @Override
   public void draw(Canvas canvas) {
     if (matrix != null) {
       canvas.concat(matrix);
@@ -67,6 +68,7 @@ public class CollapsibleView extends ViewGroupEx {
     graphics.clear();
   }
 
+  @Override
   protected LayoutParams generateDefaultLayoutParams() {
     return new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
   }
@@ -91,6 +93,7 @@ public class CollapsibleView extends ViewGroupEx {
     }
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     int  count    = getChildCount();
     View mainView = (count > 1)

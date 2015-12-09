@@ -12,6 +12,7 @@
 @class RAREUTIntList;
 @class RAREUITableViewCell;
 @class RAREUIRectangle;
+@class RAREMouseEvent;
 
 @protocol RAREiGestureListener;
 
@@ -33,7 +34,6 @@
   BOOL ignoreTouchesEnded_;
   BOOL fireAction_;
   BOOL wasAttached_;
-  int selectedRow_;
   BOOL reordering_;
   NSTimeInterval lastHotspotTouchTime_;
   BOOL useSectionIndex_;
@@ -52,8 +52,10 @@
 -(int) lastVisiblePosition;
 -(int) firstVisiblePosition;
 -(void) repaintRow: (int) row indexPath: (NSIndexPath*) path;
+-(void) removePressedHilight: (int) row;
 -(void) reloadVisibleRows;
 -(void) repaintVisibleRows;
+- (void)setContextMenuIndexWithRAREMouseEvent:(RAREMouseEvent *)e;
 -(void) setCellStyle:(NSInteger) style;
 -(void) setCellAccessoryType:(NSInteger) style editing: (BOOL) editing;
 -(void) setRowEditorGestureListener:(id<RAREiGestureListener>) l;
@@ -61,6 +63,14 @@
 -(void) clickRow:(int) row;
 -(NSIndexPath*) pathFromRow: (int) row;
 -(RAREUIRectangle*) getCellRect: (int) row column: (int) col includeMargin: (BOOL) margin;
+-(void)scrollViewWillBeginDragging;
+-(void)scrollViewDidScroll;
+- (void)willBeginReorderingRowAtIndexPath:(NSIndexPath *)indexPath ;
+-(void)didEndReorderingRowAtIndexPath:(NSIndexPath *)indexPath;
+-(void)didCancelReorderingRowAtIndexPath:(NSIndexPath *)indexPath;
+-(NSIndexPath *) willDeselectRowAtIndexPath:(NSIndexPath *)indexPath;
+-(NSIndexPath *) willSelectRowAtIndexPath:(NSIndexPath *)indexPath;
+-(int) getPressedColumn;
 @end
 
 @interface RAREListSwipeRecoginizer : RAREFlingGestureRecognizer

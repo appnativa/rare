@@ -360,8 +360,9 @@ public interface iWindowManager extends iWindow {
    * Unregisters a viewer such that it is no longer manager or accessible via the scripting engine
    *
    * @param name the name of the viewer
+   * @param viewer the viewer being unregistered
    */
-  void unRegisterViewer(String name);
+  void unRegisterViewer(String name,iViewer viewer);
 
   /**
    * Set the context URL for the window manager. This is the url that will be used
@@ -429,21 +430,6 @@ public interface iWindowManager extends iWindow {
    * @return the default monospaced font
    */
   UIFont getDefaultMonospacedFont();
-
-  /**
-   * Gets the frame with the associated name
-   *
-   * @param name the name of the frame
-   * @return the named frame
-   */
-  iFrame getFrame(String name);
-
-  /**
-   * Returns an array or all currently active frames
-   *
-   * @return an array or all currently active frames
-   */
-  iFrame[] getFrames();
 
   /**
    * Gets the application's root viewer
@@ -538,7 +524,7 @@ public interface iWindowManager extends iWindow {
   aWidgetListener getWidgetListener();
 
   /**
-   * Gets the workspace viewer
+   * Gets the workspace viewer for the window
    *
    * @return the workspace viewer
    */
@@ -569,4 +555,16 @@ public interface iWindowManager extends iWindow {
    * @return the main window
    */
   iWindow getMainWindow();
+  
+  public interface iFrame extends iWindow {
+    /**
+     * Sets =the window viewer for the frame
+     * 
+     */
+    void setWindowViewer(WindowViewer w);
+
+    void setTitleWidget(iWidget w);
+
+    void finishWindowSetup(Map options);
+  }
 }

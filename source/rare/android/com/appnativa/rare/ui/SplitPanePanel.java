@@ -21,13 +21,12 @@
 package com.appnativa.rare.ui;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
-
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
 import com.appnativa.rare.platform.android.ui.view.SpacerView;
 import com.appnativa.rare.platform.android.ui.view.ViewGroupEx;
@@ -69,6 +68,10 @@ public class SplitPanePanel extends aSplitPanePanel {
     }
   }
 
+  @Override
+  protected boolean canChangeOrientationInCurrentState() {
+    return !PlatformHelper.isKeyboardVisible();
+  }
   int getWindowX(MotionEvent e) {
     return UIScreen.snapToPosition(e.getRawX());
   }

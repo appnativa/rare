@@ -45,6 +45,8 @@ public class DateComboBox extends ComboBoxComponent implements iChangeListener {
   public DateComboBox(iWidget widget) {
     super(widget);
     setEditable(false);
+    restrictInput=false;
+    autoFilter=false;
     dateViewManager = new DateViewManager();
     dateViewManager.addChangeListener(this);
     this.widget = widget;

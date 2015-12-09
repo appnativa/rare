@@ -45,7 +45,7 @@ public class MultiDataItemTableModel extends DataItemTableModel {
   protected static final int MAIN   = 1;
   protected static final int FOOTER = 2;
   private Column             columnsArray[];
-
+ 
   public int getHeaderColumnCount() {
     return headerColumnCount;
   }

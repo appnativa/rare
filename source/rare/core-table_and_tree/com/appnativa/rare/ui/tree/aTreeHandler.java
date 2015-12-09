@@ -224,12 +224,12 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
 
       if (!ti.isLeaf()) {
         if (hasExpansionListener) {
-          ExpansionEvent e = new ExpansionEvent(view, ti);
+          ExpansionEvent e;
 
           if (ti.isExpanded()) {
-            fireExpansion(e, false);
+            e=fireExpansion(view,ti, false);
           } else {
-            fireExpansion(e, true);
+            e=fireExpansion(view,ti, true);
           }
 
           if (e.isConsumed()) {
@@ -253,12 +253,10 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
         }
 
         if (hasExpandedListener) {
-          ExpansionEvent e = new ExpansionEvent(view, ti);
-
           if (ti.isExpanded()) {
-            fireExpanded(e, true);
+            fireExpanded(view,ti, true);
           } else {
-            fireExpanded(e, true);
+            fireExpanded(view,ti, true);
           }
         }
       }
@@ -299,6 +297,12 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
     theTree.setIndentBy(indent);
   }
 
+
+  @Override
+  public void setExpandAll(boolean expandAll) {
+    treeModel.setExpandAll(expandAll);
+  }
+   
   @Override
   public void setRootNodeCollapsible(boolean collapsible) {
     theTree.setRootNodeCollapsible(collapsible);
@@ -418,6 +422,16 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
     return theTree.isToggleOnTwistyOnly();
   }
 
+  @Override
+  public void setParentItemsSelectable(boolean parentItemsSelectable) {
+    theTree.setParentItemsSelectable(parentItemsSelectable);
+  }
+
+  @Override
+  public boolean isParentItemsSelectable() {
+    return theTree.isParentItemsSelectable();
+  }
+
   protected abstract EventListenerList getEventListenerList();
 
   protected abstract boolean hasListeners();
@@ -427,7 +441,14 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
     return treeModel.getRawRows();
   }
 
-  private void fireExpanded(ExpansionEvent e, boolean expand) {
+  private void fireExpanded(Object source, Object item, boolean expand) {
+    ExpansionEvent e;
+    if(expand) {
+      e=new ExpansionEvent(source, ExpansionEvent.Type.HAS_EXPANDED, item);
+    }
+    else {
+      e=new ExpansionEvent(source, ExpansionEvent.Type.HAS_COLLAPSED, item);
+    }
     Object[] listeners = getEventListenerList().getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -445,7 +466,14 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
     }
   }
 
-  private void fireExpansion(ExpansionEvent e, boolean expand) throws ExpandVetoException {
+  private ExpansionEvent fireExpansion(Object source, Object item,boolean expand) throws ExpandVetoException {
+    ExpansionEvent e;
+    if(expand) {
+      e=new ExpansionEvent(source, ExpansionEvent.Type.WILL_EXPAND, item);
+    }
+    else {
+      e=new ExpansionEvent(source, ExpansionEvent.Type.WILL_COLLAPSE, item);
+    }
     Object[] listeners = getEventListenerList().getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
@@ -461,6 +489,7 @@ public abstract class aTreeHandler implements iTreeHandler, iExpansionHandler {
         }
       }
     }
+    return e;
   }
 
   public int indexOfInList(RenderableDataItem item) {

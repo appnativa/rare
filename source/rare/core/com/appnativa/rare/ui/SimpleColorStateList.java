@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -37,6 +37,7 @@ public class SimpleColorStateList {
   private UIColor rolloverColor;
   private UIColor selectedColor;
   private UIColor selectedDisabledColor;
+  private UIColor selectedPressedColor;
 
   public SimpleColorStateList() {
     this.defaultColor = ColorUtils.getForeground();
@@ -94,6 +95,8 @@ public class SimpleColorStateList {
           cs.disabledColor = c;
         } else if (s.equals("selected_disabled") || s.equals("disabled_selected")) {
           cs.selectedDisabledColor = c;
+        } else if (s.equals("selected_pressed") || s.equals("pressed_selected")) {
+          cs.selectedPressedColor = c;
         } else if (s.equals("selected")) {
           cs.selectedColor = c;
         }
@@ -136,6 +139,8 @@ public class SimpleColorStateList {
         return getDisabledColor();
 
       case PRESSED :
+        return getSelectedPressedColor();
+
       case PRESSED_SELECTED :
         return getPressedColor();
 
@@ -156,13 +161,7 @@ public class SimpleColorStateList {
 
   public UIColor getDisabledColor() {
     return (disabledColor == null)
-           ? defaultColor
-           : disabledColor;
-  }
-
-  public UIColor getDisabledColor(UIColor def) {
-    return (disabledColor == null)
-           ? def
+           ? defaultColor.getDisabledColor()
            : disabledColor;
   }
 
@@ -196,9 +195,17 @@ public class SimpleColorStateList {
            : selectedDisabledColor;
   }
 
-  public UIColor getSelectedDisabledColor(UIColor def) {
-    return (selectedDisabledColor == null)
-           ? getDisabledColor(def)
-           : selectedDisabledColor;
+  public UIColor getSelectedPressedColor() {
+    return (selectedPressedColor == null)
+           ? getPressedColor()
+           : selectedPressedColor;
+  }
+
+  public void setSelectedPressedColor(UIColor selectedPressedColor) {
+    this.selectedPressedColor = selectedPressedColor;
+  }
+  
+  public void setPressedColor(UIColor pressedColor) {
+    this.pressedColor = pressedColor;
   }
 }

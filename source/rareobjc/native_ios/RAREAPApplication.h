@@ -10,11 +10,9 @@
 @class RAREAPWindow;
 @class RAREUIColor;
 @interface RAREAPApplication : UIApplication {
-  NSInteger popopCount;
   UIView* focusedView;
   UIWindow* keyWindow;
   UIWindow* mainWindow;
-  int modalCount;
   BOOL manageKeyboard;
 }
 +(BOOL) amIBeingDebugged;
@@ -29,6 +27,7 @@
 +(void) hideModalView:(UIView*) view;
 +(void) showSpinnerView:(UIView*) view;
 +(void) hideSpinnerView:(UIView*) view;
++(void) hideKeyboard:(UIView*) view;
 -(UIWindow*) getMainWindow;
 +(void) showSplashScreenView:(UIView *) view;
 +(void) showSplashScreenWithPortraitImage:(UIImage *)portrait andLandscapeImage:(UIImage *)landscape andMessage: (NSString*) message foreground: (UIColor*) fg;

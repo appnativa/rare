@@ -15,16 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.net.MalformedURLException;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.scripting.iScriptHandler;
@@ -38,18 +40,16 @@ import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.ViewerCreator;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iParentComponent;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iWindowManager;
 import com.appnativa.rare.ui.effects.TransitionAnimator;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.effects.iTransitionAnimator;
 import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.ui.iParentComponent;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iWindowManager;
 import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.Helper;
-
-import java.net.MalformedURLException;
 
 /**
  * A viewer that wraps a widget allowing it to be placed directly into a target
@@ -113,10 +113,9 @@ public abstract class aWidgetPaneViewer extends aContainer {
    *  @param comp the component to wrap
    */
   public aWidgetPaneViewer(iContainer parent, iPlatformComponent comp) {
-    this(parent);
+    this((iContainer) null);
     setParent(parent);
-    widgetPanel   = createWidgetPanel();
-    formComponent = dataComponent = widgetPanel;
+    configure(new WidgetPane());
     setWidget(new BeanWidget(this, comp));
   }
 
@@ -205,22 +204,6 @@ public abstract class aWidgetPaneViewer extends aContainer {
   }
 
   @Override
-  public void register() {
-    callaViewerRegister();
-
-    if (paneTarget != null) {
-      iViewer v = paneTarget.getViewer();
-
-      if (v != null) {
-        v.targetAcquired(paneTarget);
-        v.setParent(this);
-      }
-    }
-
-    registerWidgets();
-  }
-
-  @Override
   public void reload(boolean context) {
     wasReset = false;
 
@@ -267,13 +250,7 @@ public abstract class aWidgetPaneViewer extends aContainer {
       if (wm != null) {
         wm.unRegisterTarget(paneTarget.getName());
 
-        iViewer v = paneTarget.getViewer();
-
-        if (v != null) {
-          v.targetLost(paneTarget);
-          v.setParent(null);
-        }
-      }
+       }
     }
   }
 
@@ -428,16 +405,9 @@ public abstract class aWidgetPaneViewer extends aContainer {
       }
     }
 
-    String      s;
-    iFormViewer fv = getFormViewer();
-
     if (theWidget != null) {
-      s = theWidget.getName();
-      unregisterNamedItem(s);
 
-      if ((fv != null) && (fv != this)) {
-        fv.unregisterFormWidget(theWidget);
-      }
+      unregisterWidget(theWidget);
 
       if (theWidget instanceof iViewer) {
         removeViewerEx(disposeCurrent);
@@ -448,33 +418,28 @@ public abstract class aWidgetPaneViewer extends aContainer {
           theWidget.dispose();
         }
       }
+      unregisterWidget(theWidget);
     }
 
     widgetList.clear();
     theWidget = w;
 
     if (w != null) {
-      s = w.getName();
       adjustWidgetForPlatform(w);
-      registerNamedItem(s, w);
+      w.setParent(this);
 
       if (w instanceof iViewer) {
         setViewer((iViewer) w);
       } else {
         widgetPanel.add(w.getContainerComponent());
 
-        if ((fv != null) && (fv != this)) {
-          registerFormWidget(w);
-        }
-
         if (!isManualUpdate()) {
           widgetPanel.revalidate();
           widgetPanel.repaint();
         }
       }
+      registerWidget(w);
 
-      w.setParent(this);
-      widgetList.add(w);
     } else if (!isManualUpdate()) {
       widgetPanel.revalidate();
       widgetPanel.repaint();
@@ -650,6 +615,23 @@ public abstract class aWidgetPaneViewer extends aContainer {
            : theWidget.isValidForSubmission(showerror);
   }
 
+  @Override
+  protected Object createConstraints(iParentComponent panel, Widget cfg) {
+    if (cfg.horizontalAlign.spot_valueWasSet() || cfg.verticalAlign.spot_valueWasSet()) {
+      return Utils.getRenderType(cfg.horizontalAlign.intValue(), cfg.verticalAlign.intValue());
+    }
+
+    return null;
+  }
+
+  @Override
+  public void addWidget(iWidget widget, Object constraints, int position) {
+    setWidget(widget);
+    if(constraints instanceof RenderType) {
+      setWidgetRenderType((RenderType) constraints);
+    }
+  }
+
   protected iWidget addWidgetEx(iPlatformComponent panel, Widget cfg, Layout layout) {
     iWidget w = createWidget(cfg);
 
@@ -673,7 +655,9 @@ public abstract class aWidgetPaneViewer extends aContainer {
       if ((transitionAnimator != null) && transitionAnimator.isAutoDispose()) {
         transitionAnimator.dispose();
       }
-
+      if(theWidget!=null) {
+        theWidget.dispose();
+      }
       transitionAnimator = null;
       paneTarget         = null;
       widgetPanel        = null;
@@ -688,10 +672,10 @@ public abstract class aWidgetPaneViewer extends aContainer {
    * @param cfg the widget pane's configuration
    */
   protected void configureEx(WidgetPane cfg) {
+    actAsFormViewer=cfg.actAsFormViewer.booleanValue();
     iParentComponent cp = createWidgetPanel();
 
     configureEx(cp, cp, cfg);
-
     if (scriptFunctionPrefix != null) {
       iScriptHandler sh = this.getScriptHandler();
       String         s  = sh.getFunctionCall(scriptFunctionPrefix + "Configure", null);
@@ -826,7 +810,6 @@ public abstract class aWidgetPaneViewer extends aContainer {
     }
 
     paneTarget.setManualUpdate(isManualUpdate());
-    v.setParent(this);
     paneTarget.setViewer(v, transitionAnimator, null);
   }
 

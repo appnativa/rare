@@ -20,9 +20,12 @@
 
 package com.appnativa.rare.platform.swing.ui.view.spinner;
 
+import javax.swing.JTextField;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.text.TextEditorComponent;
+import com.appnativa.rare.platform.swing.ui.view.FormattedTextFieldView;
 import com.appnativa.rare.platform.swing.ui.view.TextFieldView;
 import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.BorderUtils;
@@ -30,8 +33,6 @@ import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.listener.iTextChangeListener;
 import com.appnativa.rare.ui.spinner.iSpinnerModel;
-
-import javax.swing.JTextField;
 
 /**
  *
@@ -80,13 +81,33 @@ public class DefaultEditor extends aSpinnerEditor {
     (getTextField()).setEditable(editable);
   }
 
-  public void setTextChangeListener(iTextChangeListener l) {
-    TextFieldView v = getTextField();
-
-    v.removeTextChangeListener(l);
-    v.addTextChangeListener(l);
+  protected void updateTextChangeListener(iTextChangeListener l) {
+    JTextField tf = getTextField();
+    if(tf instanceof TextFieldView) {
+      TextFieldView v=(TextFieldView)tf;
+      v.removeTextChangeListener(l);
+      v.addTextChangeListener(l);
+    }
+    else if(tf instanceof FormattedTextFieldView) {
+      FormattedTextFieldView v=(FormattedTextFieldView)tf;
+      v.removeTextChangeListener(l);
+      v.addTextChangeListener(l);
+    }
   }
 
+  public void setTextChangeListener(iTextChangeListener l) {
+    JTextField tf = getTextField();
+    if(tf instanceof TextFieldView) {
+      TextFieldView v=(TextFieldView)tf;
+      v.removeTextChangeListener(l);
+      v.addTextChangeListener(l);
+    }
+    else if(tf instanceof FormattedTextFieldView) {
+      FormattedTextFieldView v=(FormattedTextFieldView)tf;
+      v.removeTextChangeListener(l);
+      v.addTextChangeListener(l);
+    }
+  }
   @Override
   public void setValue(Object value) {
     String     s = spinnerModel.toString(value);
@@ -126,9 +147,13 @@ public class DefaultEditor extends aSpinnerEditor {
     v.addActionListener(this);
     v.addFocusListener(this);
   }
+  
+  public void selectAll() {
+    getTextField().selectAll();
+  }
 
-  protected TextFieldView getTextField() {
-    return (TextFieldView) editorView.getView();
+  protected JTextField getTextField() {
+    return (JTextField) editorView.getView();
   }
 
   @Override
@@ -140,5 +165,11 @@ public class DefaultEditor extends aSpinnerEditor {
     TextEditorComponent.deleteSelection(getTextField());
 
     return o;
+  }
+
+  @Override
+  public void selectField() {
+   selectAll();
+    
   }
 }

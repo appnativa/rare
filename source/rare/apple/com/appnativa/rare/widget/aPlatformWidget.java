@@ -136,18 +136,6 @@ public abstract class aPlatformWidget extends aWidget {
     return getDataView().requestFocus();
   }
 
-  /**
-   * Shows the popup menu for the widget
-   */
-  @Override
-  public void showPopupMenu(int x, int y) {
-    UIPopupMenu menu = getPopupMenu();
-
-    if (menu != null) {
-      menu.show(this, Platform.isTouchDevice());
-    }
-  }
-
   public Component getContainerComponentEx() {
     return (Component) getContainerComponent();
   }

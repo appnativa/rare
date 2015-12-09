@@ -527,8 +527,11 @@ static CGFloat osVersion=0;
   return [self sizeThatFits:self.frame.size];//CGSizeMake(0, 0)];
 }
 
--(CGFloat) getPreferredHeight: (CGFloat) width {
-  return [self sizeThatFits:CGSizeMake(width, 20000)].height;
+-(CGFloat) getPreferredHeight: (CGFloat) maxWidth {
+  if(maxWidth<1) {
+    return [self sizeThatFits:self.frame.size].height;
+  }
+  return [self sizeThatFits:CGSizeMake(maxWidth, 20000)].height;
 }
 
 -(CGSize) getPreferredSize: (CGFloat) maxWidth {
@@ -875,7 +878,7 @@ static CGFloat osVersion=0;
   }
 #endif
   if(myview && myview->focusListener_) {
-    [myview->focusListener_ focusChangedWithId:myview withBoolean:NO withId:nview];
+    [myview->focusListener_ focusChangedWithId:myview withBoolean:NO withId:nview withBoolean:NO];
   }
 }
 
@@ -900,7 +903,7 @@ static CGFloat osVersion=0;
   }
   RAREView* myview=self.sparView;
   if(myview && myview->focusListener_) {
-    [myview->focusListener_ focusChangedWithId:myview withBoolean:NO withId:nil];
+    [myview->focusListener_ focusChangedWithId:myview withBoolean:NO withId:nil withBoolean:NO];
   }
 }
 

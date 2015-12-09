@@ -25,7 +25,6 @@ import com.appnativa.rare.platform.android.ui.view.BorderLayoutView;
 import com.appnativa.rare.platform.android.ui.view.FormsView;
 import com.appnativa.rare.ui.layout.BorderLayout;
 import com.appnativa.rare.widget.iWidget;
-
 import com.jgoodies.forms.layout.CellConstraints;
 
 public class BorderPanel extends aBorderPanel {
@@ -46,6 +45,7 @@ public class BorderPanel extends aBorderPanel {
     super(view);
   }
 
+  @Override
   public void add(iPlatformComponent c, Object constraints, int position) {
     if (constraints instanceof Location) {
       if (c == null) {
@@ -76,46 +76,53 @@ public class BorderPanel extends aBorderPanel {
     super.add(c, constraints, position);
   }
 
-  public void setHorizontal(boolean horizontal) {
-    ((BorderLayoutView) view).setHorizontal(horizontal);
+  @Override
+  public void setUseCrossPattern(boolean useCrossPattern) {
+    super.setUseCrossPattern(useCrossPattern);
+    ((BorderLayoutView) view).setUseCrossPattern(useCrossPattern);
   }
 
+  @Override
   public void setPadding(UIInsets in) {
     ((BorderLayoutView) view).setPadding(in);
   }
 
+  @Override
   public void setTopBottomPriority(boolean topBottomPriority) {
+    super.setTopBottomPriority(topBottomPriority);
     ((BorderLayoutView) view).setTopBottomPriority(topBottomPriority);
   }
 
+  @Override
   public CellConstraints getCellConstraints(iPlatformComponent component) {
     return ((BorderLayoutView) view).getCellConstraints(component.getView());
   }
 
+  @Override
   public Object getComponentConstraints(iPlatformComponent component) {
-    return getCellConstraints((iPlatformComponent) component);
+    return getCellConstraints(component);
   }
 
+  @Override
   protected BorderLayout getBorderLayout() {
     return (BorderLayout) ((BorderLayoutView) view).getLayout();
   }
 
+  @Override
   protected iPlatformComponent getComponentAt(Location location) {
     return ((BorderLayoutView) view).getComponentAt(location);
   }
 
-  protected CellConstraints getConstraints(Location location) {
-    return ((BorderLayoutView) view).getConstraints(location);
-  }
-
-  protected void getMinimumSizeEx(UIDimension size) {
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (view.isLayoutRequested()) {
       getBorderLayout().invalidateMinimumCache();
     }
 
-    super.getMinimumSizeEx(size);
+    super.getMinimumSizeEx(size, maxWidth);
   }
 
+  @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     if (view.isLayoutRequested() && (maxWidth < 1)) {
       getBorderLayout().invalidatePreferredCache();

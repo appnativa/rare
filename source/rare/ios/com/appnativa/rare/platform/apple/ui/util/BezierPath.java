@@ -40,6 +40,7 @@ public class BezierPath implements iPlatformPath {
     this.proxy = proxy;
   }
 
+  @Override
   public native UIRectangle getBounds()
   /*-[
 CGRect rect=[((UIBezierPath*)proxy_) bounds];
@@ -230,6 +231,7 @@ CGPoint p2=CGPointMake(x2,y2);
     return this;
   }
 
+  @Override
   public native void translate(float x, float y)
   /*-[
 CGAffineTransform transform = CGAffineTransformMakeTranslation(x, y);

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.event;
@@ -29,24 +29,21 @@ import com.google.j2objc.annotations.Weak;
  * @author Don DeCoteau
  */
 public class FocusEvent extends EventBase {
-  public static final int    FOCUS_FIRST  = 1004;
-  public static final int    FOCUS_GAINED = 1004;
-  public static final int    FOCUS_LAST   = 1005;
-  public static final int    FOCUS_LOST   = 1005;
   @Weak
   private iPlatformComponent opposite;
   private boolean            temporary;
+  private boolean            gained;
 
-  public FocusEvent(iPlatformComponent source, int id) {
-    this(source, id, false);
+  public FocusEvent(iPlatformComponent source, boolean gained) {
+    this(source, gained, false);
   }
 
-  public FocusEvent(iPlatformComponent source, int id, boolean temporary) {
-    this(source, id, temporary, null);
+  public FocusEvent(iPlatformComponent source, boolean gained, boolean temporary) {
+    this(source, gained, temporary, null);
   }
 
-  public FocusEvent(iPlatformComponent source, int id, boolean temporary, iPlatformComponent opposite) {
-    super(source, id);
+  public FocusEvent(iPlatformComponent source, boolean gained, boolean temporary, iPlatformComponent opposite) {
+    super(source);
     this.temporary = temporary;
     this.opposite  = opposite;
   }
@@ -57,5 +54,13 @@ public class FocusEvent extends EventBase {
 
   public boolean isTemporary() {
     return temporary;
+  }
+
+  public boolean wasFocusLost() {
+    return !gained;
+  }
+
+  public boolean wasFocusGained() {
+    return gained;
   }
 }

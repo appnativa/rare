@@ -142,25 +142,6 @@ public class PlatformImpl extends aPlatform {
     return new Component(tv);
   }
 
-  /**
-   * Creates a new instance of the class represented by the specified name
-   *
-   * @param className
-   *          the name of the class to load
-   *
-   * @return the new object or null if the object could not be instantiated
-   */
-  @Override
-  public Object createObject(String className) {
-    try {
-      return Class.forName(className, true, urlClassLoader).newInstance();
-    } catch(Throwable ignore) {
-      Platform.ignoreException("createObject:" + className, ignore);
-
-      return null;
-    }
-  }
-
   @Override
   public iPlatformComponent createPlatformComponent(Object nativeComponent) {
     iPlatformComponent pc = Component.fromView((View) nativeComponent);

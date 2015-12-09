@@ -20,7 +20,11 @@
 
 package com.appnativa.rare.platform;
 
-import com.appnativa.rare.Platform;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
+
+import com.appnativa.rare.platform.apple.aAppContextImpl;
 import com.appnativa.rare.platform.apple.ui.view.CustomButtonView;
 import com.appnativa.rare.platform.apple.ui.view.TextFieldView;
 import com.appnativa.rare.platform.apple.ui.view.View;
@@ -30,7 +34,9 @@ import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.SimpleColorStateList;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIImage;
@@ -38,18 +44,12 @@ import com.appnativa.rare.ui.UIMenuItem;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UISound;
 import com.appnativa.rare.ui.WindowDeviceConfiguration;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTHelper;
-
-import java.net.URL;
-
-import java.util.List;
-import java.util.Map;
 
 /*-[
  #import <UIKit/UIKit.h>
@@ -61,9 +61,13 @@ import java.util.Map;
  #import "APView+Component.h"
  #import "RAREAPApplication.h"
  #import "com/appnativa/rare/viewer/WindowViewer.h"
+ #import "com/appnativa/rare/exception/ApplicationException.h"
  #import "RAREUIViewController.h"
  #import <AudioToolbox/AudioToolbox.h>
+ #import <AVFoundation/AVFoundation.h>
+ #import "com/appnativa/rare/platform/apple/ui/util/aAppleGraphics.h"
  ]-*/
+
 public class PlatformHelper extends aPlatformHelper {
   public static final float screenDpi = 72;
   static float              density   = 1;
@@ -83,23 +87,11 @@ public class PlatformHelper extends aPlatformHelper {
     Window w = new Window();
 
     w.setDecorated(decorated);
-
-    if (!transparent) {
-      w.setBackgroundColor(ColorUtils.getBackground());
-    }
-
     w.setModal(modal);
 
     return w;
   }
 
-  public native static void beep()    /*-[
-                                      #if TARGET_OS_IPHONE
-                                      #else
-                                      NSBeep();
-                                      #endif
-                                      ]-*/
-  ;
 
   public static iActionComponent createNakedButton(iPlatformComponent context, boolean parentPaints,
           int autoRepeatDelay) {
@@ -128,19 +120,17 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static void hideVirtualKeyboard(iPlatformComponent c) {
-    View v = c.getView();
-
-    if (v instanceof TextFieldView) {
-      ((TextFieldView) v).setShowKeyBoard(false);
-    }
+    View v=c==null ? null : c.getView();
+    hideVirtualKeyboardEx(v==null ? null : v.getProxy());
   }
+  
+  private static native void hideVirtualKeyboardEx(Object proxy) 
+  /*-[
+    [RAREAPApplication hideKeyboard:(UIView*)proxy];
+  ]-*/;
 
   public static void hideVirtualKeyboard(iWidget context) {
-    View v = context.getDataComponent().getView();
-
-    if (v instanceof TextFieldView) {
-      ((TextFieldView) v).setShowKeyBoard(false);
-    }
+    hideVirtualKeyboard(context==null ? null  :context.getDataComponent());
   }
 
   public static void setup() {
@@ -178,11 +168,12 @@ public class PlatformHelper extends aPlatformHelper {
       size=[[RAREUIDimension alloc]init];
     }
     if(text==nil) {
-            size->width_=0;
-            size->height_=0;
+      size->width_=0;
+      size->height_=0;
     }
     else {
-      CGSize ss=[text sizeWithFont:(UIFont*)[font getIOSProxy]];
+      NSMutableDictionary* att=[RAREaAppleGraphics addDictionaryAttributeWithNSString:NSFontAttributeName withId:[font getIOSProxy] withBoolean:YES];
+      CGSize ss=[text sizeWithAttributes:att];
       size->width_ = (int)ceil(ss.width);
       size->height_ = (int)ceil(ss.height);
     }
@@ -192,12 +183,13 @@ public class PlatformHelper extends aPlatformHelper {
 
   public native static int stringWidth(UIFont font, String text)
   /*-[
-    CGSize ss=[text sizeWithFont:(UIFont*)[font getIOSProxy]];
+    NSMutableDictionary* att=[RAREaAppleGraphics addDictionaryAttributeWithNSString:NSFontAttributeName withId:[font getIOSProxy] withBoolean:YES];
+    CGSize ss=[text sizeWithAttributes:att];
     return (int)ceil(ss.width);
   ]-*/
   ;
 
-  public native static void systemAlert(iWidget context, Object message, iPlatformIcon icon, iActionListener listener)
+  public native static void systemAlert(iWidget context, Object message, iActionListener listener)
   /*-[
     [[UIApplication sharedApplication] cancelAllLocalNotifications];
 
@@ -231,12 +223,7 @@ public class PlatformHelper extends aPlatformHelper {
 
   public native static void setTheme(boolean dark)
   /*-[
-    if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_6_1) {
-      [UIApplication sharedApplication].statusBarStyle=dark ? UIStatusBarStyleLightContent : UIStatusBarStyleDefault;
-    }
-    else {
-      [UIApplication sharedApplication].statusBarStyle=dark ? UIStatusBarStyleBlackTranslucent : UIStatusBarStyleDefault;
-    }
+     [UIApplication sharedApplication].statusBarStyle=dark ? UIStatusBarStyleLightContent : UIStatusBarStyleDefault;
   ]-*/
   ;
 
@@ -276,13 +263,6 @@ public class PlatformHelper extends aPlatformHelper {
     return stringWidth(font, "m");
   }
 
-  public static String getDefaultRowHeight() {
-    String s = Platform.getUIDefaults().getString("Rare.List.rowHeight");
-
-    return (s == null)
-           ? "1.75ln"
-           : s;
-  }
 
   public static Object getDeviceConfiguration() {
     return getScreenOrientation();
@@ -520,6 +500,15 @@ public class PlatformHelper extends aPlatformHelper {
     return false;
   }
 
+
+  public static boolean hasPhysicalKeyboard() {
+    return false;
+  }
+  
+  public static boolean hasPointingDevice() {
+    return false;
+  }
+  
   public static boolean isHighDensity() {
     return density > 1.5f;
   }
@@ -579,25 +568,6 @@ public class PlatformHelper extends aPlatformHelper {
 
   private native static void initializeUIDefaults()
   /*-[
-  //    UILabel* l=[UILabel new];
-  //    UIColor* c=l.textColor;
-  //    CGFloat  red;
-  //    CGFloat  green;
-  //    CGFloat  blue;
-  //    CGFloat  alpha;
-  //    if(c && [c getRed:&red green:&green blue:&blue alpha:&alpha]) {
-  //      RAREPlatformHelper_foreground_=[[RAREUIColor alloc] initWithInt:red*255 withInt:green*255 withInt:blue*255 withInt:alpha*255];
-  //    }
-  //    else {
-  //      RAREPlatformHelper_foreground_=[RAREUIColor BLACK];
-  //    }
-  //    c=[[RAREAPApplication getInstance] getMainWindow].backgroundColor;
-  //    if(c && [c getRed:&red green:&green blue:&blue alpha:&alpha]) {
-  //      RAREPlatformHelper_background_=[[RAREUIColor alloc] initWithInt:red*255 withInt:green*255 withInt:blue*255 withInt:alpha*255];
-  //    }
-  //    else {
-  //      RAREPlatformHelper_background_=[RAREUIColor WHITE];
-  //    }
     RAREPlatformHelper_foreground_=[RAREUIColor BLACK];
     RAREPlatformHelper_background_=[RAREUIColor WHITE];
     UIFont* font=[UIFont systemFontOfSize:[UIFont systemFontSize]];
@@ -650,14 +620,6 @@ public class PlatformHelper extends aPlatformHelper {
   ]-*/
   ;
 
-  public native static boolean setComponentAlpha(iPlatformComponent component, float alpha)
-  /*-[
-    UIView* v=(UIView*)[component getProxy];
-    v.alpha=alpha;
-    return YES;
-  ]-*/
-  ;
-
   public static Object getConfiguration(iPlatformComponent comp) {
     return getDeviceConfiguration();
   }
@@ -665,12 +627,100 @@ public class PlatformHelper extends aPlatformHelper {
   public static void setOptimizationEnabled(boolean enabled) {}
 
   public static UISound getSoundResource(String sound) {
-    // TODO Auto-generated method stub
-    return null;
+    int n=sound.indexOf('.');
+    String ext="mp3";
+    if(n!=-1) {
+      ext=sound.substring(n+1);
+      sound=sound.substring(0,n);
+    }
+    sound=aAppContextImpl.makeResourcePath("raw", sound, ext);
+    return getSound(PlatformHelper.fileToURL(sound));
   }
 
-  public static UISound getSound(URL resourceURL) {
-    // TODO Auto-generated method stub
-    return null;
+  public native static UISound getSound(URL resourceURL)
+  /*-[
+    NSError* error=nil;
+    NSURL* url=[resourceURL getNSURL];
+    AVAudioPlayer* p = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&error];
+    if(error) {
+      @throw [[RAREApplicationException alloc] initWithNSString:[AppleHelper toErrorString:error]];
+    }
+    return [[RAREUISound alloc] initWithId: p];
+   ]-*/
+   ;
+
+  public static native void stopSound(Object platformSound) 
+  /*-[
+    AVAudioPlayer* p=(AVAudioPlayer*) platformSound;
+    [p stop];
+  ]-*/
+  ;
+
+  public static void disposeOfSound(Object platformSound){}
+
+  public static native void playSound(Object platformSound)
+  /*-[
+    AVAudioPlayer* p=(AVAudioPlayer*) platformSound;
+    [p play];
+  ]-*/
+  ;
+
+  public static native void pauseSound(Object platformSound)
+  /*-[
+    AVAudioPlayer* p=(AVAudioPlayer*) platformSound;
+    [p pause];
+  ]-*/
+  ;
+
+  public static native void resumeSound(Object platformSound)
+  /*-[
+    AVAudioPlayer* p=(AVAudioPlayer*) platformSound;
+    [p play];
+  ]-*/
+  ;
+
+  public static native Object setVolume(Object platformSound, int percent)
+  /*-[
+    AVAudioPlayer* p=(AVAudioPlayer*) platformSound;
+    if(percent>100) {
+      percent=100;
+    }
+    p.volume=(CGFloat)percent/100;
+    return p;
+   ]-*/
+ ;
+  public native static void beep()    
+  /*-[
+  #if TARGET_OS_IPHONE
+    AudioServicesPlaySystemSound (kSystemSoundID_Vibrate);
+  #else
+    NSBeep();
+  #endif
+  ]-*/
+;
+
+
+  /**
+   * Returns a color shade for a the specified colors
+   *
+   * @return a color object represented by the specified colors as an android
+   *         color state list
+   */
+  public static UIColorShade getColorStateList(UIColor fg, UIColor disabled) {
+    return new UIColorShade(new SimpleColorStateList(fg, disabled));
+  }
+
+  /**
+   * Returns a color shade for a the specified colors
+   *
+   * @return a color object represented by the specified colors as an android
+   *         color state list
+   */
+  public static UIColorShade getColorStateList(UIColor fg, UIColor disabled, UIColor pressed) {
+    SimpleColorStateList csl = new SimpleColorStateList(fg, disabled);
+
+    csl.setSelectedPressedColor(pressed);
+
+    return new UIColorShade(csl);
   }
 }

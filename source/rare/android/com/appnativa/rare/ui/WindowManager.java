@@ -15,18 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
+import java.util.List;
+import java.util.Map;
+
 import android.app.Activity;
-
 import android.content.res.Configuration;
-
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.animation.Animation;
 
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
@@ -38,7 +38,6 @@ import com.appnativa.rare.platform.android.ui.view.DialogEx;
 import com.appnativa.rare.platform.android.ui.view.PopupWindowEx;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.MainWindow;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iContainer;
@@ -46,9 +45,6 @@ import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.SNumber;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -59,7 +55,7 @@ public class WindowManager extends aWindowManager {
 
   public WindowManager(AppContext app, Activity a) {
     super(app);
-    this.mainFrame  = new Frame(a.getWindow(), null, true);
+    this.mainFrame  = new Frame(a.getWindow(), null, true, WindowType.FRAME);
     workspaceTarget = new WorkspaceTarget(app, (Frame) mainFrame);
     ((Frame) mainFrame).setTarget(workspaceTarget);
     theTargets.put(iTarget.TARGET_WORKSPACE, workspaceTarget);
@@ -70,12 +66,14 @@ public class WindowManager extends aWindowManager {
     }
   }
 
+  @Override
   public void close() {
     if (mainFrame != null) {
       mainFrame.close();
     }
   }
 
+  @Override
   public void configure(MainWindow cfg) {
     createScriptHandler(cfg);
 
@@ -91,37 +89,21 @@ public class WindowManager extends aWindowManager {
     fireEvent(iConstants.EVENT_CONFIGURE, event, true);
   }
 
+  @Override
   public iPopup createPopup(iWidget context) {
-    PopupWindowEx p = new PopupWindowEx(AppContext.getAndroidContext());
+    WindowViewer w=context==null ? Platform.getWindowViewer() : context.getWindow();
+    if(w==null) {
+      w=Platform.getWindowViewer();
+    }
+    PopupWindowEx p = new PopupWindowEx(w.getAndroidContext());
 
     return p;
   }
 
+  @Override
   public void onConfigurationChanged(boolean reset) {
     Activity  ra   = AppContext.getRootActivity();
-    Animation a    = null;
-    Object    aa   = Platform.getUIDefaults().get("Rare.animation.orientation");
-    String    anim = null;
-
-    if (aa instanceof Animation) {
-      a = (Animation) aa;
-    } else if (aa instanceof String) {
-      anim = (String) aa;
-    }
-
-    if ((anim != null) && (anim.length() > 0)) {
-      try {
-        iPlatformAnimator pa = Platform.getAppContext().getResourceAsAnimator(anim);
-
-        a = (pa == null)
-            ? null
-            : pa.getAnimation();
-      } catch(Throwable ignore) {
-        Platform.ignoreException("Setting orientation animation", ignore);
-      }
-    }
-
-    ((Frame) mainFrame).reset(ra.getWindow(), a);
+    ((Frame) mainFrame).reset(ra.getWindow());
 
     if ((getWorkspaceViewer() != null)) {
       getWorkspaceViewer().onConfigurationChanged(reset);
@@ -129,6 +111,7 @@ public class WindowManager extends aWindowManager {
     }
   }
 
+  @Override
   public void onConfigurationWillChange(Object newConfig) {
     ((Frame) mainFrame).onConfigurationWillChange((Configuration) newConfig);
 
@@ -137,10 +120,12 @@ public class WindowManager extends aWindowManager {
     }
   }
 
+  @Override
   public iPlatformComponentFactory getComponentCreator() {
     return componentCreator;
   }
 
+  @Override
   public iContainer getRootViewer() {
     if (getScriptHandler() != null) {
       return getScriptHandler().getWindowViewer();
@@ -149,22 +134,21 @@ public class WindowManager extends aWindowManager {
     return null;
   }
 
+  @Override
   public int getUsableScreenHeight() {
     return ((Frame) mainFrame).getUsableScreenHeight();
   }
 
+  @Override
   public int getUsableScreenWidth() {
     return ((Frame) mainFrame).getUsableScreenWidth();
   }
 
+  @Override
   public boolean isBackPressedHandled() {
     if ((appContext == null) || appContext.isShuttingDown()) {
       return false;
     }
-
-    Activity ra = AppContext.getRootActivity();
-
-    ((Frame) mainFrame).reset(ra.getWindow(), null);
 
     WindowViewer win = appContext.getWindowViewer();
 
@@ -179,26 +163,8 @@ public class WindowManager extends aWindowManager {
     return false;
   }
 
-  public iWindow createWindow(iWidget context, Map options) {
-    String  title     = null;
-    String  target    = null;
-    boolean decorated = true;
-
-    if (options != null) {
-      title  = (String) options.get("title");
-      target = (String) options.get("target");
-
-      Object o = options.get("decorated");
-
-      if (o != null) {
-        if (o instanceof Boolean) {
-          decorated = ((Boolean) o).booleanValue();
-        } else {
-          decorated = "true".equalsIgnoreCase(o.toString());
-        }
-      }
-    }
-
+  @Override
+  protected Frame createFrame(iWidget context, WindowType type, boolean modal, boolean transparent, boolean decorated) {
     DialogEx d;
     boolean  rdecorated = Platform.getUIDefaults().getBoolean("Rare.Dialog.useRuntimeDecorations", false);
 
@@ -216,53 +182,21 @@ public class WindowManager extends aWindowManager {
 
       d = new DialogEx(((aPlatformWidget) context).getAndroidContext(), undecoratedStyle);
       d.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-      if (decorated) {
-        d.setUsRuntimeDecorations(true);
-      }
     }
+    Frame frame = new Frame(d, null, type);
 
-    if (title == null) {
-      title = getTitle();
-    }
+    frame.transparent = transparent;
+    frame.undecorated=!decorated;
 
-    d.setTitle(title);
-
-    Object o = (options == null)
-               ? null
-               : options.get("transient");
-
-    if (o instanceof Boolean) {
-      d.setCanceledOnTouchOutside((Boolean) o);
-    } else if ("true".equals(o)) {
-      d.setCanceledOnTouchOutside(true);
-    }
-
-    WindowViewer parent = Platform.getWindowViewer(context);
-
-    if (parent == null) {
-      parent = (WindowViewer) appContext.getWindowViewer();
-    }
-
-    iScriptHandler sh    = parent.getScriptHandler();
-    Frame          frame = new Frame(d, target);
-
-    if (options != null) {
-      //Utils.setupWindowOptions(frame, options);
-    }
-
-    WindowViewer windowViewer = new WindowViewer(appContext, frame.getTargetName(), frame, parent, sh);
-
-    frame.setViewer(windowViewer);
-    sh.setScriptingContext(windowViewer, null, null, null, true);
-
-    return windowViewer;
+    return frame;
   }
 
+  @Override
   protected aWidgetListener createWidgetListener(iWidget widget, Map map, iScriptHandler scriptHandler) {
     return new WidgetListener(widget, map, scriptHandler);
   }
 
+  @Override
   protected void handleCustomProperties(MainWindow cfg, Map<String, Object> properties) {
     String s = (String) properties.remove("config.layout.android");
 
@@ -301,6 +235,7 @@ public class WindowManager extends aWindowManager {
     super.handleCustomProperties(cfg, properties);
   }
 
+  @Override
   protected void showErrorDialog(Throwable e) {
     WaitCursorHandler.stopWaitCursor(null, true);
 
@@ -317,5 +252,6 @@ public class WindowManager extends aWindowManager {
   }
 
 
+  @Override
   protected void setWindowIconsEx(List<UIImageIcon> icons) {}
 }

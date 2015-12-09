@@ -50,10 +50,12 @@ public class PushButtonWidget extends aPushButtonWidget {
     super(parent);
   }
 
+  @Override
   public void showPopupWidget() {
     if (PlatformHelper.isKeyboardVisible()) {
       PlatformHelper.hideVirtualKeyboard(this);
       ((PlatformImpl) Platform.getPlatform()).invokeLater(new Runnable() {
+        @Override
         public void run() {
           showPopupWidgetEx();
         }
@@ -63,6 +65,7 @@ public class PushButtonWidget extends aPushButtonWidget {
     }
   }
 
+  @Override
   public void setValue(Object value) {
     CharSequence s;
 
@@ -76,12 +79,13 @@ public class PushButtonWidget extends aPushButtonWidget {
     setText(s);
   }
 
+  @Override
   protected void configurePainters(PushButton cfg, int buttonStyle) {
     if (buttonStyle != PushButton.CButtonStyle.platform) {
       View v = getDataView();
 
       v.setPadding(0, 0, 0, 0);
-      getDataView().setBackgroundDrawable(NullDrawable.getInstance());
+      getDataView().setBackground(NullDrawable.getInstance());
     }
 
     super.configurePainters(cfg, buttonStyle);
@@ -89,10 +93,12 @@ public class PushButtonWidget extends aPushButtonWidget {
     if (buttonStyle != PushButton.CButtonStyle.platform) {}
   }
 
+  @Override
   protected ActionComponent createButton(Button cfg) {
     return new ActionComponent(getAppContext().getComponentCreator().getButton(getViewer(), (PushButton) cfg));
   }
 
+  @Override
   protected iPopup createPopupComponent() {
     PopupWindowEx win = new PopupWindowEx(getAppContext().getActivity());
 
@@ -101,6 +107,7 @@ public class PushButtonWidget extends aPushButtonWidget {
     return win;
   }
 
+  @Override
   protected void updatePopupComponent(iPopup popup) {
     ((PopupWindowEx) popup).update();
   }

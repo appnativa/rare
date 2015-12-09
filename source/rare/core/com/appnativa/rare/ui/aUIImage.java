@@ -58,8 +58,8 @@ public abstract class aUIImage implements iPlatformImage {
       aUIImage img = (aUIImage) super.clone();
 
       img.observersList = null;
-      imageObserver     = null;
-
+      img.imageObserver = null;
+      img.ninePatch     = null;
       return img;
     } catch(CloneNotSupportedException e) {
       throw new InternalError();

@@ -39,6 +39,7 @@ public class DnDHelper implements iFlavorCreator {
 
   protected DnDHelper() {}
 
+  @Override
   public TransferFlavor createFlavor(String name, String... mimeTypes) {
     return new TransferFlavor(name, mimeTypes);
   }
@@ -47,14 +48,17 @@ public class DnDHelper implements iFlavorCreator {
     return fileFlavor;
   }
 
+  @Override
   public TransferFlavor getFileListFlavor() {
     return fileListFlavor;
   }
 
+  @Override
   public TransferFlavor getHTMLFlavor() {
     return htmlFlavor;
   }
 
+  @Override
   public TransferFlavor getImageFlavor() {
     return imageFlavor;
   }
@@ -71,14 +75,17 @@ public class DnDHelper implements iFlavorCreator {
     return rtfFlavor;
   }
 
+  @Override
   public TransferFlavor getStringFlavor() {
     return stringFlavor;
   }
 
+  @Override
   public TransferFlavor getURLFlavor() {
     return urlFlavor;
   }
 
+  @Override
   public TransferFlavor getURLListFlavor() {
     return urlListFlavor;
   }

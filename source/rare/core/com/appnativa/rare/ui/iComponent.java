@@ -99,8 +99,6 @@ public interface iComponent extends iPainterSupport {
 
   void setCursor(UICursor cursor);
 
-  void setDisabledColor(UIColor color);
-
   void setEnabled(boolean enabled);
 
   void setFocusPainted(boolean focusPainted);
@@ -228,4 +226,6 @@ public interface iComponent extends iPainterSupport {
   boolean isSizeLocked();
 
   boolean isVisible();
+
+  UIDimension getMinimumSize(UIDimension size, float maxWidth);
 }

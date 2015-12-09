@@ -20,6 +20,11 @@
 
 package com.appnativa.rare.widget;
 
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.swing.text.JTextComponent;
+
 import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.swing.ui.text.TextEditorComponent;
 import com.appnativa.rare.platform.swing.ui.text.UndoManagerEx;
@@ -27,15 +32,9 @@ import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
 import com.appnativa.rare.platform.swing.ui.view.TextAreaView;
 import com.appnativa.rare.spot.TextArea;
 import com.appnativa.rare.spot.TextField;
-import com.appnativa.rare.ui.BorderUtils;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iViewer;
-
-import java.io.IOException;
-import java.io.Writer;
-
-import javax.swing.text.JTextComponent;
 
 /**
  *  This class represents the configuration for a widget that allows one or
@@ -92,8 +91,6 @@ public class TextAreaWidget extends TextFieldWidget {
     TextAreaView        a    = getAppContext().getComponentCreator().getTextArea(getViewer(), cfg);
     ScrollPaneEx        pane = new ScrollPaneEx(a);
     TextEditorComponent e    = new TextEditorComponent(pane, a);
-
-    e.setBorder(BorderUtils.getTextAreaBorder());
 
     if (((TextArea) cfg).wordWrap.booleanValue()) {
       pane.setHorizontalScrollBarPolicy(ScrollPaneEx.HORIZONTAL_SCROLLBAR_NEVER);

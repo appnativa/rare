@@ -1250,7 +1250,7 @@ public abstract class aCarouselPanel extends XPContainer implements iActionable,
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     size.setSize(minImageSize);
 
     float odw = secondaryWidth / 3;

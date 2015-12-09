@@ -6,8 +6,9 @@
 //
 
 
-#import "RAREGestures.h"
 #import "APView+Component.h"
+#import "RAREGestures.h"
+#import "RAREAPListView.h"
 #import <com/appnativa/rare/ui/iGestureListener.h>
 #import <com/appnativa/rare/ui/event/MouseEventEx.h>
 #import <com/appnativa/rare/ui/event/UITouch.h>
@@ -18,6 +19,9 @@
 #import "com/appnativa/rare/ui/listener/iMouseMotionListener.h"
 #import <com/appnativa/rare/platform/apple/ui/view/View.h>
 #import <com/appnativa/rare/ui/table/TableComponent.h>
+#include "com/appnativa/rare/Platform.h"
+#include "com/appnativa/rare/ui/UIProperties.h"
+
 #include "com/appnativa/rare/platform/EventHelper.h"
 @implementation RAREFlingGestureRecognizer {
   float vx;
@@ -142,16 +146,18 @@
   }
   switch(recognizer.state) {
     case UIGestureRecognizerStateBegan:
-      type=RAREScaleEvent_SCALE_BEGIN;
+      type=RAREiGestureListener_SCALE_BEGIN;
       break;
     case UIGestureRecognizerStateEnded:
+      type= RAREiGestureListener_SCALE_END;
+      break;
     case UIGestureRecognizerStateCancelled:
-      type= RAREScaleEvent_SCALE_END;
+      type= RAREiGestureListener_SCALE_CANCELED;
       break;
     case UIGestureRecognizerStateChanged:
-      type= RAREScaleEvent_SCALE;
+      type= RAREiGestureListener_SCALE;
       break;
-      default:
+    default:
       return;
   }
   CGPoint p=[self locationInView:recognizer.view];
@@ -193,7 +199,7 @@
 }
 
 -(void) gestureRecognized:(UIGestureRecognizer *) recognizer {
-
+  
   int type;
   switch(recognizer.state) {
     case UIGestureRecognizerStateBegan:
@@ -212,7 +218,7 @@
   RAREView* view=self.view.sparView;
   CGPoint p=[self locationInView:recognizer.view];
   [gestureListener_ onRotateWithId:view withInt:type withFloat:self.rotation withFloat:self.velocity withFloat:p.x withFloat:p.y];
-
+  
 }
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
   return YES;
@@ -257,7 +263,7 @@
     RAREMouseEvent* e=[[RAREMouseEventEx alloc] initWithId:view withId:event withInt:RAREMouseEvent_LONG_PRESS];
     [gestureListener_ onLongPressWithId:view withRAREMouseEvent:e];
   }
-
+  
 }
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
   [super touchesMoved:touches withEvent:event];
@@ -282,10 +288,11 @@
 
 @end
 @implementation RAREMouseHandlerGestureRecognizer {
-  CGFloat slop;
+  CGFloat lpSlop;
   CGFloat sx;
   CGFloat sy;
-  UIEvent* lpEvent;
+  CGFloat lpTime;
+  LongPressObject* lpObject;
   BOOL releasedCalled;
 }
 - (id)init {
@@ -295,17 +302,24 @@
     self.cancelsTouchesInView=NO;
     self.delegate=self;
     [self addTarget:self action:@selector(gestureRecognized:)];
-    slop=10;
+    lpTime=[[RAREPlatform getUIDefaults] getIntWithNSString:@"Rare.Pointer.longPressThreshold" withInt: 500]/1000.0;
+    lpSlop=[[RAREPlatform getUIDefaults] getIntWithNSString:@"Rare.Pointer.longPressSlop" withInt: 10];
   }
   return self;
-
+  
 }
 -(void)sparDispose {
   [self removeTarget:self action:@selector(gestureRecognized:)];
   self.delegate=nil;
-  lpEvent=nil;
+  [self cancelLongPress];
 }
-
+-(void) cancelLongPress {
+  if(lpObject) {
+    [lpObject cancel];
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(longPress:) object:lpObject];
+    lpObject=nil;
+  }
+}
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
   UIView* v=touch.view;
   UIView* sv=self.view;
@@ -313,19 +327,26 @@
     return YES;
   }
   RAREView* view=v.sparView;
+  if(!view) {
+    while(!view && v) {
+      v=v.superview;
+      view =v==nil ? nil : v.sparView;
+    }
+  }
   if(!view || !view.isMouseTransparent) {
     return NO;
   }
   while(view) {
     if(!view.isMouseTransparent) {
-      return NO;
+      break;
     }
     view=view.getParent;
   }
-  return YES;
+  return view!=nil && view.getProxy==sv;
 }
 -(void)reset {
   [super reset];
+  [self cancelLongPress];
   RAREView* view=self.view.sparView;
   if(!releasedCalled && view && view->mouseListener_){
     [view->mouseListener_ pressCanceledWithRAREMouseEvent:nil];
@@ -334,6 +355,9 @@
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
   RAREView* view=self.view.sparView;
   releasedCalled=NO;
+  if(lpObject) {
+    [self cancelLongPress];
+  }
   if(view && view->mouseListener_){
     RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event];
     [view->mouseListener_ mousePressedWithRAREMouseEvent:me];
@@ -347,8 +371,8 @@
       CGPoint local_point = [touch locationInView:nil];
       sx=local_point.x;
       sy=local_point.y;
-      lpEvent=event;
-      [self performSelector:@selector(longPress:) withObject:lpEvent afterDelay:.5];
+      lpObject=[[LongPressObject alloc] initWithEvent:event];
+      [self performSelector:@selector(longPress:) withObject:lpObject afterDelay:lpTime];
     }
   }
   self.state=UIGestureRecognizerStatePossible;
@@ -356,12 +380,11 @@
 
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
   releasedCalled=YES;
+  if(lpObject) {
+    [self cancelLongPress];
+  }
   RAREView* view=self.view.sparView;
   if(view && view->mouseListener_){
-    if(view->mouseListener_.wantsLongPress && lpEvent) {
-      [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(longPress:) object:lpEvent];
-      lpEvent=nil;
-    }
     RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event];
     [view->mouseListener_ mouseReleasedWithRAREMouseEvent:me];
     if(me.isConsumed) {
@@ -373,17 +396,25 @@
 }
 
 -(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
+  if(lpObject) {
+    [self cancelLongPress];
+  }
   RAREView* view=self.view.sparView;
   if(view && view->mouseListener_){
-    if(view->mouseListener_.wantsLongPress && lpEvent) {
-      [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(longPress:) object:lpEvent];
-      lpEvent=nil;
-    }
-    RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event];
-    [view->mouseListener_ mouseReleasedWithRAREMouseEvent:me];
+    RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event withInt:RAREMouseEvent_PRESS_CANCELED];
+    [view->mouseListener_ pressCanceledWithRAREMouseEvent:me];
   }
 }
 -(void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+  if(lpObject) {
+    NSSet* set=[event allTouches];
+    UITouch* touch=[set anyObject];
+    CGPoint local_point = [touch locationInView:nil];
+    if(ABS(sx-local_point.x)>lpSlop || ABS(sy-local_point.y)>lpSlop) {
+      [self cancelLongPress];
+    }
+  }
+  
   RAREView* view=self.view.sparView;
   if(view && view->mouseMotionListener_){
     RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event];
@@ -392,35 +423,38 @@
       return;
     }
   }
-  else if(view && view->mouseListener_ && view->mouseListener_.wantsLongPress) {
-    NSSet* set=[event allTouches];
-    UITouch* touch=[set anyObject];
-    CGPoint local_point = [touch locationInView:nil];
-    if(ABS(sx-local_point.x)>slop || ABS(sy-local_point.y)>slop) {
-      [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(longPress:) object:lpEvent];
-      lpEvent=nil;
-    }
-  }
 }
 
--(void) longPress:(id) event  {
-  lpEvent=nil;
-  RAREView* view=self.view.sparView;
-  if(view && view->mouseListener_){
-    RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event withInt:RAREMouseEvent_LONG_PRESS];
-    [view->mouseListener_ mouseReleasedWithRAREMouseEvent:me];
-    if(me.isConsumed) {
-      UIView* v=self.view;
-      self.state=UIGestureRecognizerStateRecognized;
-      if([v isKindOfClass:[UIControl class]]) {
-        ((UIControl*)v).highlighted=NO;
-        [view stateChanged];
-        [v setNeedsDisplay];
-      }
+-(void) longPress:(id) lpobject  {
+  if(lpObject!=lpobject) {
+    return;
+  }
+  lpObject=nil;
+  UIEvent* event=[((LongPressObject*)lpobject) getEvent];
+  if(!event || self.state==UIGestureRecognizerStateEnded) {
+    return;
+  }
+  UIView* v=self.view;
+  if([v isKindOfClass:[UIScrollView class]]) {
+    if([(UIScrollView*)v isDragging]) {
       return;
     }
   }
+  RAREView* view=self.view.sparView;
+  if(view && view->mouseListener_){
+    RAREMouseEvent* me=[[RAREMouseEventEx alloc] initWithId:view withId:event withInt:RAREMouseEvent_LONG_PRESS];
+    if([v isKindOfClass:[RAREAPListView class]]) {
+      [(RAREAPListView*)v setContextMenuIndexWithRAREMouseEvent:me];
+    }
+    [view->mouseListener_ mouseReleasedWithRAREMouseEvent:me];
+    if([me isConsumed]) {
+      self.state=UIGestureRecognizerStateEnded;
+      [self cancelsTouchesInView];
+      [v touchesCancelled:[event allTouches] withEvent:event];
 
+    }
+  }
+  
 }
 -(void) gestureRecognized:(UIGestureRecognizer *) recognizer {
 }
@@ -458,3 +492,22 @@
   return YES;
 }
 @end
+
+@implementation LongPressObject {
+  UIEvent* event_;
+}
+-(void) cancel {
+  event_=nil;
+}
+-(UIEvent*) getEvent {
+  return event_;
+}
+-(id)initWithEvent:(UIEvent*) event {
+  self=[super init];
+  if(self) {
+    event_=event;
+  }
+  return self;
+}
+@end
+

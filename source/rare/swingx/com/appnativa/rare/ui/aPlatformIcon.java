@@ -37,7 +37,7 @@ public abstract class aPlatformIcon implements iPlatformIcon, Cloneable {
   public void paintIcon(Component c, Graphics g, int x, int y) {
     SwingGraphics graphics = SwingGraphics.fromGraphics(g, c, null);
 
-    paint(graphics, x, y, getIconWidth(), getIconHeight());
+    paint(graphics, x, y, c.getWidth()-x, c.getHeight()-y);
     graphics.clear();
   }
 }

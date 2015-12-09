@@ -15,10 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
+
+import android.annotation.TargetApi;
 
 import android.content.Intent;
 
@@ -26,13 +28,17 @@ import android.graphics.Bitmap;
 
 import android.net.Uri;
 
+import android.os.Build;
+
 import android.webkit.HttpAuthHandler;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.exception.BrowserException;
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.android.ui.view.WebViewEx;
 import com.appnativa.rare.spot.Browser;
@@ -84,6 +90,40 @@ public class WebBrowser extends aWebBrowser {
   }
 
   /**
+   * Executes the specified script within the context of the browser
+   *
+   * @param script the script to execute
+   * @param cb an optional callback to receive the result of the execution
+   */
+  @TargetApi(Build.VERSION_CODES.KITKAT)
+  public void executeScript(final String script, final iFunctionCallback cb) {
+    webView.evaluateJavascript(script, new ValueCallback() {
+      @Override
+      public void onReceiveValue(final Object value) {
+        if (cb != null) {
+          Platform.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              cb.finished(false, value);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Sets a property on the current DOM window
+   * in the browser
+   *
+   * @param name the name of the property to set
+   * @param value the value of the property
+   */
+  public void setWindowProperty(String name, Object value) {
+    webView.addJavascriptInterface(value, name);
+  }
+
+  /**
    * Sets Whether the browser automatically wraps content when the user zooms in
    * and out (default is true)
    *
@@ -98,6 +138,7 @@ public class WebBrowser extends aWebBrowser {
    * @param handleWaitCursor
    *          the handleWaitCursor to set
    */
+  @Override
   public void setHandleWaitCursor(boolean handleWaitCursor) {
     super.setHandleWaitCursor(handleWaitCursor);
 
@@ -159,6 +200,7 @@ public class WebBrowser extends aWebBrowser {
    * @param cfg
    *          the browser's configuration
    */
+  @Override
   protected void configureEx(Browser cfg) {
     super.configureEx(cfg);
 
@@ -193,6 +235,7 @@ public class WebBrowser extends aWebBrowser {
 
 
   protected class AndroidBrowser implements iBrowser {
+    @Override
     public void dispose() {
       if (webView != null) {
         try {
@@ -203,26 +246,32 @@ public class WebBrowser extends aWebBrowser {
       webView = null;
     }
 
+    @Override
     public void load(String url) {
       webView.loadUrl(url);
     }
 
+    @Override
     public void loadContent(String content, String contentType, String baseHref) {
       webView.loadDataWithBaseURL(null, content, contentType, "iso-8859-1", baseHref);
     }
 
+    @Override
     public void reload() {
       webView.reload();
     }
 
+    @Override
     public void stopLoading() {
       webView.stopLoading();
     }
 
+    @Override
     public iPlatformComponent getComponent() {
       return new Container(webView);
     }
 
+    @Override
     public String getLocation() {
       return webView.getUrl();
     }
@@ -260,11 +309,13 @@ public class WebBrowser extends aWebBrowser {
       }
     }
 
+    @Override
     public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
       super.onReceivedError(view, errorCode, description, failingUrl);
       onPageFinished(view, failingUrl, true, description);
     }
 
+    @Override
     public void onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host, String realm) {
       WebBrowser w = (WebBrowser) aPlatformWidget.getWidgetForView(view);
 
@@ -289,6 +340,7 @@ public class WebBrowser extends aWebBrowser {
       }
     }
 
+    @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
       WebBrowser w = (WebBrowser) aPlatformWidget.getWidgetForView(view);
 

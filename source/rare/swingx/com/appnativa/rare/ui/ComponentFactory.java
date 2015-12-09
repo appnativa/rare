@@ -15,13 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.net.iURLConnection;
@@ -33,6 +34,7 @@ import com.appnativa.rare.platform.swing.ui.text.TextPaneEditor;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.ButtonView;
 import com.appnativa.rare.platform.swing.ui.view.CheckBoxView;
+import com.appnativa.rare.platform.swing.ui.view.FormattedTextFieldView;
 import com.appnativa.rare.platform.swing.ui.view.HTMLTextEditor;
 import com.appnativa.rare.platform.swing.ui.view.JMenuBarEx;
 import com.appnativa.rare.platform.swing.ui.view.LabelView;
@@ -98,7 +100,6 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.Box;
-import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -514,12 +515,26 @@ public class ComponentFactory implements iPlatformComponentFactory {
   }
 
   @Override
-  public TextFieldView getTextField(iWidget context, TextField cfg) {
-    TextFieldView v = new TextFieldView();
+  public JTextField getTextField(iWidget context, TextField cfg) {
+    if (cfg.inputMask.spot_valueWasSet()) {
+      MaskFormatter formatter = null;
 
-    v.setFont(FontUtils.getDefaultFont());
+      try {
+        formatter = new MaskFormatter(cfg.inputMask.getValue());
+      } catch(java.text.ParseException exc) {
+        if(cfg.name.getValue()!=null) {
+          throw new ApplicationException(cfg.name.getValue()+" TextField formatter is bad: " + exc.getMessage());
+        }
+        else {
+          throw new ApplicationException("TextField formatter is bad: " + exc.getMessage());
+        }
+      }
 
-    return v;
+      return new FormattedTextFieldView(formatter);
+
+    } else {
+      return new TextFieldView();
+    }
   }
 
   @Override

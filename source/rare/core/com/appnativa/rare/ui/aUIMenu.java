@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -26,6 +26,7 @@ import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.iPopupMenuListener;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
@@ -41,18 +42,33 @@ public abstract class aUIMenu extends UIMenuItem {
   /** name map for holding registered named objects */
   protected HashMap<String, Object> nameMap;
   protected UIMenuItem              selectedItem;
+  protected String                  cancelButtonText;
+  protected boolean                 modal;
+  protected iWidget invokingWidget;
+  private boolean showing;
 
   public aUIMenu() {
     super();
   }
 
   /**
-   * Adds the specified component as a new menu item
+   * Adds the specified component as a new menu item.
    *
-   * @param item the component to add
+   * @param comp the component to add
+   *
+   * @throws UnsupportedOperationException
+   */
+  public void add(iPlatformComponent comp) {
+    throw new UnsupportedOperationException("NOT SUPPORTED ON THIS PLATFORM");
+  }
+
+  /**
+   * Sets a header for the menu.
+   *
+   * @param comp the component to set as the header
    *
    */
-  public abstract void add(iPlatformComponent item);
+  public abstract void setHeader(iPlatformComponent comp);
 
   @Override
   public boolean add(RenderableDataItem item) {
@@ -170,9 +186,7 @@ public abstract class aUIMenu extends UIMenuItem {
 
   @Override
   public void dispose() {
-    if (nameMap != null) {
-      nameMap.clear();
-    }
+    clear();
 
     super.dispose();
     nameMap      = null;
@@ -226,14 +240,32 @@ public abstract class aUIMenu extends UIMenuItem {
   }
 
   public void show(iPlatformComponent owner, int x, int y) {
-    if (ScreenUtils.isSmallScreen() || Platform.getUIDefaults().getBoolean("Rare.PopupMenu.showModal", false)) {
+    boolean m = modal;
+
+    if (!m) {
+      m = ScreenUtils.isSmallScreen() || Platform.getUIDefaults().getBoolean("Rare.PopupMenu.showModal", false);
+    }
+
+    if (m) {
       show(owner.getWidget(), owner, true);
 
       return;
     }
-
+    invokingWidget=owner.getWidget();
     PopupList list = new PopupList(owner.getWidget());
 
+    list.addPopupMenuListener(new iPopupMenuListener() {
+      @Override
+      public void popupMenuWillBecomeVisible(ExpansionEvent e) {
+        aUIMenu.this.menuWillBecomeVisible();
+      }
+      @Override
+      public void popupMenuWillBecomeInvisible(ExpansionEvent e) {
+        aUIMenu.this.menuWillBecomeInvisible();
+      }
+      @Override
+      public void popupMenuCanceled(ExpansionEvent e) {}
+    });
     list.setItems(getItems(), null, true, size());
     list.showPopup(null, x, y);
   }
@@ -241,8 +273,25 @@ public abstract class aUIMenu extends UIMenuItem {
   public void show(iWidget context, iPlatformComponent owner, boolean modal) {
     PopupList list = new PopupList(context);
 
+    list.addPopupMenuListener(new iPopupMenuListener() {
+      @Override
+      public void popupMenuWillBecomeVisible(ExpansionEvent e) {
+        aUIMenu.this.menuWillBecomeVisible();
+      }
+      @Override
+      public void popupMenuWillBecomeInvisible(ExpansionEvent e) {
+        aUIMenu.this.menuWillBecomeInvisible();
+      }
+      @Override
+      public void popupMenuCanceled(ExpansionEvent e) {}
+    });
+
     if (owner == null) {
       owner = context.getContainerComponent();
+    }
+    invokingWidget=owner.getWidget();
+    if (cancelButtonText != null) {
+      list.setCancelButtonText(context.expandString(cancelButtonText, false));
     }
 
     list.setItems(getItems(), null, true, size());
@@ -258,7 +307,12 @@ public abstract class aUIMenu extends UIMenuItem {
       list.showPopup(owner, (int) r.x, (int) r.y);
     }
   }
-
+  public boolean isShowing() {
+    if(showing) {
+      return true;
+    }
+    return showing;
+  }
   /**
    * Unregisters a menu
    * @param name the name of the menu to unregister
@@ -278,12 +332,12 @@ public abstract class aUIMenu extends UIMenuItem {
     UIMenuItem newmi = (UIMenuItem) item;
     UIMenuItem mi    = (UIMenuItem) super.setItem(pos, newmi);
 
-    setNativeItem(pos, newmi);
-    register(newmi);
-
     if (mi != null) {
       unregister(mi);
     }
+
+    setNativeItem(pos, newmi);
+    register(newmi);
 
     return mi;
   }
@@ -544,6 +598,12 @@ public abstract class aUIMenu extends UIMenuItem {
       if ((s != null) && (s.length() > 0)) {
         actionScript = s;
       }
+
+      s = menus.spot_getAttribute("cancelButtonText");
+
+      if ((s != null) && (s.length() > 0)) {
+        cancelButtonText = s;
+      }
     }
 
     UIAction home = Platform.getAppContext().getAction("Rare.action.home");
@@ -602,21 +662,33 @@ public abstract class aUIMenu extends UIMenuItem {
     if ((invoker != null) &&!invoker.getDataComponent().isFocusable()) {
       resetFocusedActions(this);
     }
-
-    final iWidget ctx = getContextWidget();
-
-    if (ctx instanceof iListHandler) {
+    final iListHandler h;
+    if(invoker instanceof iListHandler) {
+      h=(iListHandler)invoker;
+    }
+    else {
+      iWidget ctx = getContextWidget();
+      if (ctx instanceof iListHandler) {
+        h=(iListHandler)ctx;
+      }
+      else {
+        h=null;
+      }
+    }
+    if (h!=null) {
       Platform.invokeLater(new Runnable() {
         @Override
         public void run() {
-          if (!ctx.isDisposed()) {
-            ((iListHandler) ctx).clearPopupMenuIndex();
+          iPlatformComponent c = h.getListComponent();
+          if (c!=null && !c.isDisposed()) {
+            h.clearContextMenuIndex();
           }
         }
       });
     }
+    showing=false;
   }
-
+  
   protected void menuWillBecomeVisible() {
     iWidget invoker = hasParentMenu()
                       ? null
@@ -628,15 +700,7 @@ public abstract class aUIMenu extends UIMenuItem {
       resetFocusedActions(this);
     }
 
-    iWidget ctx = getContextWidget();
-
-    if (this.getActionScript() != null) {
-      if (ctx == null) {
-        ctx = Platform.getContextRootViewer();
-      }
-
-      aWidgetListener.evaluate(ctx, ctx.getScriptHandler(), getActionScript(), new ExpansionEvent(this));
-    }
+    showing=true;
   }
 
   protected abstract void removeNativeItem(UIMenuItem mi);
@@ -667,7 +731,7 @@ public abstract class aUIMenu extends UIMenuItem {
   }
 
   protected iWidget getInvoker() {
-    return contextWidget;
+    return invokingWidget==null ? getContextWidget() : invokingWidget;
   }
 
   protected abstract boolean hasParentMenu();
@@ -683,7 +747,7 @@ public abstract class aUIMenu extends UIMenuItem {
       this.registerItem(name, mi);
     }
 
-    mi.setParentItem(this);
+    mi.setParentMenu(this);
   }
 
   private void unregister(UIMenuItem mi) {
@@ -693,6 +757,22 @@ public abstract class aUIMenu extends UIMenuItem {
       unregisterItem(name);
     }
 
-    mi.setParentItem(null);
+    mi.setParentMenu(null);
+  }
+
+  public String getCancelButtonText() {
+    return cancelButtonText;
+  }
+
+  public void setCancelButtonText(String cancelButtonText) {
+    this.cancelButtonText = cancelButtonText;
+  }
+
+  public boolean isModal() {
+    return modal;
+  }
+
+  public void setModal(boolean modal) {
+    this.modal = modal;
   }
 }

@@ -994,7 +994,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   public boolean isDirty() {
-    return undoManager.getModCount() != 0;
+    return undoManager==null || undoManager.getModCount() != 0;
   }
 
   public boolean isDropTracking() {

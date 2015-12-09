@@ -80,10 +80,12 @@ public abstract class aTabPaneComponent extends BorderPanel
     super(view);
   }
 
+  @Override
   public long getReloadTimeout() {
     return reloadTimeout;
   }
 
+  @Override
   public void setReloadTimeout(long reloadTimeout) {
     this.reloadTimeout = reloadTimeout;
 

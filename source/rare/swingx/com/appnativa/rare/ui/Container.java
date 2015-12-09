@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -38,6 +38,8 @@ public class Container extends Component implements iParentComponent {
   private int           minimumHeight;
   private int           minimumWidth;
   private boolean       useMinimumVarsOnlyWhenEmpty;
+  private float         enabledAlpha = 1;
+  private float         viewAlpha    = 1;
 
   public Container(JComponent c) {
     super(c);
@@ -86,81 +88,6 @@ public class Container extends Component implements iParentComponent {
     return true;
   }
 
-  public int indexOf(iPlatformComponent c) {
-    if (c != null) {
-      int        len = view.getComponentCount();
-      JComponent jc  = c.getView();
-
-      for (int i = 0; i < len; i++) {
-        if (view.getComponent(i) == jc) {
-          return i;
-        }
-      }
-    }
-
-    return -1;
-  }
-
-  @Override
-  public void remove(iPlatformComponent c) {
-    if (view != null) {
-      if (c != null) {
-        ((Component) c).parent = null;
-      }
-
-      if (view instanceof iLayoutManager) {
-        ((iLayoutManager) view).remove(c);
-      } else if (c != null) {
-        ((java.awt.Container) view).remove(c.getView());
-      }
-    }
-  }
-
-  @Override
-  public void removeAll() {
-    if (view != null) {
-      int len = view.getComponentCount();
-
-      for (int i = 0; i < len; i++) {
-        java.awt.Component c  = view.getComponent(i);
-        Component          pc = (c instanceof JComponent)
-                                ? (Component) ((JComponent) c).getClientProperty(RARE_COMPONENT_PROXY_PROPERTY)
-                                : null;
-
-        if (pc != null) {
-          pc.parent = null;
-        }
-      }
-
-      if (view instanceof iLayoutManager) {
-        ((iLayoutManager) view).removeAll();
-      } else {
-        ((java.awt.Container) view).removeAll();
-      }
-    }
-  }
-
-  /**
-   * Sets the default minimum size for the panel
-   *
-   * @param width the width
-   * @param height the height
-   *
-   * @param onlyWhenEmpty  true to use these values only when the panel is empty; false otherwise
-   */
-  public void setDefaultMinimumSize(int width, int height, boolean onlyWhenEmpty) {
-    this.minimumWidth                = width;
-    this.minimumHeight               = height;
-    this.useMinimumVarsOnlyWhenEmpty = onlyWhenEmpty;
-  }
-
-  @Override
-  public iPlatformComponent getComponentAt(int index) {
-    JComponent c = (JComponent) view.getComponent(index);
-
-    return Component.fromView(c);
-  }
-
   @Override
   public iPlatformComponent getComponentAt(float x, float y, boolean deepest) {
     java.awt.Component c = null;
@@ -184,6 +111,13 @@ public class Container extends Component implements iParentComponent {
     }
 
     return null;
+  }
+
+  @Override
+  public iPlatformComponent getComponentAt(int index) {
+    JComponent c = (JComponent) view.getComponent(index);
+
+    return Component.fromView(c);
   }
 
   @Override
@@ -258,12 +192,19 @@ public class Container extends Component implements iParentComponent {
     return size;
   }
 
-  protected boolean isEmpty() {
-    return getComponentCount() == 0;
-  }
+  public int indexOf(iPlatformComponent c) {
+    if (c != null) {
+      int        len = view.getComponentCount();
+      JComponent jc  = c.getView();
 
-  protected void addEx(iPlatformComponent c) {
-    view.add(c.getView());
+      for (int i = 0; i < len; i++) {
+        if (view.getComponent(i) == jc) {
+          return i;
+        }
+      }
+    }
+
+    return -1;
   }
 
   public void layoutContainer() {
@@ -271,7 +212,93 @@ public class Container extends Component implements iParentComponent {
   }
 
   @Override
+  public void remove(iPlatformComponent c) {
+    if (view != null) {
+      if (c != null) {
+        ((Component) c).parent = null;
+      }
+
+      if (view instanceof iLayoutManager) {
+        ((iLayoutManager) view).remove(c);
+      } else if (c != null) {
+        ((java.awt.Container) view).remove(c.getView());
+      }
+    }
+  }
+
+  @Override
+  public void removeAll() {
+    if (view != null) {
+      int len = view.getComponentCount();
+
+      for (int i = 0; i < len; i++) {
+        java.awt.Component c  = view.getComponent(i);
+        Component          pc = (c instanceof JComponent)
+                                ? (Component) ((JComponent) c).getClientProperty(RARE_COMPONENT_PROXY_PROPERTY)
+                                : null;
+
+        if (pc != null) {
+          pc.parent = null;
+        }
+      }
+
+      if (view instanceof iLayoutManager) {
+        ((iLayoutManager) view).removeAll();
+      } else {
+        ((java.awt.Container) view).removeAll();
+      }
+    }
+  }
+
+  /**
+   * Sets the default minimum size for the panel
+   *
+   * @param width the width
+   * @param height the height
+   *
+   * @param onlyWhenEmpty  true to use these values only when the panel is empty; false otherwise
+   */
+  public void setDefaultMinimumSize(int width, int height, boolean onlyWhenEmpty) {
+    this.minimumWidth                = width;
+    this.minimumHeight               = height;
+    this.useMinimumVarsOnlyWhenEmpty = onlyWhenEmpty;
+  }
+
+  @Override
+  public boolean setAlpha(float alpha) {
+    viewAlpha = alpha;
+
+    return super.setAlpha(alpha);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    if (isEnabled() != enabled) {
+      if (enabled) {
+        if (enabledAlpha <= 0) {
+          enabledAlpha = 1;
+        }
+
+        setAlpha(enabledAlpha);
+      } else {
+        enabledAlpha = viewAlpha;
+        super.setAlpha(0.5f * viewAlpha);
+      }
+
+      super.setEnabled(enabled);
+    }
+  }
+
+  protected void addEx(iPlatformComponent c) {
+    view.add(c.getView());
+  }
+
+  @Override
   protected void disposeEx() {
     removeAll();
+  }
+
+  protected boolean isEmpty() {
+    return getComponentCount() == 0;
   }
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -28,6 +28,7 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.Rectangle;
 
 import javax.swing.JComponent;
@@ -53,13 +54,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
    * Identifies the area along the right side of the viewport between the upper
    * right corner and the lower right corner.
    */
-  public static final String RARE_ROW_FOOTER          = "RARE_ROW_FOOTER";
-  public static final String RARE_SCROLLBAR_LL_CORNER = "RARE_SCROLLBAR_LL_CORNER";
-  public static final String RARE_SCROLLBAR_LR_CORNER = "RARE_SCROLLBAR_LR_CORNER";
-  public static final String RARE_SCROLLBAR_UR_CORNER = "RARE_SCROLLBAR_UR_CORNER";
-  protected Component        _llCorner;
-  protected Component        _lrCorner;
-  protected Component        _urCorner;
+  public static final String RARE_ROW_FOOTER = "RARE_ROW_FOOTER";
   protected JViewport        columnFooter;
   protected JViewport        rowFooter;
   protected boolean          extendVerticalScrollBar = true;
@@ -68,13 +63,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
 
   @Override
   public void addLayoutComponent(String s, Component c) {
-    if (s.equals(RARE_SCROLLBAR_UR_CORNER)) {
-      _urCorner = addSingletonComponent(_urCorner, c);
-    } else if (s.equals(RARE_SCROLLBAR_LR_CORNER)) {
-      _lrCorner = addSingletonComponent(_lrCorner, c);
-    } else if (s.equals(RARE_SCROLLBAR_LL_CORNER)) {
-      _llCorner = addSingletonComponent(_llCorner, c);
-    } else if (s.equals(RARE_ROW_FOOTER)) {
+    if (s.equals(RARE_ROW_FOOTER)) {
       rowFooter = (JViewport) addSingletonComponent(rowFooter, c);
 
       if (viewportBorder == null) {
@@ -118,17 +107,15 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
       Rectangle  r = vp.getBounds();
       JComponent c;
       Dimension  vsize = vp.getViewSize();
+      int        hh    = 0;
+
+      if (colHead != null) {
+        hh = colHead.getHeight();
+      }
 
       if (rowFooter != null) {
         size = sizea[0];
-
-        if (colHead != null) {
-          colHead.setBounds(colHead.getX(), colHead.getY(), colHead.getWidth() - size.width, colHead.getHeight());
-          r.y      = colHead.getY();
-          r.height += colHead.getHeight();
-        }
-
-        c = (JComponent) rowFooter.getView();
+        c    = (JComponent) rowFooter.getView();
 
         if (c != null) {
           c.putClientProperty(iPlatformComponent.RARE_SWING_WIDTH_FIXED_VALUE, size.width);
@@ -137,6 +124,13 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
                   : vsize.height);
         }
 
+        if (colHead != null) {
+          colHead.setBounds(colHead.getX(), colHead.getY(), colHead.getWidth() - size.width, hh);
+          if(rowFooter.getView() instanceof ScrollPaneEx) {
+            r.height+=hh;
+            r.y-=hh;
+          }
+        }
         rowFooter.setBounds(r.x + r.width, r.y, size.width, r.height);
       }
 
@@ -159,11 +153,16 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
                 ? null
                 : vsize.width);
         c.putClientProperty(iPlatformComponent.RARE_SWING_HEIGHT_FIXED_VALUE, size.height);
-        columnFooter.setBounds(r.x, r.y + r.height, r.width, size.height);
+
+        if (vsize.width > size.width) {
+          c.setSize(vsize.width, size.height);
+        }
+
+        columnFooter.setBounds(r.x, r.y + r.height, vsize.width, size.height);
       }
     }
 
-    layoutOtherCorners(parent, scrollPane.isExtendVerticalScrollbar(), scrollPane.isExtendHorizontalScrollbar());
+    layoutCorners(parent, scrollPane.isExtendVerticalScrollbar(), scrollPane.isExtendHorizontalScrollbar());
   }
 
   protected Dimension[] updateViewPortBorder(JScrollPane scrollPane) {
@@ -188,8 +187,8 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
     }
 
     if (columnFooter != null) {
-      rsize  = columnFooter.getPreferredSize();
-      bottom = Math.min(scrollPane.getWidth(), rsize.height);
+      csize  = columnFooter.getPreferredSize();
+      bottom = Math.min(scrollPane.getWidth(), csize.height);
     }
 
     b.setInsets(0, right, bottom, 0);
@@ -197,87 +196,74 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
     return new Dimension[] { rsize, csize };
   }
 
-  protected void layoutOtherCorners(Container parent, boolean extendvsb, boolean extendhsb) {
-    if ((_lrCorner == null) && (_urCorner == null) && (_llCorner == null)) {
+  protected void layoutCorners(Container parent, boolean extendvsb, boolean extendhsb) {
+    if ((rowFooter == null) && (columnFooter == null)) {
       return;
     }
 
-    if (!vsb.isVisible() &&!hsb.isVisible()) {
-      if (_llCorner != null) {
-        _llCorner.setVisible(false);
-      }
-
-      if (_lrCorner != null) {
-        _lrCorner.setVisible(false);
-      }
-
-      if (_urCorner != null) {
-        _urCorner.setVisible(false);
-      }
-
+    if ((lowerLeft == null) && (lowerRight == null) && (upperRight == null)) {
       return;
     }
 
-    JScrollPane scrollPane  = (JScrollPane) parent;
-    Rectangle   vsbR        = vsb.getBounds();
-    Rectangle   hsbR        = hsb.getBounds();
-    int         rx          = (rowHead != null)
-                              ? rowHead.getX()
-                              : 0;
-    int         cy          = (colHead == null)
-                              ? 0
-                              : colHead.getY();
-    int         rw          = (rowHead != null)
-                              ? rowHead.getWidth()
-                              : 0;
-    int         ch          = (colHead == null)
-                              ? 0
-                              : colHead.getHeight();
-    boolean     leftToRight = scrollPane.getComponentOrientation().isLeftToRight();
+    Rectangle bounds = parent.getBounds();
 
-    if (!extendvsb && (_urCorner != null) && vsb.isVisible()) {
-      _urCorner.setVisible(true);
-      _urCorner.setBounds(leftToRight
-                          ? vsbR.x
-                          : rx, cy, leftToRight
-                                    ? vsbR.width
-                                    : rw, ch);
-    } else {
-      if (_urCorner != null) {
-        _urCorner.setVisible(false);
-      }
-    }
+    bounds.x = bounds.y = 0;
 
-    if (hsb.isVisible()) {
-      if (_llCorner != null) {
-        _llCorner.setVisible(rowHead != null);
-        _llCorner.setBounds(leftToRight
-                            ? rx
-                            : vsbR.x, hsbR.y, leftToRight
-                ? rw
-                : vsbR.width, hsbR.height);
-      }
+    Insets insets = parent.getInsets();
 
-      if (!extendhsb && (_lrCorner != null)) {
-        _lrCorner.setVisible((rowFooter != null) || vsb.isVisible());
+    bounds.x      = insets.left;
+    bounds.y      = insets.top;
+    bounds.width  -= insets.left + insets.right;
+    bounds.height -= insets.top + insets.bottom;
 
-        int sx = hsbR.x + hsbR.width;
-        int ex = (rowFooter != null)
-                 ? (rowFooter.getX() + rowFooter.getWidth())
-                 : (vsbR.x + vsbR.width);
+    int sx;
+    int ex;
+    int sy;
+    int h;
 
-        if (ex - sx > 1) {
-          _lrCorner.setBounds(sx, hsbR.y, ex - sx, hsbR.height);
+    if (rowFooter != null) {
+      ex = bounds.width;
+      boolean spfooter=rowFooter.getView() instanceof ScrollPaneEx;
+      if ((upperRight != null) && (colHead != null)) {
+        sx = rowFooter.getX();
+        sy = colHead.getY();
+        h  = colHead.getHeight();
+        if(spfooter) {
+          h=0;
+        }
+        if ((h > 0) && (ex - sx > 0)) {
+          upperRight.setVisible(true);
+          upperRight.setBounds(sx, sy, ex - sx, h);
         }
       }
-    } else {
-      if (_llCorner != null) {
-        _llCorner.setVisible(false);
-      }
 
-      if (_lrCorner != null) {
-        _lrCorner.setVisible(false);
+      if (lowerRight != null) {
+        sx = rowFooter.getX();
+        sy=rowFooter.getY()+rowFooter.getHeight();
+        h  = bounds.height-sy;
+        if(spfooter) {
+          
+        }
+        if ((h > 0) && (ex - sx > 0)) {
+          lowerRight.setVisible(true);
+          lowerRight.setBounds(sx, sy, ex - sx, bounds.height - sy);
+
+          if ((vsb != null) && vsb.isVisible()) {
+            sx = vsb.getX();
+            sy = vsb.getY();
+            vsb.setBounds(sx, sy, vsb.getWidth(), vsb.getHeight() - h);
+          }
+        }
       }
+    }
+
+    if ((columnFooter != null) && (rowHead != null) && (lowerLeft!=null)) {
+      sx = bounds.x;
+      ex = columnFooter.getX();
+      sy = columnFooter.getY();
+      h  = bounds.height - sy;
+      lowerLeft.setVisible(true);
+      lowerLeft.setBounds(sx, sy, ex - sx, h);
     }
   }
 
@@ -321,27 +307,6 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
     }
 
     return d;
-  }
-
-  /**
-   * @return the _llCorner
-   */
-  public Component getLLCorner() {
-    return _llCorner;
-  }
-
-  /**
-   * @return the _lrCorner
-   */
-  public Component getLRCorner() {
-    return _lrCorner;
-  }
-
-  /**
-   * @return the _urCorner
-   */
-  public Component getURCorner() {
-    return _urCorner;
   }
 
   private UIDimension getSize(Component c, UIDimension size, boolean preferred) {

@@ -15,15 +15,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.FormHelper;
 import com.appnativa.rare.spot.Form;
@@ -36,16 +42,8 @@ import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.util.DataParser;
-import com.appnativa.rare.util.JSONHelper;
 import com.appnativa.rare.widget.iWidget;
-
-import java.io.IOException;
-import java.io.Writer;
-
-import java.net.MalformedURLException;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.appnativa.util.json.JSONWriter;
 
 public class aFormViewer extends GroupBoxViewer {
 
@@ -110,7 +108,11 @@ public class aFormViewer extends GroupBoxViewer {
     HashMap map = super.getHTTPValuesHash();
 
     if (submitAttributes != null) {
-      map.putAll(submitAttributes);
+      if (map == null) {
+        map = new HashMap(submitAttributes);
+      } else {
+        map.putAll(submitAttributes);
+      }
     }
 
     return map;
@@ -256,47 +258,42 @@ public class aFormViewer extends GroupBoxViewer {
   }
 
   @Override
-  public boolean writeJSONValue(boolean first, Writer writer) {
-    return writeJSONValue(first, writer, null);
+  public void writeJSONValue(JSONWriter writer) {
+    writeJSONValue(writer, null);
   }
 
   /**
    * Writes out the value of the widget in a form compatible with the JSON
    *
-   * @param first
-   *          whether this is the first widget to write its value
    * @param writer
    *          the writer to use
    *
    * @param attributes
    *          additional attributes ti be
-   * @return true if data was written; false otherwise
    * @throws IOException
    *           if an I/O error occurs
    */
-  public boolean writeJSONValue(boolean first, Writer writer, Map<String, Object> attributes) {
+  public void writeJSONValue(JSONWriter writer, Map<String, Object> attributes) {
     try {
-      int    len;
+      int len;
+
+      if (!isEnabled()) {
+        return;
+      }
+
       String name = getHTTPFormName();
 
-      if ((name == null) ||!isEnabled()) {
-        return false;
+      if (actAsFormViewer && (name != null)) {
+        writer.key(name);
+        writer.object();
       }
 
-      if (!first) {
-        writer.write(",\n\t");
+      if (attributes != null) {
+        FormHelper.writeJSONValues(this, writer, attributes, true);
       }
 
-      first = true;
-      JSONHelper.encode(name, writer);
-      writer.write(": {\n\t");
-
-      if ((attributes != null) && FormHelper.writeJSONValues(this, writer, attributes, first, true)) {
-        first = false;
-      }
-
-      if ((submitAttributes != null) && FormHelper.writeJSONValues(this, writer, submitAttributes, first, true)) {
-        first = false;
+      if (submitAttributes != null) {
+        FormHelper.writeJSONValues(this, writer, submitAttributes, true);
       }
 
       len = widgetList.size();
@@ -307,15 +304,13 @@ public class aFormViewer extends GroupBoxViewer {
         a = widgetList.get(i);
 
         if (a.isSubmittable() && a.isValidForSubmission(true)) {
-          if (a.writeJSONValue(first, writer)) {
-            first = false;
-          }
+          a.writeJSONValue(writer);
         }
       }
 
-      writer.write("\n}");
-
-      return !first;
+      if (actAsFormViewer && (name != null)) {
+        writer.endObject();
+      }
     } catch(Exception e) {
       throw ApplicationException.runtimeException(e);
     }
@@ -443,8 +438,10 @@ public class aFormViewer extends GroupBoxViewer {
           Writer w = this.openForOutput();
 
           if (this.getRequestEncoding() == RequestEncoding.JSON) {
-            aFormViewer.this.writeJSONValue(true, w, getAttributes());
-            w.write("\n");
+            JSONWriter jw=new JSONWriter(w);
+            jw.object();
+            aFormViewer.this.writeJSONValue(jw, getAttributes());
+            jw.endObject();
           } else if (isMultiPartForm()) {
             aFormViewer.this.writeHTTPContent(true, w, getPartBoundary(), getAttributes());
             FormHelper.writeBoundaryEnd(w, getPartBoundary());

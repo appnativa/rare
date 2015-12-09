@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.event;
@@ -31,27 +31,45 @@ import com.google.j2objc.annotations.Weak;
  * @author Don DeCoteau
  */
 public class ExpansionEvent extends EventBase {
+  Type type;
+
+  public static enum Type {
+    WILL_EXPAND, WILL_COLLAPSE, HAS_EXPANDED, HAS_COLLAPSED
+  }
+
   @Weak
   private Object eventItem;
 
   /**
    *  Creates a new instance of CollapsibleEvent
    *
+   * @param type the event type
    *  @param source the source
    */
-  public ExpansionEvent(Object source) {
+  public ExpansionEvent(Object source, Type type) {
     super(source);
+    this.type = type;
   }
 
   /**
    * Creates a new instance of CollapsibleEvent
    *
    * @param source the source
+   * @param type the event type
    * @param item the item associated with the event
    */
-  public ExpansionEvent(Object source, Object item) {
+  public ExpansionEvent(Object source, Type type, Object item) {
     super(source);
+    this.type = type;
     eventItem = item;
+  }
+
+  /**
+   * Gets the type of the event
+   * @return the type of the event
+   */
+  public Type getEventType() {
+    return type;
   }
 
   /**
@@ -96,5 +114,15 @@ public class ExpansionEvent extends EventBase {
    */
   public Object getItem() {
     return eventItem;
+  }
+
+  /**
+   * Returns whether of the this event represents and event of the specified type
+   *
+   * @param type the type
+   * @return true if it does; false otherwise
+   */
+  public boolean isType(Type type) {
+    return this.type == type;
   }
 }

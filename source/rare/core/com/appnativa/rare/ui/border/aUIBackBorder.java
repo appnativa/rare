@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -65,9 +65,9 @@ public abstract class aUIBackBorder extends UILineBorder {
       return;
     }
 
-    UIColor color = getColor();
+    UIColor color = getPaintColor(g.getComponent());
 
-    if (color == null) {
+    if (color.getAlpha() == 0) {
       return;
     }
 

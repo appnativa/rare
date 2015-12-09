@@ -33,10 +33,12 @@ public class PlatformImpl extends aPlatformImpl {
     super(context);
   }
 
+  @Override
   public iFlavorCreator getTransferFlavorCreator() {
     return DnDHelper.getInstance();
   }
 
+  @Override
   public String getUserAgent() {
     return "Rare/iOS";
   }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform;
@@ -67,6 +67,41 @@ public final class EventHelper {
     }
 
     return new UIPoint(p.x, p.y);
+  }
+
+  public static com.appnativa.rare.ui.event.MouseEvent.Type getMouseEventType(Object source, Object motionEvent) {
+    switch(((MouseEvent) motionEvent).getID()) {
+      case MouseEvent.MOUSE_PRESSED :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_DOWN;
+
+      case MouseEvent.MOUSE_RELEASED :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_UP;
+
+      case MouseEvent.MOUSE_CLICKED :
+        if (((MouseEvent) motionEvent).getClickCount() > 1) {
+          return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_DBLCLICK;
+        }
+
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_CLICK;
+
+      case MouseEvent.MOUSE_EXITED:
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_ENTER;
+
+      case MouseEvent.MOUSE_ENTERED :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_EXIT;
+
+      case MouseEvent.MOUSE_MOVED :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_MOVE;
+
+      case MouseEvent.MOUSE_DRAGGED :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_DRAG;
+
+      case MouseEvent.MOUSE_WHEEL :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_SCALE;
+
+      default :
+        return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_UNKNOWN;
+    }
   }
 
   public static UIPoint getMouseLocationOnScreen(Object source, Object motionEvent) {
@@ -152,6 +187,22 @@ public final class EventHelper {
     return (n == 10)
            ? 13
            : n;
+  }
+
+  public static com.appnativa.rare.ui.event.KeyEvent.Type getKeyType(Object keyEvent) {
+    switch(((KeyEvent) keyEvent).getID()) {
+      case KeyEvent.KEY_PRESSED :
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_DOWN;
+
+      case KeyEvent.KEY_RELEASED :
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_UP;
+
+      case KeyEvent.KEY_TYPED:
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_TYPED;
+
+      default :
+        return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_TYPED;
+    }
   }
 
   public static boolean isAltKeyPressed(Object keyEvent) {

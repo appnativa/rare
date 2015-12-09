@@ -20,6 +20,12 @@
 
 package com.appnativa.rare.widget;
 
+import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.EventObject;
+import java.util.Map;
+
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iDataItemParserCallback;
 import com.appnativa.rare.iFunctionCallback;
@@ -36,6 +42,11 @@ import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPopup;
+import com.appnativa.rare.ui.iTabDocument;
 import com.appnativa.rare.ui.dnd.DragEvent;
 import com.appnativa.rare.ui.dnd.DropInformation;
 import com.appnativa.rare.ui.dnd.TransferFlavor;
@@ -43,11 +54,6 @@ import com.appnativa.rare.ui.dnd.iTransferable;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPopup;
-import com.appnativa.rare.ui.iTabDocument;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.viewer.WindowViewer;
@@ -57,14 +63,7 @@ import com.appnativa.rare.viewer.iTabPaneViewer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.spot.SPOTPrintableString;
 import com.appnativa.util.iURLResolver;
-
-import java.io.Writer;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import java.util.EventObject;
-import java.util.Map;
+import com.appnativa.util.json.JSONWriter;
 
 /**
  * This interface defines the functionality necessary for all widgets.
@@ -116,16 +115,6 @@ public interface iWidget extends iScriptingContextSupport {
 
     /** Date Chooser widget type */
     DateChooser,
-
-    /**
-     * File Upload Field widget type
-     */
-    FileUploadField,
-
-    /**
-     * MacroMedia Flash viewer type
-     */
-    FlashPlayer,
 
     /**
      * Form Viewer type
@@ -656,12 +645,10 @@ public interface iWidget extends iScriptingContextSupport {
   /**
    * Writes out the value of the widget in a form compatible with the JSON
    *
-   * @param first whether this is the first widget to write its value
    * @param writer the writer to use
    *
-   * @return true if data was written; false otherwise
    */
-  boolean writeJSONValue(boolean first, Writer writer);
+  void writeJSONValue(JSONWriter writer);
 
   /**
    * Tests whether the container can automatically disable the widget
@@ -1393,6 +1380,12 @@ public interface iWidget extends iScriptingContextSupport {
    */
   int getWidth();
 
+  /**
+   * Gets whether the widget is currently attached to a window
+   * @return true if it is; false otherwise
+   */
+  boolean isAttached();
+  
   /**
    * Gets a handle to the <CODE>WindowViewer</CODE> instance that the viewer
    * belongs to. This is the object that is accessible as the <B>window</B>

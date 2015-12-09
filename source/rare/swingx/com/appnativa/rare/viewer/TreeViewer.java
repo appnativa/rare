@@ -20,11 +20,15 @@
 
 package com.appnativa.rare.viewer;
 
+import javax.swing.ActionMap;
+
+import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.swing.ui.ListBoxListHandler;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.TreeView;
 import com.appnativa.rare.spot.Tree;
 import com.appnativa.rare.spot.Viewer;
+import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.TreeComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.renderer.TreeItemRenderer;
@@ -104,8 +108,15 @@ public class TreeViewer extends aTreeViewer {
     treeModel   = tc.getTreeModel();
     listModel   = tc.getListModel();
     listModel.setWidget(this);
-    SwingHelper.configureScrollPane(this, tree, cfg.getScrollPane());
+    formComponent=SwingHelper.configureScrollPane(this,formComponent, tree, cfg.getScrollPane());
     tree.setItemRenderer(new TreeItemRenderer(this));
     listComponent = new ListBoxListHandler(tree, listModel);
+    registerWithWidget(new Component(tree.getList()));
+    ActionMap am   = tree.getList().getActionMap();
+
+    am.put("Rare.origSelectNextRow", am.get("selectNextRow"));
+    am.put("Rare.origSelectPreviousRow", am.get("selectPreviousRow"));
+    am.put("selectNextRow", ActionHelper.selectNextRow);
+    am.put("selectPreviousRow", ActionHelper.selectPreviousRow);
   }
 }

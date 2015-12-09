@@ -61,9 +61,9 @@ public class FormsPanel extends aFormsPanel {
   public FormsPanel(iWidget context, int rows, int cols, String rspec, String cspec) {
     super();
 
-    RowSpec      r  = RowSpec.decode(rspec);
-    ColumnSpec   c  = ColumnSpec.decode(cspec);
-    RowSpec[]    ra = new RowSpec[rows];
+    RowSpec r = RowSpec.decode(rspec);
+    ColumnSpec c = ColumnSpec.decode(cspec);
+    RowSpec[] ra = new RowSpec[rows];
     ColumnSpec[] ca = new ColumnSpec[cols];
 
     for (int i = 0; i < cols; i++) {
@@ -98,24 +98,24 @@ public class FormsPanel extends aFormsPanel {
   }
 
   public FormLayout getFormLayout() {
-    return (view == null)
-           ? null
-           : ((FormsView) view).getLayout();
+    return (view == null) ? null : ((FormsView) view).getLayout();
   }
-
-  protected void getMinimumSizeEx(UIDimension size) {
-    if (view.isLayoutRequested()) {
-      getFormLayout().invalidateMinimumCache();
-    }
-
-    super.getMinimumSizeEx(size);
-  }
+//  protected void getMinimumSizeEx(UIDimension size) {
+//    if (view.isLayoutRequested()) {
+//      getFormLayout().invalidateMinimumCache();
+//    }
+//
+//    super.getMinimumSizeEx(size);
+//  }
 
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-    if (view.isLayoutRequested() && (maxWidth < 1)) {
-      getFormLayout().invalidatePreferredCache();
+//    if (view.isLayoutRequested() && (maxWidth < 1)) {
+//      getFormLayout().invalidatePreferredCache();
+//    }
+    if(getWidget()!=null && getWidget().getName().equals("testBox")) {
+      getWidget();
     }
-
+    getFormLayout().setSizeMaxWidth(maxWidth);
     super.getPreferredSizeEx(size, maxWidth);
   }
 }

@@ -15,23 +15,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
-import android.graphics.drawable.Drawable;
+import java.beans.PropertyChangeEvent;
+
 import android.graphics.drawable.StateListDrawable;
-
 import android.text.TextUtils.TruncateAt;
-
 import android.util.StateSet;
-
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -62,8 +58,6 @@ import com.appnativa.rare.ui.painter.iComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.widget.aGroupableButton;
 
-import java.beans.PropertyChangeEvent;
-
 /**
  *
  * @author Don DeCoteau
@@ -83,11 +77,12 @@ public class ActionComponent extends Component
   protected iPlatformIcon selectedIcon;
   private int             iconGap     = 4;
   private boolean         textWrapped = true;
-  private boolean         adjustSize  = true;
   private boolean         minHeightSet;
   private MultiStateIcon  stateIcon;
   PainterHolderDrawable   painterHolderDrawable;
   int                     listItemPadding;
+  protected boolean       adjustButtonSize;
+  protected boolean       adjustTextFieldSize;
 
   public ActionComponent(View view) {
     super(view);
@@ -95,6 +90,8 @@ public class ActionComponent extends Component
     if (view instanceof CompoundButton) {
       ((CompoundButton) view).setOnCheckedChangeListener(this);
     }
+
+    setAutoAdjustSize(true);
   }
 
   protected ActionComponent() {
@@ -107,6 +104,7 @@ public class ActionComponent extends Component
     }
   }
 
+  @Override
   public void addActionListener(iActionListener l) {
     if (view instanceof EditText) {
       ((EditText) view).setOnEditorActionListener(this);
@@ -117,6 +115,7 @@ public class ActionComponent extends Component
     getEventListenerList().add(iActionListener.class, l);
   }
 
+  @Override
   public void addChangeListener(iChangeListener l) {
     if (view instanceof CompoundButton) {
       ((CompoundButton) view).setOnCheckedChangeListener(this);
@@ -124,16 +123,19 @@ public class ActionComponent extends Component
     }
   }
 
+  @Override
   public void addTextChangeListener(iTextChangeListener l) {
     if (view instanceof EditTextEx) {
       getEventListenerList().add(iTextChangeListener.class, l);
     }
   }
 
+  @Override
   public boolean adjustMinimumHeightForWidth() {
     return textWrapped;
   }
 
+  @Override
   public Component copy() {
     ActionComponent c = (ActionComponent) super.copy();
 
@@ -144,6 +146,7 @@ public class ActionComponent extends Component
     return c;
   }
 
+  @Override
   public void dispose() {
     if (this.action != null) {
       this.action.removePropertyChangeListener(this);
@@ -158,14 +161,103 @@ public class ActionComponent extends Component
     super.dispose();
   }
 
+  @Override
   public void doClick() {
     view.performClick();
   }
 
+  @Override
   public void fireActionEvent() {
     onClick(view);
   }
 
+  @Override
+  public UIAction getAction() {
+    return action;
+  }
+
+  @Override
+  public iPaintedButton.ButtonState getButtonState() {
+    return Utils.getState(isEnabled(), view.isPressed(), isSelected(), isMouseOver());
+  }
+
+  @Override
+  public iPlatformIcon getDisabledIcon() {
+    if ((disabledIcon == null) && (stateIcon != null)) {
+      disabledIcon = stateIcon.getIcon(MultiStateIcon.DISABLED);
+    }
+
+    return disabledIcon;
+  }
+
+  @Override
+  public iPlatformIcon getIcon() {
+    return icon;
+  }
+
+  /**
+   * @return the iconGap
+   */
+  @Override
+  public int getIconGap() {
+    return iconGap;
+  }
+
+  /**
+   * @return the iconPosition
+   */
+  @Override
+  public IconPosition getIconPosition() {
+    return iconPosition;
+  }
+
+  @Override
+  public float getIconScaleFactor() {
+    return scaleFactor;
+  }
+
+  @Override
+  public UIInsets getMargin() {
+    return new UIInsets(view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom(), view.getPaddingLeft());
+  }
+
+  @Override
+  public Orientation getOrientation() {
+    if (view instanceof ButtonViewEx) {
+      return ((ButtonViewEx) view).getOrientation();
+    } else if (view instanceof LabelView) {
+      return ((LabelView) view).getOrientation();
+    }
+
+    return Orientation.HORIZONTAL;
+  }
+
+  /**
+   * @return the pressedIcon
+   */
+  @Override
+  public iPlatformIcon getPressedIcon() {
+    return pressedIcon;
+  }
+
+  /**
+   * @return the selectedIcon
+   */
+  @Override
+  public iPlatformIcon getSelectedIcon() {
+    return selectedIcon;
+  }
+
+  @Override
+  public String getText() {
+    if (view instanceof TextView) {
+      return ((TextView) view).getText().toString();
+    }
+
+    return "";
+  }
+
+  @Override
   public boolean heightChangesBasedOnWidth() {
     if (!textWrapped) {
       return false;
@@ -176,6 +268,37 @@ public class ActionComponent extends Component
     return (cs != null) && (cs.length() > 0);
   }
 
+  @Override
+  public void imageLoaded(UIImage image) {
+    updateStateIcons();
+    super.imageLoaded(image);
+  }
+
+  @Override
+  public boolean isMouseOver() {
+    return false;
+  }
+
+  @Override
+  public boolean isScaleIcon() {
+    return scaleIcon && (scaleFactor > 0);
+  }
+
+  @Override
+  public boolean isSelected() {
+    if (view instanceof CompoundButton) {
+      return ((CompoundButton) view).isChecked();
+    }
+
+    return view.isSelected();
+  }
+
+  @Override
+  public boolean isWordWrap() {
+    return textWrapped;
+  }
+
+  @Override
   public void onCheckedChanged(CompoundButton cb, boolean isChecked) {
     ActionComponent c = (ActionComponent) Component.fromView(cb);
 
@@ -194,6 +317,7 @@ public class ActionComponent extends Component
     }
   }
 
+  @Override
   public void onClick(View view) {
     ActionEvent e = new ActionEvent(this);
 
@@ -202,6 +326,7 @@ public class ActionComponent extends Component
     }
   }
 
+  @Override
   public boolean onEditorAction(TextView tv, int action, KeyEvent ke) {
     String command;
 
@@ -251,21 +376,7 @@ public class ActionComponent extends Component
     return false;
   }
 
-  protected void configurePainterHolderDrawable(PainterHolder ph) {
-    if (ph == null) {
-      if (painterHolderDrawable != null) {
-        painterHolderDrawable.setPainterHolder(null);
-      }
-    } else {
-      if (painterHolderDrawable == null) {
-        painterHolderDrawable = new PainterHolderDrawable(ph);
-        view.setBackgroundDrawable(painterHolderDrawable);
-      } else {
-        painterHolderDrawable.setPainterHolder(ph);
-      }
-    }
-  }
-
+  @Override
   public void propertyChange(PropertyChangeEvent pce) {
     super.propertyChange(pce);
 
@@ -281,7 +392,7 @@ public class ActionComponent extends Component
 
     UIAction a = (UIAction) pce.getSource();
 
-    if (property == "enabled") {
+    if (property.equals(aUIAction.ENABLED)) {
       if (a.isEnabled()) {
         setEnabled(true);
 
@@ -295,20 +406,12 @@ public class ActionComponent extends Component
           setIcon(a.getDisabledIcon());
         }
       }
-    } else if (property == "ActionText") {
+    } else if (property.equals(aUIAction.ACTION_TEXT)) {
       setText((String) pce.getNewValue());
-    } else if (property == "SmallIcon") {
-      if (a.isEnabled()) {
-        setIcon((iPlatformIcon) pce.getNewValue());
-      } else {
-        if (a.getDisabledIcon() == null) {
-          setIcon((iPlatformIcon) pce.getNewValue());
-        }
-      }
-    } else if (property == "DisabledIcon") {
-      if (!a.isEnabled()) {
-        setIcon((iPlatformIcon) pce.getNewValue());
-      }
+    } else if (property.equals(aUIAction.ICON)) {
+      setIcon((iPlatformIcon) pce.getNewValue());
+    } else if (property.equals(aUIAction.DISABLED_ICON)) {
+      setDisabledIcon((iPlatformIcon) pce.getNewValue());
     }
 
     updateUI();
@@ -325,28 +428,28 @@ public class ActionComponent extends Component
     super.putClientProperty(key, value);
   }
 
+  @Override
   public void removeActionListener(iActionListener l) {
     if (listenerList != null) {
       listenerList.remove(iActionListener.class, l);
     }
   }
 
+  @Override
   public void removeChangeListener(iChangeListener l) {
     if ((view instanceof CompoundButton) && (listenerList != null)) {
       getEventListenerList().remove(iChangeListener.class, l);
     }
   }
 
+  @Override
   public void removeTextChangeListener(iTextChangeListener l) {
     if (listenerList != null) {
       listenerList.remove(iTextChangeListener.class, l);
     }
   }
 
-  public String toString() {
-    return getText();
-  }
-
+  @Override
   public void setAction(UIAction a) {
     if (action != null) {
       action.removePropertyChangeListener(this);
@@ -382,16 +485,27 @@ public class ActionComponent extends Component
     }
   }
 
-  public void setAdjustSize(boolean adjustSize) {
-    this.adjustSize = adjustSize;
-  }
-
+  @Override
   public void setAlignment(HorizontalAlign hal, VerticalAlign val) {
     if (view instanceof TextView) {
       ((TextView) view).setGravity(AndroidHelper.getGravity(hal, val));
     }
   }
 
+  @Override
+  public void setAutoAdjustSize(boolean adjustSize) {
+    adjustButtonSize = adjustTextFieldSize = false;
+
+    if (adjustSize) {
+      if ((view instanceof ButtonViewEx) || (view instanceof ToggleButtonView)) {
+        adjustButtonSize = true;
+      } else if (view instanceof EditText) {
+        adjustTextFieldSize = true;
+      }
+    }
+  }
+
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     super.setComponentPainter(cp);
     configurePainterHolderDrawable((cp == null)
@@ -399,6 +513,7 @@ public class ActionComponent extends Component
                                    : cp.getPainterHolder());
   }
 
+  @Override
   public void setDisabledIcon(iPlatformIcon icon) {
     if (icon instanceof UIImageIcon) {
       ((UIImageIcon) icon).isImageLoaded(this);
@@ -408,8 +523,10 @@ public class ActionComponent extends Component
     updateStateIcons();
   }
 
+  @Override
   public void setDisabledSelectedIcon(iPlatformIcon icon) {}
 
+  @Override
   public void setEnabled(boolean enabled) {
     if (view.isEnabled() != enabled) {
       if (!enabled && (icon != null) && (disabledIcon == null)) {
@@ -417,20 +534,8 @@ public class ActionComponent extends Component
       }
 
       super.setEnabled(enabled);
-
-      Drawable d = view.getBackground();
-
-      if (d != null) {
-        d.setState(view.getDrawableState());
-      }
-
-      if ((fgColor == null) && (view instanceof TextView)) {
-        UIColor fg = enabled
-                     ? ColorUtils.getForeground()
-                     : ColorUtils.getDisabledForeground();
-
-        fg.setTextColor((TextView) view);
-      }
+      updateStateIcons();
+      view.refreshDrawableState();
     }
   }
 
@@ -444,6 +549,7 @@ public class ActionComponent extends Component
    * @param icon
    *          the icon to set
    */
+  @Override
   public void setIcon(iPlatformIcon icon) {
     if (this.icon != icon) {
       if (this.icon instanceof UISpriteIcon) {
@@ -464,7 +570,9 @@ public class ActionComponent extends Component
 
       sizeCache.dirty();
       updateStateIcons();
-      view.requestLayout();
+    } else {
+      sizeCache.dirty();
+      updateStateIcons();
     }
   }
 
@@ -472,6 +580,7 @@ public class ActionComponent extends Component
    * @param iconGap
    *          the iconGap to set
    */
+  @Override
   public void setIconGap(int iconGap) {
     this.iconGap = iconGap;
   }
@@ -480,6 +589,7 @@ public class ActionComponent extends Component
    * @param iconPosition
    *          the iconPosition to set
    */
+  @Override
   public void setIconPosition(IconPosition iconPosition) {
     if (this.iconPosition != iconPosition) {
       this.iconPosition = iconPosition;
@@ -497,10 +607,7 @@ public class ActionComponent extends Component
     }
   }
 
-  public void setMargin(UIInsets in) {
-    setMargin(in.top, in.right, in.bottom, in.left);
-  }
-
+  @Override
   public void setMargin(float top, float right, float bottom, float left) {
     sizeCache.dirty();
 
@@ -540,8 +647,15 @@ public class ActionComponent extends Component
     view.setPadding((int) left, (int) top, (int) right, (int) bottom);
   }
 
+  @Override
+  public void setMargin(UIInsets in) {
+    setMargin(in.top, in.right, in.bottom, in.left);
+  }
+
+  @Override
   public void setMnemonic(char mn) {}
 
+  @Override
   public void setOrientation(Orientation orientation) {
     if (view instanceof ButtonViewEx) {
       this.orientation = orientation;
@@ -560,6 +674,7 @@ public class ActionComponent extends Component
    * @param pressedIcon
    *          the pressedIcon to set
    */
+  @Override
   public void setPressedIcon(iPlatformIcon pressedIcon) {
     if (icon instanceof UIImageIcon) {
       ((UIImageIcon) icon).isImageLoaded(this);
@@ -569,11 +684,13 @@ public class ActionComponent extends Component
     updateStateIcons();
   }
 
+  @Override
   public void setScaleIcon(boolean scale, float scaleFactor) {
     scaleIcon        = scale;
     this.scaleFactor = scaleFactor;
   }
 
+  @Override
   public void setSelected(boolean selected) {
     if (view instanceof CompoundButton) {
       if (selected != ((CompoundButton) view).isChecked()) {
@@ -588,6 +705,7 @@ public class ActionComponent extends Component
    * @param selectedIcon
    *          the selectedIcon to set
    */
+  @Override
   public void setSelectedIcon(iPlatformIcon selectedIcon) {
     if (icon instanceof UIImageIcon) {
       ((UIImageIcon) icon).isImageLoaded(this);
@@ -597,6 +715,7 @@ public class ActionComponent extends Component
     updateStateIcons();
   }
 
+  @Override
   public void setText(CharSequence buttonText) {
     sizeCache.dirty();
 
@@ -616,8 +735,10 @@ public class ActionComponent extends Component
     }
   }
 
+  @Override
   public void setToolTipText(CharSequence text) {}
 
+  @Override
   public void setView(View view) {
     super.setView(view);
 
@@ -626,6 +747,7 @@ public class ActionComponent extends Component
     }
   }
 
+  @Override
   public void setWordWrap(boolean wrap) {
     if (textWrapped != wrap) {
       sizeCache.dirty();
@@ -648,105 +770,32 @@ public class ActionComponent extends Component
     }
   }
 
-  public UIAction getAction() {
-    return action;
+  @Override
+  public String toString() {
+    return getText();
   }
 
-  public iPaintedButton.ButtonState getButtonState() {
-    return Utils.getState(isEnabled(), view.isPressed(), isSelected(), isMouseOver());
-  }
-
-  public iPlatformIcon getDisabledIcon() {
-    if ((disabledIcon == null) && (stateIcon != null)) {
-      disabledIcon = stateIcon.getIcon(MultiStateIcon.DISABLED);
+  protected void configurePainterHolderDrawable(PainterHolder ph) {
+    if (ph == null) {
+      if (painterHolderDrawable != null) {
+        painterHolderDrawable.setPainterHolder(null);
+      }
+    } else {
+      UIColor fg=ph.foregroundColor;
+      if(fg!=null && fgColor==null && view instanceof TextView) {
+        fg.setTextColor((TextView) view);
+      }
+      if (painterHolderDrawable == null) {
+        painterHolderDrawable = new PainterHolderDrawable(ph);
+        view.setBackground(painterHolderDrawable);
+      } else {
+        painterHolderDrawable.setPainterHolder(ph);
+      }
     }
-
-    return disabledIcon;
   }
 
-  public iPlatformIcon getIcon() {
-    return icon;
-  }
-
-  /**
-   * @return the iconGap
-   */
-  public int getIconGap() {
-    return iconGap;
-  }
-
-  /**
-   * @return the iconPosition
-   */
-  public IconPosition getIconPosition() {
-    return iconPosition;
-  }
-
-  public float getIconScaleFactor() {
-    return scaleFactor;
-  }
-
-  public UIInsets getMargin() {
-    return new UIInsets(view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom(), view.getPaddingLeft());
-  }
-
-  public Orientation getOrientation() {
-    if (view instanceof ButtonViewEx) {
-      return ((ButtonViewEx) view).getOrientation();
-    } else if (view instanceof LabelView) {
-      return ((LabelView) view).getOrientation();
-    }
-
-    return Orientation.HORIZONTAL;
-  }
-
-  /**
-   * @return the pressedIcon
-   */
-  public iPlatformIcon getPressedIcon() {
-    return pressedIcon;
-  }
-
-  /**
-   * @return the selectedIcon
-   */
-  public iPlatformIcon getSelectedIcon() {
-    return selectedIcon;
-  }
-
-  public String getText() {
-    if (view instanceof TextView) {
-      return ((TextView) view).getText().toString();
-    }
-
-    return "";
-  }
-
-  public boolean isAdjustSize() {
-    return adjustSize;
-  }
-
-  public boolean isMouseOver() {
-    return false;
-  }
-
-  public boolean isScaleIcon() {
-    return scaleIcon && (scaleFactor > 0);
-  }
-
-  public boolean isSelected() {
-    if (view instanceof CompoundButton) {
-      return ((CompoundButton) view).isChecked();
-    }
-
-    return view.isSelected();
-  }
-
-  public boolean isWordWrap() {
-    return textWrapped;
-  }
-
-  protected void getMinimumSizeEx(UIDimension size) {
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (!SIZE_CACHE_ENABLED) {
       sizeCache.minDirty = true;
     }
@@ -755,13 +804,13 @@ public class ActionComponent extends Component
       size.width  = sizeCache.minWidth;
       size.height = sizeCache.minHeight;
     } else {
-      super.getPreferredSizeEx(size, 0);
+      super.getPreferredSizeEx(size, maxWidth);
 
       if (view instanceof TextView) {
         CharSequence s   = ((TextView) view).getText();
         int          len = s.length();
 
-        if (textWrapped && (view instanceof TextView)) {
+        if (textWrapped) {
           if (len > 0) {
             int n = 0;
 
@@ -796,12 +845,6 @@ public class ActionComponent extends Component
   }
 
   @Override
-  public void imageLoaded(UIImage image) {
-    updateStateIcons();
-    super.imageLoaded(image);
-  }
-
-  @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     if (!SIZE_CACHE_ENABLED) {
       sizeCache.preferredDirty = true;
@@ -823,12 +866,10 @@ public class ActionComponent extends Component
         size.width += ScreenUtils.PLATFORM_PIXELS_2;
       }
 
-      if (adjustSize) {
-        if (view instanceof Button) {
-          Utils.adjustButtonSize(size);
-        } else if (view instanceof EditTextEx) {
-          Utils.adjustTextFieldSize(size);
-        }
+      if (adjustButtonSize) {
+        Utils.adjustButtonSize(size);
+      } else if (adjustTextFieldSize) {
+        Utils.adjustTextFieldSize(size);
       }
 
       size.width               += listItemPadding;

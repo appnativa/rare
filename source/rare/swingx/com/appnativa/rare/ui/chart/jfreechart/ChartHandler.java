@@ -1469,7 +1469,7 @@ public class ChartHandler extends aChartHandler {
     }
 
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size, int maxWidth) {
       size.width  = 0;
       size.height = 0;
     }

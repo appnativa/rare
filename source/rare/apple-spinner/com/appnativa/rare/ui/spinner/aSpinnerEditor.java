@@ -97,13 +97,13 @@ public abstract class aSpinnerEditor implements iSpinnerEditor, iFocusListener, 
   }
 
   @Override
-  public void focusChanged(Object view, boolean hasFocus, Object otherView) {
+  public void focusChanged(Object view, boolean hasFocus, Object otherView,boolean temporary) {
     if (!hasFocus && (view == editorView)) {
       commitEdit();
     }
 
     if (appFocusListener != null) {
-      appFocusListener.focusChanged(view, hasFocus, otherView);
+      appFocusListener.focusChanged(view, hasFocus, otherView,temporary);
     }
   }
 
@@ -163,6 +163,10 @@ public abstract class aSpinnerEditor implements iSpinnerEditor, iFocusListener, 
 
   public void setKeyHandler(iKeyListener keyHandler) {
     editorView.setKeyboardListener(keyHandler);
+  }
+  
+  @Override
+  public void selectAll() {
   }
 
   public void setMouseHandler(iMouseListener mouseHandler) {

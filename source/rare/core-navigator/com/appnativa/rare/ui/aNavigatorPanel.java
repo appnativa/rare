@@ -1225,7 +1225,7 @@ public abstract class aNavigatorPanel extends XPContainer implements iNavigatorP
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     getPreferredSizeEx(size, 0);
   }
 

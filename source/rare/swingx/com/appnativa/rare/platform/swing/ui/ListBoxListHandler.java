@@ -24,11 +24,20 @@ import com.appnativa.rare.ui.iListView;
 import com.appnativa.rare.ui.iPlatformListDataModel;
 
 public class ListBoxListHandler extends aPlatformListHandler {
+  private boolean tabular;
   public ListBoxListHandler(iListView view, iPlatformListDataModel model) {
     super(view, model);
   }
 
   public ListBoxListHandler(iListView view) {
     super(view);
+  }
+
+  public boolean isTabular() {
+    return tabular;
+  }
+
+  public void setTabular(boolean tabular) {
+    this.tabular = tabular;
   }
 }

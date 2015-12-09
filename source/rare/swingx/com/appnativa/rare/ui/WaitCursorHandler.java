@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -83,6 +83,12 @@ public class WaitCursorHandler {
 
   public static void showProgressPopup(iPlatformComponent component, final CharSequence message,
           final iCancelable cancelable) {
+    showProgressPopup(component, message, cancelable,
+                      Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
+  }
+
+  public static void showProgressPopup(final iPlatformComponent component, final CharSequence message,
+          final iCancelable cancelable, final int delay) {
     synchronized(cursorCount) {
       int cnt = cursorCount.getAndIncrement();
 
@@ -93,6 +99,8 @@ public class WaitCursorHandler {
       Runnable r = new Runnable() {
         @Override
         public void run() {
+          lockRootpane(component.getView());
+
           if (componentPainter == null) {
             componentPainter = PainterUtils.createProgressPopupPainter();
           }
@@ -186,7 +194,20 @@ public class WaitCursorHandler {
             lockedPanes.addIfNotPresent(root);
           }
 
-          d.setVisible(true);
+          if (delay > 0) {
+            Platform.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                if (progressDialog != null) {
+                  try {
+                    progressDialog.setVisible(true);
+                  } catch(Exception ignore) {}
+                }
+              }
+            }, delay);
+          } else {
+            d.setVisible(true);
+          }
         }
       };
 
@@ -373,6 +394,17 @@ public class WaitCursorHandler {
           }
         }
       }
+    }
+  }
+
+  private static void lockRootpane(Component comp) {
+    JRootPane root = getRootPane(comp);
+
+    if (root != null) {
+      root.getGlassPane().setCursor(WAIT_CURSOR);
+      root.getGlassPane().addMouseListener(mouseAdapter);
+      root.getGlassPane().setVisible(true);
+      lockedPanes.addIfNotPresent(root);
     }
   }
 

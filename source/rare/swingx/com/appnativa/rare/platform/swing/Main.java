@@ -155,7 +155,14 @@ public class Main extends Rare {
       }
     }
   }
-
+  
+  /**
+   * Called when the escape is pressed in the main window
+   */
+  public void onEscapeKeyPressed() {
+    
+  }
+  
   protected void embedInitialize(URL url, Application app) throws Exception {
     commandLineArgs = Collections.EMPTY_LIST;
     info            = new StartupInfo(JavaURLConnection.toExternalForm(url), null, null, false, false, commandLineArgs);

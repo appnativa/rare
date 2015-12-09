@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -25,6 +25,7 @@ import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.apple.AppContext;
+import com.appnativa.rare.platform.apple.ui.view.Window;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.MainWindow;
 import com.appnativa.rare.spot.Rectangle;
@@ -49,7 +50,7 @@ public class WindowManager extends aWindowManager {
       componentCreator.setAppContext(appContext);
     }
 
-    mainFrame       = new Frame(app, app.getPlatformMainWindow());
+    mainFrame       = new Frame(app, app.getPlatformMainWindow(), WindowType.FRAME);
     workspaceTarget = new WorkspaceTarget(app, (Frame) mainFrame);
     ((Frame) mainFrame).setTarget(workspaceTarget);
     theTargets.put(iTarget.TARGET_WORKSPACE, workspaceTarget);
@@ -74,15 +75,15 @@ public class WindowManager extends aWindowManager {
       iWidget w = createTitleWidget(cfg);
 
       if (w != null) {
-        ((Frame) mainFrame).setTitleWidget(w);
+        frame.setTitleWidget(w);
       }
     }
 
     Rectangle r = cfg.bounds;
     int       x = r.getXPixels();
     int       y = r.getYPixels();
-    int       w = r.getWidthPixels((iPlatformComponent) mainFrame, true);
-    int       h = r.getHeightPixels((iPlatformComponent) mainFrame, true);
+    int       w = r.getWidthPixels(frame, true);
+    int       h = r.getHeightPixels(frame, true);
 
     if (!Platform.isIOS()) {
       ScreenUtils.centerOnScreenAndSize(mainFrame, x, y, w, h);
@@ -107,20 +108,6 @@ public class WindowManager extends aWindowManager {
     p.setPopupOwner(context.getContainerComponent());
 
     return p;
-  }
-
-  @Override
-  public iWindow createWindow(iWidget context, Map options) {
-    Frame f = Frame.createFromOptions(context, null, options);
-
-    return f;
-  }
-
-  @Override
-  public iWindow createWindow(iWidget context, String target, String title) {
-    Frame f = Frame.create(context, title, target, true, true);
-
-    return f;
   }
 
   @Override
@@ -152,6 +139,52 @@ public class WindowManager extends aWindowManager {
   @Override
   protected void showErrorDialog(Throwable e) {
     AlertPanel.showErrorDialog(e);
+  }
+
+  @Override
+  protected iFrame createFrame(iWidget context, WindowType type, boolean modal, boolean transparent,
+                               boolean decorated) {
+    Window  win;
+    boolean undecorated = !decorated;
+    boolean trans       = transparent;
+
+    if (decorated) {    // always use && Platform.getUIDefaults().getBoolean("Rare.Dialog.useRuntimeDecorations", false)) {
+      undecorated = true;
+      trans       = true;
+    }
+
+    switch(type) {
+      case DIALOG :
+        win = PlatformHelper.createDialog(context.getDataComponent().getView().getWindow(), trans, !undecorated, modal);
+
+        break;
+
+      case POPUP :
+        win = PlatformHelper.createPopup(true, trans);
+
+        break;
+
+      case POPUP_ORPHAN :
+        win = PlatformHelper.createPopup(false, trans);
+
+        break;
+
+      default :
+        win = PlatformHelper.createWindow(modal, trans, !undecorated);
+
+        break;
+    }
+
+    if (trans) {
+      win.setBackgroundColor(UIColor.TRANSPARENT);
+    }
+
+    Frame frame = new Frame(appContext, win, null, type);
+
+    frame.undecorated = !decorated;
+    frame.transparent = transparent;
+
+    return frame;
   }
 
   @Override

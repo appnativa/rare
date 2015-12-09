@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -24,6 +24,7 @@ import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 
 /**
@@ -81,11 +82,17 @@ public abstract class aUIMatteBorder extends aUIPlatformBorder {
       return;
     }
 
+    UIColor color = getPaintColor(g);
+
+    if (color.getAlpha() == 0) {
+      return;
+    }
+
     UIStroke stroke = g.getStroke();
     UIColor  c      = g.getColor();
 
+    g.setColor(color);
     g.setStroke(lineStroke);
-    g.setColor(lineColor);
     UILineBorder.paintLines(g, this.insets, x, y, x + width, y + height);
     g.setStroke(stroke);
     g.setColor(c);
@@ -136,11 +143,37 @@ public abstract class aUIMatteBorder extends aUIPlatformBorder {
     return true;
   }
 
+  @Override
+  public boolean isFocusAware() {
+    return true;
+  }
+
   public void setLineStroke(UIStroke stroke) {
     lineStroke = stroke;
   }
 
   public UIStroke getLineStroke() {
     return lineStroke;
+  }
+
+  protected UIColor getDisabledLineColor() {
+    return lineColor.getDisabledColor();
+  }
+
+  protected UIColor getPaintColor(iPlatformGraphics g) {
+    iPlatformComponent pc    = g.getComponent();
+    UIColor            color = (pc == null)
+                               ? null
+                               : getFocusColor(pc, false);
+
+    if (color == null) {
+      color = lineColor;
+
+      if ((pc != null) &&!pc.isEnabled()) {
+        color = getDisabledLineColor();
+      }
+    }
+
+    return color;
   }
 }

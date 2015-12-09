@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -86,8 +86,21 @@ public class PainterUtils {
 
   private PainterUtils() {}
 
+  public static void clearCache() {
+    UIProperties props = Platform.getUIDefaults();
+
+    props.put(COMBOBOX_BUTTON_KEY, null);
+    props.put(COMBOBOX_KEY, null);
+    props.put(PUSHBUTTON_KEY, null);
+    props.put(RED_HYPERLINK_KEY, null);
+    props.put(HYPERLINK_KEY, null);
+    props.put(TOGGLE_TOOLBARBUTTON_KEY, null);
+    props.put(TOOLBARBUTTON_KEY, null);
+    props.put(SPINNER_BUTTON_KEY, null);
+  }
+
   public static iPlatformComponentPainter createProgressPopupPainter() {
-    Object o = Platform.getAppContext().getUIDefaults().get("Rare.ProgressPopup.background");
+    Object o = Platform.getUIDefaults().get("Rare.ProgressPopup.background");
 
     if (o instanceof PaintBucket) {
       return ((PaintBucket) o).getCachedComponentPainter();
@@ -121,10 +134,6 @@ public class PainterUtils {
     if (ph == null) {
       ph = PainterHolder.create("Rare.PushButton.", false, true, false);
 
-      if (ph.disabledForegroundColor == null) {
-        ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
-      }
-
       if (ph.normalPainter == null) {
         ph.normalPainter = getUnpressedButtonPaintBucket();
         ph.normalPainter.setBorder(BorderUtils.getDefaultButtonBorder());
@@ -147,12 +156,8 @@ public class PainterUtils {
     if (ph == null) {
       ph = PainterHolder.create("Rare.ComboBox.button.", false, true, false);
 
-      if (ph.disabledForegroundColor == null) {
-        ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
-      }
-
       if (ph.normalPainter == null) {
-        ph.normalPainter  = getUnpressedButtonPaintBucket();
+        ph.normalPainter  = ColorUtils.getPaintBucket("Rare.background-30,Rare.background+5");
         ph.pressedPainter = getPressedButtonPaintBucket();
       }
 
@@ -169,13 +174,8 @@ public class PainterUtils {
     if (ph == null) {
       ph = PainterHolder.create("Rare.ComboBox.", false, true, false);
 
-      if (ph.disabledForegroundColor == null) {
-        ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
-      }
-
       if (ph.normalPainter == null) {
-        ph.normalPainter =
-          new PaintBucket((UIBackgroundPainter) UIBackgroundPainter.BGCOLOR_GRADIENT_PAINTER_MID.clone());
+        ph.normalPainter = ColorUtils.getPaintBucket("Rare.background-15,Rare.background+15");
       }
 
       Platform.getUIDefaults().put(COMBOBOX_KEY, ph);
@@ -191,18 +191,9 @@ public class PainterUtils {
     if (ph == null) {
       ph = PainterHolder.create("Rare.PushButton.hyperlink.", false, true, false);
 
-      if (ph.disabledForegroundColor == null) {
-        ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
-      }
-
       if (ph.normalPainter == null) {
         ph.normalPainter = new PaintBucket();
-
-        int size = ScreenUtils.platformPixels(Platform.isTouchDevice()
-                ? 8
-                : 4);
-
-        ph.normalPainter.setBorder(new UIEmptyBorder(size));
+        ph.normalPainter.setBorder(BorderUtils.getDefaultEmptyButtonBorder());
       }
 
       if (ph.foregroundColor == null) {
@@ -243,7 +234,6 @@ public class PainterUtils {
     iPlatformIcon picon = null;
     iPlatformIcon sicon = null;
     UIColor       fg    = null;
-    UIColor       dfg   = null;
     String        s     = (String) attrs.get("bgColor");
 
     if (s != null) {
@@ -298,31 +288,24 @@ public class PainterUtils {
       sicon = context.getIcon(s, null);
     }
 
-    s = (String) attrs.get("disabledFgColor");
-
-    if (s != null) {
-      dfg = ColorUtils.getColor(s);
-    }
-
     s = (String) attrs.get("fgColor");
 
     if (s != null) {
       fg = ColorUtils.getColor(s);
     }
 
-    if ((fg == null) && (dfg == null) && (pb == null) && (ppb == null) && (rpb == null) && (dpb == null)
-        && (icon == null) && (sicon == null) && (ricon == null) && (dicon == null) && (picon == null)) {
+    if ((fg == null) && (pb == null) && (ppb == null) && (rpb == null) && (dpb == null) && (icon == null)
+        && (sicon == null) && (ricon == null) && (dicon == null) && (picon == null)) {
       return null;
     }
 
     PainterHolder ph = new PainterHolder(icon, sicon, ricon, picon, dicon);
 
-    ph.normalPainter           = pb;
-    ph.pressedPainter          = ppb;
-    ph.rolloverPainter         = rpb;
-    ph.disabledPainter         = dpb;
-    ph.foregroundColor         = fg;
-    ph.disabledForegroundColor = dfg;
+    ph.normalPainter   = pb;
+    ph.pressedPainter  = ppb;
+    ph.rolloverPainter = rpb;
+    ph.disabledPainter = dpb;
+    ph.foregroundColor = fg;
 
     return ph;
   }
@@ -338,7 +321,6 @@ public class PainterUtils {
     iPlatformIcon picon = null;
     iPlatformIcon sicon = null;
     UIColor       fg    = null;
-    UIColor       dfg   = null;
     iSPOTElement  s     = seq.spot_elementFor("bgColor");
 
     if (s instanceof SPOTPrintableString) {
@@ -393,31 +375,24 @@ public class PainterUtils {
       sicon = context.getIcon((SPOTPrintableString) s);
     }
 
-    s = seq.spot_elementFor("disabledFgColor");
-
-    if (s instanceof SPOTPrintableString) {
-      dfg = ColorUtils.getColor(((SPOTPrintableString) s).stringValue());
-    }
-
     s = seq.spot_elementFor("fgColor");
 
     if (s instanceof SPOTPrintableString) {
       fg = ColorUtils.getColor(((SPOTPrintableString) s).stringValue());
     }
 
-    if ((fg == null) && (dfg == null) && (pb == null) && (ppb == null) && (rpb == null) && (dpb == null)
-        && (icon == null) && (sicon != null) && (ricon == null) && (dicon == null) && (picon == null)) {
+    if ((fg == null) && (pb == null) && (ppb == null) && (rpb == null) && (dpb == null) && (icon == null)
+        && (sicon != null) && (ricon == null) && (dicon == null) && (picon == null)) {
       return null;
     }
 
     PainterHolder ph = new PainterHolder(icon, sicon, ricon, picon, dicon);
 
-    ph.normalPainter           = pb;
-    ph.pressedPainter          = ppb;
-    ph.rolloverPainter         = rpb;
-    ph.disabledPainter         = dpb;
-    ph.foregroundColor         = fg;
-    ph.disabledForegroundColor = dfg;
+    ph.normalPainter   = pb;
+    ph.pressedPainter  = ppb;
+    ph.rolloverPainter = rpb;
+    ph.disabledPainter = dpb;
+    ph.foregroundColor = fg;
 
     return ph;
   }
@@ -426,14 +401,9 @@ public class PainterUtils {
     PainterHolder ph = (PainterHolder) Platform.getUIDefaults().get(RED_HYPERLINK_KEY);
 
     if (ph == null) {
-      ph = new PainterHolder();
-      ph.setForegroundColor(UIColor.RED);
-      ph.setDisabledForegroundColor(ColorUtils.getDisabledVersion(UIColor.RED));
-
-      PaintBucket pp = new PaintBucket();
-
-      pp.setForegroundColor(ColorUtils.getPressedVersion(UIColor.RED));
-      ph.setPressedPainter(pp);
+      ph = (PainterHolder) createHyperlinkPaintHolder().clone();
+      UIColor fg=PlatformHelper.getColorStateList(UIColor.RED, UIColor.RED.getDisabledColor(), ColorUtils.getPressedVersion(UIColor.RED));
+      ph.setForegroundColor(fg);
       Platform.getUIDefaults().put(RED_HYPERLINK_KEY, ph);
     }
 
@@ -448,10 +418,6 @@ public class PainterUtils {
 
       if (ph.foregroundColor == null) {
         ph.foregroundColor = ColorUtils.getForeground();
-      }
-
-      if (ph.disabledForegroundColor == null) {
-        ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
       }
 
       if (ph.normalPainter == null) {
@@ -483,7 +449,7 @@ public class PainterUtils {
       return pb;
     }
 
-    return ColorUtils.getPaintBucket("Rare.background,Rare.backgroundDkShadow");
+    return ColorUtils.getPaintBucket("Rare.background-5,Rare.background+5");
   }
 
   public static PainterHolder createToggleToolBarButtonPaintHolder() {
@@ -499,17 +465,12 @@ public class PainterUtils {
           ph.foregroundColor = ColorUtils.getForeground();
         }
 
-        if (ph.disabledForegroundColor == null) {
-          ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
-        }
-
         if (ph.pressedPainter == null) {
           ph.pressedPainter = getPressedButtonPaintBucket();
           ph.pressedPainter.setBorder(BorderUtils.getToolbarPressedButtonBorder());
 
           if (ph.selectedPainter == null) {
             ph.selectedPainter = ColorUtils.getPaintBucket("Rare.backgroundDkShadow");
-            ;
             ph.selectedPainter.setBorder(ph.pressedPainter.getBorder());
           }
         }
@@ -538,10 +499,6 @@ public class PainterUtils {
     if (ph == null) {
       ph = PainterHolder.create("Rare.PushButton.toolbar.", false, false, false);
 
-      if (ph.disabledForegroundColor == null) {
-        ph.disabledForegroundColor = ColorUtils.getDisabledForeground();
-      }
-
       if (ph.rolloverPainter == null) {
         ph.rolloverPainter = ColorUtils.getPaintBucket("Rare.background,Rare.backgroundDkShadow");
         ph.rolloverPainter.setBorder(BorderUtils.getToolbarPressedButtonBorder());
@@ -557,7 +514,7 @@ public class PainterUtils {
         iPlatformBorder b = ph.pressedPainter.getBorder();
 
         if (b == null) {
-          int size = ScreenUtils.platformPixels(Platform.isTouchDevice()
+          int size = ScreenUtils.platformPixels(!Platform.hasPointingDevice()
                   ? 8
                   : 4);
 
@@ -659,17 +616,6 @@ public class PainterUtils {
     }
 
     list.setForeground(c);
-    c = p.getColor("Rare.ComboBox.list.disabledForeground");
-
-    if (c != null) {
-      c = ColorUtils.getListDisabledForeground();
-    }
-
-    if (c == null) {
-      c = ColorUtils.getDisabledForeground();
-    }
-
-    list.setDisabledColor(c);
     c = p.getColor("Rare.ComboBox.list.background");
 
     if (c == null) {
@@ -772,11 +718,15 @@ public class PainterUtils {
         }
 
         if (disabledCircleColor == null) {
-          disabledCircleColor = UILineBorder.getDefaultDisabledColor();
+          disabledCircleColor = circleColor.getDisabledColor();
         }
 
         if (chevronColor == null) {
           chevronColor = ColorUtils.getForeground();
+        }
+
+        if (disabledChevronColor == null) {
+          disabledChevronColor = chevronColor.getDisabledColor();
         }
       }
 
@@ -1233,7 +1183,7 @@ public class PainterUtils {
 
     /**  */
     boolean            up       = true;
-    int                iconSize = UIScreen.platformPixels(Platform.isTouchDevice()
+    int                iconSize = UIScreen.platformPixels(!Platform.hasPointingDevice()
             ? 20
             : 12);
     @Weak
@@ -1295,9 +1245,7 @@ public class PainterUtils {
 
       x += off;
 
-      if (up) {
-        y += (height - iconSize) / 2;
-      } else {
+      if (!up) {
         y += off;
       }
 
@@ -1314,7 +1262,7 @@ public class PainterUtils {
     }
 
     public void setIconSize(int size) {
-      int n = UIScreen.platformPixels(Platform.isTouchDevice()
+      int n = UIScreen.platformPixels(!Platform.hasPointingDevice()
                                       ? 20
                                       : 12);
 

@@ -23,6 +23,7 @@ package com.appnativa.rare.platform.swing;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.ui.view.JRootPaneEx;
 import com.appnativa.rare.ui.Frame;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
 
 import java.awt.Window;
 
@@ -58,7 +59,7 @@ public class Applet extends JApplet {
     if (frame == null) {
       Window w = SwingUtilities.windowForComponent(this);
 
-      frame = new Frame(Platform.getAppContext(), w, this);
+      frame = new Frame(Platform.getAppContext(), w, this,WindowType.FRAME);
     }
 
     return frame;

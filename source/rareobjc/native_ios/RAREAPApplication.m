@@ -20,7 +20,9 @@
 #import "com/appnativa/rare/Platform.h"
 #import "com/appnativa/rare/platform/apple/AppContext.h"
 #import "com/appnativa/rare/platform/PlatformHelper.h"
+#import "com/appnativa/rare/platform/apple/ui/view/Window.h"
 #import "RARESplashView.h"
+#import "RAREUIViewController.h"
 #import <com/appnativa/rare/ui/ColorUtils.h>
 #import <com/appnativa/rare/ui/UIColor.h>
 
@@ -33,13 +35,13 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   CGFloat keyboardHeight;
   BOOL keyboardVisible;
   BOOL firstFieldCheck;
-  BOOL splitKeyboard;
+  NSMutableArray* windowStack;
 }
 
 // Returns true if the current process is being debugged (either
 // running under the debugger or has a debugger attached post facto).
 +(BOOL) amIBeingDebugged {
-
+  
 #if DEBUG
   int                 junk;
   int                 mib[4];
@@ -79,7 +81,6 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 +(void) showModalView:(UIView*) view {
   RAREAPApplication* app=[RAREAPApplication getInstance];
   if(!app->splashWindow) {
-    app->modalCount++;
     RAREAPPopupWindow *window= [[RAREAPPopupWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [window setModal:YES];
     [window.rootViewController.view addSubview: view];
@@ -90,9 +91,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 +(void) showSpinnerView:(UIView*) view {
   RAREAPApplication* app=[RAREAPApplication getInstance];
   if(!app->splashWindow) {
-    app->modalCount++;
     RAREAPPopupWindow *window= [[RAREAPPopupWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    window.windowLevel=UIWindowLevelStatusBar;
     [window.rootViewController.view addSubview: view];
     window.window.windowLevel=UIWindowLevelAlert;
     [window setVisible:YES];
@@ -107,7 +106,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   vc.view=view;
   app->splashWindow=window;
   [window makeKeyAndVisible];
-
+  
 }
 +(void) showSplashScreenWithPortraitImage:(UIImage *)portrait andLandscapeImage:(UIImage *)landscape andMessage: (NSString*) message foreground: (UIColor*) fg{
   RARESplashView *view= [[RARESplashView alloc] initWithPortraitImage:portrait andLandscapeImage:landscape andMessage: message];
@@ -120,7 +119,6 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 +(void) hideModalView:(UIView*) view {
   RAREAPApplication* app=[RAREAPApplication getInstance];
   if([view.window isKindOfClass:[RAREAPPopupWindow class]] && !app->splashWindow) {
-    app->modalCount--;
     RAREAPPopupWindow *window=(RAREAPPopupWindow*)view.window;
     [window setVisible:NO];
     [window sparDispose];
@@ -142,22 +140,27 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   if((fc && fc.isFirstResponder) || !app->keyWindow) {
     return fc;
   }
-//  UIViewController *rvc = app->keyWindow.rootViewController;
-//  if(!rvc) {
-//      NSArray* windows=[app windows];
-//      NSInteger len=windows.count;
-//      while(!rvc && len-->0) {
-//          UIWindow* w=(UIWindow*)[windows objectAtIndex:len];
-//          rvc=w.rootViewController;
-//      }
-//
-//  }
-//   UIView* v=rvc ? rvc.view: nil;
-//  fc=v ? v.findFirstResponder : nil;
-//  app->focusedView=fc;
+  fc=app->keyWindow.findFirstResponder;
+  app->focusedView=fc;
   return fc;
 }
-
++(void) hideKeyboard: (UIView *) view {
+  UIView* fv=nil;
+  if([view isFirstResponder]) {
+    fv=view;
+  }
+  else {
+    fv=[RAREAPApplication getFocusedView];
+  }
+  if(fv) {
+    UIWindow* window=fv.window;
+    UIViewController *rvc = window.rootViewController;
+    if([rvc isKindOfClass:[RAREUIViewController class]]) {
+      [(RAREUIViewController*)rvc resetScrolledContent:NO];
+    }
+    [fv resignFirstResponder];
+  }
+}
 +(void) setFocusedView: (UIView*) view {
   RAREAPApplication* app=[RAREAPApplication getInstance];
   app->focusedView=view;
@@ -167,7 +170,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 }
 +(BOOL) isManageKeyboard {
   RAREAPApplication* app=[RAREAPApplication getInstance];
-  return app->manageKeyboard && !app->splitKeyboard;
+  return app->keyboardVisible && app->manageKeyboard;
 }
 +(void) setManageKeyboard: (BOOL) manage {
   RAREAPApplication* app=[RAREAPApplication getInstance];
@@ -217,6 +220,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
                                                object:nil];
     firstFieldCheck=YES;
     manageKeyboard=[[UIDevice currentDevice] userInterfaceIdiom]==UIUserInterfaceIdiomPhone;
+    windowStack=[NSMutableArray arrayWithCapacity:4];
   }
   return self;
   
@@ -241,11 +245,19 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 }
 - (void) keyboardWillHide:(NSNotification *)notification {
   keyboardVisible=NO;
+  if(manageKeyboard && focusedView && [focusedView.window.rootViewController isKindOfClass:[RAREUIViewController class]]) {
+    [((RAREUIViewController*)focusedView.window.rootViewController) resetScrolledContent:YES];
+  }
 }
 - (void)keyboardWillShow:(NSNotification *)notification
 {
+  UIView* v=[RAREAPApplication getFocusedView];
   keyboardVisible=YES;
   keyboardHeight = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size.height;
+  if(manageKeyboard && v && [v.window.rootViewController isKindOfClass:[RAREUIViewController class]]) {
+    [((RAREUIViewController*)v.window.rootViewController) scrollContentForResponder:v];
+  }
+
 }
 -(BOOL) isKeyboardVisible {
   return keyboardVisible;
@@ -291,7 +303,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 - (void)orientationChanged:(NSNotification *)notification{
 }
 -(void) orientationWillChange:(NSNotification *)notification {
-
+  
 }
 
 -(void) setMainWindow: (RAREAPWindow*) window {
@@ -301,18 +313,14 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   if(!mainWindow) {
     mainWindow=window;
   }
-  if([window isKindOfClass:[RAREAPPopupWindow class]]) {
-    popopCount++;
+  NSUInteger pos=[windowStack indexOfObject:window];
+  if(pos==NSNotFound) {
+    [windowStack addObject:window];
   }
 }
 
 -(void) removeWindow: (RAREAPWindow*) window; {
-  if([window isKindOfClass:[RAREAPPopupWindow class]]) {
-    popopCount--;
-    if(popopCount<0) {
-      popopCount=0;
-    }
-  }
+  [windowStack removeObject:window];
 }
 
 -(void)sendEvent:(UIEvent *)event {
@@ -326,22 +334,21 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
         if(consumed_) return;
       }
       do {
-        if(event.type==UIEventTypeTouches && popopCount>0 && modalCount==0) {
+        NSUInteger len=windowStack.count;
+        if(len>1 && event.type==UIEventTypeTouches) {
           if(touch.phase!=UITouchPhaseBegan) break;
-          if(touch.window.windowLevel!=UIWindowLevelNormal) break;
-          NSArray* windows=[self windows];
-          UIWindow* w=nil;
-          NSInteger len=windows.count;
+          UIWindow* w;
           while(len-->0) {
-            w=(UIWindow*)[windows objectAtIndex:len];
-            if(!w.hidden && ![event touchesForWindow: w] ) {
+            w=(UIWindow*)[windowStack objectAtIndex:len];
+            if(w.hidden) continue;
+            if(![ event touchesForWindow:w]) {
               if([w isKindOfClass:[RAREAPPopupWindow class]]) {
                 if([((RAREAPPopupWindow*)w) outsideTouchHappened]) {
                   consumed_=YES;
-                  break;
                 }
               }
             }
+            break;
           }
         }
       }while(false);
@@ -365,11 +372,15 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   while(len-->0) {
     w=(UIWindow*)[windows objectAtIndex:len];
     if(!w.hidden && [w isKindOfClass:[RAREAPPopupWindow class]]) {
-      [((RAREAPPopupWindow*)w) cancelPopup: NO];
+      RAREAPPopupWindow* pw=(RAREAPPopupWindow*)w;
+      if(all || [pw isTransient]) {
+        [((RAREAPPopupWindow*)w) cancelPopup: NO];
+      }
     }
     else if( all && [w isKindOfClass:[RAREAPWindow class]] && !((RAREAPWindow *)w).isMainWindow) {
       [RAREPlatformHelper closeWindowWithRAREWindow: ((RAREAPWindow *)w).sparWindow];
     }
   }
 }
+
 @end

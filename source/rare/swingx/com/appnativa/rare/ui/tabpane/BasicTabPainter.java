@@ -32,19 +32,6 @@ public class BasicTabPainter extends aBasicTabPainter {
     return new TabShape(PlatformHelper.createPath(), PlatformHelper.createPath());
   }
 
-//  protected void paintLine(iPlatformGraphics g, int x, int y, int width, int height) {
-//    g.setColor((selectedTabBorderColor == null)
-//               ? tabBorderColor
-//               : selectedTabBorderColor);
-//
-//    if (isHorizontal()) {
-//      g.drawLine(x, y + height - 1f, x + width, y + height - 1f);
-//    } else if (position == Location.LEFT) {
-//      g.drawLine(x, y + width - 1f, x + height, y + width - 1f);
-//    } else {
-//      g.drawLine(x, y + width, x + height, y + width);
-//    }
-//  }
   @Override
   protected boolean isVerticalWhenFindingTabs() {
     return false;

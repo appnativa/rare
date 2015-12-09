@@ -22,8 +22,8 @@ package com.appnativa.rare.viewer;
 
 import com.appnativa.rare.ui.RenderType;
 import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.effects.iTransitionAnimator;
 import com.appnativa.rare.ui.iParentComponent;
+import com.appnativa.rare.ui.effects.iTransitionAnimator;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 

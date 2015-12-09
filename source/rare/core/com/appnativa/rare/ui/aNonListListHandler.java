@@ -60,10 +60,18 @@ public abstract class aNonListListHandler implements iPlatformListHandler {
   public boolean isAtBottomEdge() {
     return false;
   }
-
+  
+  @Override
+  public void repaintRow(int row) {
+    // TODO Auto-generated method stub
+  }
   @Override
   public UIPoint getContentOffset() {
     return null;
+  }
+  
+  @Override
+  public void setContentOffset(float x, float y) {
   }
 
   @Override
@@ -150,7 +158,7 @@ public abstract class aNonListListHandler implements iPlatformListHandler {
   public void clear() {}
 
   @Override
-  public void clearPopupMenuIndex() {}
+  public void clearContextMenuIndex() {}
 
   @Override
   public void clearSelection() {}
@@ -538,12 +546,12 @@ public abstract class aNonListListHandler implements iPlatformListHandler {
   }
 
   @Override
-  public int getPopupMenuIndex() {
-    return 0;
+  public int getContextMenuIndex() {
+    return -1;
   }
 
   @Override
-  public RenderableDataItem getPopupMenuItem() {
+  public RenderableDataItem getContextMenuItem() {
     return null;
   }
 

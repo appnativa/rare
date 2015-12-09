@@ -247,15 +247,21 @@ public abstract class aUIPainter implements iPlatformPainter, iBackgroundPainter
           break;
 
         case STRETCH_WIDTH_MIDDLE :
-        case STRETCH_WIDTH :
           y = (h - ih) / 2;
+          h = ih;
+
+          break;
+        case STRETCH_WIDTH :
           h = ih;
 
           break;
 
         case STRETCH_HEIGHT_MIDDLE :
-        case STRETCH_HEIGHT :
           x = (w - iw) / 2;
+          w = iw;
+
+          break;
+        case STRETCH_HEIGHT :
           w = iw;
 
           break;

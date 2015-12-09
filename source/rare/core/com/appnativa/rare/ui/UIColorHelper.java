@@ -15,12 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.GridCell;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
@@ -31,35 +32,35 @@ import com.appnativa.spot.SPOTPrintableString;
 
 import java.io.StringReader;
 
+/**
+ * A class with convenience color related methods in the UI* namespace.
+ *
+ * @author Don DeCoteau
+ *
+ */
 public class UIColorHelper {
   public static int HSVToColor(int alpha, float[] hsv) {
     return ColorUtils.HSVToColor(alpha, hsv);
   }
 
-  public static PaintBucket configure(iWidget context, GridCell gc, PaintBucket pb) {
-    return ColorUtils.configure(context, gc, pb);
+  /**
+   * Returns a color shade for a the specified colors
+   *
+   * @return a color object represented by the specified colors as an android
+   *         color state list
+   */
+  public static UIColorShade getColorStateList(UIColor fg, UIColor disabled) {
+    return PlatformHelper.getColorStateList(fg, disabled);
   }
 
-  public static void configureBackgroundColor(iPlatformComponent comp, SPOTPrintableString bgColor) {
-    ColorUtils.configureBackgroundPainter(comp, bgColor);
-  }
-
-  public static void configureBackgroundColor(iWidget widget, SPOTPrintableString bgColor) {
-    ColorUtils.configureBackgroundPainter(widget, bgColor);
-  }
-
-  public static PaintBucket configureBackgroundColor(SPOTPrintableString bgColor, PaintBucket pb) {
-    if ((bgColor == null) || (bgColor.getValue() == null)) {
-      return null;
-    }
-
-    if (pb == null) {
-      pb = new PaintBucket();
-    }
-
-    ColorUtils.configureBackgroundPainter(pb, bgColor);
-
-    return pb;
+  /**
+   * Returns a color shade for a the specified colors
+   *
+   * @return a color object represented by the specified colors as an android
+   *         color state list
+   */
+  public static UIColorShade getColorStateList(UIColor fg, UIColor disabled, UIColor pressed) {
+    return PlatformHelper.getColorStateList(fg, disabled, pressed);
   }
 
   /**
@@ -79,66 +80,152 @@ public class UIColorHelper {
     return ColorUtils.getBackground();
   }
 
+  /**
+   * Gets the background color represented by the configuration string
+   * @param color  the configuration string
+   * @return a color object representing the color string
+   */
   public static UIColor getBackgroundColor(SPOTPrintableString color) {
     return ColorUtils.getBackgroundColor(color);
   }
 
+  /**
+   * Gets the background color represented by the string
+   * @param color  the color string
+   * @return a color object representing the color string
+   */
   public static UIColor getBackgroundColor(String color) {
     return ColorUtils.getBackgroundColor(color);
   }
 
+  /**
+   * Gets a background painter the will paint the specified color
+   * @param color  the color string
+   * @return a background painter the will paint the specified color
+   */
   public static iBackgroundPainter getBackgroundPainter(String color) {
     return ColorUtils.getBackgroundPainter(color);
   }
 
+  /**
+   * Gets a background painter the will paint the specified color
+   * @param bg  the color
+   * @return a background painter the will paint the specified color
+   */
   public static iBackgroundPainter getBackgroundPainter(UIColor bg) {
     return new UISimpleBackgroundPainter(bg);
   }
 
+  /**
+   * Gets the color represented by the string
+   * @param color  the color string
+   * @return a color object representing the color string
+   */
   public static UIColor getColor(String color) {
     return ColorUtils.getColor(color);
   }
 
-  public static UIColor getDisabledForeground() {
-    return ColorUtils.getDisabledForeground();
-  }
-
+  /**
+   * Gets the default foreground color
+   * 
+   * @return a color object representing the color string
+   */
   public static UIColor getForeground() {
     return ColorUtils.getForeground();
   }
 
+  /**
+   * Gets a paint bucket for background painting from a configuration string
+   *
+   * @param bgColor the configuration string containing the background color information
+   *
+   * @return a paint bucket with the paints or null if the configuration does not specify any paints
+   */
   public static PaintBucket getPaintBucket(SPOTPrintableString bgColor) {
+    return getPaintBucket(bgColor, null);
+  }
+
+  /**
+   * Gets a paint bucket for background painting from a configuration string
+   *
+   * @param bgColor the configuration string containing the background color information
+   * @param pb a paint bucket object to hold the paints (can be null)
+   *
+   * @return a paint bucket with the paints or null if the configuration does not specify any paints
+   */
+  public static PaintBucket getPaintBucket(SPOTPrintableString bgColor, PaintBucket pb) {
     if ((bgColor == null) || (bgColor.getValue() == null)) {
       return null;
     }
 
-    PaintBucket pb = new PaintBucket();
+    if (pb == null) {
+      pb = new PaintBucket();
+    }
 
     ColorUtils.configureBackgroundPainter(pb, bgColor);
 
     return pb;
   }
 
+  /**
+   * Returns a paint bucket for the specified color string
+   * @param color the color string
+   * @return the paint bucket
+   */
   public static PaintBucket getPaintBucket(String color) {
     return ColorUtils.getPaintBucket(color);
   }
 
-  public static PaintBucket getPaintBucket(iWidget context, GridCell cell) {
-    PaintBucket pb = (cell == null)
-                     ? null
-                     : new PaintBucket();
+  /**
+   * Gets a paint bucket for background painting from a grid cell configuration
+   *
+   * @param context the context
+   * @param gc the grid cell configuration containing the background color information
+   *
+   * @return a paint bucket with the paints or null if the configuration does not specify any paints
+   */
+  public static PaintBucket getPaintBucket(iWidget context, GridCell gc) {
+    return getPaintBucket(context, gc, null);
+  }
 
-    if (cell != null) {
-      ColorUtils.configure(context, cell, pb);
+  /**
+   * Gets a paint bucket for background painting from a grid cell configuration
+   *
+   * @param context the context
+   * @param gc the grid cell configuration containing the background color information
+   * @param pb a paint bucket object to hold the paints (can be null)
+   *
+   * @return a paint bucket with the paints or null if the configuration does not specify any paints
+   */
+  public static PaintBucket getPaintBucket(iWidget context, GridCell gc, PaintBucket pb) {
+    if (pb == null) {
+      pb = (gc == null)
+           ? null
+           : new PaintBucket();
+    }
+
+    if (gc != null) {
+      ColorUtils.configure(context, gc, pb);
     }
 
     return pb;
   }
 
-  public static PaintBucket getPaintBucketForCellString(iWidget context, String gridCell) {
-    PaintBucket pb = (gridCell == null)
-                     ? null
-                     : new PaintBucket();
+  /**
+   * Gets a paint bucket for background painting from a string representing a grid cell configuration
+   *
+   * @param context the context
+   * @param gridCell the string representing the grid cell configuration containing the background color information
+   * @param pb a paint bucket object to hold the paints (can be null)
+   *
+   * @return a paint bucket with the paints or null if the configuration does not specify any paints
+   */
+  public static PaintBucket getPaintBucketForCellString(iWidget context, String gridCell, PaintBucket pb) {
+    if (pb == null) {
+      pb = (gridCell == null)
+           ? null
+           : new PaintBucket();
+    }
 
     if (gridCell != null) {
       GridCell gc = new GridCell();

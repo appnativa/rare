@@ -173,4 +173,7 @@ public class ColorPalette {
   public int getRows() {
     return rows;
   }
+
+  public void dispose() {
+  }
 }

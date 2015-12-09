@@ -47,10 +47,8 @@ import com.appnativa.util.IdentityArrayList;
 import com.appnativa.util.iStructuredNode;
 
 import java.lang.ref.SoftReference;
-
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -860,5 +858,11 @@ public class TemplateHandler implements iSPOTTemplateHandler {
         seq.spot_addAttributes(attributes);
       }
     }
+  }
+
+
+  public static boolean hasWidgetTemplate(String name) {
+    Template t = getInstance(Platform.getAppContext()).getContextTemplate();;
+    return t==null ? null : t.getWidget(name)!=null;
   }
 }

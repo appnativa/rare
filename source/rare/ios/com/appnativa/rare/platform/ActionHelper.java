@@ -102,10 +102,13 @@ public class ActionHelper {
       update();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {}
 
+    @Override
     public void dispose() {}    // not disposable
 
+    @Override
     protected boolean isActionSupported(iWidget w, iPlatformComponent component) {
       if (w == null) {
         if (component instanceof iTransferSupport) {
@@ -138,6 +141,7 @@ public class ActionHelper {
       update();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       iPlatformComponent component = getActionComponent(e);
 
@@ -156,8 +160,10 @@ public class ActionHelper {
       }
     }
 
+    @Override
     public void dispose() {}    // not disposable
 
+    @Override
     protected boolean isActionSupported(iWidget w, iPlatformComponent component) {
       if (component instanceof iTransferSupport) {
         return ((iTransferSupport) component).canDelete();
@@ -179,6 +185,7 @@ public class ActionHelper {
       super(iConstants.DOCLICK_ACTION_NAME);
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       Object o = e.getSource();
 
@@ -187,6 +194,7 @@ public class ActionHelper {
       }
     }
 
+    @Override
     public void dispose() {}    // not disposable
   }
 
@@ -201,6 +209,7 @@ public class ActionHelper {
       update();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       iPlatformComponent component = getActionComponent(e);
 
@@ -209,8 +218,10 @@ public class ActionHelper {
       }
     }
 
+    @Override
     public void dispose() {}    // not disposable
 
+    @Override
     protected void updateEnabledFromTarget() {
       iPlatformComponent component = getFocusedComponent();
       boolean            enable    = (component == null)
@@ -220,6 +231,7 @@ public class ActionHelper {
       setEnabled(enable);
     }
 
+    @Override
     protected boolean isActionSupported(iWidget w, iPlatformComponent component) {
       if ((w != null) &&!w.canPaste()) {
         return false;
@@ -254,12 +266,16 @@ public class ActionHelper {
       update();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {}
 
+    @Override
     public void dispose() {}    // not disposable
 
+    @Override
     protected void updateEnabledFromTarget() {}
 
+    @Override
     protected void setFocusedComponent(iPlatformComponent component) {}
   }
 
@@ -274,6 +290,7 @@ public class ActionHelper {
       update();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       iPlatformComponent component = getActionComponent(e);
 
@@ -292,8 +309,10 @@ public class ActionHelper {
       }
     }
 
+    @Override
     public void dispose() {}    // not disposable
 
+    @Override
     protected boolean isActionSupported(iWidget w, iPlatformComponent component) {
       if (w == null) {
         if (component instanceof iTransferSupport) {
@@ -320,12 +339,16 @@ public class ActionHelper {
       update();
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {}
 
+    @Override
     public void dispose() {}    // not disposable
 
+    @Override
     protected void updateEnabledFromTarget() {}
 
+    @Override
     protected void setFocusedComponent(iPlatformComponent component) {}
   }
 

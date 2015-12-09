@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -54,7 +54,8 @@ public class TreeView extends ListView implements iTree {
   protected boolean            singleClickToggle;
   protected boolean            toggleOnTwistyOnly;
   protected aDataItemTreeModel treeModel;
-  private boolean              manageSelections = true;
+  protected boolean            manageSelections = true;
+  protected boolean            parentItemsSelectable;
 
   public TreeView() {
     super(new DataItemListModel());
@@ -120,8 +121,33 @@ public class TreeView extends ListView implements iTree {
     return rc;
   }
 
+  @Override
+  protected boolean isSelectable(RenderableDataItem item) {
+    if (!super.isSelectable(item)) {
+      return false;
+    }
+
+    if (!parentItemsSelectable) {
+      iTreeItem ti = getTreeItem(item);
+
+      if ((ti != null) &&!ti.isLeaf()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public void setAutoScrollOnExpansion(boolean autoScrollOnExpansion) {
     this.autoScrollOnExpansion = autoScrollOnExpansion;
+  }
+
+  public void setParentItemsSelectable(boolean parentItemsSelectable) {
+    this.parentItemsSelectable = parentItemsSelectable;
+  }
+
+  public boolean isParentItemsSelectable() {
+    return parentItemsSelectable;
   }
 
   @Override

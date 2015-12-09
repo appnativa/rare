@@ -20,14 +20,14 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.spot.ImagePane;
 import com.appnativa.rare.ui.ImagePanel;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageHelper;
-import com.appnativa.rare.ui.iPlatformImagePanel;
-
-import java.io.IOException;
+import com.appnativa.rare.ui.aImagePanel;
 
 /**
  * A viewer that displays and image and provides tools
@@ -68,7 +68,7 @@ public class ImagePaneViewer extends aImagePaneViewer {
   public void setUseSpinner(boolean spinner) {}
 
   @Override
-  protected iPlatformImagePanel createPanel(ImagePane cfg) {
+  protected aImagePanel createPanel(ImagePane cfg) {
     //super viewer is supposed to set scaling type before calling create panel
     ImagePanel p = new ImagePanel(scalingType.isCached());
 

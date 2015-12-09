@@ -21,18 +21,13 @@
 package com.appnativa.rare.platform.android.ui.view;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
 import android.graphics.Rect;
-
 import android.text.Html.ImageGetter;
-
 import android.util.AttributeSet;
-
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.ToggleButton;
 
 import com.appnativa.rare.Platform;
@@ -43,6 +38,7 @@ import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
@@ -80,10 +76,10 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     setGravity(Gravity.CENTER);
 
     UIColor c = Platform.getUIDefaults().getColor("Rare.Button.foreground");
-
-    if (c != null) {
-      c.setTextColor(this);
+    if (c == null) {
+      c=ColorUtils.getForeground();
     }
+    c.setTextColor(this);
 
     FontUtils.getDefaultFont().setupTextView(this);
     setMaxLines(Short.MAX_VALUE);
@@ -106,6 +102,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     return isChecked();
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -120,6 +117,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     }
   }
 
+  @Override
   public void invalidate() {
     if (invalidateParent) {
       ViewGroup vp = (ViewGroup) getParent();
@@ -134,6 +132,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     super.invalidate();
   }
 
+  @Override
   public void invalidate(Rect dirty) {
     if (invalidateParent) {
       ViewGroup vp = (ViewGroup) getParent();
@@ -148,6 +147,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     super.invalidate(dirty);
   }
 
+  @Override
   public void invalidate(int l, int t, int r, int b) {
     if (invalidateParent) {
       ViewGroup vp = (ViewGroup) getParent();
@@ -170,6 +170,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     setMinWidth(0);
   }
 
+  @Override
   public String toString() {
     CharSequence s = getText();
 
@@ -178,6 +179,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
            : s.toString();
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
     resolveStateValues();
@@ -280,6 +282,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     this.orientation = orientation;
   }
 
+  @Override
   public void setText(CharSequence text, BufferType type) {
     text = LabelView.checkText(text, (ImageGetter) Platform.findWidgetForComponent(Component.fromView(this)));
     super.setText(text, type);
@@ -290,6 +293,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     return Utils.getState(isEnabled(), isPressed(), isSelected(), false);
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
@@ -321,6 +325,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     return orientation;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     if (orientation == Orientation.HORIZONTAL) {
       return Math.max(super.getSuggestedMinimumHeight(), getIconHeight());
@@ -329,6 +334,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     }
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     if (orientation == Orientation.HORIZONTAL) {
       return Math.max(super.getSuggestedMinimumWidth(), getIconWidth());
@@ -351,16 +357,19 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     resolveStateValues();
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onDraw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -402,6 +411,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     graphics.clear();
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -413,11 +423,13 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     }
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);

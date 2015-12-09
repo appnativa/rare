@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+import java.net.URL;
+
 import android.view.View;
 
 import com.appnativa.rare.iPlatformAppContext;
@@ -28,7 +31,6 @@ import com.appnativa.rare.platform.android.ui.util.ImageHelper;
 import com.appnativa.rare.platform.android.ui.util.ImageUtils;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
@@ -42,10 +44,6 @@ import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 
-import java.io.IOException;
-
-import java.net.URL;
-
 /**
  *
  * @author Don DeCoteau
@@ -53,11 +51,10 @@ import java.net.URL;
 public class WindowViewer extends aWindowViewer implements iWindow {
   protected DragHandler dragHandler;
 
-  public WindowViewer(iPlatformAppContext ctx, String name, Frame win, WindowViewer parent, iScriptHandler sh) {
+  public WindowViewer(iPlatformAppContext ctx, String name, iWindow win, WindowViewer parent, iScriptHandler sh) {
     super(ctx, name, win, parent, sh);
     theWindow = win;
-    win.setViewer(this);
-    formComponent = dataComponent = win;
+    formComponent = dataComponent = win.getComponent();
     widgetType    = WidgetType.Window;
     theWindow     = win;
   }
@@ -70,12 +67,13 @@ public class WindowViewer extends aWindowViewer implements iWindow {
    */
   public void addWindowDragger(iPlatformComponent c) {
     if (dragHandler == null) {
-      dragHandler = new DragHandler();
+      dragHandler = new DragHandler(this);
     }
 
-    ((View) c.getView()).setOnTouchListener(dragHandler);
+    c.getView().setOnTouchListener(dragHandler);
   }
 
+  @Override
   public void addWindowDragger(iWidget widget) {
     addWindowDragger(widget.getContainerComponent());
   }
@@ -87,6 +85,7 @@ public class WindowViewer extends aWindowViewer implements iWindow {
    *          the image
    * @return the image painter
    */
+  @Override
   public iImagePainter createImagePainter(iPlatformIcon icon) {
     UIImage image = null;
 
@@ -143,6 +142,7 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     super.dispose();
   }
 
+  @Override
   public void removeWindowDragger(iWidget widget) {
     if ((dragHandler != null) && (widget != null)) {
       View v = widget.getContainerComponent().getView();
@@ -151,12 +151,15 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     }
   }
 
+  @Override
   public void toBack() {
     getAppContext().getActivity().moveTaskToBack(true);
   }
 
+  @Override
   public void toFront() {}
 
+  @Override
   public void setDefaultButton(PushButtonWidget widget) {}
 
   /**
@@ -181,6 +184,7 @@ public class WindowViewer extends aWindowViewer implements iWindow {
    * @return the image
    * @throws IOException
    */
+  @Override
   public UIImage getDelayedImage(URL url, int size, int constraints, ScalingType st, UIColor bg) throws IOException {
     return ImageHelper.createImage(url, true, size, constraints, st, bg, 0);
   }

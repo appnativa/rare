@@ -20,6 +20,8 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.Collections;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.ActionHelper;
@@ -40,8 +42,6 @@ import com.appnativa.rare.widget.LineWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
-
-import java.util.Collections;
 
 /**
  * A viewer that holds a set of commonly used actions that can be general or
@@ -104,13 +104,6 @@ public abstract class aToolBarViewer extends aContainer implements iToolBar {
   @Override
   public void add(iWidget widget) {
     addComponentEx(widget.getContainerComponent());
-
-    String name = widget.getName();
-
-    if ((name != null) && (name.length() > 0)) {
-      registerNamedItem(name, widget);
-    }
-
     this.registerWidget(widget);
   }
 
@@ -131,7 +124,6 @@ public abstract class aToolBarViewer extends aContainer implements iToolBar {
 
     addComponentEx(comp);
     w.setParent(this);
-    registerNamedItem(name, w);
     registerWidget(w);
 
     return w;
@@ -156,7 +148,6 @@ public abstract class aToolBarViewer extends aContainer implements iToolBar {
 
     addComponentEx(w.getContainerComponent());
     w.setParent(this);
-    registerNamedItem(w.getName(), w);
     registerWidget(w);
 
     return w;
@@ -224,13 +215,6 @@ public abstract class aToolBarViewer extends aContainer implements iToolBar {
     }
 
     addComponentEx(w.getContainerComponent());
-
-    String name = w.getName();
-
-    if ((name != null) && (name.length() > 0)) {
-      registerNamedItem(name, w);
-    }
-
     this.registerWidget(w);
 
     return w;

@@ -47,6 +47,7 @@ public class TabPaneViewer extends aTabPaneViewer {
     super(parent);
   }
 
+  @Override
   protected int getDefaultTabStyle() {
     return TabPane.CTabStyle.box;
   }

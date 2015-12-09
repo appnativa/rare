@@ -224,17 +224,17 @@ static BOOL statusBarHidden=NO;
   }
   self.view=nil;
 }
+-(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+  [self.view endEditing:YES];
+}
 
 //Code from Matt Gallagher @ http://www.cocoawithlove.com/2008/10/sliding-uitextfields-around-to-avoid.html
--(void)textFieldDidBeginEditing:(UITextField *)textField {
-  if([RAREAPApplication isManageKeyboard]) {
-    CGRect textFieldRect =
-    [self.view.window convertRect:textField.bounds fromView:textField];
-    CGRect viewRect =
-    [self.view.window convertRect:self.view.bounds fromView:self.view];
+-(void)scrollContentForResponder:(UIView *)view {
+    CGRect textFieldRect = [self.view.window convertRect:view.bounds fromView:view];
+    CGRect viewRect = [self.view.window convertRect:self.view.bounds fromView:self.view];
     CGFloat midline = textFieldRect.origin.y + 0.5 * textFieldRect.size.height;
-    CGFloat numerator =
-    midline - viewRect.origin.y
+    CGFloat numerator =  midline - viewRect.origin.y
     - MINIMUM_SCROLL_FRACTION * viewRect.size.height;
     CGFloat denominator =
     (MAXIMUM_SCROLL_FRACTION - MINIMUM_SCROLL_FRACTION)
@@ -249,68 +249,90 @@ static BOOL statusBarHidden=NO;
       heightFraction = 1.0;
     }
     animatedDistance = floor([[RAREAPApplication getInstance] getKeyboardHeight] * heightFraction);
-    CGRect viewFrame = self.view.frame;
-    UIInterfaceOrientation orientation =
-    [[UIApplication sharedApplication] statusBarOrientation];
-    if (orientation == UIInterfaceOrientationPortrait ||
-        orientation == UIInterfaceOrientationPortraitUpsideDown)
-    {
+    BOOL main=[[RAREAPApplication getInstance] getMainWindow]==window;
+    CGRect viewFrame = main ? self.view.frame : window.frame;
+    if ([UIScreen osVersionAsFloat]<8) {
+      UIInterfaceOrientation orientation =
+      [[UIApplication sharedApplication] statusBarOrientation];
+      if (orientation == UIInterfaceOrientationPortrait ||
+          orientation == UIInterfaceOrientationPortraitUpsideDown)
+      {
+        viewFrame.origin.y -= animatedDistance;
+      }
+      else
+      {
+        if(orientation==UIInterfaceOrientationLandscapeLeft) {
+          viewFrame.origin.x -= animatedDistance;
+        }
+        else {
+          viewFrame.origin.x += animatedDistance;
+        }
+      }
+    }
+    else {
       viewFrame.origin.y -= animatedDistance;
     }
-    else
-    {
-      if(orientation==UIInterfaceOrientationLandscapeLeft) {
-        viewFrame.origin.x -= animatedDistance;
-      }
-      else {
-        viewFrame.origin.x += animatedDistance;
-      }
-    }
-    
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationBeginsFromCurrentState:YES];
     [UIView setAnimationDuration:KEYBOARD_ANIMATION_DURATION];
     [self setNeedsStatusBarAppearanceUpdate ];
-    
-    [self.view setFrame:viewFrame];
+    if(main) {
+      [self.view setFrame:viewFrame];
+    }
+    else {
+      [window setFrame:viewFrame];
+    }
     
     [UIView commitAnimations];
-  }
+  
 }
--(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-  [self.view endEditing:YES];
-}
-- (void)textFieldDidEndEditing:(UITextField *)textField
-{
+
+- (void) resetScrolledContent:(BOOL) animate {
   if(animatedDistance!=0) {
-    CGRect viewFrame = self.view.frame;
-    UIInterfaceOrientation orientation =
-    [[UIApplication sharedApplication] statusBarOrientation];
-    if (orientation == UIInterfaceOrientationPortrait ||
-        orientation == UIInterfaceOrientationPortraitUpsideDown)
-    {
+    BOOL main=[[RAREAPApplication getInstance] getMainWindow]==window;
+    CGRect viewFrame = main ? self.view.frame : window.frame;
+    if ([UIScreen osVersionAsFloat]<8) {
+      UIInterfaceOrientation orientation =
+      [[UIApplication sharedApplication] statusBarOrientation];
+      if (orientation == UIInterfaceOrientationPortrait ||
+          orientation == UIInterfaceOrientationPortraitUpsideDown)
+      {
+        viewFrame.origin.y += animatedDistance;
+      }
+      else
+      {
+        if(orientation==UIInterfaceOrientationLandscapeLeft) {
+          viewFrame.origin.x += animatedDistance;
+        }
+        else {
+          viewFrame.origin.x -= animatedDistance;
+        }
+      }
+    }
+    else {
       viewFrame.origin.y += animatedDistance;
     }
-    else
-    {
-      if(orientation==UIInterfaceOrientationLandscapeLeft) {
-        viewFrame.origin.x += animatedDistance;
-      }
-      else {
-        viewFrame.origin.x -= animatedDistance;
-      }
+    if(animate) {
+      [UIView beginAnimations:nil context:NULL];
+      [UIView setAnimationBeginsFromCurrentState:YES];
+      [UIView setAnimationDuration:KEYBOARD_ANIMATION_DURATION];
     }
-    
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationBeginsFromCurrentState:YES];
-    [UIView setAnimationDuration:KEYBOARD_ANIMATION_DURATION];
-    
-    [self.view setFrame:viewFrame];
+    if(main) {
+      [self.view setFrame:viewFrame];
+    }
+    else {
+      [window setFrame:viewFrame];
+    }
     animatedDistance=0;
-    [self setNeedsStatusBarAppearanceUpdate ];
-    [UIView commitAnimations];
+    if(animate) {
+      [self setNeedsStatusBarAppearanceUpdate ];
+      [UIView commitAnimations];
+    }
+    else {
+      [self setNeedsStatusBarAppearanceUpdate ];
+    }
   }
+  
 }
 
 @end

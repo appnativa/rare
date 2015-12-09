@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -44,6 +44,11 @@ public class TableListHandler extends ListBoxListHandler {
   @Override
   public void moveLeftRight(boolean left, boolean block) {
     tableComponent.moveLeftRight(left, block);
+  }
+
+  @Override
+  public boolean isTabular() {
+    return true;
   }
 
   @Override

@@ -62,24 +62,28 @@ public class ControlView extends View {
     }
   }
 
+  @Override
   public native void setSelected(boolean selected)
   /*-[
     ((UIControl*)proxy_).selected=selected;
   ]-*/
   ;
 
+  @Override
   public native boolean isPressed()
   /*-[
     return ((UIControl*)proxy_).highlighted;
   ]-*/
   ;
 
+  @Override
   public native boolean isSelected()
   /*-[
     return ((UIControl*)proxy_).selected;
   ]-*/
   ;
 
+  @Override
   protected native void setEnabledEx(boolean b)
   /*-[
     UIView* v=(UIView*)proxy_;

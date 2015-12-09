@@ -23,6 +23,7 @@ package com.appnativa.rare.ui;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.converters.Conversions;
 import com.appnativa.rare.ui.ColorUtils.Shade;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
@@ -271,14 +272,21 @@ public class UIColorShade extends UIColor implements Cloneable {
   public SimpleColorStateList getColorStateList() {
     return colorStateList;
   }
-
+  
+  public UIColor getColor(ButtonState state) {
+    if(colorStateList!=null) {
+      return colorStateList.getColor(state);
+    }
+    return super.getColor(state);
+  }
+  
   @Override
-  public UIColor getDisabledColor(UIColor def) {
+  public UIColor getDisabledColor() {
     if (colorStateList != null) {
-      return colorStateList.getDisabledColor(def);
+      return colorStateList.getDisabledColor();
     }
 
-    return def;
+    return super.getDisabledColor();
   }
 
   public PainterHolder getPainterHolder() {

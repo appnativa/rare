@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.spinner;
@@ -29,15 +29,16 @@ import java.text.DecimalFormat;
  * @author Don DeCoteau
  */
 public class SpinnerNumberModel extends aSpinnerModel {
-  SNumber         mainValue   = new SNumber();
-  SNumber         workValue   = new SNumber();
-  SNumber         stepSize    = SNumber.ONE;
-  SNumber         returnValue = new SNumber();
-  DecimalFormat   format;
-  boolean         circular;
-  private SNumber maximum = new SNumber(Integer.MAX_VALUE);
-  private SNumber minimum = SNumber.ZERO;
-  private boolean supportDecimalValues;
+  protected SNumber       mainValue   = new SNumber();
+  protected SNumber       workValue   = new SNumber();
+  protected SNumber       stepSize    = SNumber.ONE;
+  protected SNumber       returnValue = new SNumber();
+  protected DecimalFormat format;
+  protected boolean       circular;
+  protected SNumber       maximum = new SNumber(Integer.MAX_VALUE);
+  protected SNumber       minimum = SNumber.ZERO;
+  protected boolean       supportDecimalValues;
+  protected int           maximumDecimalPlaces;
 
   public SpinnerNumberModel(boolean circular) {
     this.circular = circular;
@@ -234,5 +235,23 @@ public class SpinnerNumberModel extends aSpinnerModel {
     }
 
     return new SNumber(value.toString());
+  }
+
+  public int getMaximumDecimalPlaces() {
+    return maximumDecimalPlaces;
+  }
+
+  public void setMaximumDecimalPlaces(int maximumPlaces) {
+    this.maximumDecimalPlaces = maximumPlaces;
+  }
+
+  @Override
+  protected void fireStateChanged() {
+    if (supportDecimalValues && (maximumDecimalPlaces > 0) && (workValue.decimalPlaces() > maximumDecimalPlaces)) {
+      workValue.setScale(maximumDecimalPlaces);
+      returnValue.setScale(maximumDecimalPlaces);
+    }
+
+    super.fireStateChanged();
   }
 }

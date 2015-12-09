@@ -1,0 +1,9 @@
+rm -fR output/java
+./j2objc -use-arc -d output -sourcepath mods `find mods '*Date*.java'`
+cp output/java/text/SimpleDateFormat.m /Code/Dev/appNativa/source/rareobjc/source/java/text/SimpleDateFormat.m
+cp output/java/text/SimpleDateFormat.h /Code/Dev/appNativa/sdk/j2objc/include/java/text/SimpleDateFormat.h
+cp output/java/text/DateFormatSymbols.m /Code/Dev/appNativa/source/rareobjc/source/java/text/DateFormatSymbols.m
+cp output/java/text/DateFormatSymbols.h /Code/Dev/appNativa/sdk/j2objc/include/java/text/DateFormatSymbols.h
+cp output/java/text/DateFormat.m /Code/Dev/appNativa/source/rareobjc/source/java/text/DateFormat.m
+cp output/java/text/DateFormat.h /Code/Dev/appNativa/sdk/j2objc/include/java/text/DateFormat.h
+

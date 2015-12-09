@@ -16,8 +16,6 @@
 
 @interface RAREAPTableView : RAREAPListView<UIScrollViewDelegate> {
   BOOL isTreeTable;
-  UIScrollView* rowHeaderScroller;
-  UIScrollView* rowFooterScroller;
   
 @public
   RAREAPTableHeaderView* headerProxy;
@@ -40,8 +38,6 @@
 -(void) moveColumn: (NSInteger) column toColumn: (NSInteger) targetColumn;
 - (CGRect) rectOfRow: (NSInteger) row;
 -(void) columnSizesUpdated;
--(void) setRowHeaderScroller: (UIScrollView*) scroller;
--(void) setRowFooterScroller: (UIScrollView*) scroller;
 -(void) setColumnPressedAtIndex: (int) index pressed: (BOOL) pressed;
 - (int)columnMargin;
 -(void) columnsSet;

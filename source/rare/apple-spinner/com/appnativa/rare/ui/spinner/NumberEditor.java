@@ -45,7 +45,7 @@ public class NumberEditor extends DefaultEditor implements iTextChangeListener {
     super.modelChanged();
 
     TextFieldView v = (TextFieldView) editorView;
-
+    v.setShowMenu(false);
     supportDecimalValues = ((SpinnerNumberModel) spinnerModel).isSupportDecimalValues();
 
     if (supportDecimalValues) {

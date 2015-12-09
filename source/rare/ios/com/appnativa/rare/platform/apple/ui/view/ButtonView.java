@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
@@ -26,18 +26,14 @@ import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
-import com.appnativa.rare.ui.SimpleColorStateList;
 import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.painter.PainterHolder;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.text.HTMLCharSequence;
 
 /*-[
@@ -51,7 +47,7 @@ public class ButtonView extends ControlView {
   protected iPlatformIcon selectedIcon;
   protected int           iconGap      = 4;
   IconPosition            iconPosition = IconPosition.LEADING;
-  private iActionListener actionListener;
+  iActionListener actionListener;
 
   public ButtonView() {
     super(createProxy());
@@ -70,53 +66,13 @@ public class ButtonView extends ControlView {
     }
   }
 
-  protected void checkForegroundColor() {
-    PainterHolder ph    = (componentPainter == null)
-                          ? null
-                          : componentPainter.getPainterHolder();
-    ButtonState   state = ButtonState.DEFAULT;
-    UIColor       fg    = null;
-
-    if (!enabled) {
-      state = isSelected()
-              ? ButtonState.DISABLED_SELECTED
-              : ButtonState.DISABLED;
-    } else {
-      if (isPressed()) {
-        state = isSelected()
-                ? ButtonState.PRESSED_SELECTED
-                : ButtonState.PRESSED;
-      } else if (isSelected()) {
-        state = ButtonState.SELECTED;
-      }
-    }
-
-    if (ph != null) {
-      fg = ph.getForeground(state);
-    }
-
-    if (fg != null) {
-      setForegroundColorEx(fg);
-    } else if (foregroundColor == ColorUtils.getForeground()) {
-      if (enabled) {
-        setForegroundColorEx(foregroundColor);
-      } else {
-        setForegroundColorEx(ColorUtils.getDisabledForeground());
-      }
-    } else if (foregroundColor instanceof UIColorShade) {
-      SimpleColorStateList csl = ((UIColorShade) foregroundColor).getColorStateList();
-
-      if (csl != null) {
-        setForegroundColorEx(csl.getColor(state));
-      }
-    }
-  }
 
   @Override
   public void setActionListener(iActionListener l) {
     actionListener = l;
   }
 
+  @Override
   protected native void setEnabledEx(boolean enabled)
   /*-[
         ((UIControl*)proxy_).enabled=enabled;
@@ -152,6 +108,7 @@ public class ButtonView extends ControlView {
     }
   }
 
+  @Override
   public void performClick() {
     actionPerformed();
   }
@@ -160,24 +117,31 @@ public class ButtonView extends ControlView {
     super(nsview);
   }
 
+  @Override
   public native void setFont(UIFont font)
   /*-[
-        font_ = font;
-        if(font) {
+    font_ = font;
+    if(font) {
       [((UIButton*)proxy_).titleLabel setFont: (UIFont*)[font getIOSProxy]];
-        }
+    }
   ]-*/
   ;
 
   @Override
-  public void getMinimumSize(UIDimension size) {
-    getPreferredSize(size, 0);
+  public void getMinimumSize(UIDimension size, float maxWidth) {
+    getPreferredSize(size, maxWidth);
   }
 
+  @Override
+  public void getPreferredSize(UIDimension size, float maxWidth) {
+    super.getPreferredSize(size, maxWidth);
+  }
+
+  @Override
   public native void setIcon(iPlatformIcon icon)
   /*-[
-   icon_=icon;
-        [((UIButton*)proxy_) setIcon: icon];
+    icon_=icon;
+    [((UIButton*)proxy_) setIcon: icon];
   ]-*/
   ;
 
@@ -194,24 +158,28 @@ public class ButtonView extends ControlView {
     return icon;
   }
 
+  @Override
   public native String getText()
   /*-[
         return ((UIButton*)proxy_).currentTitle;
   ]-*/
   ;
 
+  @Override
   public native boolean isWordWrap()
   /*-[
         return [((UIButton*)proxy_) isWrapText];
   ]-*/
   ;
 
+  @Override
   public native void setWordWrap(boolean wrap)
   /*-[
         [((UIButton*)proxy_) setWrapText: wrap];
   ]-*/
   ;
 
+  @Override
   public void setText(CharSequence text) {
     setTextEx(HTMLCharSequence.checkSequence(text, getFontAlways()));
   }
@@ -244,6 +212,7 @@ public class ButtonView extends ControlView {
   ]-*/
   ;
 
+  @Override
   public native void setIconGap(int gap)
   /*-[
     iconGap_=gap;
@@ -251,6 +220,7 @@ public class ButtonView extends ControlView {
    ]-*/
   ;
 
+  @Override
   public native void setTextAlignment(HorizontalAlign hal, VerticalAlign val)
   /*-[
         UIButton* button=(UIButton*)proxy_;
@@ -259,6 +229,7 @@ public class ButtonView extends ControlView {
   ]-*/
   ;
 
+  @Override
   public native void setIconPosition(IconPosition iconPosition)
   /*-[
   if (iconPosition == nil) {
@@ -271,7 +242,7 @@ public class ButtonView extends ControlView {
 
   public native void setMargin(int top, int right, int bottom, int left)
   /*-[
-        [((UIButton*)proxy_) setInsetsWithTop: top right: right bottom: bottom left: left];
+      [((UIButton*)proxy_) setInsetsWithTop: top right: right bottom: bottom left: left];
   ]-*/
   ;
 
@@ -281,10 +252,12 @@ public class ButtonView extends ControlView {
   ]-*/
   ;
 
+  @Override
   public iPlatformIcon getDisabledIcon() {
     return disabledIcon;
   }
 
+  @Override
   public native void setDisabledIcon(iPlatformIcon icon)
   /*-[
      disabledIcon_ = icon;
@@ -292,10 +265,12 @@ public class ButtonView extends ControlView {
    ]-*/
   ;
 
+  @Override
   public iPlatformIcon getPressedIcon() {
     return pressedIcon;
   }
 
+  @Override
   public native void setPressedIcon(iPlatformIcon icon)
   /*-[
     pressedIcon_ = icon;
@@ -303,10 +278,12 @@ public class ButtonView extends ControlView {
   ]-*/
   ;
 
+  @Override
   public iPlatformIcon getSelectedIcon() {
     return selectedIcon;
   }
 
+  @Override
   public native void setSelectedIcon(iPlatformIcon icon)
   /*-[
      selectedIcon_ = icon;

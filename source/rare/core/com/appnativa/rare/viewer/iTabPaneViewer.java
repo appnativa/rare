@@ -20,6 +20,8 @@
 
 package com.appnativa.rare.viewer;
 
+import java.net.URL;
+
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.UIRectangle;
@@ -28,8 +30,6 @@ import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iTabDocument;
 import com.appnativa.rare.ui.iTabPaneComponent;
 import com.appnativa.rare.ui.listener.iTabPaneListener;
-
-import java.net.URL;
 
 /**
  * Interface  for tab pane viewers.

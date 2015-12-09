@@ -15,15 +15,32 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 public interface iIcon {
+
+  /**
+   * Gets the icons height
+   * @return  the icons height
+   */
   int getIconHeight();
 
+  /**
+   * Gets the icons width
+   * @return  the icons width
+   */
   int getIconWidth();
 
+  /**
+   * Paints the icon
+   * @param g the graphics context
+   * @param x the x-position to paint the icons at
+   * @param y the y-position to paint the icons at
+   * @param width the remaining width of the view such that {@code x+width=view.width}
+   * @param height the remaining height of the view such that {@code y+height=view.height}
+   */
   void paint(iPlatformGraphics g, float x, float y, float width, float height);
 }

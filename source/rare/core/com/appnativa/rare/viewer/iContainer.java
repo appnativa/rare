@@ -20,14 +20,14 @@
 
 package com.appnativa.rare.viewer;
 
+import java.util.List;
+import java.util.Map;
+
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.UISelectionModelGroup;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.widget.iWidget;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * An interface for widget containers
@@ -185,7 +185,7 @@ public interface iContainer extends iViewer {
    *
    * @return true if it hog's the focus; false otherwise
    */
-  public boolean isHogFocus();
+  boolean isHogFocus();
 
   /**
    * Sets whether the container is a focus hog.
@@ -194,5 +194,6 @@ public interface iContainer extends iViewer {
    *
    * @param hog true to hog the focus ; false otherwise
    */
-  public void setHogFocus(boolean hog);
+  void setHogFocus(boolean hog);
+
 }

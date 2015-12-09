@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+import java.net.URL;
+
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.apple.ui.DragHandler;
 import com.appnativa.rare.platform.apple.ui.view.View;
@@ -32,16 +35,13 @@ import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iWindow;
+import com.appnativa.rare.ui.iWindowManager.iFrame;
 import com.appnativa.rare.ui.painter.UIImagePainter;
 import com.appnativa.rare.ui.painter.iImagePainter;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
-
-import java.io.IOException;
-
-import java.net.URL;
 
 /**
  *
@@ -50,11 +50,10 @@ import java.net.URL;
 public class WindowViewer extends aWindowViewer implements iWindow {
   protected DragHandler dragHandler;
 
-  public WindowViewer(iPlatformAppContext ctx, String name, Frame win, WindowViewer parent, iScriptHandler sh) {
+  public WindowViewer(iPlatformAppContext ctx, String name, iFrame win, WindowViewer parent, iScriptHandler sh) {
     super(ctx, name, win, parent, sh);
     theWindow = win;
-    win.setViewer(this);
-    formComponent = dataComponent = win;
+    formComponent = dataComponent = win.getComponent();
     widgetType    = WidgetType.Window;
     theWindow     = win;
   }

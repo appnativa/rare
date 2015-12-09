@@ -83,6 +83,7 @@ public class VideoViewer extends aPlatformViewer {
     return videoView.canSeekForward();
   }
 
+  @Override
   public void clearContents() {
     if (videoView != null) {
       videoView.stopPlayback();
@@ -94,12 +95,14 @@ public class VideoViewer extends aPlatformViewer {
    *
    * @param vcfg the viewer's configuration
    */
+  @Override
   public void configure(Viewer vcfg) {
     configureEx(vcfg);
     fireConfigureEvent(vcfg, iConstants.EVENT_CONFIGURE);
     handleDataURL(vcfg, false);
   }
 
+  @Override
   public void dispose() {
     if (isDisposed()) {
       return;
@@ -118,6 +121,7 @@ public class VideoViewer extends aPlatformViewer {
     videoView       = null;
   }
 
+  @Override
   public void handleActionLink(ActionLink link, boolean deferred) {
     try {
       setURL(link.getURL(this));
@@ -130,6 +134,7 @@ public class VideoViewer extends aPlatformViewer {
     videoView.pause();
   }
 
+  @Override
   public void reload(boolean context) {
     if (videoUri != null) {
       videoView.setVideoURI(videoUri);
@@ -161,6 +166,7 @@ public class VideoViewer extends aPlatformViewer {
     super.targetAcquired(target);
   }
 
+  @Override
   public void targetLost(iTarget target) {
     try {
       if (mediaPlayer != null) {
@@ -202,6 +208,7 @@ public class VideoViewer extends aPlatformViewer {
     setURL(url.toExternalForm());
   }
 
+  @Override
   public void setValue(Object value) {
     try {
       if (value instanceof URL) {
@@ -244,6 +251,7 @@ public class VideoViewer extends aPlatformViewer {
     return mediaPlayer;
   }
 
+  @Override
   public Object getSelection() {
     return getLocation();
   }
@@ -318,6 +326,7 @@ public class VideoViewer extends aPlatformViewer {
     final int     seek = startPosition;
 
     videoView.setOnPreparedListener(new OnPreparedListener() {
+      @Override
       public void onPrepared(MediaPlayer mp) {
         mediaPlayer = mp;
         finishedLoadingEx();
@@ -338,6 +347,7 @@ public class VideoViewer extends aPlatformViewer {
     configureSize(getContainerComponent(), cfg.bounds);
   }
 
+  @Override
   protected void initializeListeners(aWidgetListener l) {
     super.initializeListeners(l);
   }

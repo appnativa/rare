@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -23,6 +23,7 @@ package com.appnativa.rare.ui.table;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.event.iDataModelListener;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
@@ -33,25 +34,31 @@ import com.appnativa.util.FilterableList;
 import com.appnativa.util.IntList;
 
 import java.util.Comparator;
+import java.util.EventObject;
 import java.util.List;
 
-public class MultiTableTableComponent implements iTableComponent, iDataModelListener {
-  protected iTableComponent mainTable;
-  protected iTableComponent columnHeaderTable;
-  protected iTableComponent columnFooterTable;
-  protected iTableComponent rowHeaderTable;
-  protected iTableComponent rowFooterTable;
-  int                       rowHeaderColumnCount;
-  int                       rowFooterColumnStart;
-  int                       mainColumnCount;
-  MultiDataItemTableModel   tableModel;
-  private IntList           colList;
-  iPlatformComponent        component;
+public class MultiTableTableComponent implements iTableComponent, iDataModelListener, iChangeListener {
+  protected iTableComponent         mainTable;
+  protected iTableComponent         columnHeaderTable;
+  protected iTableComponent         columnFooterTable;
+  protected iTableComponent         rowHeaderTable;
+  protected iTableComponent         rowFooterTable;
+  protected int                     rowHeaderColumnCount;
+  protected int                     rowFooterColumnStart;
+  protected int                     mainColumnCount;
+  protected MultiDataItemTableModel tableModel;
+  protected IntList                 colList;
+  protected iPlatformComponent      component;
+  protected int[]                   viewPositions;
 
   public MultiTableTableComponent(iPlatformComponent component, MultiDataItemTableModel model) {
     this.component = component;
     tableModel     = model;
     model.addDataModelListener(this);
+  }
+
+  public Column[] getColumns() {
+    return tableModel.getColumnsEx();
   }
 
   @Override
@@ -390,13 +397,17 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
 
   @Override
   public void moveColumn(int column, int targetColumn) {
-    iTableComponent table = getTableForModelColumn(column);
+    int mc  = convertViewIndexToModel(column);
+    int tmc = convertViewIndexToModel(targetColumn);
 
-    column       = getColumnIndexForModelColumn(column);
-    targetColumn = getColumnIndexForModelColumn(targetColumn);
+    if ((mc != -1) && (tmc != -1) && (mc != tmc)) {
+      iTableComponent table1 = getTableForModelColumn(mc);
+      iTableComponent table2 = getTableForModelColumn(tmc);
 
-    if ((column != -1) && (targetColumn != -1)) {
-      table.moveColumn(column, targetColumn);
+      if (table1 == table2) {
+        table1.moveColumn(column, targetColumn);
+        viewPositions = null;
+      }
     }
   }
 
@@ -475,7 +486,8 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
   public void setMainTable(iTableComponent mainTable) {
     this.mainTable = mainTable;
     mainTable.setTableType(TableType.MAIN);
-    mainTable.getTableHeader().setMultiTableColumns(tableModel.getColumns());
+    mainTable.getTableHeader().setMultiTableTableComponent(this);
+    mainTable.getTableHeader().addColumnChangeListener(this);
   }
 
   /**
@@ -485,7 +497,8 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
   public void setRowFooterTable(iTableComponent rowFooterTable) {
     this.rowFooterTable = rowFooterTable;
     rowFooterTable.setTableType(TableType.FOOTER);
-    rowFooterTable.getTableHeader().setMultiTableColumns(tableModel.getColumns());
+    rowFooterTable.getTableHeader().setMultiTableTableComponent(this);
+    rowFooterTable.getTableHeader().addColumnChangeListener(this);
   }
 
   /**
@@ -495,7 +508,8 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
   public void setRowHeaderTable(iTableComponent rowHeaderTable) {
     this.rowHeaderTable = rowHeaderTable;
     rowHeaderTable.setTableType(TableType.HEADER);
-    rowHeaderTable.getTableHeader().setMultiTableColumns(tableModel.getColumns());
+    rowHeaderTable.getTableHeader().setMultiTableTableComponent(this);
+    rowHeaderTable.getTableHeader().addColumnChangeListener(this);
   }
 
   @Override
@@ -691,24 +705,16 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
   }
 
   @Override
-  public void contentsChanged(Object source) {
-    // TODO Auto-generated method stub
-  }
+  public void contentsChanged(Object source) {}
 
   @Override
-  public void contentsChanged(Object source, int index0, int index1) {
-    // TODO Auto-generated method stub
-  }
+  public void contentsChanged(Object source, int index0, int index1) {}
 
   @Override
-  public void intervalAdded(Object source, int index0, int index1) {
-    // TODO Auto-generated method stub
-  }
+  public void intervalAdded(Object source, int index0, int index1) {}
 
   @Override
-  public void intervalRemoved(Object source, int index0, int index1, List<RenderableDataItem> removed) {
-    // TODO Auto-generated method stub
-  }
+  public void intervalRemoved(Object source, int index0, int index1, List<RenderableDataItem> removed) {}
 
   @Override
   public boolean isMultiTableComponent() {
@@ -717,14 +723,37 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
 
   @Override
   public void structureChanged(Object source) {
-    mainTable.getTableHeader().setMultiTableColumns(tableModel.getColumns());
+  }
 
-    if (rowHeaderTable != null) {
-      rowHeaderTable.getTableHeader().setMultiTableColumns(tableModel.getColumns());
+  public int[] getViewPositions() {
+    if (viewPositions == null) {
+      int   vp[] = new int[getColumnCount()];
+      int[] a;
+      int   dstPos = 0;
+
+      if (rowHeaderTable != null) {
+        a = rowHeaderTable.getTableHeader().viewPositions;
+        System.arraycopy(a, 0, vp, dstPos, a.length);
+        dstPos += a.length;
+      }
+
+      a = mainTable.getTableHeader().viewPositions;
+      System.arraycopy(a, 0, vp, dstPos, a.length);
+      dstPos += a.length;
+
+      if (rowFooterTable != null) {
+        a = rowFooterTable.getTableHeader().viewPositions;
+        System.arraycopy(a, 0, vp, dstPos, a.length);
+      }
+
+      viewPositions = vp;
     }
 
-    if (rowFooterTable != null) {
-      rowFooterTable.getTableHeader().setMultiTableColumns(tableModel.getColumns());
-    }
+    return viewPositions;
+  }
+
+  @Override
+  public void stateChanged(EventObject e) {
+    viewPositions=null;
   }
 }

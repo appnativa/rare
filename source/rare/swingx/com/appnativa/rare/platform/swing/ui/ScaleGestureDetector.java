@@ -20,12 +20,6 @@
 
 package com.appnativa.rare.platform.swing.ui;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.event.ScaleEvent;
-import com.appnativa.rare.ui.event.ScaleGestureObject;
-import com.appnativa.rare.widget.aWidget;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -34,6 +28,12 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
 import javax.swing.Timer;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iGestureListener;
+import com.appnativa.rare.ui.event.ScaleGestureObject;
+import com.appnativa.rare.widget.aWidget;
 
 public class ScaleGestureDetector extends ScaleGestureObject implements MouseListener, MouseWheelListener {
   int     state = -1;
@@ -76,7 +76,7 @@ public class ScaleGestureDetector extends ScaleGestureObject implements MouseLis
       }
 
       state = -1;
-      fireEvent(ScaleEvent.SCALE_END, null);
+      fireEvent(iGestureListener.SCALE_END, null);
     }
   }
 
@@ -100,8 +100,8 @@ public class ScaleGestureDetector extends ScaleGestureObject implements MouseLis
 
     if (!timer.isRunning()) {
       fireEvent((state == -1)
-                ? ScaleEvent.SCALE_BEGIN
-                : ScaleEvent.SCALE, e);
+                ? iGestureListener.SCALE_BEGIN
+                : iGestureListener.SCALE, e);
       timer.start();
     }
   }
@@ -126,20 +126,20 @@ public class ScaleGestureDetector extends ScaleGestureObject implements MouseLis
     }
 
     switch(state) {
-      case ScaleEvent.SCALE_BEGIN :
+      case iGestureListener.SCALE_BEGIN :
         wl.onScaleEvent(this, state, this, 1);
-        this.state = ScaleEvent.SCALE;
-        wl.onScaleEvent(this, ScaleEvent.SCALE, this, getScaleFactor());
+        this.state = iGestureListener.SCALE;
+        wl.onScaleEvent(this, iGestureListener.SCALE, this, getScaleFactor());
 
         break;
 
-      case ScaleEvent.SCALE :
-        wl.onScaleEvent(this, ScaleEvent.SCALE, this, getScaleFactor());
+      case iGestureListener.SCALE :
+        wl.onScaleEvent(this, iGestureListener.SCALE, this, getScaleFactor());
 
         break;
 
       default :
-        wl.onScaleEvent(this, ScaleEvent.SCALE_END, this, getScaleFactor());
+        wl.onScaleEvent(this, iGestureListener.SCALE_END, this, getScaleFactor());
         this.state  = -1;
         scaleFactor = 1;
 
@@ -150,7 +150,7 @@ public class ScaleGestureDetector extends ScaleGestureObject implements MouseLis
   void checkTimer() {
     if (lastScrollTime + timer.getDelay() < System.currentTimeMillis()) {
       timer.stop();
-      fireEvent(ScaleEvent.SCALE_END, null);
+      fireEvent(iGestureListener.SCALE_END, null);
     }
   }
 }

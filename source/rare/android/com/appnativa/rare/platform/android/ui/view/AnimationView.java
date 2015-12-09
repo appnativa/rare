@@ -54,6 +54,7 @@ public class AnimationView extends ViewGroupEx implements iAnimationImageView {
     }
   }
 
+  @Override
   public void setImage(UIImage image) {
     this.image = image;
   }
@@ -67,6 +68,7 @@ public class AnimationView extends ViewGroupEx implements iAnimationImageView {
     return component;
   }
 
+  @Override
   public UIImage getImage() {
     return image;
   }

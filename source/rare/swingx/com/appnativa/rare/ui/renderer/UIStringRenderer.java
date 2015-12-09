@@ -41,7 +41,7 @@ public class UIStringRenderer extends UILabelRenderer {
 
   @Override
   public iPlatformRenderingComponent newCopy() {
-    return Renderers.setupNewCopy(this, new UIStringRenderer());
+    return setupNewCopy(new UIStringRenderer());
   }
 
   /**

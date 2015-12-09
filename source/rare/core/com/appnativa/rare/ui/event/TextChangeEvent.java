@@ -21,14 +21,17 @@
 package com.appnativa.rare.ui.event;
 
 public class TextChangeEvent extends ChangeEvent {
-  private boolean      changed;
   private int          endIndex;
   private CharSequence replacementString;
   private int          startIndex;
-
+  public static enum Type {
+    CHANGING,
+    CHANGED
+  }
+  Type type;
   public TextChangeEvent(Object source) {
     super(source);
-    changed = true;
+    type=Type.CHANGED;
   }
 
   public TextChangeEvent(Object source, int startIndex, int endIndex, CharSequence replacementString) {
@@ -36,6 +39,7 @@ public class TextChangeEvent extends ChangeEvent {
     this.replacementString = replacementString;
     this.startIndex        = startIndex;
     this.endIndex          = endIndex;
+    type=Type.CHANGING;
   }
 
   public int getEndIndex() {
@@ -49,8 +53,7 @@ public class TextChangeEvent extends ChangeEvent {
   public int getStartIndex() {
     return startIndex;
   }
-
-  public boolean isChangedEvent() {
-    return changed;
-  }
+ public Type getEventType() {
+   return type;
+ }
 }

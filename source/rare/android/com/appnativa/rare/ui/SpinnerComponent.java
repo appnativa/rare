@@ -21,9 +21,7 @@
 package com.appnativa.rare.ui;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
-
 import android.widget.EditText;
 
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
@@ -33,6 +31,7 @@ import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.renderer.aListItemRenderer;
 import com.appnativa.rare.ui.spinner.DateEditor;
+import com.appnativa.rare.ui.spinner.DatePickerEditor;
 import com.appnativa.rare.ui.spinner.DefaultEditor;
 import com.appnativa.rare.ui.spinner.ListEditor;
 import com.appnativa.rare.ui.spinner.NumberEditor;
@@ -66,6 +65,12 @@ public class SpinnerComponent extends aSpinnerComponent {
 
         return new NumberPickerEditor(ctx, (SpinnerNumberModel) model, this);
       }
+    }
+    else if (!useDesktopStyleEditor && model instanceof SpinnerDateModel) {
+      buttonsVisible = false;
+      DatePickerEditor e= new DatePickerEditor(ctx, (SpinnerDateModel)model, this);
+      e.finishConfiguring(getWidget());
+      return e;
     }
 
     setupSpinnerForDesktopStyle();

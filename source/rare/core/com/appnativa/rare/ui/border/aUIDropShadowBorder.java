@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -37,11 +37,13 @@ import java.io.IOException;
 import java.util.Map;
 
 public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements iImageObserver {
-  protected static NinePatch[] dropShadowNinePatch = new NinePatch[3];
-  protected static NinePatch[] shadowNinePatch     = new NinePatch[3];
+  protected static NinePatch[] dropShadowNinePatch    = new NinePatch[3];
+  protected static NinePatch[] shadowNinePatch        = new NinePatch[3];
+  protected static NinePatch[] focusedShadowNinePatch = new NinePatch[3];
   protected final float        cornerSize;
   protected boolean            loaded;
   protected NinePatch          ninePatch;
+  protected NinePatch          focusedNinePatch;
   protected final UIColor      shadowColor;
   protected final float        shadowOpacity;
   protected final float        shadowSize;
@@ -50,6 +52,7 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
   protected final boolean      showRightShadow;
   protected final boolean      showTopShadow;
   protected String             imageName;
+  protected String             focusedImageName;
   private UIPoint              paintOffset;
 
   public aUIDropShadowBorder() {
@@ -85,32 +88,6 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
       throw new ApplicationException(e);
     }
   }
-
-  @Override
-  public void imageLoaded(UIImage image) {
-    loaded = true;
-  }
-
-  @Override
-  public void paint(iPlatformGraphics g, float x, float y, float width, float height, boolean end) {
-    if (end) {
-      return;
-    }
-
-    if (loaded) {
-      if (paintOffset != null) {
-        x      += paintOffset.x;
-        y      += paintOffset.y;
-        width  -= (paintOffset.x * 2);
-        height -= (paintOffset.y * 2);
-      }
-
-      ninePatch.draw(g, x, y, width, height);
-    }
-  }
-
-  @Override
-  public void setPadForArc(boolean pad) {}
 
   @Override
   public float getArcHeight() {
@@ -150,14 +127,8 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
     return cornerSize;
   }
 
-  public static UIColor getDefaultShadowColor() {
-    UIColor c = Platform.getUIDefaults().getColor("Rare.ShadowBorder.color");
-
-    if (c == null) {
-      c = UIColor.BLACK;
-    }
-
-    return c;
+  public UIPoint getPaintOffset() {
+    return paintOffset;
   }
 
   public UIColor getShadowColor() {
@@ -170,6 +141,28 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
 
   public float getShadowSize() {
     return shadowSize;
+  }
+
+  @Override
+  public void handleCustomProperties(Map map) {
+    super.handleCustomProperties(map);
+    paintOffset      = Utils.getPoint((String) map.get("offset"));
+    imageName        = (String) map.get("image");
+    focusedImageName = (String) map.get("focusedImage");
+  }
+
+  @Override
+  public void imageLoaded(UIImage image) {
+    loaded = true;
+  }
+
+  @Override
+  public boolean isFocusAware() {
+    if (imageName != null) {
+      return focusedImageName != null;
+    }
+
+    return showTopShadow && showBottomShadow && showLeftShadow && showRightShadow;
   }
 
   @Override
@@ -199,10 +192,47 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
   }
 
   @Override
-  public void handleCustomProperties(Map map) {
-    super.handleCustomProperties(map);
-    paintOffset = Utils.getPoint((String) map.get("offset"));
-    imageName   = (String) map.get("image");
+  public void paint(iPlatformGraphics g, float x, float y, float width, float height, boolean end) {
+    if (end) {
+      return;
+    }
+
+    if (loaded) {
+      if (paintOffset != null) {
+        x      += paintOffset.x;
+        y      += paintOffset.y;
+        width  -= (paintOffset.x * 2);
+        height -= (paintOffset.y * 2);
+      }
+
+      UIColor fg = getFocusColor(g.getComponent(), false);
+
+      if (fg != null) {
+        if (focusedNinePatch == null) {
+          focusedNinePatch = getFocusedNinePatch(ninePatch, fg);
+        }
+
+        focusedNinePatch.draw(g, x, y, width, height);
+      } else {
+        ninePatch.draw(g, x, y, width, height);
+      }
+    }
+  }
+
+  @Override
+  public void setPadForArc(boolean pad) {}
+
+  public void setPaintOffset(UIPoint paintOffset) {
+    this.paintOffset = paintOffset;
+  }
+
+  protected NinePatch copy(NinePatch np, UIColor newColor) {
+    UIImage   img = (UIImage) np.getImage().clone();
+    NinePatch nnp = img.getNinePatch(true);
+
+    nnp.changeNinePatchColor(newColor, getDefaultShadowColor());
+
+    return nnp;
   }
 
   protected UIImage getImage(String name) {
@@ -213,10 +243,10 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
     if (imageName != null) {
       UIImage   img = getImage(imageName);
       NinePatch np  = img.getNinePatch(true);
-      UIColor   d   = getDefaultShadowColor();
 
-      if (shadowColor.getRGB() != d.getRGB()) {
-        np.changeNinePatchColor(shadowColor, d);
+      if (focusedImageName != null) {
+        img              = getImage(focusedImageName);
+        focusedNinePatch = img.getNinePatch(true);
       }
 
       return np;
@@ -288,11 +318,35 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
     }
   }
 
-  public UIPoint getPaintOffset() {
-    return paintOffset;
+  private NinePatch getFocusedNinePatch(NinePatch np, UIColor fg) {
+    int pos;
+
+    if (shadowSize > ScreenUtils.PLATFORM_PIXELS_7) {
+      pos = 2;
+    } else if (shadowSize > ScreenUtils.PLATFORM_PIXELS_5) {
+      pos = 1;
+    } else {
+      pos = 0;
+    }
+
+    if (shadowNinePatch[pos] == np) {
+      if (focusedShadowNinePatch[pos] == null) {
+        focusedShadowNinePatch[pos] = copy(np, fg);
+      }
+
+      return focusedShadowNinePatch[pos];
+    } else {
+      return copy(np, fg);
+    }
   }
 
-  public void setPaintOffset(UIPoint paintOffset) {
-    this.paintOffset = paintOffset;
+  public static UIColor getDefaultShadowColor() {
+    UIColor c = Platform.getUIDefaults().getColor("Rare.ShadowBorder.color");
+
+    if (c == null) {
+      c = UIColor.BLACK;
+    }
+
+    return c;
   }
 }

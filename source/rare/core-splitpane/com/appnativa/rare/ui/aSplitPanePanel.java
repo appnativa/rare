@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -391,7 +391,7 @@ public abstract class aSplitPanePanel extends XPContainer {
   }
 
   @Override
-  public void getMinimumSizeEx(UIDimension size) {
+  public void getMinimumSizeEx(UIDimension size, float maxWidth) {
     float width  = 0;
     float height = 0;
     int   len    = getComponentCount();
@@ -571,6 +571,10 @@ public abstract class aSplitPanePanel extends XPContainer {
     }
   }
 
+  protected boolean canChangeOrientationInCurrentState() {
+    return true;
+  }
+
   protected void layoutContainer(UIDimension size, UIInsets in) {
     if (checkVisibility) {
       paneVisibilityChanged();
@@ -583,7 +587,7 @@ public abstract class aSplitPanePanel extends XPContainer {
     int w      = width;
     int h      = height;
 
-    if (autoOrient) {
+    if (autoOrient && canChangeOrientationInCurrentState()) {
       boolean t2b = (width > height)
                     ? false
                     : true;

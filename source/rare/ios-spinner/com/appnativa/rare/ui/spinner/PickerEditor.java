@@ -298,4 +298,8 @@ public class PickerEditor extends aSpinnerEditor implements iChangeListener, iPi
   public Object removeSelectedData(boolean returnData) {
     return null;
   }
+
+  @Override
+  public void selectField() {
+  }
 }

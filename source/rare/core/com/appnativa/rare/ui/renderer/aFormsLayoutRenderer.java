@@ -20,8 +20,14 @@
 
 package com.appnativa.rare.ui.renderer;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.FormsPanel;
 import com.appnativa.rare.ui.ItemModelMap;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
@@ -32,23 +38,17 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.aFormsPanel;
-import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformListDataModel;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
+import com.google.j2objc.annotations.Weak;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormLayout.LayoutInfo;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponent {
   protected final String                             LAYOUT_MAP_KEY      = "aFormsLayoutRenderer.layoutMap";
@@ -59,14 +59,15 @@ public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponen
   protected boolean           useLayoutMap  = true;
   protected String            columns;
   protected UICompoundBorder  compoundBorder;
-  protected aFormsPanel       formsPanel;
+  protected FormsPanelEx       formsPanel;
   protected UIInsets          insets;
   protected aListItemRenderer liRenderer;
   protected ItemModelMap      modelMap;
   protected String            rows;
-
-  public aFormsLayoutRenderer(aFormsPanel panel) {
+  protected int columnWidth;
+  public aFormsLayoutRenderer(FormsPanelEx panel) {
     formsPanel = panel;
+    panel.renderer=this;
     liRenderer = createListItemRenderer();
   }
 
@@ -187,7 +188,7 @@ public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponen
       flr.renderingComponents.put(key, rc);
       flr.formsPanel.add(rc.getComponent(), cc);
     }
-
+    flr.columnWidth=columnWidth;
     return flr;
   }
 
@@ -238,7 +239,7 @@ public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponen
   public void setMargin(UIInsets insets) {
     formsPanel.setMargin(insets);
   }
-
+  
   /**
    * Sets rendering options.
    * Creates the layout from the rows and columns values in the options map
@@ -265,6 +266,11 @@ public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponen
   @Override
   public void setWordWrap(boolean wrap) {}
 
+   @Override
+  public void setColumnWidth(int width) {
+     columnWidth=width;
+  }
+   
   /**
    * Gets the Cell constraints for a rendering component
    * @param rc the rendering component
@@ -391,7 +397,7 @@ public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponen
       map.height     = height;
     }
   }
-
+ 
   protected static class LayoutMap {
     float      width  = Short.MIN_VALUE;
     float      height = Short.MIN_VALUE;
@@ -399,4 +405,28 @@ public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponen
 
     LayoutMap() {}
   }
-}
+
+  static class FormsPanelEx extends FormsPanel {
+    @Weak
+    aFormsLayoutRenderer renderer;
+   
+    public FormsPanelEx(Object view) {
+      super(view);
+    }
+    
+    @Override
+    protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+      int n=renderer.columnWidth;
+      if(n<0) {
+        maxWidth+=n;
+        if(maxWidth<0) {
+          maxWidth=0;
+        }
+      }
+      else if(n>0 && maxWidth>n){
+        maxWidth=n;
+      }
+      super.getPreferredSizeEx(size, maxWidth);
+    }
+  }
+ }

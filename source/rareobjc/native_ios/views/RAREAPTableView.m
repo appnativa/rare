@@ -218,21 +218,5 @@
   }
 }
 
--(void) setRowHeaderScroller: (UIScrollView*) scroller {
-  rowHeaderScroller=scroller;
-}
--(void) setRowFooterScroller: (UIScrollView*) scroller {
-  rowFooterScroller=scroller;
-}
--(void)scrollViewDidScroll:(UIScrollView *)scrollView {
-  CGPoint p=scrollView.contentOffset;
-  p.x=0;
-  if(rowHeaderScroller) {
-    rowHeaderScroller.contentOffset=p;
-  }
-  if(rowFooterScroller) {
-    rowFooterScroller.contentOffset=p;
-  }
-}
 
 @end

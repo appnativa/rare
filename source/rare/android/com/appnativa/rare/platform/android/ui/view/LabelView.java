@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
@@ -25,11 +25,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 
+import android.text.Editable;
 import android.text.Html;
 import android.text.Html.ImageGetter;
+import android.text.Html.TagHandler;
 import android.text.Layout;
 import android.text.Spannable;
+import android.text.Spanned;
 import android.text.TextPaint;
+import android.text.style.StrikethroughSpan;
 import android.text.style.URLSpan;
 
 import android.util.AttributeSet;
@@ -58,11 +62,14 @@ import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 
+import org.xml.sax.XMLReader;
+
 /**
  *
  * @author Don DeCoteau
  */
 public class LabelView extends CheckedTextView implements iPainterSupport, iComponentView, iImageObserver {
+  private static HTMLTagHandler tagHandler;
   iPlatformComponentPainter componentPainter;
   protected AndroidGraphics graphics;
   private int               iconGap      = 4;
@@ -97,14 +104,17 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
         if (imageGetter == null) {
           imageGetter = Platform.getAppContext().getWindowViewer();
         }
-
-        text = Html.fromHtml(s);
+        if(tagHandler==null) {
+          tagHandler=new HTMLTagHandler();
+        }
+        text = Html.fromHtml(s,imageGetter,tagHandler);
       }
     }
 
     return text;
   }
 
+  @Override
   public void dispose() {
     if (graphics != null) {
       graphics.dispose();
@@ -279,6 +289,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     }
   }
 
+  @Override
   public String toString() {
     CharSequence s = getText();
 
@@ -287,6 +298,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
            : s.toString();
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     componentPainter = cp;
   }
@@ -502,11 +514,13 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     setFrame(x, y, x + width, y + height);
   }
 
+  @Override
   public void setText(CharSequence text, BufferType type) {
     text = checkText(text, (ImageGetter) Platform.findWidgetForComponent(Component.fromView(this)));
     super.setText(text, type);
   }
 
+  @Override
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
@@ -567,6 +581,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     return orientation;
   }
 
+  @Override
   public int getSuggestedMinimumHeight() {
     if (orientation == Orientation.HORIZONTAL) {
       return Math.max(((length() == 0)
@@ -579,6 +594,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     }
   }
 
+  @Override
   public int getSuggestedMinimumWidth() {
     if (orientation == Orientation.HORIZONTAL) {
       return Math.max(((length() == 0)
@@ -639,16 +655,19 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     return ((gravity & Gravity.VERTICAL_GRAVITY_MASK) == Gravity.FILL_VERTICAL);
   }
 
+  @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     ViewHelper.onAttachedToWindow(this);
   }
 
+  @Override
   protected void onDetachedFromWindow() {
     super.onDetachedFromWindow();
     ViewHelper.onDetachedFromWindow(this);
   }
 
+  @Override
   protected void onDraw(Canvas canvas) {
     graphics = AndroidGraphics.fromGraphics(canvas, this, graphics);
 
@@ -688,6 +707,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     }
   }
 
+  @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     if (length() == 0) {
       int xpad = getPaddingLeft() + getPaddingRight();
@@ -704,11 +724,13 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     }
   }
 
+  @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
     ViewHelper.onSizeChanged(this, w, h, oldw, oldh);
   }
 
+  @Override
   protected void onVisibilityChanged(View changedView, int visibility) {
     super.onVisibilityChanged(changedView, visibility);
     ViewHelper.onVisibilityChanged(this, changedView, visibility);
@@ -743,6 +765,48 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     public void updateDrawState(TextPaint ds) {
       super.updateDrawState(ds);
       ds.setUnderlineText(false);
+    }
+  }
+
+
+  private static class HTMLTagHandler implements TagHandler {
+    @Override
+    public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
+      if (tag.equalsIgnoreCase("strike") || tag.equals("s")) {
+       handleStrike(opening, output);
+      }
+    }
+
+    public void handleStrike(boolean opening, Editable output) {
+      int len = output.length();
+
+      if (opening) {
+        output.setSpan(new StrikethroughSpan(), len, len, Spannable.SPAN_MARK_MARK);
+      } else {
+        Object obj   = getLast(output, StrikethroughSpan.class);
+        int    where = output.getSpanStart(obj);
+
+        output.removeSpan(obj);
+
+        if (where != len) {
+          output.setSpan(new StrikethroughSpan(), where, len, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+      }
+    }
+
+    //copied from Html.java
+    private static Object getLast(Spanned text, Class kind) {
+      /*
+       * This knows that the last returned object from getSpans()
+       * will be the most recently added.
+       */
+      Object[] objs = text.getSpans(0, text.length(), kind);
+
+      if (objs.length == 0) {
+        return null;
+      } else {
+        return objs[objs.length - 1];
+      }
     }
   }
 }

@@ -17,6 +17,7 @@
 -(void) addItem: (RAREAPMenuItem*) subItem;
 -(void) insertItem: (RAREAPMenuItem*) subItem atIndex: (NSInteger) index;
 -(void) setSubmenu: (RAREAPMenu*) subMenu forItem: (RAREAPMenuItem*) item;
+-(void) setHeader: (UIView*) view;
 +(void) setMenuBarVisible: (BOOL) visible;
 +(BOOL) menuBarVisible;
 

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.event;
@@ -28,14 +28,25 @@ import com.appnativa.rare.ui.UIPoint;
  * @author Don DeCoteau
  */
 public class MouseEvent extends InputEvent {
-  public static final int FLING      = 2;
-  public static final int LONG_PRESS = 1;
-  public static int       SCROLL     = 4;
-  protected int           modifiers  = 0;
+  public static final int FLING          = 0x2;
+  public static final int LONG_PRESS     = 0x1;
+  public static final int SCROLL         = 0x3;
+  public static final int PRESS_CANCELED = 0x4;
+  protected int           modifiers      = 0;
   protected Object        endEvent;
   protected float         gestureX;
   protected float         gestureY;
   protected Object        startEvent;
+  private int             clickCount = 0;
+
+  public static enum Type {
+    MOUSE_UNKNOWN, LONG_PRESS, SCROLL, FLING, MOUSE_DOWN, MOUSE_UP, MOUSE_CLICK, MOUSE_DBLCLICK, MOUSE_DRAG,
+    MOUSE_MOVE, MOUSE_ENTER, MOUSE_EXIT, MOUSE_SCALE, PRESS_CANCELED
+  }
+
+  public MouseEvent(Object source, Object me) {
+    this(source, me, 0);
+  }
 
   public MouseEvent(Object source, Object me, int modifiers) {
     super(source, me);
@@ -43,8 +54,37 @@ public class MouseEvent extends InputEvent {
     this.modifiers = modifiers;
   }
 
-  public MouseEvent(Object source, Object me) {
-    this(source, me, 0);
+  public MouseEvent(Object source, Object me, int modifiers, int clickCount) {
+    this(source, me, modifiers);
+    this.clickCount = clickCount;
+  }
+
+  public Type getEventType() {
+    if ((modifiers & LONG_PRESS) != 0) {
+      return Type.LONG_PRESS;
+    }
+
+    if ((modifiers & FLING) != 0) {
+      return Type.FLING;
+    }
+
+    if ((modifiers & SCROLL) != 0) {
+      return Type.SCROLL;
+    }
+
+    if ((modifiers & PRESS_CANCELED) != 0) {
+      return Type.PRESS_CANCELED;
+    }
+
+    if (clickCount > 1) {
+      return Type.MOUSE_DBLCLICK;
+    }
+
+    if (clickCount > 1) {
+      return Type.MOUSE_CLICK;
+    }
+
+    return EventHelper.getMouseEventType(getSource(), endEvent);
   }
 
   public MouseEvent(Object source, Object me, int modifiers, Object me1, float x, float y) {
@@ -61,13 +101,10 @@ public class MouseEvent extends InputEvent {
     consumed = true;
   }
 
-  @Override
-  public String toString() {
-    return "modifiers=" + modifiers + ", motionEvent=" + endEvent.toString();
-  }
-
   public int getClickCount() {
-    return EventHelper.getClickCount(getSource(), endEvent);
+    return (clickCount == 0)
+           ? EventHelper.getClickCount(startEvent, endEvent)
+           : clickCount;
   }
 
   public float getEndX() {
@@ -161,11 +198,15 @@ public class MouseEvent extends InputEvent {
   }
 
   public boolean isFling() {
-    return (modifiers & FLING) > 0;
+    return (modifiers & FLING) != 0;
   }
 
   public boolean isLongPress() {
-    return (modifiers & LONG_PRESS) > 0;
+    return (modifiers & LONG_PRESS) != 0;
+  }
+
+  public boolean isPressCanceled() {
+    return (modifiers & PRESS_CANCELED) != 0;
   }
 
   public boolean isPopupTrigger() {
@@ -173,6 +214,21 @@ public class MouseEvent extends InputEvent {
   }
 
   public boolean isScroll() {
-    return (modifiers & SCROLL) > 0;
+    return (modifiers & SCROLL) != 0;
+  }
+
+  /**
+   * Returns whether of the this event represents and event of the specified type
+   *
+   * @param type the type
+   * @return true if it does; false otherwise
+   */
+  public boolean isType(Type type) {
+    return getEventType() == type;
+  }
+
+  @Override
+  public String toString() {
+    return "modifiers=" + modifiers + ", motionEvent=" + endEvent.toString();
   }
 }

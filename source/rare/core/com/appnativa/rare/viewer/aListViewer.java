@@ -15,14 +15,23 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.ListBox;
@@ -45,15 +54,6 @@ import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.UISelectionModelGroup;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.border.UILineBorder;
-import com.appnativa.rare.ui.border.UIMatteBorder;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.dnd.iTransferable;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iItemChangeListener;
 import com.appnativa.rare.ui.iActionable;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iListView.EditingMode;
@@ -65,8 +65,19 @@ import com.appnativa.rare.ui.iPlatformListDataModel;
 import com.appnativa.rare.ui.iPlatformListHandler;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.iToolBar;
+import com.appnativa.rare.ui.border.UILineBorder;
+import com.appnativa.rare.ui.border.UIMatteBorder;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.dnd.iTransferable;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
+import com.appnativa.rare.ui.event.iItemChangeListener;
 import com.appnativa.rare.ui.listener.iHyperlinkListener;
 import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.renderer.aListItemRenderer;
 import com.appnativa.rare.ui.table.TableHelper;
 import com.appnativa.rare.util.DataItemCollection;
 import com.appnativa.rare.util.ListHelper;
@@ -79,16 +90,6 @@ import com.appnativa.util.IntList;
 import com.appnativa.util.ObjectHolder;
 import com.appnativa.util.SNumber;
 import com.appnativa.util.iFilter;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * A widget that allows a user to select one or more choices from a scrollable
@@ -131,6 +132,7 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
 
   /** temporary list for data added via background threads */
   protected List<RenderableDataItem> tempList;
+  protected iWidget                  rowEditingWidget;
 
   public aListViewer() {
     this(null);
@@ -275,8 +277,8 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   }
 
   @Override
-  public void clearPopupMenuIndex() {
-    listComponent.clearPopupMenuIndex();
+  public void clearContextMenuIndex() {
+    listComponent.clearContextMenuIndex();
   }
 
   @Override
@@ -336,6 +338,11 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
       listComponent.dispose();
     }
 
+    if (rowEditingWidget != null) {
+      rowEditingWidget.dispose();
+    }
+
+    rowEditingWidget    = null;
     listModel           = null;
     listComponent       = null;
     selectionModelGroup = null;
@@ -438,6 +445,48 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   @Override
   public void fireActionForSelected() {
     listComponent.fireActionForSelected();
+  }
+
+  /**
+   * Flashes the selected row using the hilight painter
+   */
+  public void flashSelectedRow() {
+    flashRow(getSelectedIndex(), 3, null);
+  }
+
+  /**
+   * Flashes the specified row using the hilight painter
+   * @param row the row to flash
+   * @param count the number of times to flash
+   * @param runnable and optional runnable to run once the flashing is complete
+   */
+  public void flashRow(final int row, int count, final Runnable runnable) {
+    if (row != -1) {
+      final aListItemRenderer renderer = (aListItemRenderer) listComponent.getItemRenderer();
+      boolean                 ignore   = renderer.isIgnoreSelection();
+      Runnable                r        = null;
+
+      if (!ignore && (row == getSelectedIndex())) {
+        renderer.setIgnoreSelection(true);
+        r = new Runnable() {
+          @Override
+          public void run() {
+            renderer.setIgnoreSelection(false);
+            repaintRow(row);
+
+            if (runnable != null) {
+              runnable.run();
+            }
+          }
+        };
+      }
+
+      if (r == null) {
+        r = runnable;
+      }
+
+      ListHelper.flashHilight(listComponent, row, true, count, r);
+    }
   }
 
   @Override
@@ -592,7 +641,7 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    *          the row to repaint
    */
   public void repaintRow(int row) {
-    rowChanged(row);
+    listComponent.repaintRow(row);
   }
 
   @Override
@@ -793,16 +842,22 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   }
 
   /**
-   * Sets a callback to be called when edit modes starts and stops. When editing
-   * starts the callback will be called with canceled set to false and the
-   * return value of this widget. WHen editing stops the canceled value will be
-   * true
+   * Sets a listener to be called when the edit mode on a ROW in the list is about to start or stop
+   * When editing is about to start the onWillExpand method will be called.
+   * When editing is about to stop the onWillCollapse method will be called
    *
-   * @param cb
-   *          the callback to be called to be notified about editing
-   *          starts/stops
+   * @param l the listener
    */
-  public void setEditModeNotifier(iFunctionCallback cb) {}
+  public void setRowEditModeListener(iExpansionListener l) {}
+
+  /**
+   * Sets a listener to be called when the edit mode on the list is about to start or stop
+   * When editing is about to start the onWillExpand method will be called.
+   * When editing is about to stop the onWillCollapse method will be called
+   *
+   * @param l the listener
+   */
+  public void setEditModeListener(iExpansionListener l) {}
 
   @Override
   public void setFromHTTPFormValue(Object value) {
@@ -943,7 +998,17 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    *          true to center the component vertically; false to have the
    *          component fill the rows vertical space
    */
-  public void setRowEditingWidget(iWidget widget, boolean centerVertically) {}
+  public void setRowEditingWidget(iWidget widget, boolean centerVertically) {
+    if ((rowEditingWidget != null) && (rowEditingWidget != widget)) {
+      unregisterOrphanWidget(rowEditingWidget);
+    }
+
+    rowEditingWidget = widget;
+
+    if (widget != null) {
+      registerOrphanWidget(widget);
+    }
+  }
 
   @Override
   public void setRowHeight(int height) {
@@ -1025,7 +1090,13 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
     } else if (value instanceof Object[]) {
       setSelectedIndexes(RenderableDataItem.findValuesEx(listComponent, (Object[]) value));
     } else {
-      setSelectedIndex(RenderableDataItem.findValueEx(listComponent, value));
+      int n = indexOfValueEquals(value);
+
+      if (n == -1) {
+        n = indexOfLinkedDataEquals(value);
+      }
+
+      setSelectedIndex(n);
     }
   }
 
@@ -1229,13 +1300,17 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   }
 
   @Override
-  public int getPopupMenuIndex() {
-    return listComponent.getPopupMenuIndex();
+  public int getContextMenuIndex() {
+    return listComponent.getContextMenuIndex();
   }
 
   @Override
-  public RenderableDataItem getPopupMenuItem() {
-    return getSelectedItem();
+  public RenderableDataItem getContextMenuItem() {
+    int n = listComponent.getContextMenuIndex();
+
+    return (n == -1)
+           ? null
+           : get(n);
   }
 
   @Override
@@ -1378,7 +1453,7 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
 
   @Override
   public boolean hasValue() {
-    return listComponent.size() > 0;
+    return listComponent.hasSelection();
   }
 
   @Override
@@ -1419,6 +1494,32 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   @Override
   public boolean isRowSelected(int row) {
     return listComponent.isRowSelected(row);
+  }
+
+  @Override
+  public void upArrow() {
+    if (getRowCount() > 0) {
+      int row = getSelectedIndex();
+
+      if (selectionModelGroup != null) {
+        selectionModelGroup.selectPreviousRow(row, listComponent);
+      } else {
+        UISelectionModelGroup.selectPreviousRow(listComponent, row);
+      }
+    }
+  }
+
+  @Override
+  public void downArrow() {
+    if (getRowCount() > 0) {
+      int row = getSelectedIndex();
+
+      if (selectionModelGroup != null) {
+        selectionModelGroup.selectNextRow(row, listComponent);
+      } else {
+        UISelectionModelGroup.selectNextRow(listComponent, row);
+      }
+    }
   }
 
   @Override
@@ -1598,6 +1699,8 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
 
     if (cfg.singleClickActionEnabled.spot_valueWasSet()) {
       listComponent.setSingleClickAction(cfg.singleClickActionEnabled.booleanValue());
+    } else if (Platform.isTouchDevice()) {
+      listComponent.setSingleClickAction(true);
     }
 
     String s = null;
@@ -1730,7 +1833,8 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
       }
 
       tb.getComponent().setBorder(new UIMatteBorder(ScreenUtils.PLATFORM_PIXELS_1, 0, 0, 0,
-              UILineBorder.getDefaultDisabledColor()));
+              UILineBorder.getDefaultLineColor()));
+      registerWithWidget(tb.getComponent());
     }
 
     return tb;
@@ -1900,7 +2004,7 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
 
   @Override
   protected String getWidgetAttribute(String name) {
-    String s = ListHelper.getWidgetAttribute(listComponent, name);
+    String s = ListHelper.getWidgetAttribute(this, listComponent, name);
 
     return (s == ListHelper.CALL_SUPER_METHOD)
            ? super.getWidgetAttribute(name)

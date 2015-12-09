@@ -88,7 +88,7 @@ public class GlassPanel extends JComponent {
    */
   public void setLockedColor(UIColor lockedColor) {
     this.lockedColor   = lockedColor;
-    this.lockedPainter = ColorUtils.getPainter(lockedColor);
+    this.lockedPainter = lockedColor==null ? null : ColorUtils.getPainter(lockedColor);
   }
 
   /**

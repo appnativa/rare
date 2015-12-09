@@ -20,20 +20,6 @@
 
 package com.appnativa.rare.platform;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.FocusedAction;
-import com.appnativa.rare.ui.UIAction;
-import com.appnativa.rare.ui.aFocusedAction;
-import com.appnativa.rare.ui.dnd.iTransferSupport;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.widget.aWidget;
-import com.appnativa.rare.widget.iWidget;
-
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -41,26 +27,36 @@ import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-
-import java.beans.PropertyChangeListener;
-
 import java.lang.ref.WeakReference;
-
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 
+import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.FocusedAction;
+import com.appnativa.rare.ui.UIAction;
+import com.appnativa.rare.ui.aFocusedAction;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.dnd.iTransferSupport;
+import com.appnativa.rare.viewer.aListViewer;
+import com.appnativa.rare.widget.aListWidget;
+import com.appnativa.rare.widget.aWidget;
+import com.appnativa.rare.widget.iWidget;
 
 /**
  * Portions of the code are from the PasswordStore tutorial which have the following copyright:
@@ -97,7 +93,6 @@ public final class ActionHelper {
   private static final FocusedAction     REDO_INSTANCE;
   private static final FocusedAction     SELECT_ALL_INSTANCE;
   private static final FocusedAction     UNDO_INSTANCE;
-  private static HashMap<String, Action> textPaneActions;
 
   static {
     Clipboard clipboard;
@@ -534,33 +529,7 @@ public final class ActionHelper {
     return SELECT_ALL_INSTANCE;
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @param name {@inheritDoc}
-   *
-   * @return {@inheritDoc}
-   */
-  public static UIAction getTextPaneAction(String name) {
-    if (textPaneActions == null) {
-      createTextPaneActionMap();
-    }
-
-    Action a = textPaneActions.get(name);
-
-    if (a == null) {
-      return null;
-    }
-
-    if (!(a instanceof UIAction)) {
-      a = new UIActionWrapper(a);
-      textPaneActions.put(name, a);
-    }
-
-    return (UIAction) a;
-  }
-
-  /**
+   /**
    * Returns an action to perform a undo operation.
    *
    * @return the undo action
@@ -608,23 +577,6 @@ public final class ActionHelper {
     return getBooleanClientProperty(component, actionName);
   }
 
-  private static synchronized void createTextPaneActionMap() {
-    if (textPaneActions != null) {
-      return;
-    }
-
-    textPaneActions = new HashMap<String, Action>();
-
-    JTextPane tp           = new JTextPane();
-    Action[]  actionsArray = tp.getActions();
-
-    for (int i = 0; i < actionsArray.length; i++) {
-      Action a = actionsArray[i];
-
-      textPaneActions.put((String) a.getValue(Action.NAME), a);
-    }
-  }
-
   private static boolean getBooleanClientProperty(iPlatformComponent c, Object property) {
     Boolean value = (Boolean) c.getClientProperty((property == null)
             ? null
@@ -634,82 +586,6 @@ public final class ActionHelper {
            ? false
            : value;
   }
-
-  static class UIActionWrapper extends UIAction {
-    Action a;
-
-    public UIActionWrapper(Action a) {
-      super((String) a.getValue(Action.ACTION_COMMAND_KEY));
-      this.a = a;
-
-      Object value = a.getValue(Action.NAME);
-
-      setActionText((value == null)
-                    ? ""
-                    : value.toString());
-      value = a.getValue(Action.ACTION_COMMAND_KEY);
-      setActionName((value == null)
-                    ? ""
-                    : value.toString());
-      value = a.getValue(Action.SMALL_ICON);
-      setSmallIcon((iPlatformIcon) value);
-      value = a.getValue(Action.LARGE_ICON_KEY);
-      setLargeIcon((iPlatformIcon) value);
-      value = a.getValue(Action.SHORT_DESCRIPTION);
-      setShortDescription((value == null)
-                          ? ""
-                          : value.toString());
-      value = a.getValue(Action.LONG_DESCRIPTION);
-      setLongDescription((value == null)
-                         ? ""
-                         : value.toString());
-      mnemonicKey    = a.getValue(Action.MNEMONIC_KEY);
-      acceleratorKey = a.getValue(Action.ACCELERATOR_KEY);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      a.actionPerformed(e);
-    }
-
-    @Override
-    public void actionPerformed(com.appnativa.rare.ui.event.ActionEvent e) {
-      a.actionPerformed(PlatformHelper.createNativeActionEvent(e));
-    }
-
-    @Override
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-      a.addPropertyChangeListener(listener);
-    }
-
-    public static UIAction fromAction(Action action) {
-      if (action == null) {
-        return null;
-      }
-
-      if (action instanceof UIAction) {
-        return (UIAction) action;
-      }
-
-      return new UIActionWrapper(action);
-    }
-
-    @Override
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-      a.removePropertyChangeListener(listener);
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-      a.setEnabled(enabled);
-    }
-
-    @Override
-    public boolean isEnabled() {
-      return a.isEnabled();
-    }
-  }
-
 
   private static final class CutCopyAction extends FocusedAction {
     private boolean _isCut;
@@ -1109,4 +985,42 @@ public final class ActionHelper {
       }
     }
   }
+
+  /** action to select the next row */
+  public static Action selectNextRow = new AbstractAction("selectNextRow") {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      Object  o = (e == null)
+                  ? null
+                  : e.getSource();
+      iWidget w = Platform.getWidgetForComponent(o);
+
+      if (w instanceof aListViewer) {
+        ((aListViewer) w).downArrow();
+      }
+
+      if (w instanceof aListWidget) {
+        ((aListWidget) w).downArrow();
+      }
+    }
+  };
+
+  /** action to select the previous row */
+  public static Action selectPreviousRow = new AbstractAction("selectPreviousRow") {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      Object  o = (e == null)
+                  ? null
+                  : e.getSource();
+      iWidget w = Platform.getWidgetForComponent(o);
+
+      if (w instanceof aListViewer) {
+        ((aListViewer) w).upArrow();
+      }
+
+      if (w instanceof aListWidget) {
+        ((aListWidget) w).upArrow();
+      }
+    }
+  };
 }

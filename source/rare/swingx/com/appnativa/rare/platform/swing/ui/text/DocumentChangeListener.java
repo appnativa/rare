@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
@@ -36,6 +36,8 @@ import javax.swing.text.JTextComponent;
 
 public class DocumentChangeListener extends DocumentFilter implements DocumentListener {
   WeakReference<JTextComponent> source;
+  private boolean               changeEventsDisabled;
+  private static final String   EMPTY_STRING = "";
 
   public DocumentChangeListener(JTextComponent source) {
     this.source = new WeakReference<JTextComponent>(source);
@@ -58,6 +60,13 @@ public class DocumentChangeListener extends DocumentFilter implements DocumentLi
   }
 
   @Override
+  public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
+    if (fireChangeingEvent(offset, offset + length, EMPTY_STRING)) {
+      super.remove(fb, offset, length);
+    }
+  }
+
+  @Override
   public void removeUpdate(DocumentEvent e) {
     fireChangeEvent();
   }
@@ -71,21 +80,38 @@ public class DocumentChangeListener extends DocumentFilter implements DocumentLi
   }
 
   protected void fireChangeEvent() {
+    if (changeEventsDisabled) {
+      return;
+    }
+
     JComponent c = source.get();
 
     if (c == null) {
       return;
     }
 
-    iPlatformComponent    pc        = Platform.findPlatformComponent(c);
-    iTextChangeListener[] listeners = c.getListeners(iTextChangeListener.class);
+    final iPlatformComponent    pc        = Platform.findPlatformComponent(c);
+    final iTextChangeListener[] listeners = c.getListeners(iTextChangeListener.class);
 
-    for (int i = listeners.length - 1; i >= 0; i -= 1) {
-      listeners[i].textChanged(pc);
+    if ((listeners != null) && (listeners.length > 0)) {
+      Platform.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          if (!changeEventsDisabled) {
+            for (int i = listeners.length - 1; i >= 0; i -= 1) {
+              listeners[i].textChanged(pc);
+            }
+          }
+        }
+      });
     }
   }
 
   protected boolean fireChangeingEvent(int startIndex, int endIndex, String replacementString) {
+    if (changeEventsDisabled) {
+      return true;
+    }
+
     JComponent c = source.get();
 
     if (c == null) {
@@ -102,5 +128,9 @@ public class DocumentChangeListener extends DocumentFilter implements DocumentLi
     }
 
     return true;
+  }
+
+  public void setChangeEventsEnabled(boolean enabled) {
+    changeEventsDisabled = !enabled;
   }
 }

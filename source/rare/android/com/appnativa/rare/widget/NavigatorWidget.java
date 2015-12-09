@@ -49,12 +49,15 @@ public class NavigatorWidget extends aNavigatorWidget {
     super(parent);
   }
 
+  @Override
   protected Object createBorderLayoutView() {
     return new BorderLayoutView(getAndroidContext()) {
+      @Override
       protected void onDraw(Canvas canvas) {}
     };
   }
 
+  @Override
   protected aNavigatorPanel createNavigatorPanel() {
     return new NavigatorPanel(this, getAppContext().getResourceAsIcon("Rare.icon.navigatorBack"));
   }

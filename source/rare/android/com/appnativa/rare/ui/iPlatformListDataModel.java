@@ -32,6 +32,8 @@ public interface iPlatformListDataModel extends iListDataModel {
   void setAlternatingColor(UIColor alternatingColor);
 
   void setEditing(boolean editing);
+  
+  void setRowEditingSupported(boolean supported);
 
   void setItemRenderer(iPlatformItemRenderer lr);
 

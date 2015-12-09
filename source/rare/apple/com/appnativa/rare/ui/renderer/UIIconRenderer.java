@@ -36,7 +36,7 @@ public class UIIconRenderer extends UILabelRenderer {
 
   @Override
   public iPlatformRenderingComponent newCopy() {
-    return Renderers.setupNewCopy(this, new UIIconRenderer());
+    return setupNewCopy(new UIIconRenderer());
   }
 
   /**

@@ -12,6 +12,7 @@ import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.viewer.iTarget;
 
 public class DesignWindowViewer extends WindowViewer {
   private DesignWindowManager windowManager;
@@ -22,7 +23,12 @@ public class DesignWindowViewer extends WindowViewer {
     setDesignMode(true);
     windowManager=wm;
   }
-
+  
+  @Override
+  public iTarget getTarget() {
+    return myTarget;
+  }
+  
   @Override
   public void dispose() {
     DesignWindowManager wm = windowManager;

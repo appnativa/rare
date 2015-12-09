@@ -22,7 +22,7 @@ package com.appnativa.rare.viewer;
 
 import com.appnativa.rare.spot.ImagePane;
 import com.appnativa.rare.ui.ImagePanel;
-import com.appnativa.rare.ui.iPlatformImagePanel;
+import com.appnativa.rare.ui.aImagePanel;
 
 /**
  * A viewer that displays and image and provides tools
@@ -48,9 +48,11 @@ public class ImagePaneViewer extends aImagePaneViewer {
     super(parent);
   }
 
+  @Override
   public void setUseSpinner(boolean spinner) {}
 
-  protected iPlatformImagePanel createPanel(ImagePane cfg) {
+  @Override
+  protected aImagePanel createPanel(ImagePane cfg) {
     ImagePanel ip = new ImagePanel(getAndroidContext());
 
     ip.setWidget(this);

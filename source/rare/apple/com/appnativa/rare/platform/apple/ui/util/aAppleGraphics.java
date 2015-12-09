@@ -15,12 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.util;
 
 import com.appnativa.rare.platform.apple.ui.view.View;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Transform;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
@@ -69,6 +70,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
   private iTransform      transform;
   private boolean         drawImagesFlipped = true;
   Stack                   stack             = new Stack();
+  static Object           dictionaryProxy;
 
   public aAppleGraphics(Object g, View view) {
     proxy     = g;
@@ -588,7 +590,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
   @Override
   public UIColor getColor() {
     if (color == null) {
-      color = UIColor.BLACK;
+      color = ColorUtils.getForeground();
     }
 
     return color;
@@ -873,6 +875,21 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
   private native int getNormalBlendMode()
   /*-[
     return kCGBlendModeNormal;
+  ]-*/
+  ;
+
+  static native Object addDictionaryAttribute(String name, Object value, boolean first)
+  /*-[
+    NSMutableDictionary* attributes=(NSMutableDictionary*)RAREaAppleGraphics_dictionaryProxy_;
+    if(!attributes) {
+      attributes=[NSMutableDictionary dictionary];
+      RAREaAppleGraphics_dictionaryProxy_=attributes;
+    }
+    if(first) {
+      [attributes removeAllObjects];
+    }
+    [attributes setObject:value forKey:name];
+    return attributes;
   ]-*/
   ;
 

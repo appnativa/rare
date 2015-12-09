@@ -240,7 +240,7 @@ public abstract class aComboBoxWidget extends aListWidget {
       int index = indexOf(item);
 
       if (index != -1) {
-        rowChanged(index);
+        repaintRow(index);
       }
     }
   }
@@ -663,7 +663,8 @@ public abstract class aComboBoxWidget extends aListWidget {
     if (!cfg.editable.booleanValue()) {
       setEditable(false);
     }
-
+    
+    listComponent.getListComponent().setWidget(this);
     listModel.setWidget(this);
     listModel.setColumnDescription(itemDescription);
     listModel.setUseIndexForFiltering(cfg.indexForFiltering.booleanValue());

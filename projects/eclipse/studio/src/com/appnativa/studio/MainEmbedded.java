@@ -30,7 +30,8 @@ import com.appnativa.rare.spot.MainWindow;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.WindowManager;
-import com.appnativa.rare.ui.iWindow;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
+import com.appnativa.rare.ui.iWindowManager.iFrame;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.iWidget;
@@ -123,7 +124,7 @@ public class MainEmbedded extends Main {
 
   @Override
   protected void createWindowManager(URL context, MainWindow mainWindow) {
-    iWindow window;
+    iFrame window;
     if (frame == null) {
       DesignFrame hwindow = new DesignFrame(appContext);
       hwindow.setTarget(new UITarget(appContext, iTarget.TARGET_WORKSPACE, hwindow, false));

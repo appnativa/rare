@@ -28,7 +28,6 @@ import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.spot.Table;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Viewer;
-import com.appnativa.rare.ui.PainterUtils;
 import com.appnativa.rare.ui.iPlatformListHandler;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.table.MultiDataItemTableModel;
@@ -69,6 +68,7 @@ public class TableViewer extends aTableViewer {
     super(parent);
   }
 
+  @Override
   public void dispose() {
     if (!isDisposable()) {
       return;
@@ -82,18 +82,22 @@ public class TableViewer extends aTableViewer {
     selectionModelGroup = null;
   }
 
+  @Override
   public void sizeColumnToFit(int col) {
     ((TableComponent) tableHandler).sizeColumnToFit(col);
   }
 
+  @Override
   public void sizeColumnsToFit() {
     ((TableComponent) tableHandler).sizeColumnsToFit();
   }
 
+  @Override
   public void setAutoSizeRowsToFit(boolean autoSize) {
     ((TableComponent) tableHandler).setAutoSizeRows(autoSize);
   }
 
+  @Override
   public void setSelectionMode(SelectionMode selectionMode) {
     super.setSelectionMode(selectionMode);
 
@@ -130,6 +134,7 @@ public class TableViewer extends aTableViewer {
   @Override
   public void setShowLastDivider(boolean show) {}
 
+  @Override
   public View getDataView() {
     TableComponent table = (TableComponent) tableHandler.getMainTable();
 
@@ -142,11 +147,13 @@ public class TableViewer extends aTableViewer {
    * @param cfg
    *          the listbox's configuration
    */
+  @Override
   protected void configureEx(Table cfg) {
     super.configureEx(cfg);
     ((ListViewEx) getDataView()).viewConfigured();
   }
 
+  @Override
   protected void createModelAndComponents(Viewer vcfg) {
     Table            cfg  = (Table) vcfg;
     ListViewEx       list = getAppContext().getComponentCreator().getTable(this, cfg);
@@ -158,11 +165,6 @@ public class TableViewer extends aTableViewer {
       tableHandler = new TreeTableComponent(list, tcfg);
       tableModel   = ((TreeTableComponent) tableHandler).getTableModel();
       treeHandler  = ((TreeTableComponent) tableHandler).getTreeHandler();
-      ((TreeTableComponent) tableHandler).setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
-          new PainterUtils.TwistyIcon(dataComponent,true));
-      treeHandler.setIndentBy(tcfg.indentBy.intValue());
-      ((TreeTableComponent) tableHandler).setExpandAll(tcfg.expandAll.booleanValue());
-      ((TreeTableComponent) tableHandler).setExpandableColumn(tcfg.expandableColumn.intValue());
       dataComponent = tableHandler.getPlatformComponent();
       listComponent = new TreeTableListHandler((TreeTableComponent) dataComponent, tableModel,
               ((TreeTableComponent) tableHandler).getTreeModel());
@@ -254,7 +256,7 @@ public class TableViewer extends aTableViewer {
           }
         }
 
-        listComponent = new MultipleListHandler(mt, (iPlatformListHandler) listComponent, h1, h2);
+        listComponent = new MultipleListHandler(mt, listComponent, h1, h2);
       }
     }
 

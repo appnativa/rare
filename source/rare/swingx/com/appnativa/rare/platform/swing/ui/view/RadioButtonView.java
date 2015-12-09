@@ -20,19 +20,7 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.util.CharArray;
-import com.appnativa.util.xml.XMLUtils;
-
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -40,6 +28,21 @@ import java.awt.geom.AffineTransform;
 
 import javax.swing.Icon;
 import javax.swing.JRadioButton;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.util.CharArray;
+import com.appnativa.util.xml.XMLUtils;
 
 public class RadioButtonView extends JRadioButton implements iPainterSupport, iView {
   protected static iPlatformIcon deselectedIconDisabled_;
@@ -85,6 +88,15 @@ public class RadioButtonView extends JRadioButton implements iPainterSupport, iV
   @Override
   public void setTransformEx(AffineTransform tx) {
     transform = tx;
+  }
+
+  @Override
+  public Color getForeground() {
+    Color c=super.getForeground();
+    if(c instanceof UIColor && !isEnabled()) {
+      c=((UIColor)c).getDisabledColor();
+    }
+    return c;
   }
 
   @Override
@@ -159,16 +171,8 @@ public class RadioButtonView extends JRadioButton implements iPainterSupport, iV
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     Dimension d = getMinimumSize();
-
-    size.width  = d.width;
-    size.height = d.height;
-  }
-
-  @Override
-  public void getPreferredSize(UIDimension size, int maxWidth) {
-    Dimension d = getPreferredSize();
 
     size.width  = d.width;
     size.height = d.height;
@@ -272,5 +276,38 @@ public class RadioButtonView extends JRadioButton implements iPainterSupport, iV
     }
 
     return icon;
+  }
+  private static UIDimension size    = new UIDimension();
+
+  @Override
+  public Dimension getPreferredSize() {
+    if (size == null) {
+      size = new UIDimension();
+    }
+
+    Number num      = (Number) getClientProperty(iConstants.RARE_WIDTH_FIXED_VALUE);
+    int    maxWidth = 0;
+
+    if ((num != null) && (num.intValue() > 0)) {
+      maxWidth = num.intValue();
+    }
+
+    getPreferredSize(size, maxWidth);
+
+    return new Dimension(size.intWidth(), size.intHeight());
+  }
+
+  @Override
+  public void getPreferredSize(UIDimension size, int maxWidth) {
+    Dimension d = super.getPreferredSize();
+
+    size.width  = d.width;
+    size.height = d.height;
+
+    if (isFontSet() && getFont().isItalic()) {
+      if (getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) == null) {
+        size.width += 4;
+      }
+    }
   }
 }

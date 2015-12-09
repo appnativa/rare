@@ -320,4 +320,8 @@ public class HTMLTextEditor extends Component implements iPlatformTextEditor {
     htmlEditor = new HTMLEditor();
     group.getChildren().add(htmlEditor);
   }
+
+  @Override
+  public void setChangeEventsEnabled(boolean enabled) {
+  }
 }

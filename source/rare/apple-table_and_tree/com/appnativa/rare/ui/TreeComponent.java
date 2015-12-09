@@ -65,14 +65,6 @@ public class TreeComponent extends Container {
     };
     setForeground(ColorUtils.getListForeground());
     setBackground(ColorUtils.getListBackground());
-
-    UIColor c = ColorUtils.getListDisabledForeground();
-
-    if (c == null) {
-      c = ColorUtils.getDisabledForeground();
-    }
-
-    setDisabledColor(c);
   }
 
   @Override

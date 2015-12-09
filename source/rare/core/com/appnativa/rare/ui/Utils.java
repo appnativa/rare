@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -43,6 +43,7 @@ import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.EventListenerList;
@@ -69,9 +70,11 @@ import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.aContainer;
+import com.appnativa.rare.viewer.aViewer;
 import com.appnativa.rare.viewer.iContainer.Layout;
 import com.appnativa.rare.viewer.iTabPaneViewer;
 import com.appnativa.rare.viewer.iTarget;
+import com.appnativa.rare.widget.LabelWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTAny;
@@ -136,6 +139,31 @@ public class Utils {
     }
   };
   private static RenderableDataItem defaultItem = new RenderableDataItem("");
+  private static int                minComboHeight;
+
+  public static void clearCache() {
+    minButtonSize    = null;
+    minTextFieldSize = null;
+    minComboHeight    = -1;
+  }
+
+  public static void adjustComboBoxSize(UIDimension size) {
+    if (minComboHeight == -1) {
+      Integer h = Platform.getUIDefaults().getInteger("Rare.ComboBox.minimumHeight");
+
+      minComboHeight = (h == null)
+                      ? 0
+                      : h.intValue();
+
+      if (minComboHeight < 0) {
+        minComboHeight = 0;
+      }
+    }
+
+    if (minComboHeight > size.height) {
+      size.height = minComboHeight;
+    }
+  }
 
   public static void adjustButtonSize(UIDimension size) {
     if (minButtonSize == null) {
@@ -143,9 +171,6 @@ public class Utils {
       Integer h = Platform.getUIDefaults().getInteger("Rare.Button.minimumHeight");
 
       if ((w == null) && (h == null)) {
-        adjustTextFieldSize(size);
-        minButtonSize = minTextFieldSize;
-
         return;
       }
 
@@ -323,7 +348,7 @@ public class Utils {
         break;
     }
 
-    PaintBucket pb = UIColorHelper.configure(context, cfg.getTitleCell(), null);
+    PaintBucket pb = ColorUtils.configure(context, cfg.getTitleCell(), null);
 
     if (pb != null) {
       if (pb.getBorder() != null) {
@@ -575,6 +600,59 @@ public class Utils {
                            ScreenUtils.platformPixels(width), ScreenUtils.platformPixels(height));
   }
 
+  public static CellConstraints createCellConstraints(int x, int y, int colSpan, int rowSpan, HorizontalAlign ha,
+          VerticalAlign va) {
+    CellConstraints.Alignment vAlign = CellConstraints.DEFAULT;
+    CellConstraints.Alignment hAlign = CellConstraints.DEFAULT;
+
+    switch(va) {
+      case TOP :
+        vAlign = CellConstraints.TOP;
+
+        break;
+
+      case BOTTOM :
+        vAlign = CellConstraints.BOTTOM;
+
+        break;
+
+      case FILL :
+        vAlign = CellConstraints.FILL;
+
+        break;
+
+      default :
+        break;
+    }
+
+    switch(ha) {
+      case CENTER :
+        hAlign = CellConstraints.CENTER;
+
+        break;
+
+      case LEFT :
+        hAlign = CellConstraints.LEFT;
+
+        break;
+
+      case RIGHT :
+        hAlign = CellConstraints.RIGHT;
+
+        break;
+
+      case FILL :
+        hAlign = CellConstraints.FILL;
+
+        break;
+
+      default :
+        break;
+    }
+
+    return new CellConstraints(x + 1, y + 1, colSpan, rowSpan, hAlign, vAlign);
+  }
+
   public static CellConstraints createCellConstraints(Widget cfg, CellConstraints cc, UIRectangle table) {
     int x;
     int y;
@@ -685,59 +763,6 @@ public class Utils {
     }
 
     return cc.xywh(x + 1, y + 1, w, h, hAlign, vAlign);
-  }
-
-  public static CellConstraints createCellConstraints(int x, int y, int colSpan, int rowSpan, HorizontalAlign ha,
-          VerticalAlign va) {
-    CellConstraints.Alignment vAlign = CellConstraints.DEFAULT;
-    CellConstraints.Alignment hAlign = CellConstraints.DEFAULT;
-
-    switch(va) {
-      case TOP :
-        vAlign = CellConstraints.TOP;
-
-        break;
-
-      case BOTTOM :
-        vAlign = CellConstraints.BOTTOM;
-
-        break;
-
-      case FILL :
-        vAlign = CellConstraints.FILL;
-
-        break;
-
-      default :
-        break;
-    }
-
-    switch(ha) {
-      case CENTER :
-        hAlign = CellConstraints.CENTER;
-
-        break;
-
-      case LEFT :
-        hAlign = CellConstraints.LEFT;
-
-        break;
-
-      case RIGHT :
-        hAlign = CellConstraints.RIGHT;
-
-        break;
-
-      case FILL :
-        hAlign = CellConstraints.FILL;
-
-        break;
-
-      default :
-        break;
-    }
-
-    return new CellConstraints(x + 1, y + 1, colSpan, rowSpan, hAlign, vAlign);
   }
 
   public static Object createConstraints(iPlatformComponent panel, Widget cfg) {
@@ -868,6 +893,54 @@ public class Utils {
     return PlatformHelper.createPath();
   }
 
+  public static iWidget createScrollPaneCornerFromUIProperty(aViewer host, Location x, Location y) {
+    String corner = null;
+
+    switch(x) {
+      case LEFT :
+        if (y == Location.TOP) {
+          corner = "Rare.ScrollPane.ulCorner";
+        } else if (y == Location.BOTTOM) {
+          corner = "Rare.ScrollPane.llCorner";
+        }
+
+        break;
+
+      case RIGHT :
+        if (y == Location.TOP) {
+          corner = "Rare.ScrollPane.urCorner";
+        } else if (y == Location.BOTTOM) {
+          corner = "Rare.ScrollPane.lrCorner";
+        }
+
+        break;
+
+      default :
+        break;
+    }
+
+    Object      o = (corner == null)
+                    ? null
+                    : Platform.getUIDefaults().get(corner);
+    LabelWidget l = null;
+
+    if (o != null) {
+      l = LabelWidget.create(host.getContainerViewer());
+
+      if (o instanceof UIColor) {
+        l.setBackground((UIColor) o);
+      } else if (o instanceof iBackgroundPainter) {
+        UIComponentPainter.setBackgroundPainter(l, (iBackgroundPainter) o);
+      } else if (o instanceof PaintBucket) {
+        ((PaintBucket) o).install(l.getContainerComponent());
+      } else if (o instanceof iPlatformPainter) {
+        UIComponentPainter.setBackgroundOverlayPainter(l, (iPlatformPainter) o);
+      }
+    }
+
+    return l;
+  }
+
   /**
    * Finds the lowest level target in the specified component's hierarchy
    *
@@ -988,16 +1061,38 @@ public class Utils {
     }
   }
 
-  public static void fireWindowEvent(EventListenerList listenerList, WindowEvent e) {
-    Object[] listeners = listenerList.getListenerList();
+  /**
+   * Fires a window event toe the listeners in the specified list;
+   *
+   * @param listenerList
+   * @param source the event source
+   * @param type the event type
+   * @return the window event that was fired or null if the wer not any listeners
+   */
+  public static WindowEvent fireWindowEvent(EventListenerList listenerList, Object source, WindowEvent.Type type) {
+    WindowEvent e = null;
 
-    // Process the listeners last to first, notifying
-    // those that are interested in this event
-    for (int i = listeners.length - 2; i >= 0; i -= 2) {
-      if (listeners[i] == iWindowListener.class) {
-        ((iWindowListener) listeners[i + 1]).windowEvent(e);
+    if (listenerList != null) {
+      Object[] listeners = listenerList.getListenerList();
+
+      // Process the listeners last to first, notifying
+      // those that are interested in this event
+      for (int i = listeners.length - 2; i >= 0; i -= 2) {
+        if (listeners[i] == iWindowListener.class) {
+          if (e == null) {
+            e = new WindowEvent(source, type);
+          }
+
+          ((iWindowListener) listeners[i + 1]).windowEvent(e);
+
+          if (e.isConsumed()) {
+            break;
+          }
+        }
       }
     }
+
+    return e;
   }
 
   public static String fixTarget(int type) {
@@ -1032,6 +1127,999 @@ public class Utils {
     }
 
     return target;
+  }
+
+  public static UIRectangle getBounds(iPlatformComponent comp, Map options) {
+    UIDimension screenSize = ScreenUtils.getScreenSize();
+    Object      o          = options.get("left");
+    float       left       = -1;
+    float       top        = -1;
+    float       height     = -1;
+    float       width      = -1;
+
+    if (o instanceof String) {
+      left = ScreenUtils.toPlatformPixelWidth((String) o, comp, screenSize.width);
+    } else if (o instanceof Number) {
+      left = ((Number) o).intValue();
+    }
+
+    o = options.get("top");
+
+    if (o instanceof String) {
+      top = ScreenUtils.toPlatformPixelHeight((String) o, comp, screenSize.height);
+    } else if (o instanceof Number) {
+      top = ((Number) o).intValue();
+    }
+
+    o = options.get("height");
+
+    if (o instanceof String) {
+      height = ScreenUtils.toPlatformPixelHeight((String) o, comp, screenSize.height);
+    } else if (o instanceof Number) {
+      height = ((Number) o).intValue();
+    }
+
+    o = options.get("width");
+
+    if (o instanceof String) {
+      width = ScreenUtils.toPlatformPixelWidth((String) o, comp, screenSize.width);
+    } else if (o instanceof Number) {
+      width = ((Number) o).intValue();
+    }
+
+    if (screenSize.width < width) {
+      width = screenSize.width - 10;
+    }
+
+    if (screenSize.height < height) {
+      height = screenSize.height - 50;
+    }
+
+    if ((height == -1) && (width != -1)) {
+      height = screenSize.height - 50;
+    }
+
+    if ((width == -1) && (height != -1)) {
+      width = screenSize.width - 10;
+    }
+
+    return new UIRectangle(top, left, width, height);
+  }
+
+  public static String getDecimalSymbols() {
+    DecimalFormatSymbols s  = new DecimalFormatSymbols();
+    StringBuilder        sb = new StringBuilder();
+
+    sb.append(s.getCurrencySymbol());
+    sb.append(s.getDecimalSeparator());
+    sb.append(s.getGroupingSeparator());
+    sb.append(s.getMinusSign());
+    sb.append(s.getPercent());
+
+    return sb.toString();
+  }
+
+  public static int getFlags(String flags, Map<String, Integer> map) {
+    int          flag = 0;
+    List<String> list = CharScanner.getTokens(flags, '|', true);
+    final int    len  = (list == null)
+                        ? 0
+                        : list.size();
+
+    for (int i = 0; i < len; i++) {
+      Integer n = map.get(list.get(i));
+
+      if (n != null) {
+        flag |= n;
+      }
+    }
+
+    return flag;
+  }
+
+  public static RenderableDataItem.HorizontalAlign getHorizontalAlignment(int alignment) {
+    switch(alignment) {
+      case Label.CTextHAlignment.left :
+        return RenderableDataItem.HorizontalAlign.LEFT;
+
+      case Label.CTextHAlignment.center :
+        return RenderableDataItem.HorizontalAlign.CENTER;
+
+      case Label.CTextHAlignment.right :
+        return RenderableDataItem.HorizontalAlign.RIGHT;
+
+      case Label.CTextHAlignment.leading :
+        return RenderableDataItem.HorizontalAlign.LEADING;
+
+      case Label.CTextHAlignment.trailing :
+        return RenderableDataItem.HorizontalAlign.TRAILING;
+
+      default :
+        return RenderableDataItem.HorizontalAlign.AUTO;
+    }
+  }
+
+  public static RenderableDataItem.IconPosition getIconPosition(int position) {
+    switch(position) {
+      case Label.CIconPosition.left :
+        return RenderableDataItem.IconPosition.LEFT;
+
+      case Label.CIconPosition.right :
+        return RenderableDataItem.IconPosition.RIGHT;
+
+      case Label.CIconPosition.top_left :
+        return RenderableDataItem.IconPosition.TOP_LEFT;
+
+      case Label.CIconPosition.top_right :
+        return RenderableDataItem.IconPosition.TOP_RIGHT;
+
+      case Label.CIconPosition.top_center :
+        return RenderableDataItem.IconPosition.TOP_CENTER;
+
+      case Label.CIconPosition.bottom_left :
+        return RenderableDataItem.IconPosition.BOTTOM_LEFT;
+
+      case Label.CIconPosition.bottom_right :
+        return RenderableDataItem.IconPosition.BOTTOM_RIGHT;
+
+      case Label.CIconPosition.bottom_center :
+        return RenderableDataItem.IconPosition.BOTTOM_CENTER;
+
+      case Label.CIconPosition.trailing :
+        return RenderableDataItem.IconPosition.TRAILING;
+
+      case Label.CIconPosition.leading :
+        return RenderableDataItem.IconPosition.LEADING;
+
+      case Label.CIconPosition.right_justified :
+        return RenderableDataItem.IconPosition.RIGHT_JUSTIFIED;
+
+      default :
+        return RenderableDataItem.IconPosition.AUTO;
+    }
+  }
+
+  public static iPlatformIcon[] getIcons(iWidget context, String s, int max) {
+    if ((s == null) || (s.length() == 0)) {
+      return null;
+    }
+
+    iPlatformIcon[] icons = new iPlatformIcon[max];
+    List<String>    list  = CharScanner.getTokens(s, ',', true);
+    int             len   = list.size();
+
+    icons[0] = (len > 0)
+               ? context.getIcon(list.get(0), null)
+               : null;
+    icons[1] = (len > 1)
+               ? context.getIcon(list.get(1), null)
+               : null;
+    icons[2] = (len > 2)
+               ? context.getIcon(list.get(2), null)
+               : null;
+    icons[3] = (len > 3)
+               ? context.getIcon(list.get(3), null)
+               : null;
+
+    return icons;
+  }
+
+  public static UIInsets getInsets(String s) {
+    if ((s == null) || (s.length() == 0)) {
+      return null;
+    }
+
+    List<String> list = CharScanner.getTokens(s, ',', true);
+    int          len  = list.size();
+    int          t    = (len > 0)
+                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(0)))
+                        : 0;
+    int          r    = (len > 1)
+                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(1)))
+                        : 0;
+    int          b    = (len > 2)
+                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(2)))
+                        : 0;
+    int          l    = (len > 3)
+                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(3)))
+                        : 0;
+
+    return new UIInsets(t, r, b, l);
+  }
+
+  public static List<RenderableDataItem> getItems(Object o, aWidget w, boolean copy) {
+    if (o instanceof RenderableDataItem[]) {
+      RenderableDataItem[] a = (RenderableDataItem[]) o;
+
+      if (copy) {
+        a = RenderableDataItem.deepCopy(a);
+      }
+
+      return Arrays.asList(a);
+    }
+
+    if (o instanceof Object[]) {
+      Object[]                           a    = (Object[]) o;
+      int                                len  = a.length;
+      FilterableList<RenderableDataItem> list = new FilterableList<RenderableDataItem>(len);
+      RenderableDataItem                 di;
+
+      for (int i = 0; i < len; i++) {
+        o = a[i];
+
+        if (o instanceof RenderableDataItem) {
+          di = ((RenderableDataItem) o);
+
+          if (copy) {
+            di = di.deepCopy();
+          }
+        } else {
+          di = w.createItem(o);
+        }
+
+        list.add(di);
+      }
+    }
+
+    if (copy && (o instanceof RenderableDataItem)) {
+      o = ((RenderableDataItem) o).deepCopy();
+    }
+
+    return Collections.singletonList(w.createItem(o));
+  }
+
+  public static JavaURLConnection getLocaleSpecificConnection(String urlWithoutExtension, String ext)
+          throws IOException {
+    String[] lp = Helper.getLocalResourcePostfix(Locale.getDefault());
+
+    if ((ext != null) && (ext.length() == 0)) {
+      ext = null;
+    }
+
+    if ((lp != null) && (lp.length > 0)) {
+      StringBuilder sb = new StringBuilder(urlWithoutExtension.length() + 10);
+
+      sb.append(urlWithoutExtension);
+
+      int sblen = sb.length();
+
+      for (int i = 0; i < lp.length; i++) {
+        sb.setLength(sblen);
+        sb.append(lp[i]);
+
+        if (ext != null) {
+          sb.append('.').append(ext);
+        }
+
+        try {
+          JavaURLConnection conn = new JavaURLConnection(new URL(sb.toString()).openConnection());
+
+          return conn;
+        } catch(IOException e) {}
+      }
+    }
+
+    if (ext != null) {
+      urlWithoutExtension = urlWithoutExtension + "." + ext;
+    }
+
+    return new JavaURLConnection(new URL(urlWithoutExtension).openConnection());
+  }
+
+  public static FileInputStream getLocaleSpecificFileInputStream(String fileWithoutExtension, String ext)
+          throws IOException {
+    String[] lp = Helper.getLocalResourcePostfix(Locale.getDefault());
+
+    if ((ext != null) && (ext.length() == 0)) {
+      ext = null;
+    }
+
+    if ((lp != null) && (lp.length > 0)) {
+      StringBuilder sb = new StringBuilder(fileWithoutExtension.length() + 10);
+
+      sb.append(fileWithoutExtension);
+
+      int sblen = sb.length();
+
+      for (int i = 0; i < lp.length; i++) {
+        sb.setLength(sblen);
+        sb.append(lp[i]);
+
+        if (ext != null) {
+          sb.append('.').append(ext);
+        }
+
+        try {
+          File f = new File(sb.toString());
+
+          if (f.exists()) {
+            FileInputStream fin = new FileInputStream(f);
+
+            return fin;
+          }
+        } catch(IOException e) {}
+      }
+    }
+
+    if (ext != null) {
+      fileWithoutExtension = fileWithoutExtension + "." + ext;
+    }
+
+    return new FileInputStream(fileWithoutExtension);
+  }
+
+  public static UIInsets getMargin(String s) {
+    UIInsets in = getInsets(s);
+
+    if (in != null) {
+      float l = in.left;
+
+      in.left = in.right;
+      in.left = l;
+    }
+
+    return in;
+  }
+
+  public static UIPoint getPoint(String s) {
+    if ((s == null) || (s.length() == 0)) {
+      return null;
+    }
+
+    int     n = s.indexOf(',');
+    UIPoint p = new UIPoint();
+
+    p.x = SNumber.intValue(s);
+
+    if (n != -1) {
+      p.y = SNumber.intValue(s.substring(n + 1));
+    }
+
+    return p;
+  }
+
+  public static void getProposedBoundsForLocation(UIRectangle r, int x, int y, UIDimension size) {
+    UIDimension ss = ScreenUtils.getUsableScreenSize();
+
+    r.x         = x;
+    r.y         = y;
+    r.width     = size.width;
+    r.height    = size.height;
+    size.width  = Math.min(ss.width, size.width);
+    size.height = Math.min(ss.height, size.height);
+
+    if (x + size.width > ss.width) {
+      r.x = ss.width - size.width;
+    }
+
+    if (y + size.height > ss.height) {
+      r.y = ss.height - size.height;
+    }
+  }
+
+  public static void getProposedPopupBounds(UIRectangle r, iPlatformComponent owner, UIDimension contentSize,
+          float popupFraction, HorizontalAlign contentAlignment, iPlatformBorder popupBorder, boolean scrollable) {
+    UIDimension ss;
+    UIPoint     loc;
+
+    if (Platform.getUIDefaults().getBoolean("Rare.Popup.restrictToWindow", false)) {
+      WindowViewer w = Platform.getWindowViewer();
+
+      loc   = owner.getLocationOnScreen();
+      loc.x -= w.getScreenX();
+      loc.y -= w.getScreenY();
+      ss    = ScreenUtils.getUsableScreenSize(owner);
+
+      float ww = ss.width;
+      float hh = ss.height;
+
+      ss = w.getSize();
+
+      float tw = w.getScreenX() + ss.width;
+      float th = w.getScreenY() + ss.height;
+
+      if (tw > ww) {
+        ss.width -= (tw - ww);
+      }
+
+      if (th > hh) {
+        ss.height -= (th - hh);
+      }
+    } else {
+      ss  = ScreenUtils.getUsableScreenSize(owner);
+      loc = owner.getLocationOnScreen();
+    }
+
+//    ss.width -= ScreenUtils.PLATFORM_PIXELS_4;
+    UIDimension size        = owner.getOrientedSize(null);
+    float       ownerWidth  = size.width;
+    float       ownerHeight = size.height;
+    float       ownerY      = loc.y;
+    float       ownerX      = loc.x;
+    float       width       = ownerWidth;
+    float       height      = ownerHeight * 2;
+
+    r.x = 0;
+    r.y = 0;
+
+    float n = ss.height - ownerHeight;
+
+    if (n > (ss.height * 0.5f)) {    // if larger than 50% of the screen the set
+      // the usable screen height to this amount
+      ss.height = n;
+    }
+
+    if (popupFraction != 0) {
+      width = (int) (ownerWidth * popupFraction);
+
+      if (width < 1) {
+        width = ownerWidth;
+      }
+    } else if (width < ownerWidth) {
+      width = ownerWidth;
+    }
+
+    UIInsets in = (popupBorder == null)
+                  ? EMPTY_INSETS
+                  : popupBorder.getBorderInsets((UIInsets) null);
+
+    if (contentSize != null) {
+      size        = contentSize;
+      size.width  += in.left + in.right;
+      size.height += in.top + in.bottom;
+      size.width  = Math.min(ss.width, size.width);
+      size.height = Math.min(ss.height, size.height);
+
+      switch(contentAlignment) {
+        case LEADING :
+        case LEFT :
+          r.x   = 0;
+          width = size.width;
+
+          break;
+
+        case RIGHT :
+        case TRAILING :
+          if (size.width < width) {
+            r.x   = width - size.width;
+            width = size.width;
+          }
+
+          break;
+
+        case CENTER :
+          if (size.width < width) {
+            r.x   = (width - size.width) / 2;
+            width = size.width;
+          }
+
+          break;
+
+        default :
+          if ((width < size.width) && (popupFraction == 0)) {
+            width = size.width;
+          }
+
+          break;
+      }
+
+      height = size.height;
+    }
+
+    if (width > ss.width) {
+      width = ss.width;
+    }
+
+    if (height > ss.height) {
+      height = ss.height;
+    }
+
+    if (scrollable) {
+      if (height + ownerHeight + ownerY > ss.height) {
+        float bh = ss.height - ownerY - ownerHeight;
+
+        if (bh > ownerY) {
+          height = bh;
+        } else if (height > bh) {
+          height = Math.min(height, ownerY - ScreenUtils.PLATFORM_PIXELS_10);
+        }
+      }
+    }
+
+    if (popupFraction != 0) {
+      r.x = (ownerWidth - width) / 2;
+    } else if (width > ownerWidth) {
+      if (width + ownerX > ss.width) {
+        r.x = -(width - ownerWidth);
+
+        if (r.x + ownerX < 0) {
+          r.x = -ownerX;
+        } else if (width > (ownerX + ownerWidth)) {
+          r.x += (width - ownerX) + (int) ((ss.width - width) / 2) + ScreenUtils.PLATFORM_PIXELS_1;
+        }
+      }
+    }
+
+    if ((height + ownerHeight + ownerY) > ss.height) {
+      r.y = -(height + ownerHeight);
+
+      if (height > ownerY) {
+        r.y += (height - ownerY) + (ss.height - height) / 2;
+
+        if (r.x - ownerWidth >= 0) {
+          r.x += ownerWidth;
+        } else if (r.x + ownerWidth + width < ss.width) {
+          if (r.x < 0) {
+            r.x -= ownerWidth;
+            r.x += ScreenUtils.PLATFORM_PIXELS_1;
+          } else {
+            r.x += ownerWidth;
+          }
+        }
+      }
+    }
+
+    r.x      = (float) Math.round(r.x);
+    r.y      = (float) Math.round(r.y);
+    r.width  = (float) Math.ceil(width);
+    r.height = (float) Math.ceil(height);
+  }
+
+  public static UIRectangle getRectangle(String s) {
+    if ((s == null) || (s.length() == 0)) {
+      return null;
+    }
+
+    List<String> list = CharScanner.getTokens(s, ',', true);
+    int          len  = list.size();
+    UIRectangle  r    = new UIRectangle();
+
+    r.x      = (len > 0)
+               ? SNumber.intValue(list.get(0))
+               : 0;
+    r.y      = (len > 1)
+               ? SNumber.intValue(list.get(1))
+               : 0;
+    r.width  = (len > 2)
+               ? SNumber.intValue(list.get(2))
+               : 0;
+    r.height = (len > 3)
+               ? SNumber.intValue(list.get(3))
+               : 0;
+
+    return r;
+  }
+
+  public static RenderType getRenderType(int halign, int valign) {
+    RenderType type = null;
+
+    switch(valign) {
+      case Widget.CVerticalAlign.top :
+        switch(halign) {
+          case Widget.CHorizontalAlign.center :
+            type = RenderType.UPPER_MIDDLE;
+
+            break;
+
+          case Widget.CHorizontalAlign.left :
+            type = RenderType.UPPER_LEFT;
+
+            break;
+
+          case Widget.CHorizontalAlign.right :
+            type = RenderType.UPPER_RIGHT;
+
+            break;
+
+          case Widget.CHorizontalAlign.full :
+            type = RenderType.STRETCH_WIDTH;
+
+            break;
+        }
+
+        break;
+
+      case Widget.CVerticalAlign.auto :
+      case Widget.CVerticalAlign.center :
+        switch(halign) {
+          case Widget.CHorizontalAlign.center :
+            type = RenderType.CENTERED;
+
+            break;
+
+          case Widget.CHorizontalAlign.left :
+            type = RenderType.LEFT_MIDDLE;
+
+            break;
+
+          case Widget.CHorizontalAlign.right :
+            type = RenderType.RIGHT_MIDDLE;
+
+            break;
+
+          case Widget.CHorizontalAlign.full :
+            type = RenderType.STRETCH_WIDTH_MIDDLE;
+        }
+
+        break;
+
+      case Widget.CVerticalAlign.bottom :
+        switch(halign) {
+          case Widget.CHorizontalAlign.center :
+            type = RenderType.LOWER_MIDDLE;
+
+            break;
+
+          case Widget.CHorizontalAlign.left :
+            type = RenderType.LOWER_LEFT;
+
+            break;
+
+          case Widget.CHorizontalAlign.right :
+            type = RenderType.LOWER_RIGHT;
+
+            break;
+
+          case Widget.CHorizontalAlign.full :
+            type = RenderType.STRETCH_WIDTH;
+
+            break;
+        }
+
+        break;
+
+      case Widget.CVerticalAlign.full :
+        switch(halign) {
+          case Widget.CHorizontalAlign.left :
+            type = RenderType.STRETCH_HEIGHT;
+
+            break;
+
+          case Widget.CHorizontalAlign.full :
+            type = RenderType.STRETCHED;
+
+            break;
+
+          case Widget.CHorizontalAlign.center :
+            type = RenderType.STRETCH_HEIGHT_MIDDLE;
+
+            break;
+        }
+    }
+
+    return type;
+  }
+
+  public static RenderType[] getRenderTypes(String s, int max) {
+    if ((s == null) || (s.length() == 0)) {
+      return null;
+    }
+
+    RenderType[] rts  = new RenderType[max];
+    List<String> list = CharScanner.getTokens(s, ',', true);
+    int          len  = list.size();
+
+    rts[0] = (len > 0)
+             ? RenderType.valueOfEx(list.get(0))
+             : null;
+    rts[1] = (len > 1)
+             ? RenderType.valueOfEx(list.get(1))
+             : null;
+    rts[2] = (len > 2)
+             ? RenderType.valueOfEx(list.get(2))
+             : null;
+    rts[3] = (len > 3)
+             ? RenderType.valueOfEx(list.get(3))
+             : null;
+
+    return rts;
+  }
+
+  public static void getSimpleSize(CharSequence cs, UIFont font, UIDimension size) {
+    int clen  = 0;
+    int mclen = 0;
+
+    if (cs == null) {
+      cs = "";
+    }
+
+    int           ln  = 0;
+    int           len = cs.length();
+    int           pos = 0;
+    UIFontMetrics fm  = UIFontMetrics.getMetrics(font);
+
+    for (int i = 0; i < len; i++) {
+      Character ca = cs.charAt(i);
+
+      if (ca == '\r') {
+        continue;
+      }
+
+      if (ca == '\n') {
+        String s = cs.subSequence(pos, i).toString();
+
+        mclen = Math.max(fm.stringWidth(s), mclen);
+        clen  = 0;
+        pos   = i;
+      } else {
+        if (clen == 0) {
+          pos = i;
+          ln++;
+        }
+
+        clen++;
+      }
+    }
+
+    if (ln == 0) {
+      ln = 1;
+    }
+
+    if ((clen > 0) && (pos < len)) {
+      String s = cs.subSequence(pos, len).toString();
+
+      mclen = Math.max(fm.stringWidth(s), mclen);
+    }
+
+    size.width  = mclen + 4;
+    size.height = ln + (int) FontUtils.getFontHeight(font, true);
+  }
+
+  public static UIDimension getSize(String s) {
+    if ((s == null) || (s.length() == 0)) {
+      return null;
+    }
+
+    char[] a   = s.toCharArray();
+    int    len = a.length;
+    int    x   = SNumber.intValue(a, 0, len, false);
+    int    y   = 0;
+
+    if (x < 0) {
+      x = 0;
+    }
+
+    int i = CharArray.indexOf(a, 0, len, 'x', 0);
+
+    if (i == -1) {
+      i = CharArray.indexOf(a, 0, len, ',', 0);
+    }
+
+    if (i != -1) {
+      i++;
+
+      while((i < len) && (a[i] < 33)) {
+        i++;
+      }
+
+      y = SNumber.intValue(a, i, len - (i), false);
+    }
+
+    return new UIDimension(ScreenUtils.platformPixels(x), ScreenUtils.platformPixels(y));
+  }
+
+  /**
+   * Gets a slice of the specified image. The image is assumed to be made up of
+   * uniform slices
+   *
+   * @param image
+   *          the image
+   * @param pos
+   *          the position of the slice
+   * @param size
+   *          the uniform size of slices
+   *
+   * @return the slice
+   */
+  public static UIImage getSlice(UIImage image, int pos, int size) {
+    int width  = image.getWidth();
+    int height = image.getHeight();
+    int h      = size;
+    int w      = size;
+    int x      = 0;
+    int y      = 0;
+
+    if (height > width) {
+      w = width;
+      y = pos * size;
+    } else {
+      h = height;
+      x = pos * size;
+    }
+
+    return image.getSlice(x, y, w, h);
+  }
+
+  /**
+   * Gets a slice of the specified image
+   *
+   * @param image
+   *          the image
+   * @param rect
+   *          the rectangular slice
+   *
+   * @return the slice
+   */
+  public static UIImage getSlice(UIImage image, UIRectangle rect) {
+    if ((rect.width == 0) && (rect.height == 0)) {
+      return getSlice(image, (int) rect.x, (int) rect.y);
+    } else {
+      return image.getSubimage((int) rect.x, (int) rect.y, (int) rect.width, (int) rect.height);
+    }
+  }
+
+  public static iPaintedButton.ButtonState getState(boolean enabled, boolean pressed, boolean selected,
+          boolean mouseOver) {
+    if (!enabled) {
+      return selected
+             ? iPaintedButton.ButtonState.DISABLED_SELECTED
+             : iPaintedButton.ButtonState.DISABLED;
+    }
+
+    if (selected) {
+      return pressed
+             ? iPaintedButton.ButtonState.PRESSED_SELECTED
+             : iPaintedButton.ButtonState.SELECTED;
+    }
+
+    if (pressed) {
+      return iPaintedButton.ButtonState.PRESSED;
+    }
+
+    if (mouseOver) {
+      return iPaintedButton.ButtonState.ROLLOVER;
+    }
+
+    return iPaintedButton.ButtonState.DEFAULT;
+  }
+
+  public static String getTarget(Link link) {
+    String s = link.regionName.getValue();
+
+    if (s != null) {
+      s = s.trim();
+    }
+
+    if ((s != null) && (s.length() > 0)) {
+      return s;
+    }
+
+    switch(link.target.intValue()) {
+      case Link.CTarget._null :
+        return iTarget.TARGET_NULL;
+
+      case Link.CTarget._self :
+        return iTarget.TARGET_SELF;
+
+      case Link.CTarget._parent :
+        return iTarget.TARGET_PARENT;
+
+      case Link.CTarget._new_window :
+        return iTarget.TARGET_NEW_WINDOW;
+
+      case Link.CTarget._new_popup :
+        return iTarget.TARGET_NEW_POPUP;
+
+      case Link.CTarget._workspace :
+        return iTarget.TARGET_WORKSPACE;
+
+      default :
+        return link.regionName.getValue();
+    }
+  }
+
+  /**
+   * Gets the target that specified component belongs to
+   *
+   * @param c
+   *          the component
+   *
+   * @return the target that specified component belongs to
+   */
+  public static iTarget getTargetForComponent(iPlatformComponent c) {
+    return (iTarget) c.getClientProperty(iConstants.RARE_TARGET_COMPONENT_PROPERTY);
+  }
+
+  public static RenderableDataItem.VerticalAlign getVerticalAlignment(int alignment) {
+    switch(alignment) {
+      case Label.CTextVAlignment.top :
+        return RenderableDataItem.VerticalAlign.TOP;
+
+      case Label.CTextVAlignment.center :
+        return RenderableDataItem.VerticalAlign.CENTER;
+
+      case Label.CTextVAlignment.bottom :
+        return RenderableDataItem.VerticalAlign.BOTTOM;
+
+      default :
+        return RenderableDataItem.VerticalAlign.AUTO;
+    }
+  }
+
+  public static Viewer getViewerConfiguration(Widget wc) {
+    if (wc == null) {
+      return null;
+    } else {
+      if (wc instanceof Viewer) {
+        return (Viewer) wc;
+      }
+
+      WidgetPane wcfg = new WidgetPane();
+
+      wcfg.widget.setValue(wc);
+
+      return wcfg;
+    }
+  }
+
+  public static iWidget getWidget(iWidget context, Widget wc) {
+    if (wc == null) {
+      return null;
+    }
+
+    return aContainer.createWidget(context.getContainerViewer(), wc);
+  }
+
+  public static int getWidgetCount(iTabPaneViewer tpv) {
+    int len   = tpv.getTabCount();
+    int count = 0;
+
+    for (int i = 0; i < len; i++) {
+      if (tpv.getTabDocument(i).getTarget().getViewer() != null) {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
+  public static boolean isInValidSet(String validSet, CharSequence value, boolean checkDigit) {
+    if ((validSet != null) && (value != null)) {
+      int  len = value.length();
+      char c;
+
+      for (int i = 0; i < len; i++) {
+        c = value.charAt(i);
+
+        if (checkDigit && Character.isDigit(c)) {
+          return true;
+        }
+
+        if (validSet.indexOf(c) == -1) {    // use charAt because in general it
+          // should be only one char
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Returns whether the specified URL is a valid base URL
+   *
+   * @param url
+   *          the URL
+   * @return true if the specified URL is a valid base URL; false otherwise
+   */
+  public static boolean isValidBaseURL(URL url) {
+    if (url == null) {
+      return false;
+    }
+
+    String protocol = url.getHost();    // test for custom protocols and no stream
+    // handler permissions
+
+    if (iConstants.INLINE_PROTOCOL_HOSTSTRING.equals(protocol)
+        || iConstants.SCRIPT_PROTOCOL_HOSTSTRING.equals(protocol)
+        || iConstants.COLLECTION_PROTOCOL_HOSTSTRING.equals(protocol)) {
+      return false;
+    }
+
+    protocol = url.getProtocol();
+
+    return !iConstants.INLINE_PROTOCOL_STRING.equals(protocol) &&!iConstants.SCRIPT_PROTOCOL_STRING.equals(protocol)
+           &&!iConstants.COLLECTION_PROTOCOL_STRING.equals(protocol);
   }
 
   public static String makeInvalidRangeString(int min, int max) {
@@ -1442,283 +2530,6 @@ public class Utils {
     }
   }
 
-  public static void setupWindowOptions(Frame frame, Map options) {
-    if (options == null) {
-      frame.setMovable(true);
-      frame.setResizable(true);
-
-      return;
-    }
-
-    boolean            resizable = true;
-    boolean            movable   = true;
-    float              height    = -1;
-    float              left      = -1;
-    float              top       = -1;
-    float              width     = -1;
-    Object             o;
-    iPlatformComponent win        = frame.getComponent();
-    UIDimension        screenSize = ScreenUtils.getScreenSize();
-
-    o = options.get("left");
-
-    if (o instanceof String) {
-      left = ScreenUtils.toPlatformPixelWidth((String) o, win, screenSize.width);
-    } else if (o instanceof Number) {
-      left = ((Number) o).intValue();
-    }
-
-    o = options.get("top");
-
-    if (o instanceof String) {
-      top = ScreenUtils.toPlatformPixelHeight((String) o, win, screenSize.height);
-    } else if (o instanceof Number) {
-      top = ((Number) o).intValue();
-    }
-
-    o = options.get("height");
-
-    if (o instanceof String) {
-      height = ScreenUtils.toPlatformPixelHeight((String) o, win, screenSize.height);
-    } else if (o instanceof Number) {
-      height = ((Number) o).intValue();
-    }
-
-    o = options.get("width");
-
-    if (o instanceof String) {
-      width = ScreenUtils.toPlatformPixelWidth((String) o, win, screenSize.width);
-    } else if (o instanceof Number) {
-      width = ((Number) o).intValue();
-    }
-
-    String s;
-
-    o = options.get("border");
-
-    if (o != null) {
-      iPlatformBorder b = null;
-
-      if (o instanceof String) {
-        s = ((String) o).trim();
-        b = UIBorderHelper.createBorder(s);
-      }
-
-      if (b != null) {
-        win.setBorder(b);
-      }
-    }
-
-    o = options.get("resizable");
-
-    if (o instanceof Boolean) {
-      resizable = ((Boolean) o);
-    } else if (o instanceof String) {
-      s = (String) o;
-
-      if ((s != null) && (s.length() > 0)) {
-        resizable = SNumber.booleanValue(s);
-      }
-    }
-
-    o = options.get("movable");
-
-    if (o instanceof Boolean) {
-      movable = ((Boolean) o);
-    } else if (o instanceof String) {
-      s = (String) o;
-
-      if ((s != null) && (s.length() > 0)) {
-        movable = SNumber.booleanValue(s);
-      }
-    }
-
-    frame.setResizable(resizable);
-    frame.setMovable(movable);
-    s = (String) options.get("title");
-
-    if ((s == null) || (s.length() == 0)) {
-      s = Platform.getAppContext().getWindowManager().getTitle();
-    } else {
-      s = s.trim();
-    }
-
-    frame.setTitle(s);
-
-    UIImageIcon icon = null;
-
-    o = options.get("icon");
-
-    if (o instanceof UIImageIcon) {
-      icon = (UIImageIcon) o;
-    } else {
-      s = (o instanceof String)
-          ? (String) o
-          : null;
-
-      if ((s == null) || (s.length() == 0)) {
-        s = (String) options.get("iconurl");
-      }
-
-      if ((s != null) && (s.length() > 0)) {}
-
-      icon = (UIImageIcon) Platform.getWindowViewer().getIcon(s);
-    }
-
-    if (icon != null) {}
-
-    UIColor c = null;
-
-    o = options.get("bgcolor");
-
-    if (o instanceof UIColor) {
-      c = (UIColor) o;
-    } else {
-      s = (o instanceof String)
-          ? (String) o
-          : null;
-
-      if ((s != null) && (s.length() > 0)) {
-        c = UIColorHelper.getColor(s);
-      }
-    }
-
-    if (c != null) {
-      win.setBackground(c);
-    }
-
-    if ((width > 0) || (height > 0)) {
-      if ((width < 1) || (height < 1)) {
-        frame.setPartialSize(new UIDimension(width, height));
-      } else {
-        frame.setSize(width, height);
-      }
-    }
-
-    if ((left > -1) || (top > -1)) {
-      if ((left < 0) || (top < 0)) {
-        frame.setPartialLocation(new UIPoint(left, top));
-      } else {
-        frame.setLocation(left, top);
-      }
-    }
-
-    if (!frame.isUndecorated() && Platform.isTouchDevice()) {
-      if (win.getBorder() == null) {
-        win.setBorder(BorderUtils.createShadowBorder(ScreenUtils.PLATFORM_PIXELS_7));
-      }
-
-      s = frame.getTitle();
-
-      if ((s == null) || (s.length() == 0)) {
-        frame.setTitle(Platform.getAppContext().getWindowManager().getTitle());
-      }
-    }
-  }
-
-  /**
-   * Strips the amphersand designating a mnemonic from a string
-   *
-   * @param text
-   *          the text
-   * @return the cleaned text
-   */
-  public static String stripMnemonic(String text) {
-    if (text == null) {
-      text = "";
-    }
-
-    int len = text.length();
-    int n   = -1;
-
-    if ((len > 0) &&!text.startsWith("<html>")) {
-      n = text.indexOf('&');
-    }
-
-    if ((n != -1) && (n < len - 1)) {
-      if (text.charAt(n + 1) != '&') {
-        if (n == 0) {
-          text = text.substring(1);
-        } else {
-          text = text.substring(0, n) + text.substring(n + 1);
-        }
-      } else {
-        text = text.substring(0, n) + text.substring(n + 1);
-      }
-    }
-
-    return text;
-  }
-
-  public static void transformPoint(UIPoint pt, int rotation, float width, float height) {
-    float x = pt.x;
-    float y = pt.y;
-    float n;
-
-    switch(rotation) {
-      case 180 :
-        y = height - y;
-        x = width - x;
-
-        break;
-
-      case 90 :
-        n      = x;
-        x      = y;
-        y      = width - n;
-        n      = width;
-        width  = height;
-        height = n;
-
-        break;
-
-      case -90 :
-      case 270 :
-        n      = x;
-        x      = height - y;
-        y      = n;
-        n      = width;
-        width  = height;
-        height = n;
-
-        break;
-
-      default :
-        break;
-    }
-
-    pt.x = x;
-    pt.y = y;
-  }
-
-  public static String utf8String(String value) {
-    if ((value == null) || (value.length() == 0)) {
-      return value;
-    }
-
-    CharArray ca = perThreadCharArray.get();
-    ByteArray ba = perThreadByteArray.get();
-
-    ca.set(value);
-    ba._length = UTF8Helper.getInstance().getBytes(ca.A, 0, ca._length, ba, 0);
-    ca._length = 0;
-    ba.getChars(ca, ISO88591Helper.getInstance());
-
-    String s = ca.toString();
-
-    if (ca.A.length > 65538) {
-      ca._length = 256;
-      ca.trimToSize();
-    }
-
-    if (ba.A.length > 65538) {
-      ba._length = 256;
-      ba.trimToSize();
-    }
-
-    return s;
-  }
-
   public static void setBackground(iPainterSupport c, Object color) {
     if (color instanceof PaintBucket) {
       PaintBucket               pb = (PaintBucket) color;
@@ -2119,6 +2930,194 @@ public class Utils {
     }
   }
 
+  public static void setupWindowOptions(Frame frame, Map options) {
+    boolean isframe = frame.getWindowType() == WindowType.FRAME;
+    UIColor c       = Platform.getUIDefaults().getColor("Rare.Dialog.backgroundColor");
+
+    if (c == null) {
+      c = Platform.getUIDefaults().getColor("Rare.Alert.backgroundColor");
+    }
+
+    if (c == null) {
+      c = ColorUtils.getBackground();
+    }
+
+    if (!frame.isUndecorated()) {
+      if (frame.isUsesRuntimeDecorations()) {
+        iPlatformComponentPainter cp = new UIComponentPainter();
+
+        cp.setBorder(BorderUtils.createShadowBorder(UIScreen.PLATFORM_PIXELS_7));
+        cp.setBackgroundColor(c);
+        frame.setComponentPainter(cp);
+      } else if (!frame.isTransparent()) {
+        frame.setBackground(c);
+      }
+    } else if (!frame.isTransparent()) {
+      frame.setBackground(c);
+    }
+
+    if ((options == null) || options.isEmpty()) {
+      if (isframe) {
+        frame.setMovable(true);
+        frame.setResizable(true);
+      }
+
+      return;
+    }
+
+    boolean            resizable = isframe;
+    boolean            movable   = isframe;
+    float              height    = -1;
+    float              left      = -1;
+    float              top       = -1;
+    float              width     = -1;
+    Object             o;
+    iPlatformComponent win        = frame.getComponent();
+    UIDimension        screenSize = ScreenUtils.getScreenSize();
+
+    o = options.get("left");
+
+    if (o instanceof String) {
+      left = ScreenUtils.toPlatformPixelWidth((String) o, win, screenSize.width);
+    } else if (o instanceof Number) {
+      left = ((Number) o).intValue();
+    }
+
+    o = options.get("top");
+
+    if (o instanceof String) {
+      top = ScreenUtils.toPlatformPixelHeight((String) o, win, screenSize.height);
+    } else if (o instanceof Number) {
+      top = ((Number) o).intValue();
+    }
+
+    o = options.get("height");
+
+    if (o instanceof String) {
+      height = ScreenUtils.toPlatformPixelHeight((String) o, win, screenSize.height);
+    } else if (o instanceof Number) {
+      height = ((Number) o).intValue();
+    }
+
+    o = options.get("width");
+
+    if (o instanceof String) {
+      width = ScreenUtils.toPlatformPixelWidth((String) o, win, screenSize.width);
+    } else if (o instanceof Number) {
+      width = ((Number) o).intValue();
+    }
+
+    String s;
+
+    o = options.get("border");
+
+    if (o != null) {
+      iPlatformBorder b = null;
+
+      if (o instanceof String) {
+        s = ((String) o).trim();
+        b = UIBorderHelper.createBorder(s);
+      }
+
+      if (b != null) {
+        win.setBorder(b);
+      }
+    }
+
+    o = options.get("resizable");
+
+    if (o instanceof Boolean) {
+      resizable = ((Boolean) o);
+    } else if (o instanceof String) {
+      s = (String) o;
+
+      if ((s != null) && (s.length() > 0)) {
+        resizable = SNumber.booleanValue(s);
+      }
+    }
+
+    o = options.get("movable");
+
+    if (o instanceof Boolean) {
+      movable = ((Boolean) o);
+    } else if (o instanceof String) {
+      s = (String) o;
+
+      if ((s != null) && (s.length() > 0)) {
+        movable = SNumber.booleanValue(s);
+      }
+    }
+
+    frame.setResizable(resizable);
+    frame.setMovable(movable);
+    s = (String) options.get("title");
+
+    if ((s == null) || (s.length() == 0)) {
+      s = Platform.getAppContext().getWindowManager().getTitle();
+    } else {
+      s = s.trim();
+    }
+
+    frame.setTitle(s);
+
+    UIImageIcon icon = null;
+
+    o = options.get("icon");
+
+    if (o instanceof UIImageIcon) {
+      icon = (UIImageIcon) o;
+    } else {
+      s = (o instanceof String)
+          ? (String) o
+          : null;
+
+      if ((s == null) || (s.length() == 0)) {
+        s = (String) options.get("iconurl");
+      }
+
+      if ((s != null) && (s.length() > 0)) {
+        icon = (UIImageIcon) Platform.getWindowViewer().getIcon(s);
+      }
+    }
+
+    if (icon != null) {}
+
+    c = null;
+    o = options.get("bgcolor");
+
+    if (o instanceof UIColor) {
+      c = (UIColor) o;
+    } else {
+      s = (o instanceof String)
+          ? (String) o
+          : null;
+
+      if ((s != null) && (s.length() > 0)) {
+        c = UIColorHelper.getColor(s);
+      }
+    }
+
+    if (c != null) {
+      win.setBackground(c);
+    }
+
+    if ((width > 0) || (height > 0)) {
+      if ((width < 1) || (height < 1)) {
+        frame.setPartialSize(new UIDimension(width, height));
+      } else {
+        frame.setSize(width, height);
+      }
+    }
+
+    if ((left > -1) || (top > -1)) {
+      if ((left < 0) || (top < 0)) {
+        frame.setPartialLocation(new UIPoint(left, top));
+      } else {
+        frame.setLocation(left, top);
+      }
+    }
+  }
+
   public static void setWindowSizeAndLocationFromPartial(Frame frame, UIPoint partialLocation,
           UIDimension partialSize) {
     UIDimension d = frame.getComponent().getPreferredSize();
@@ -2150,1006 +3149,107 @@ public class Utils {
     }
   }
 
-  public static UIRectangle getBounds(iPlatformComponent comp, Map options) {
-    UIDimension screenSize = ScreenUtils.getScreenSize();
-    Object      o          = options.get("left");
-    float       left       = -1;
-    float       top        = -1;
-    float       height     = -1;
-    float       width      = -1;
-
-    if (o instanceof String) {
-      left = ScreenUtils.toPlatformPixelWidth((String) o, comp, screenSize.width);
-    } else if (o instanceof Number) {
-      left = ((Number) o).intValue();
+  /**
+   * Strips the amphersand designating a mnemonic from a string
+   *
+   * @param text
+   *          the text
+   * @return the cleaned text
+   */
+  public static String stripMnemonic(String text) {
+    if (text == null) {
+      text = "";
     }
 
-    o = options.get("top");
+    int len = text.length();
+    int n   = -1;
 
-    if (o instanceof String) {
-      top = ScreenUtils.toPlatformPixelHeight((String) o, comp, screenSize.height);
-    } else if (o instanceof Number) {
-      top = ((Number) o).intValue();
+    if ((len > 0) &&!text.startsWith("<html>")) {
+      n = text.indexOf('&');
     }
 
-    o = options.get("height");
-
-    if (o instanceof String) {
-      height = ScreenUtils.toPlatformPixelHeight((String) o, comp, screenSize.height);
-    } else if (o instanceof Number) {
-      height = ((Number) o).intValue();
-    }
-
-    o = options.get("width");
-
-    if (o instanceof String) {
-      width = ScreenUtils.toPlatformPixelWidth((String) o, comp, screenSize.width);
-    } else if (o instanceof Number) {
-      width = ((Number) o).intValue();
-    }
-
-    if (screenSize.width < width) {
-      width = screenSize.width - 10;
-    }
-
-    if (screenSize.height < height) {
-      height = screenSize.height - 50;
-    }
-
-    if ((height == -1) && (width != -1)) {
-      height = screenSize.height - 50;
-    }
-
-    if ((width == -1) && (height != -1)) {
-      width = screenSize.width - 10;
-    }
-
-    return new UIRectangle(top, left, width, height);
-  }
-
-  public static String getDecimalSymbols() {
-    DecimalFormatSymbols s  = new DecimalFormatSymbols();
-    StringBuilder        sb = new StringBuilder();
-
-    sb.append(s.getCurrencySymbol());
-    sb.append(s.getDecimalSeparator());
-    sb.append(s.getGroupingSeparator());
-    sb.append(s.getMinusSign());
-    sb.append(s.getPercent());
-
-    return sb.toString();
-  }
-
-  public static int getFlags(String flags, Map<String, Integer> map) {
-    int          flag = 0;
-    List<String> list = CharScanner.getTokens(flags, '|', true);
-    final int    len  = (list == null)
-                        ? 0
-                        : list.size();
-
-    for (int i = 0; i < len; i++) {
-      Integer n = map.get(list.get(i));
-
-      if (n != null) {
-        flag |= n;
-      }
-    }
-
-    return flag;
-  }
-
-  public static RenderableDataItem.HorizontalAlign getHorizontalAlignment(int alignment) {
-    switch(alignment) {
-      case Label.CTextHAlignment.left :
-        return RenderableDataItem.HorizontalAlign.LEFT;
-
-      case Label.CTextHAlignment.center :
-        return RenderableDataItem.HorizontalAlign.CENTER;
-
-      case Label.CTextHAlignment.right :
-        return RenderableDataItem.HorizontalAlign.RIGHT;
-
-      case Label.CTextHAlignment.leading :
-        return RenderableDataItem.HorizontalAlign.LEADING;
-
-      case Label.CTextHAlignment.trailing :
-        return RenderableDataItem.HorizontalAlign.TRAILING;
-
-      default :
-        return RenderableDataItem.HorizontalAlign.AUTO;
-    }
-  }
-
-  public static RenderableDataItem.IconPosition getIconPosition(int position) {
-    switch(position) {
-      case Label.CIconPosition.left :
-        return RenderableDataItem.IconPosition.LEFT;
-
-      case Label.CIconPosition.right :
-        return RenderableDataItem.IconPosition.RIGHT;
-
-      case Label.CIconPosition.top_left :
-        return RenderableDataItem.IconPosition.TOP_LEFT;
-
-      case Label.CIconPosition.top_right :
-        return RenderableDataItem.IconPosition.TOP_RIGHT;
-
-      case Label.CIconPosition.top_center :
-        return RenderableDataItem.IconPosition.TOP_CENTER;
-
-      case Label.CIconPosition.bottom_left :
-        return RenderableDataItem.IconPosition.BOTTOM_LEFT;
-
-      case Label.CIconPosition.bottom_right :
-        return RenderableDataItem.IconPosition.BOTTOM_RIGHT;
-
-      case Label.CIconPosition.bottom_center :
-        return RenderableDataItem.IconPosition.BOTTOM_CENTER;
-
-      case Label.CIconPosition.trailing :
-        return RenderableDataItem.IconPosition.TRAILING;
-
-      case Label.CIconPosition.leading :
-        return RenderableDataItem.IconPosition.LEADING;
-
-      case Label.CIconPosition.right_justified :
-        return RenderableDataItem.IconPosition.RIGHT_JUSTIFIED;
-
-      default :
-        return RenderableDataItem.IconPosition.AUTO;
-    }
-  }
-
-  public static iPlatformIcon[] getIcons(iWidget context, String s, int max) {
-    if ((s == null) || (s.length() == 0)) {
-      return null;
-    }
-
-    iPlatformIcon[] icons = new iPlatformIcon[max];
-    List<String>    list  = CharScanner.getTokens(s, ',', true);
-    int             len   = list.size();
-
-    icons[0] = (len > 0)
-               ? context.getIcon(list.get(0), null)
-               : null;
-    icons[1] = (len > 1)
-               ? context.getIcon(list.get(1), null)
-               : null;
-    icons[2] = (len > 2)
-               ? context.getIcon(list.get(2), null)
-               : null;
-    icons[3] = (len > 3)
-               ? context.getIcon(list.get(3), null)
-               : null;
-
-    return icons;
-  }
-
-  public static UIInsets getInsets(String s) {
-    if ((s == null) || (s.length() == 0)) {
-      return null;
-    }
-
-    List<String> list = CharScanner.getTokens(s, ',', true);
-    int          len  = list.size();
-    int          t    = (len > 0)
-                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(0)))
-                        : 0;
-    int          r    = (len > 1)
-                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(1)))
-                        : 0;
-    int          b    = (len > 2)
-                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(2)))
-                        : 0;
-    int          l    = (len > 3)
-                        ? ScreenUtils.platformPixels(SNumber.floatValue(list.get(3)))
-                        : 0;
-
-    return new UIInsets(t, r, b, l);
-  }
-
-  public static List<RenderableDataItem> getItems(Object o, aWidget w, boolean copy) {
-    if (o instanceof RenderableDataItem[]) {
-      RenderableDataItem[] a = (RenderableDataItem[]) o;
-
-      if (copy) {
-        a = RenderableDataItem.deepCopy(a);
-      }
-
-      return Arrays.asList(a);
-    }
-
-    if (o instanceof Object[]) {
-      Object[]                           a    = (Object[]) o;
-      int                                len  = a.length;
-      FilterableList<RenderableDataItem> list = new FilterableList<RenderableDataItem>(len);
-      RenderableDataItem                 di;
-
-      for (int i = 0; i < len; i++) {
-        o = a[i];
-
-        if (o instanceof RenderableDataItem) {
-          di = ((RenderableDataItem) o);
-
-          if (copy) {
-            di = di.deepCopy();
-          }
+    if ((n != -1) && (n < len - 1)) {
+      if (text.charAt(n + 1) != '&') {
+        if (n == 0) {
+          text = text.substring(1);
         } else {
-          di = w.createItem(o);
+          text = text.substring(0, n) + text.substring(n + 1);
         }
-
-        list.add(di);
-      }
-    }
-
-    if (copy && (o instanceof RenderableDataItem)) {
-      o = ((RenderableDataItem) o).deepCopy();
-    }
-
-    return Collections.singletonList(w.createItem(o));
-  }
-
-  public static JavaURLConnection getLocaleSpecificConnection(String urlWithoutExtension, String ext)
-          throws IOException {
-    String[] lp = Helper.getLocalResourcePostfix(Locale.getDefault());
-
-    if ((ext != null) && (ext.length() == 0)) {
-      ext = null;
-    }
-
-    if ((lp != null) && (lp.length > 0)) {
-      StringBuilder sb = new StringBuilder(urlWithoutExtension.length() + 10);
-
-      sb.append(urlWithoutExtension);
-
-      int sblen = sb.length();
-
-      for (int i = 0; i < lp.length; i++) {
-        sb.setLength(sblen);
-        sb.append(lp[i]);
-
-        if (ext != null) {
-          sb.append('.').append(ext);
-        }
-
-        try {
-          JavaURLConnection conn = new JavaURLConnection(new URL(sb.toString()).openConnection());
-
-          return conn;
-        } catch(IOException e) {}
-      }
-    }
-
-    if (ext != null) {
-      urlWithoutExtension = urlWithoutExtension + "." + ext;
-    }
-
-    return new JavaURLConnection(new URL(urlWithoutExtension).openConnection());
-  }
-
-  public static FileInputStream getLocaleSpecificFileInputStream(String fileWithoutExtension, String ext)
-          throws IOException {
-    String[] lp = Helper.getLocalResourcePostfix(Locale.getDefault());
-
-    if ((ext != null) && (ext.length() == 0)) {
-      ext = null;
-    }
-
-    if ((lp != null) && (lp.length > 0)) {
-      StringBuilder sb = new StringBuilder(fileWithoutExtension.length() + 10);
-
-      sb.append(fileWithoutExtension);
-
-      int sblen = sb.length();
-
-      for (int i = 0; i < lp.length; i++) {
-        sb.setLength(sblen);
-        sb.append(lp[i]);
-
-        if (ext != null) {
-          sb.append('.').append(ext);
-        }
-
-        try {
-          File f = new File(sb.toString());
-
-          if (f.exists()) {
-            FileInputStream fin = new FileInputStream(f);
-
-            return fin;
-          }
-        } catch(IOException e) {}
-      }
-    }
-
-    if (ext != null) {
-      fileWithoutExtension = fileWithoutExtension + "." + ext;
-    }
-
-    return new FileInputStream(fileWithoutExtension);
-  }
-
-  public static UIInsets getMargin(String s) {
-    UIInsets in = getInsets(s);
-
-    if (in != null) {
-      float l = in.left;
-
-      in.left = in.right;
-      in.left = l;
-    }
-
-    return in;
-  }
-
-  public static void getProposedBoundsForLocation(UIRectangle r, int x, int y, UIDimension size) {
-    UIDimension ss = ScreenUtils.getUsableScreenSize();
-
-    r.x         = x;
-    r.y         = y;
-    r.width     = size.width;
-    r.height    = size.height;
-    size.width  = Math.min(ss.width, size.width);
-    size.height = Math.min(ss.height, size.height);
-
-    if (x + size.width > ss.width) {
-      r.x = ss.width - size.width;
-    }
-
-    if (y + size.height > ss.height) {
-      r.y = ss.height - size.height;
-    }
-  }
-
-  public static void getProposedPopupBounds(UIRectangle r, iPlatformComponent owner, UIDimension contentSize,
-          float popupFraction, HorizontalAlign contentAlignment, iPlatformBorder popupBorder, boolean scrollable) {
-    UIDimension ss;
-    UIPoint     loc;
-
-    if (Platform.getUIDefaults().getBoolean("Rare.Popup.restrictToWindow", false)) {
-      WindowViewer w = Platform.getWindowViewer(owner);
-
-      if (w == null) {
-        w = Platform.getWindowViewer();
-      }
-
-      loc   = owner.getLocationOnScreen();
-      loc.x -= w.getScreenX();
-      loc.y -= w.getScreenY();
-      ss    = ScreenUtils.getUsableScreenSize(owner);
-
-      float ww = ss.width;
-      float hh = ss.height;
-
-      ss = w.getSize();
-
-      float tw = w.getScreenX() + ss.width;
-      float th = w.getScreenY() + ss.height;
-
-      if (tw > ww) {
-        ss.width -= (tw - ww);
-      }
-
-      if (th > hh) {
-        ss.height -= (th - hh);
-      }
-    } else {
-      ss  = ScreenUtils.getUsableScreenSize(owner);
-      loc = owner.getLocationOnScreen();
-    }
-
-    ss.width -= ScreenUtils.PLATFORM_PIXELS_4;
-
-    UIDimension size        = owner.getOrientedSize(null);
-    float       ownerWidth  = size.width;
-    float       ownerHeight = size.height;
-    float       ownerY      = loc.y;
-    float       ownerX      = loc.x;
-    float       width       = ownerWidth;
-    float       height      = ownerHeight * 2;
-
-    r.x = 0;
-    r.y = 0;
-
-    float n = ss.height - ownerHeight;
-
-    if (n > (ss.height * 0.5f)) {    // if larger than 50% of the screen the set
-      // the usable screen height to this amount
-      ss.height = n;
-    }
-
-    if (popupFraction != 0) {
-      width = (int) (ownerWidth * popupFraction);
-
-      if (width < 1) {
-        width = ownerWidth;
-      }
-    } else if (width < ownerWidth) {
-      width = ownerWidth;
-    }
-
-    UIInsets in = (popupBorder == null)
-                  ? EMPTY_INSETS
-                  : popupBorder.getBorderInsets((UIInsets) null);
-
-    if (contentSize != null) {
-      size        = contentSize;
-      size.width  += in.left + in.right;
-      size.height += in.top + in.bottom;
-      size.width  = Math.min(ss.width, size.width);
-      size.height = Math.min(ss.height, size.height);
-
-      switch(contentAlignment) {
-        case LEADING :
-        case LEFT :
-          r.x   = 0;
-          width = size.width;
-
-          break;
-
-        case RIGHT :
-        case TRAILING :
-          if (size.width < width) {
-            r.x   = width - size.width;
-            width = size.width;
-          }
-
-          break;
-
-        case CENTER :
-          if (size.width < width) {
-            r.x   = (width - size.width) / 2;
-            width = size.width;
-          }
-
-          break;
-
-        default :
-          if ((width < size.width) && (popupFraction == 0)) {
-            width = size.width;
-          }
-
-          break;
-      }
-
-      height = size.height;
-    }
-
-    if (width > ss.width) {
-      width = ss.width;
-    }
-
-    if (height > ss.height) {
-      height = ss.height;
-    }
-
-    if (scrollable) {
-      if (height + ownerHeight + ownerY > ss.height) {
-        float bh = ss.height - ownerY - ownerHeight;
-
-        if (bh > ownerY) {
-          height = bh;
-        } else if (height > bh) {
-          height = Math.min(height, ownerY - ScreenUtils.PLATFORM_PIXELS_10);
-        }
-      }
-    }
-
-    if (popupFraction != 0) {
-      r.x = (ownerWidth - width) / 2;
-    } else if (width > ownerWidth) {
-      if (width + ownerX > ss.width) {
-        r.x = -(width - ownerWidth);
-
-        if (r.x + ownerX < 0) {
-          r.x = -ownerX;
-        } else if (width > (ownerX + ownerWidth)) {
-          r.x += (width - ownerX) + (int) ((ss.width - width) / 2) + ScreenUtils.PLATFORM_PIXELS_1;
-        }
-      }
-    }
-
-    if ((height + ownerHeight + ownerY) > ss.height) {
-      r.y = -(height + ownerHeight);
-
-      if (height > ownerY) {
-        r.y += (height - ownerY) + (ss.height - height) / 2;
-
-        if (r.x - ownerWidth >= 0) {
-          r.x += ownerWidth;
-        } else if (r.x + ownerWidth + width < ss.width) {
-          if (r.x < 0) {
-            r.x -= ownerWidth;
-            r.x += ScreenUtils.PLATFORM_PIXELS_1;
-          } else {
-            r.x += ownerWidth;
-          }
-        }
-      }
-    }
-
-    if (r.x + ownerX < ScreenUtils.PLATFORM_PIXELS_2) {
-      r.x += ScreenUtils.PLATFORM_PIXELS_2;
-    }
-
-    r.x      = (float) Math.round(r.x);
-    r.y      = (float) Math.round(r.y);
-    r.width  = (float) Math.ceil(width);
-    r.height = (float) Math.ceil(height);
-  }
-
-  public static UIRectangle getRectangle(String s) {
-    if ((s == null) || (s.length() == 0)) {
-      return null;
-    }
-
-    List<String> list = CharScanner.getTokens(s, ',', true);
-    int          len  = list.size();
-    UIRectangle  r    = new UIRectangle();
-
-    r.x      = (len > 0)
-               ? SNumber.intValue(list.get(0))
-               : 0;
-    r.y      = (len > 1)
-               ? SNumber.intValue(list.get(1))
-               : 0;
-    r.width  = (len > 2)
-               ? SNumber.intValue(list.get(2))
-               : 0;
-    r.height = (len > 3)
-               ? SNumber.intValue(list.get(3))
-               : 0;
-
-    return r;
-  }
-
-  public static UIPoint getPoint(String s) {
-    if ((s == null) || (s.length() == 0)) {
-      return null;
-    }
-
-    int     n = s.indexOf(',');
-    UIPoint p = new UIPoint();
-
-    p.x = SNumber.intValue(s);
-
-    if (n != -1) {
-      p.y = SNumber.intValue(s.substring(n + 1));
-    }
-
-    return p;
-  }
-
-  public static RenderType getRenderType(int halign, int valign) {
-    RenderType type = null;
-
-    switch(valign) {
-      case Widget.CVerticalAlign.top :
-        switch(halign) {
-          case Widget.CHorizontalAlign.center :
-            type = RenderType.UPPER_MIDDLE;
-
-            break;
-
-          case Widget.CHorizontalAlign.left :
-            type = RenderType.UPPER_LEFT;
-
-            break;
-
-          case Widget.CHorizontalAlign.right :
-            type = RenderType.UPPER_RIGHT;
-
-            break;
-
-          case Widget.CHorizontalAlign.full :
-            type = RenderType.STRETCH_WIDTH;
-
-            break;
-        }
-
-        break;
-
-      case Widget.CVerticalAlign.auto :
-      case Widget.CVerticalAlign.center :
-        switch(halign) {
-          case Widget.CHorizontalAlign.center :
-            type = RenderType.CENTERED;
-
-            break;
-
-          case Widget.CHorizontalAlign.left :
-            type = RenderType.LEFT_MIDDLE;
-
-            break;
-
-          case Widget.CHorizontalAlign.right :
-            type = RenderType.RIGHT_MIDDLE;
-
-            break;
-
-          case Widget.CHorizontalAlign.full :
-            type = RenderType.STRETCH_WIDTH_MIDDLE;
-        }
-
-        break;
-
-      case Widget.CVerticalAlign.bottom :
-        switch(halign) {
-          case Widget.CHorizontalAlign.center :
-            type = RenderType.LOWER_MIDDLE;
-
-            break;
-
-          case Widget.CHorizontalAlign.left :
-            type = RenderType.LOWER_LEFT;
-
-            break;
-
-          case Widget.CHorizontalAlign.right :
-            type = RenderType.LOWER_RIGHT;
-
-            break;
-
-          case Widget.CHorizontalAlign.full :
-            type = RenderType.STRETCH_WIDTH;
-
-            break;
-        }
-
-        break;
-
-      case Widget.CVerticalAlign.full :
-        switch(halign) {
-          case Widget.CHorizontalAlign.left :
-            type = RenderType.STRETCH_HEIGHT;
-
-            break;
-
-          case Widget.CHorizontalAlign.full :
-            type = RenderType.STRETCHED;
-
-            break;
-
-          case Widget.CHorizontalAlign.center :
-            type = RenderType.STRETCH_HEIGHT_MIDDLE;
-
-            break;
-        }
-    }
-
-    return type;
-  }
-
-  public static RenderType[] getRenderTypes(String s, int max) {
-    if ((s == null) || (s.length() == 0)) {
-      return null;
-    }
-
-    RenderType[] rts  = new RenderType[max];
-    List<String> list = CharScanner.getTokens(s, ',', true);
-    int          len  = list.size();
-
-    rts[0] = (len > 0)
-             ? RenderType.valueOfEx(list.get(0))
-             : null;
-    rts[1] = (len > 1)
-             ? RenderType.valueOfEx(list.get(1))
-             : null;
-    rts[2] = (len > 2)
-             ? RenderType.valueOfEx(list.get(2))
-             : null;
-    rts[3] = (len > 3)
-             ? RenderType.valueOfEx(list.get(3))
-             : null;
-
-    return rts;
-  }
-
-  public static void getSimpleSize(CharSequence cs, UIFont font, UIDimension size) {
-    int clen  = 0;
-    int mclen = 0;
-
-    if (cs == null) {
-      cs = "";
-    }
-
-    int           ln  = 0;
-    int           len = cs.length();
-    int           pos = 0;
-    UIFontMetrics fm  = UIFontMetrics.getMetrics(font);
-
-    for (int i = 0; i < len; i++) {
-      Character ca = cs.charAt(i);
-
-      if (ca == '\r') {
-        continue;
-      }
-
-      if (ca == '\n') {
-        String s = cs.subSequence(pos, i).toString();
-
-        mclen = Math.max(fm.stringWidth(s), mclen);
-        clen  = 0;
-        pos   = i;
       } else {
-        if (clen == 0) {
-          pos = i;
-          ln++;
-        }
-
-        clen++;
+        text = text.substring(0, n) + text.substring(n + 1);
       }
     }
 
-    if (ln == 0) {
-      ln = 1;
-    }
-
-    if ((clen > 0) && (pos < len)) {
-      String s = cs.subSequence(pos, len).toString();
-
-      mclen = Math.max(fm.stringWidth(s), mclen);
-    }
-
-    size.width  = mclen + 4;
-    size.height = ln + (int) FontUtils.getFontHeight(font, true);
+    return text;
   }
 
-  public static UIDimension getSize(String s) {
-    if ((s == null) || (s.length() == 0)) {
-      return null;
-    }
+  public static void transformPoint(UIPoint pt, int rotation, float width, float height) {
+    float x = pt.x;
+    float y = pt.y;
+    float n;
 
-    char[] a   = s.toCharArray();
-    int    len = a.length;
-    int    x   = SNumber.intValue(a, 0, len, false);
-    int    y   = 0;
+    switch(rotation) {
+      case 180 :
+        y = height - y;
+        x = width - x;
 
-    if (x < 0) {
-      x = 0;
-    }
+        break;
 
-    int i = CharArray.indexOf(a, 0, len, 'x', 0);
+      case 90 :
+        n      = x;
+        x      = y;
+        y      = width - n;
+        n      = width;
+        width  = height;
+        height = n;
 
-    if (i == -1) {
-      i = CharArray.indexOf(a, 0, len, ',', 0);
-    }
+        break;
 
-    if (i != -1) {
-      i++;
+      case -90 :
+      case 270 :
+        n      = x;
+        x      = height - y;
+        y      = n;
+        n      = width;
+        width  = height;
+        height = n;
 
-      while((i < len) && (a[i] < 33)) {
-        i++;
-      }
-
-      y = SNumber.intValue(a, i, len - (i), false);
-    }
-
-    return new UIDimension(ScreenUtils.platformPixels(x), ScreenUtils.platformPixels(y));
-  }
-
-  /**
-   * Gets a slice of the specified image
-   *
-   * @param image
-   *          the image
-   * @param rect
-   *          the rectangular slice
-   *
-   * @return the slice
-   */
-  public static UIImage getSlice(UIImage image, UIRectangle rect) {
-    if ((rect.width == 0) && (rect.height == 0)) {
-      return getSlice(image, (int) rect.x, (int) rect.y);
-    } else {
-      return image.getSubimage((int) rect.x, (int) rect.y, (int) rect.width, (int) rect.height);
-    }
-  }
-
-  /**
-   * Gets a slice of the specified image. The image is assumed to be made up of
-   * uniform slices
-   *
-   * @param image
-   *          the image
-   * @param pos
-   *          the position of the slice
-   * @param size
-   *          the uniform size of slices
-   *
-   * @return the slice
-   */
-  public static UIImage getSlice(UIImage image, int pos, int size) {
-    int width  = image.getWidth();
-    int height = image.getHeight();
-    int h      = size;
-    int w      = size;
-    int x      = 0;
-    int y      = 0;
-
-    if (height > width) {
-      w = width;
-      y = pos * size;
-    } else {
-      h = height;
-      x = pos * size;
-    }
-
-    return image.getSlice(x, y, w, h);
-  }
-
-  public static iPaintedButton.ButtonState getState(boolean enabled, boolean pressed, boolean selected,
-          boolean mouseOver) {
-    if (!enabled) {
-      return selected
-             ? iPaintedButton.ButtonState.DISABLED_SELECTED
-             : iPaintedButton.ButtonState.DISABLED;
-    }
-
-    if (selected) {
-      return pressed
-             ? iPaintedButton.ButtonState.PRESSED_SELECTED
-             : iPaintedButton.ButtonState.SELECTED;
-    }
-
-    if (pressed) {
-      return iPaintedButton.ButtonState.PRESSED;
-    }
-
-    if (mouseOver) {
-      return iPaintedButton.ButtonState.ROLLOVER;
-    }
-
-    return iPaintedButton.ButtonState.DEFAULT;
-  }
-
-  public static String getTarget(Link link) {
-    String s = link.regionName.getValue();
-
-    if (s != null) {
-      s = s.trim();
-    }
-
-    if ((s != null) && (s.length() > 0)) {
-      return s;
-    }
-
-    switch(link.target.intValue()) {
-      case Link.CTarget._null :
-        return iTarget.TARGET_NULL;
-
-      case Link.CTarget._self :
-        return iTarget.TARGET_SELF;
-
-      case Link.CTarget._parent :
-        return iTarget.TARGET_PARENT;
-
-      case Link.CTarget._new_window :
-        return iTarget.TARGET_NEW_WINDOW;
-
-      case Link.CTarget._new_popup :
-        return iTarget.TARGET_NEW_POPUP;
-
-      case Link.CTarget._workspace :
-        return iTarget.TARGET_WORKSPACE;
+        break;
 
       default :
-        return link.regionName.getValue();
+        break;
     }
+
+    pt.x = x;
+    pt.y = y;
   }
 
-  /**
-   * Gets the target that specified component belongs to
-   *
-   * @param c
-   *          the component
-   *
-   * @return the target that specified component belongs to
-   */
-  public static iTarget getTargetForComponent(iPlatformComponent c) {
-    return (iTarget) c.getClientProperty(iConstants.RARE_TARGET_COMPONENT_PROPERTY);
-  }
-
-  public static RenderableDataItem.VerticalAlign getVerticalAlignment(int alignment) {
-    switch(alignment) {
-      case Label.CTextVAlignment.top :
-        return RenderableDataItem.VerticalAlign.TOP;
-
-      case Label.CTextVAlignment.center :
-        return RenderableDataItem.VerticalAlign.CENTER;
-
-      case Label.CTextVAlignment.bottom :
-        return RenderableDataItem.VerticalAlign.BOTTOM;
-
-      default :
-        return RenderableDataItem.VerticalAlign.AUTO;
-    }
-  }
-
-  public static Viewer getViewerConfiguration(Widget wc) {
-    if (wc == null) {
-      return null;
-    } else {
-      if (wc instanceof Viewer) {
-        return (Viewer) wc;
-      }
-
-      WidgetPane wcfg = new WidgetPane();
-
-      wcfg.widget.setValue(wc);
-
-      return wcfg;
-    }
-  }
-
-  public static iWidget getWidget(iWidget context, Widget wc) {
-    if (wc == null) {
-      return null;
+  public static String utf8String(String value) {
+    if ((value == null) || (value.length() == 0)) {
+      return value;
     }
 
-    return aContainer.createWidget(context.getContainerViewer(), wc);
-  }
+    CharArray ca = perThreadCharArray.get();
+    ByteArray ba = perThreadByteArray.get();
 
-  public static int getWidgetCount(iTabPaneViewer tpv) {
-    int len   = tpv.getTabCount();
-    int count = 0;
+    ca.set(value);
+    ba._length = UTF8Helper.getInstance().getBytes(ca.A, 0, ca._length, ba, 0);
+    ca._length = 0;
+    ba.getChars(ca, ISO88591Helper.getInstance());
 
-    for (int i = 0; i < len; i++) {
-      if (tpv.getTabDocument(i).getTarget().getViewer() != null) {
-        count++;
-      }
+    String s = ca.toString();
+
+    if (ca.A.length > 65538) {
+      ca._length = 256;
+      ca.trimToSize();
     }
 
-    return count;
-  }
-
-  public static boolean isInValidSet(String validSet, CharSequence value, boolean checkDigit) {
-    if ((validSet != null) && (value != null)) {
-      int  len = value.length();
-      char c;
-
-      for (int i = 0; i < len; i++) {
-        c = value.charAt(i);
-
-        if (checkDigit && Character.isDigit(c)) {
-          return true;
-        }
-
-        if (validSet.indexOf(c) == -1) {    // use charAt because in general it
-          // should be only one char
-          return false;
-        }
-      }
+    if (ba.A.length > 65538) {
+      ba._length = 256;
+      ba.trimToSize();
     }
 
-    return true;
-  }
-
-  /**
-   * Returns whether the specified URL is a valid base URL
-   *
-   * @param url
-   *          the URL
-   * @return true if the specified URL is a valid base URL; false otherwise
-   */
-  public static boolean isValidBaseURL(URL url) {
-    if (url == null) {
-      return false;
-    }
-
-    String protocol = url.getHost();    // test for custom protocols and no stream
-    // handler permissions
-
-    if (iConstants.INLINE_PROTOCOL_HOSTSTRING.equals(protocol)
-        || iConstants.SCRIPT_PROTOCOL_HOSTSTRING.equals(protocol)
-        || iConstants.COLLECTION_PROTOCOL_HOSTSTRING.equals(protocol)) {
-      return false;
-    }
-
-    protocol = url.getProtocol();
-
-    return !iConstants.INLINE_PROTOCOL_STRING.equals(protocol) &&!iConstants.SCRIPT_PROTOCOL_STRING.equals(protocol)
-           &&!iConstants.COLLECTION_PROTOCOL_STRING.equals(protocol);
+    return s;
   }
 
   private static void substract(final UIRectangle rect, final UIRectangle isection, final ArrayList remainders) {

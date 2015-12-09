@@ -625,10 +625,12 @@ public class TabDocument implements iTabDocument, ViewerCreator.iCallback {
     return v;
   }
 
+  @Override
   public long getReloadTimeout() {
     return reloadTimeout;
   }
 
+  @Override
   public void setReloadTimeout(long reloadTimeout) {
     this.reloadTimeout = reloadTimeout;
   }

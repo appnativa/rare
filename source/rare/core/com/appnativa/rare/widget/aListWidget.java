@@ -27,6 +27,7 @@ import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.UISelectionModelGroup;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
@@ -194,8 +195,8 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
   }
 
   @Override
-  public void clearPopupMenuIndex() {
-    listComponent.clearPopupMenuIndex();
+  public void clearContextMenuIndex() {
+    listComponent.clearContextMenuIndex();
   }
 
   @Override
@@ -310,6 +311,20 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
     listComponent.move(from, to);
   }
 
+  public void upArrow() {
+    if (getRowCount() > 0) {
+      int row = getSelectedIndex();
+      UISelectionModelGroup.selectPreviousRow(listComponent, row);
+    }
+  }
+
+  public void downArrow() {
+    if (getRowCount() > 0) {
+      int row = getSelectedIndex();
+      UISelectionModelGroup.selectNextRow(listComponent, row);
+    }
+  }
+
   /**
    * Refreshes the displayed items. Call this method after significant changes
    * have been made to data items. If items were populated into a temporary list
@@ -342,6 +357,11 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
     return listComponent.remove(index);
   }
 
+  @Override
+  public void repaintRow(int row) {
+   listComponent.repaintRow(row);
+  }
+  
   @Override
   public boolean remove(Object item) {
     return listComponent.remove(item);
@@ -520,7 +540,11 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
     } else if (value instanceof RenderableDataItem) {
       setSelectedItem((RenderableDataItem) value);
     } else {
-      setSelectedIndex(indexOfValue(value));
+      int n=indexOfValueEquals(value);
+      if(n==-1) {
+        n=indexOfLinkedDataEquals(value);
+      }
+      setSelectedIndex(n);
     }
   }
 
@@ -622,13 +646,14 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
   }
 
   @Override
-  public int getPopupMenuIndex() {
-    return listComponent.getPopupMenuIndex();
+  public int getContextMenuIndex() {
+    return listComponent.getContextMenuIndex();
   }
 
   @Override
-  public RenderableDataItem getPopupMenuItem() {
-    return listComponent.getSelectedItem();
+  public RenderableDataItem getContextMenuItem() {
+    int n= listComponent.getContextMenuIndex();
+    return n==-1 ? null : listComponent.get(n);
   }
 
   @Override
@@ -760,7 +785,7 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
 
   @Override
   public boolean hasValue() {
-    return listComponent.size() > 0;
+    return listComponent.hasSelection();
   }
 
   @Override
@@ -862,7 +887,7 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
 
   @Override
   protected String getWidgetAttribute(String name) {
-    String s = ListHelper.getWidgetAttribute(listComponent, name);
+    String s = ListHelper.getWidgetAttribute(this,listComponent, name);
 
     return (s == ListHelper.CALL_SUPER_METHOD)
            ? super.getWidgetAttribute(name)

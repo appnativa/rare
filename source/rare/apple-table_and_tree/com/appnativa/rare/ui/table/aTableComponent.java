@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -130,23 +130,21 @@ public abstract class aTableComponent extends Container implements iTableCompone
    *
    */
   @Override
-  public native void moveColumn(int column, int targetColumn)
-  /*-[
-    [((RAREAPTableView*)tableView_->proxy_) moveColumn:column toColumn:targetColumn];
-  ]-*/
-  ;
+  public void moveColumn(int column, int targetColumn) {
+    tableHeader.columnMoved(column,targetColumn);
+  }
+  
 
   @Override
   public void repaint() {
-    super.repaint();
-    tableHeader.repaint();
-  }
-  
+    repaintVisibleRows();
+ }
+
   public void repaintVisibleRows() {
     tableHeader.repaint();
     tableView.repaintVisibleRows();
   }
-  
+
   @Override
   public void resetTable(List<Column> columns, List<RenderableDataItem> rows) {
     FilterableList<RenderableDataItem> l;
@@ -551,13 +549,13 @@ public abstract class aTableComponent extends Container implements iTableCompone
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    tableHeader.getMinimumSize(size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    tableHeader.getMinimumSize(size, maxWidth);
 
     float w = size.width;
     float h = size.height;
 
-    tableView.getMinimumSize(size);
+    tableView.getMinimumSize(size, maxWidth);
     size.width = Math.max(w, size.width);
 
     if (tableHeader.isVisible()) {
@@ -696,4 +694,11 @@ public abstract class aTableComponent extends Container implements iTableCompone
   public void setTableType(TableType type) {
     tableView.setTableType(type);
   }
+
+  protected native void moveColumnEx(int column, int targetColumn)
+  /*-[
+    [((RAREAPTableView*)tableView_->proxy_) moveColumn:column toColumn:targetColumn];
+  ]-*/
+  ;
+
 }

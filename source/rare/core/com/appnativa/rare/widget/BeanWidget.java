@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.widget;
 
+import java.io.IOException;
+import java.util.EventObject;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.iURLConnection;
@@ -28,13 +31,10 @@ import com.appnativa.rare.spot.Bean;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.ui.event.EventBase;
 import com.appnativa.rare.viewer.iContainer;
-
-import java.io.IOException;
-
-import java.util.EventObject;
 
 /**
  * This class represents the configuration information for a
@@ -154,7 +154,7 @@ public class BeanWidget extends aPlatformWidget {
 
     if ((wl != null) && wl.isEnabled(iConstants.EVENT_FINISHED_LOADING)) {
       if (event == null) {
-        event = new EventObject(getContainerComponent());
+        event = new EventBase(getContainerComponent());
       }
 
       wl.execute(iConstants.EVENT_FINISHED_LOADING, event);

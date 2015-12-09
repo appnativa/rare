@@ -16,8 +16,12 @@
 #import "com/appnativa/rare/ui/listener/iMouseListener.h"
 #import "com/appnativa/rare/ui/listener/iMouseMotionListener.h"
 #import "RAREOverlayView.h"
+#import "RAREGestures.h"
 
-@implementation RAREAPScrollView
+@implementation RAREAPScrollView {
+  __weak RAREMouseHandlerGestureRecognizer *gestureListener_;
+  RAREAPScrollViewDelegate* delegate_;
+}
 
 + (Class)layerClass
 {
@@ -31,6 +35,8 @@
       [self setShowsVerticalScrollIndicator:YES];
       self.backgroundColor=[UIColor clearColor];
       self.layer.borderWidth=0;
+      delegate_=[RAREAPScrollViewDelegate new];
+      self.delegate=delegate_;
     }
     
     return self;
@@ -49,8 +55,27 @@
 }
 -(void)sparDispose {
   [super sparDispose];
+  self.delegate=nil;
+  delegate_=nil;
   overlayView=nil;
 }
+-(void)addGestureRecognizer:(UIGestureRecognizer *)gestureRecognizer {
+  [super addGestureRecognizer:gestureRecognizer];
+  if([gestureRecognizer isKindOfClass:[RAREMouseHandlerGestureRecognizer class]]) {
+    gestureListener_=(RAREMouseHandlerGestureRecognizer*)gestureRecognizer;
+  }
+}
+-(void)scrollViewWillBeginDragging {
+  if(gestureListener_) {
+    [gestureListener_ cancelLongPress];
+  }
+}
+-(void)scrollViewDidScroll {
+  CGPoint p=self.contentOffset;
+  [((RAREScrollView*)self.sparView) viewDidScrollWithFloat:p.x withFloat:p.y];
+}
+
+
 -(void)layoutSubviews {
   RAREScrollView* view=(RAREScrollView*)self.sparView;
    CGSize size=self.frame.size;
@@ -191,4 +216,15 @@
     [super drawRect:dirtyRect];
   }
 }
+@end
+@implementation RAREAPScrollViewDelegate
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  [(RAREAPScrollView*)scrollView scrollViewDidScroll];
+  
+}
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+  [(RAREAPScrollView*)scrollView scrollViewWillBeginDragging];
+}
+
 @end

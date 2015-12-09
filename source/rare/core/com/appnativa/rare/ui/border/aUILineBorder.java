@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
@@ -27,6 +27,7 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformShape;
@@ -36,8 +37,8 @@ import com.appnativa.rare.widget.iWidget;
 public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneable {
   protected static UILineBorder sharedBlackLineBorder;
   protected static UILineBorder sharedLineBorder;
-  protected String              lineStyle         = "solid";
   public static float           onePixelThickness = ScreenUtils.platformPixelsf(1.25f);
+  protected String              lineStyle         = "solid";
   protected float               arcHeight;
   protected float               arcWidth;
   protected iPlatformPath       clipShape;
@@ -47,7 +48,6 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
   protected boolean             flatLeft;
   protected boolean             flatRight;
   protected boolean             flatTop;
-  protected UIColor             hilightColor;
   protected UIInsets            insets;
   protected UIColor             lineColor;
   protected UIStroke            lineStroke;
@@ -193,51 +193,141 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
     return (aUILineBorder) clone();
   }
 
-  public static aUILineBorder createBlackLineBorder() {
-    if (sharedBlackLineBorder == null) {
-      sharedBlackLineBorder = new UILineBorder(UIColor.BLACK);
-    }
-
-    return sharedBlackLineBorder;
+  @Override
+  public float getArcHeight() {
+    return arcHeight;
   }
 
-  public static aUILineBorder createBorder(iWidget context, UIColor color, float thickness, float arcWidth,
-          float arcHeight) {
-    if (color == null) {
-      color = getDefaultLineColor();
-    }
-
-    if (sharedLineBorder == null) {
-      sharedLineBorder = new UILineBorder(getDefaultLineColor(), onePixelThickness, 0, 0);
-    }
-
-    if (color.equals(sharedLineBorder.getLineColor())) {
-      if ((thickness == onePixelThickness) && (arcWidth == 0) && (arcHeight == 0)) {
-        return sharedLineBorder;
-      }
-    }
-
-    if (color.equals(UIColor.BLACK)) {
-      if ((thickness == onePixelThickness) && (arcWidth == 0) && (arcHeight == 0)) {
-        return createBlackLineBorder();
-      }
-    }
-
-    return new UILineBorder(color, thickness, arcWidth, arcHeight);
+  @Override
+  public float getArcWidth() {
+    return arcWidth;
   }
 
-  public static UILineBorder createFocusedBorder(float arcw, float arch) {
-    UIColor c = Platform.getUIDefaults().getColor("Button.focus");
-
-    if (c == null) {
-      c = new UIColor(0, 0, 0, 128);
+  @Override
+  public UIInsets getBorderInsets(UIInsets insets) {
+    if (insets == null) {
+      insets = new UIInsets();
     }
 
-    UILineBorder b = new UILineBorder(c, onePixelThickness, arcw, arch);
+    if (fixedBorderInsets != null) {
+      insets.set(fixedBorderInsets);
 
-    b.setLineStyle("dotted");
+      return insets;
+    }
 
-    return b;
+    calculateInsets(insets, padForArc);
+
+    if (padding != null) {
+      insets.addInsets(padding);
+    }
+
+    return insets;
+  }
+
+  @Override
+  public UIInsets getBorderInsetsEx(UIInsets insets) {
+    if (insets == null) {
+      insets = new UIInsets();
+    }
+
+    calculateInsets(insets, false);
+
+    return insets;
+  }
+
+  public UIColor getLineColor() {
+    return (lineColor == null)
+           ? getDefaultLineColor()
+           : lineColor;
+  }
+
+  public String getLineStyle() {
+    return lineStyle;
+  }
+
+  @Override
+  public iPlatformPath getPath(iPlatformPath p, float x, float y, float width, float height, boolean forClip) {
+    float left   = x;
+    float top    = y;
+    float right  = x + width;
+    float bottom = y + height;
+    float dx     = (thickness < 3)
+                   ? (thickness < 2)
+                     ? .625f
+                     : onePixelThickness
+                   : (thickness / 2f);
+    float aw     = arcWidth;
+    float ah     = arcHeight;
+    float a      = 0;
+
+    if (roundedCorners && forClip) {
+      a = getClipingOffset();
+    }
+
+    left   += dx;
+    top    += dx;
+    right  -= dx;
+    bottom -= dx;
+    ah     += a;
+    aw     += a;
+    right  -= a;
+    bottom -= a;
+
+    if (noRight) {
+      right = x + width;
+    } else if (noLeft) {
+      left = x;
+    }
+
+    if (noTop) {
+      top = y;
+    } else if (noBottom) {
+      bottom = y + height;
+    }
+
+    return createBorderPath(p, left, top, right - left, bottom - top, aw, ah, forClip);
+  }
+
+  @Override
+  public iPlatformShape getShape(iPlatformGraphics g, float x, float y, float width, float height) {
+    if (paintShape != null) {
+      paintShape.reset();
+    }
+
+    paintShape = getPath(paintShape, x, y, width, height, true);
+
+    return paintShape;
+  }
+
+  /**
+   * @return the thickness
+   */
+  public float getThickness() {
+    return thickness;
+  }
+
+  @Override
+  public boolean isFocusAware() {
+    return true;
+  }
+
+  public boolean isMissingASide() {
+    return noBottom || noTop || noRight || noLeft;
+  }
+
+  @Override
+  public boolean isPadForArc() {
+    return padForArc;
+  }
+
+  @Override
+  public boolean isPaintLast() {
+    return true;
+  }
+
+  @Override
+  public boolean isRectangular() {
+    return !roundedCorners;
   }
 
   @Override
@@ -246,9 +336,14 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
       return;
     }
 
+    UIColor color = getPaintColor(g.getComponent());
+
+    if (color.getAlpha() == 0) {
+      return;
+    }
+
     UIStroke stroke = g.getStroke();
     UIColor  c      = g.getColor();
-    UIColor  color  = getColor();
 
     g.setColor(color);
 
@@ -281,63 +376,6 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
 
     g.setStroke(stroke);
     g.setColor(c);
-  }
-
-  public static void paintLines(iPlatformGraphics g, UIInsets in, float left, float top, float right, float bottom) {
-    UIColor c = g.getColor();
-
-    if (c instanceof UIColorShade) {
-      iPainter p = ((UIColorShade) c).getBackgroundPainter();
-
-      if (p != null) {
-        paintLines(g, p, in, left, top, right, bottom);
-
-        return;
-      }
-    }
-
-    if (in.top > 0) {
-      g.fillRect(left, top, right - left, in.top);
-    }
-
-    if (in.left > 0) {
-      g.fillRect(left, top, in.left, bottom - top);
-    }
-
-    if (in.bottom > 0) {
-      g.fillRect(left, bottom - in.bottom, right - left, in.bottom);
-    }
-
-    if (in.right > 0) {
-      g.fillRect(right - in.right, top, in.right, bottom - top);
-    }
-  }
-
-  public static void paintLines(iPlatformGraphics g, iPainter p, UIInsets in, float left, float top, float right,
-                                float bottom) {
-    if (in.top > 0) {
-      p.paint(g, left, top, right - left, in.top, iPainter.HORIZONTAL);
-    }
-
-    if (in.left > 0) {
-      p.paint(g, left, top, in.left, bottom - top, iPainter.VERTICAL);
-    }
-
-    if (in.bottom > 0) {
-      p.paint(g, left, bottom - in.bottom, right - left, in.bottom, iPainter.HORIZONTAL);
-    }
-
-    if (in.right > 0) {
-      p.paint(g, right - in.right, top, in.right, bottom - top, iPainter.VERTICAL);
-    }
-  }
-
-  public boolean usesPath() {
-    return true;
-  }
-
-  public boolean isMissingASide() {
-    return noBottom || noTop || noRight || noLeft;
   }
 
   public void setCornerArc(float arc) {
@@ -404,21 +442,6 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
     }
 
     this.flatTop = flatTop;
-    modCount++;
-
-    return this;
-  }
-
-  public aUILineBorder setHilightColor(UIColor hilightColor) {
-    if ((this.hilightColor != null) && this.hilightColor.equals(hilightColor)) {
-      return this;
-    }
-
-    if (((this == sharedLineBorder) || (this == sharedBlackLineBorder))) {
-      return copy().setHilightColor(hilightColor);
-    }
-
-    this.hilightColor = hilightColor;
     modCount++;
 
     return this;
@@ -558,28 +581,6 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
     return this;
   }
 
-  private void checkMissingSides() {
-    int n = 0;
-
-    if (noBottom) {
-      n++;
-    }
-
-    if (noTop) {
-      n++;
-    }
-
-    if (noRight) {
-      n++;
-    }
-
-    if (noLeft) {
-      n++;
-    }
-
-    has2MissingSides = n > 1;
-  }
-
   /**
    * @param thickness
    *          the thickness to set
@@ -596,135 +597,63 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
     return setThicknessEx(thickness);
   }
 
-  @Override
-  public float getArcHeight() {
-    return arcHeight;
+  public boolean usesPath() {
+    return true;
   }
 
-  @Override
-  public float getArcWidth() {
-    return arcWidth;
+  protected void adjustStrokeForThickness() {
+    if (lineStroke != null) {
+      if ((lineStroke == UIStroke.SOLID_STROKE) || (lineStroke == UIStroke.DASHED_STROKE)
+          || (lineStroke == UIStroke.DOTTED_STROKE)) {
+        lineStroke = (UIStroke) lineStroke.clone();
+      }
+
+      lineStroke.setWidth(thickness);
+    }
   }
 
-  @Override
-  public UIInsets getBorderInsets(UIInsets insets) {
-    if (insets == null) {
-      insets = new UIInsets();
+  protected UIInsets calculateInsets(UIInsets insets, boolean pad) {
+    int tw = (int) Math.floor(thickness);
+    int th = tw;
+    int tb = tw;
+
+    if (pad) {
+      tw += (arcWidth / 3);
+      th += (arcHeight / 3);
+
+      if (!flatBottom) {
+        tb += (arcWidth / 3);
+      }
     }
 
-    if (fixedBorderInsets != null) {
-      insets.set(fixedBorderInsets);
-
-      return insets;
+    if (flatTop) {
+      th = noTop
+           ? 0
+           : th;
     }
 
-    calculateInsets(insets, padForArc);
+    if (flatBottom) {
+      tb = noBottom
+           ? 0
+           : tb;
+    }
 
-    if (padding != null) {
-      insets.addInsets(padding);
+    if (insets != null) {
+      insets.left   = noLeft
+                      ? 0
+                      : tw;
+      insets.right  = noRight
+                      ? 0
+                      : tw;
+      insets.top    = noTop
+                      ? 0
+                      : th;
+      insets.bottom = noBottom
+                      ? 0
+                      : tb;
     }
 
     return insets;
-  }
-
-  @Override
-  public UIInsets getBorderInsetsEx(UIInsets insets) {
-    if (insets == null) {
-      insets = new UIInsets();
-    }
-
-    calculateInsets(insets, false);
-
-    return insets;
-  }
-
-  public static UIColor getDefaultDisabledColor() {
-    UIColor c = Platform.getUIDefaults().getColor("Rare.LineBorder.disabledColor");
-
-    if (c == null) {
-      c = getDefaultLineColor();
-    }
-
-    return c;
-  }
-
-  public static UIColor getDefaultLineColor() {
-    UIColor c = Platform.getUIDefaults().getColor("Rare.LineBorder.color");
-
-    if (c == null) {
-      c = Platform.getUIDefaults().getColor("Rare.backgroundShadow");
-    }
-
-    if (c == null) {
-      c = UIColor.GRAY;
-    }
-
-    return c;
-  }
-
-  public UIColor getHilightColor() {
-    return hilightColor;
-  }
-
-  public UIColor getLineColor() {
-    return (lineColor == null)
-           ? getDefaultLineColor()
-           : lineColor;
-  }
-
-  public String getLineStyle() {
-    return lineStyle;
-  }
-
-  protected float getClipingOffset() {
-    return (thickness < 3)
-           ? (thickness < 2)
-             ? .25f
-             : .5f
-           : (thickness / 4f);
-  }
-
-  @Override
-  public iPlatformPath getPath(iPlatformPath p, float x, float y, float width, float height, boolean forClip) {
-    float left   = x;
-    float top    = y;
-    float right  = x + width;
-    float bottom = y + height;
-    float dx     = (thickness < 3)
-                   ? (thickness < 2)
-                     ? .625f
-                     : onePixelThickness
-                   : (thickness / 2f);
-    float aw     = arcWidth;
-    float ah     = arcHeight;
-    float a      = 0;
-
-    if (roundedCorners && forClip) {
-      a = getClipingOffset();
-    }
-
-    left   += dx;
-    top    += dx;
-    right  -= dx;
-    bottom -= dx;
-    ah     += a;
-    aw     += a;
-    right  -= a;
-    bottom -= a;
-
-    if (noRight) {
-      right = x + width;
-    } else if (noLeft) {
-      left = x;
-    }
-
-    if (noTop) {
-      top = y;
-    } else if (noBottom) {
-      bottom = y + height;
-    }
-
-    return createBorderPath(p, left, top, right - left, bottom - top, aw, ah, forClip);
   }
 
   protected iPlatformPath createBorderPath(iPlatformPath p, float x, float y, float width, float height, float aw,
@@ -825,81 +754,32 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
     return p;
   }
 
-  @Override
-  public iPlatformShape getShape(iPlatformGraphics g, float x, float y, float width, float height) {
-    if (paintShape != null) {
-      paintShape.reset();
-    }
-
-    paintShape = getPath(paintShape, x, y, width, height, true);
-
-    return paintShape;
+  protected float getClipingOffset() {
+    return (thickness < 3)
+           ? (thickness < 2)
+             ? .25f
+             : .5f
+           : (thickness / 4f);
   }
 
-  /**
-   * @return the thickness
-   */
-  public float getThickness() {
-    return thickness;
+  protected UIColor getDisabledLineColor() {
+    return lineColor.getDisabledColor();
   }
 
-  @Override
-  public boolean isPadForArc() {
-    return padForArc;
-  }
+  public UIColor getPaintColor(iPlatformComponent pc) {
+    UIColor color = (pc == null)
+                    ? null
+                    : getFocusColor(pc, false);
 
-  @Override
-  public boolean isPaintLast() {
-    return true;
-  }
+    if (color == null) {
+      color = lineColor;
 
-  @Override
-  public boolean isRectangular() {
-    return !roundedCorners;
-  }
-
-  protected UIInsets calculateInsets(UIInsets insets, boolean pad) {
-    int tw = (int) Math.floor(thickness);
-    int th = tw;
-    int tb = tw;
-
-    if (pad) {
-      tw += (arcWidth / 3);
-      th += (arcHeight / 3);
-
-      if (!flatBottom) {
-        tb += (arcWidth / 3);
+      if ((pc != null) &&!pc.isEnabled()) {
+        color = getDisabledLineColor();
       }
     }
 
-    if (flatTop) {
-      th = noTop
-           ? 0
-           : th;
-    }
-
-    if (flatBottom) {
-      tb = noBottom
-           ? 0
-           : tb;
-    }
-
-    if (insets != null) {
-      insets.left   = noLeft
-                      ? 0
-                      : tw;
-      insets.right  = noRight
-                      ? 0
-                      : tw;
-      insets.top    = noTop
-                      ? 0
-                      : th;
-      insets.bottom = noBottom
-                      ? 0
-                      : tb;
-    }
-
-    return insets;
+    return color;
   }
 
   protected aUILineBorder setLineColorEx(UIColor c) {
@@ -926,20 +806,135 @@ public abstract class aUILineBorder extends aUIPlatformBorder implements Cloneab
     return this;
   }
 
-  protected UIColor getColor() {
-    return (lineColor == null)
-           ? getDefaultLineColor()
-           : lineColor;
+  private void checkMissingSides() {
+    int n = 0;
+
+    if (noBottom) {
+      n++;
+    }
+
+    if (noTop) {
+      n++;
+    }
+
+    if (noRight) {
+      n++;
+    }
+
+    if (noLeft) {
+      n++;
+    }
+
+    has2MissingSides = n > 1;
   }
 
-  protected void adjustStrokeForThickness() {
-    if (lineStroke != null) {
-      if ((lineStroke == UIStroke.SOLID_STROKE) || (lineStroke == UIStroke.DASHED_STROKE)
-          || (lineStroke == UIStroke.DOTTED_STROKE)) {
-        lineStroke = (UIStroke) lineStroke.clone();
-      }
+  public static aUILineBorder createBlackLineBorder() {
+    if (sharedBlackLineBorder == null) {
+      sharedBlackLineBorder = new UILineBorder(UIColor.BLACK);
+    }
 
-      lineStroke.setWidth(thickness);
+    return sharedBlackLineBorder;
+  }
+
+  public static aUILineBorder createBorder(iWidget context, UIColor color, float thickness, float arcWidth,
+          float arcHeight) {
+    if (color == null) {
+      color = getDefaultLineColor();
+    }
+
+    if (sharedLineBorder == null) {
+      sharedLineBorder = new UILineBorder(getDefaultLineColor(), onePixelThickness, 0, 0);
+    }
+
+    if (color.equals(sharedLineBorder.getLineColor())) {
+      if ((thickness == onePixelThickness) && (arcWidth == 0) && (arcHeight == 0)) {
+        return sharedLineBorder;
+      }
+    }
+
+    if (color.equals(UIColor.BLACK)) {
+      if ((thickness == onePixelThickness) && (arcWidth == 0) && (arcHeight == 0)) {
+        return createBlackLineBorder();
+      }
+    }
+
+    return new UILineBorder(color, thickness, arcWidth, arcHeight);
+  }
+
+  public static UILineBorder createFocusedBorder(float arcw, float arch) {
+    UIColor c = Platform.getUIDefaults().getColor("Button.focus");
+
+    if (c == null) {
+      c = new UIColor(0, 0, 0, 128);
+    }
+
+    UILineBorder b = new UILineBorder(c, onePixelThickness, arcw, arch);
+
+    b.setLineStyle("dotted");
+
+    return b;
+  }
+
+  public static UIColor getDefaultLineColor() {
+    UIColor c = Platform.getUIDefaults().getColor("Rare.LineBorder.color");
+
+    if (c == null) {
+      c = Platform.getUIDefaults().getColor("Rare.backgroundShadow");
+    }
+
+    if (c == null) {
+      c = UIColor.GRAY;
+    }
+
+    return c;
+  }
+
+  public static void paintLines(iPlatformGraphics g, iPainter p, UIInsets in, float left, float top, float right,
+                                float bottom) {
+    if (in.top > 0) {
+      p.paint(g, left, top, right - left, in.top, iPainter.HORIZONTAL);
+    }
+
+    if (in.left > 0) {
+      p.paint(g, left, top, in.left, bottom - top, iPainter.VERTICAL);
+    }
+
+    if (in.bottom > 0) {
+      p.paint(g, left, bottom - in.bottom, right - left, in.bottom, iPainter.HORIZONTAL);
+    }
+
+    if (in.right > 0) {
+      p.paint(g, right - in.right, top, in.right, bottom - top, iPainter.VERTICAL);
+    }
+  }
+
+  public static void paintLines(iPlatformGraphics g, UIInsets in, float left, float top, float right, float bottom) {
+    UIColor c = g.getColor();
+
+    if (c instanceof UIColorShade) {
+      iPainter p = ((UIColorShade) c).getBackgroundPainter();
+
+      if (p != null) {
+        paintLines(g, p, in, left, top, right, bottom);
+
+        return;
+      }
+    }
+
+    if (in.top > 0) {
+      g.fillRect(left, top, right - left, in.top);
+    }
+
+    if (in.left > 0) {
+      g.fillRect(left, top, in.left, bottom - top);
+    }
+
+    if (in.bottom > 0) {
+      g.fillRect(left, bottom - in.bottom, right - left, in.bottom);
+    }
+
+    if (in.right > 0) {
+      g.fillRect(right - in.right, top, in.right, bottom - top);
     }
   }
 }

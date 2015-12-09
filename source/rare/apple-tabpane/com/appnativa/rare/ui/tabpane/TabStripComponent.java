@@ -205,7 +205,7 @@ public class TabStripComponent extends aTabStripComponent {
     }
 
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size,float maxWidth) {
       tabPainter.getMinimumSize(size);
     }
 

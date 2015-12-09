@@ -53,10 +53,12 @@ public class SliderWidget extends aSliderWidget {
     super(parent);
   }
 
+  @Override
   protected iActionComponent createLabel() {
     return new ActionComponent(new LabelView(getAndroidContext()));
   }
 
+  @Override
   protected aSliderComponent createSliderAndComponents(Slider cfg) {
     SliderView seekBar = (SliderView) getAppContext().getComponentCreator().getSlider(getViewer(), cfg);
 

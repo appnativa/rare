@@ -402,7 +402,16 @@ public interface iTreeHandler {
    *          false otherwise
    */
   void setToggleOnTwistyOnly(boolean twistyOnly);
-
+  
+  /**
+   * Sets whether parent items are selectable.
+   * If false only leaf nodes will be selectable (the default is true)
+   *
+   * @param parentItemsSelectable true if parent nodes are selectable; false otherwise
+   */
+  void setParentItemsSelectable(boolean parentItemsSelectable);
+  
+ 
   /**
    * Sets the margin of error for detecting touches on the twisty when using a
    * touch device. Touches extending from the right edge of the twisty to the
@@ -493,4 +502,20 @@ public interface iTreeHandler {
    *         otherwise
    */
   boolean isToggleOnTwistyOnly();
+  
+  /**
+   * Gets whether  parent items are selectable.
+   * If false only leaf nodes will be selectable (the default is true)
+   *
+   * @return true if parent nodes are selectable; false otherwise
+   */
+  boolean isParentItemsSelectable();
+  
+  
+/**
+ * Sets whether the tree will have all of it items expanded by default
+ * @param expandAll true if the tree will have all of it items expanded by default; false otherwise
+ */
+  void setExpandAll(boolean expandAll);
+
 }

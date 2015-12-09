@@ -48,7 +48,7 @@ public class MultiTableContainer extends Container implements iDataModelListener
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     float width  = 0;
     float height = 0;
     int   len    = getComponentCount();
@@ -56,7 +56,7 @@ public class MultiTableContainer extends Container implements iDataModelListener
     for (int i = 0; i < len; i++) {
       TableComponent tc = (TableComponent) getComponentAt(i);
 
-      tc.getMinimumSize(size);
+      tc.getMinimumSize(size,maxWidth);
       height = Math.max(height, size.height);
       width  += size.width;
     }

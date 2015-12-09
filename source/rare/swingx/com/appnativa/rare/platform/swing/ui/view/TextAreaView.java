@@ -15,24 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.swing.ui.text.DocumentChangeListener;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.listener.iTextChangeListener;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -49,6 +35,17 @@ import javax.swing.event.CaretListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.Document;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.swing.ui.text.DocumentChangeListener;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.listener.iTextChangeListener;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+
 /**
  *
  *
@@ -61,13 +58,10 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
   AffineTransform           transform;
   protected int             columnWidth;
   protected SwingGraphics   graphics;
+  private boolean           changeEventsEnabled=true;
 
   public TextAreaView() {
     super();
-    setFont(FontUtils.getDefaultFont());
-    setDisabledTextColor(ColorUtils.getDisabledForeground());
-    setForeground(UIColor.BLACK);
-    setBackground(UIColor.WHITE);
     putClientProperty("Rare.print.scaleToFit", Boolean.TRUE);
     addCaretListener(this);
   }
@@ -77,6 +71,7 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
 
     if (changeListener == null) {
       changeListener = new DocumentChangeListener(this);
+      changeListener.setChangeEventsEnabled(changeEventsEnabled);
       this.getDocument().addDocumentListener(changeListener);
       ((AbstractDocument) getDocument()).setDocumentFilter(changeListener);
     }
@@ -153,22 +148,19 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
   public iPlatformComponentPainter getComponentPainter() {
     return componentPainter;
   }
-
+  
   @Override
-  public Color getForeground() {
-    if (!isEnabled()) {
-      Color c = (Color) getClientProperty(iConstants.RARE_DISABLEDCOLOR_PROPERTY);
-
-      if (c != null) {
-        return c;
-      }
+  public Color getDisabledTextColor() {
+    Color c=super.getForeground();
+    if(c instanceof UIColor) {
+      return ((UIColor)c).getDisabledColor();
     }
-
-    return super.getForeground();
+    return super.getDisabledTextColor();
   }
 
+
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     Dimension d = getMinimumSize();
 
     size.width  = d.width;
@@ -269,5 +261,13 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
     }
 
     return columnWidth;
+  }
+
+  public void setChangeEventsEnabled(boolean enabled) {
+    changeEventsEnabled= enabled;
+
+    if (changeListener != null) {
+      changeListener.setChangeEventsEnabled(enabled);
+    }
   }
 }

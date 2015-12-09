@@ -23,16 +23,15 @@ package com.appnativa.rare.platform.swing.ui.util;
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
-
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.ui.UIMenuItem;
 import com.appnativa.rare.ui.aWindowManager;
 import com.appnativa.rare.ui.iPlatformWindowManager;
+import com.appnativa.rare.ui.iWindowManager;
 
 import java.awt.Image;
-
 import java.lang.reflect.Method;
 
 import javax.swing.JComponent;
@@ -139,7 +138,13 @@ public class MacUtils extends ApplicationAdapter {
     iPlatformAppContext app = AppContext.getContext();
 
     if (app != null) {
-      app.exit();
+      iWindowManager wm=app.getWindowManager();
+      if(wm!=null) {
+        wm.close();
+      }
+      else {
+        app.exit();
+      }
     }
   }
 

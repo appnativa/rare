@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -25,6 +25,7 @@ import com.appnativa.rare.platform.apple.ui.util.ActionMap;
 import com.appnativa.rare.platform.apple.ui.util.ImageUtils;
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 import com.appnativa.rare.ui.effects.aAnimator;
 import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
@@ -32,6 +33,7 @@ import com.appnativa.rare.ui.listener.iKeyListener;
 import com.appnativa.rare.ui.listener.iMouseListener;
 import com.appnativa.rare.ui.listener.iMouseMotionListener;
 import com.appnativa.rare.ui.listener.iViewListener;
+import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
@@ -51,6 +53,7 @@ public class Component extends aComponent implements iGestureListener {
   boolean                  longPressGestureListenerAdded;
   protected UIColor        backgroundColor;
   protected boolean        foregroundSet;
+  protected UIColor        fgColor;
 
   public Component(View view) {
     this.view = view;
@@ -299,6 +302,13 @@ public class Component extends aComponent implements iGestureListener {
   }
 
   @Override
+  public boolean setAlpha(float alpha) {
+    view.setAlpha(alpha);
+
+    return true;
+  }
+
+  @Override
   public void setBackground(UIColor bg) {
     backgroundColor = bg;
 
@@ -350,7 +360,51 @@ public class Component extends aComponent implements iGestureListener {
 
   @Override
   public void setEnabled(boolean enabled) {
-    view.setEnabled(enabled);
+    if (enabled != view.isEnabled()) {
+      view.setEnabled(enabled);
+      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled, enabled);
+
+      iPlatformComponentPainter cp = view.getComponentPainter();
+      iPlatformBorder           b  = view.getBorder();
+
+      if ((b != null) && b.isEnabledStateAware()) {
+        view.updateForStateChange(b);
+        view.setBorder(b);
+      }
+
+      boolean setDisabled = true;
+
+      if (!view.usesForegroundColor()) {
+        setDisabled = false;
+      }
+
+      if (setDisabled) {
+        ButtonState state=Utils.getState(enabled, isPressed(), isSelected(), false);
+        UIColor fg = getForegroundEx();
+
+        if (fg == null) {
+          PainterHolder ph = (cp == null)
+                             ? null
+                             : cp.getPainterHolder();
+
+          if (ph != null) {
+            fg = ph.getForeground(state);
+          }
+
+          if (fg == null) {
+            if (fgColor == null) {
+              fgColor = getForeground();
+            }
+            fg = fgColor.getColor(state);
+          }
+          else {
+            fg=fg.getColor(state);
+          }
+        }
+
+        view.setForegroundColor(fg);
+      }
+    }
   }
 
   @Override
@@ -366,11 +420,8 @@ public class Component extends aComponent implements iGestureListener {
   @Override
   public void setForeground(UIColor fg) {
     foregroundSet = fg != null;
+    fgColor       = fg;
     view.setForegroundColor(fg);
-
-    if ((fg != null) && (view.getComponentPainter() != null)) {
-      view.getComponentPainter().setForegroundColor(fg);
-    }
   }
 
   @Override
@@ -451,7 +502,7 @@ public class Component extends aComponent implements iGestureListener {
   @Override
   public UIColor getForegroundEx() {
     return foregroundSet
-           ? view.getForegroundColor()
+           ? fgColor
            : null;
   }
 
@@ -669,8 +720,8 @@ public class Component extends aComponent implements iGestureListener {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    view.getMinimumSize(size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    view.getMinimumSize(size, maxWidth);
   }
 
   @Override

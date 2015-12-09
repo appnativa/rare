@@ -44,6 +44,7 @@ public class Window extends aWindow {
     super(nsindow);
   }
 
+  @Override
   public native boolean requestFocus()
   /*-[
     [((RAREAPWindow*)proxy_) makeKeyWindow];
@@ -61,6 +62,7 @@ public class Window extends aWindow {
   ]-*/
   ;
 
+  @Override
   public native boolean setBackgroundColorEx(UIColor bg)
   /*-[
     ((RAREAPWindow*)proxy_).backgroundColor=bg ? (UIColor*)[bg getAPColor] : NULL;
@@ -74,18 +76,21 @@ public class Window extends aWindow {
     rootPane.setAutoCreateTitlePane(decorated);
   }
 
+  @Override
   public native void setLocation(float x, float y)
   /*-[
     [((RAREAPWindow*)proxy_) setLocationX: x andY: y];
   ]-*/
   ;
 
+  @Override
   public native boolean isDisplayable()
   /*-[
     return ((UIWindow*)proxy_).screen!=nil;
   ]-*/
   ;
 
+  @Override
   public native boolean isFocused()
   /*-[
     return ((RAREAPWindow*)proxy_).keyWindow;
@@ -107,6 +112,7 @@ public class Window extends aWindow {
   protected WindowPane createRootPane() {
     FormsView  v = new FormsView(createRootViewProxy(), WindowPane.createPaneFormLayout());
     WindowPane p = new WindowPane(v) {
+      @Override
       public UIDimension getSize(UIDimension size) {
         if (size == null) {
           size = new UIDimension();
@@ -144,18 +150,21 @@ public class Window extends aWindow {
   ]-*/
   ;
 
+  @Override
   protected native void setContentView(Object uiview)
   /*-[
     [((RAREAPWindow*)proxy_) setContentView:(UIView*)uiview];
   ]-*/
   ;
 
+  @Override
   protected native void setSizeEx(float width, float height)
   /*-[
     [((RAREAPWindow*)proxy_) setSizeWidth: width andHeight: height];
   ]-*/
   ;
 
+  @Override
   protected native Object getOverlayLayer()
   /*-[
     if(!overlayLayer_) {

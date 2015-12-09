@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.event;
@@ -27,16 +27,15 @@ import com.appnativa.rare.platform.EventHelper;
  * @author Don DeCoteau
  */
 public class ScaleEvent extends EventBase {
-  public static final int SCALE       = 2;
-  public static final int SCALE_BEGIN = 1;
-  public static final int SCALE_END   = 3;
-  private final int       eventType;
-  private final float     scaleFactor;
-  private final Object    scaleGestureDetector;
+  public static enum Type { SCALE, SCALE_BEGIN, SCALE_END; }
 
-  public ScaleEvent(Object source, Object sgd, int type, float scaleFactor) {
+  private final Type   type;
+  private final float  scaleFactor;
+  private final Object scaleGestureDetector;
+
+  public ScaleEvent(Object source, Object sgd, Type type, float scaleFactor) {
     super(source);
-    eventType            = type;
+    this.type            = type;
     scaleGestureDetector = sgd;
     this.scaleFactor     = scaleFactor;
   }
@@ -48,8 +47,8 @@ public class ScaleEvent extends EventBase {
   /**
    * @return the eventType
    */
-  public int getEventType() {
-    return eventType;
+  public Type getEventType() {
+    return type;
   }
 
   public float getFocusX() {
@@ -73,5 +72,15 @@ public class ScaleEvent extends EventBase {
    */
   public Object getScaleGestureDetector() {
     return scaleGestureDetector;
+  }
+
+  /**
+   * Returns whether of the this event represents and event of the specified type
+   *
+   * @param type the type
+   * @return true if it does; false otherwise
+   */
+  public boolean isType(Type type) {
+    return this.type == type;
   }
 }

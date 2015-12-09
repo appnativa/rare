@@ -306,7 +306,7 @@ public class NavigatorPanel extends aNavigatorPanel {
      */
     protected Button(String text, iPlatformIcon icon, UIAction a) {
       setView(new ButtonView(NavigatorPanel.this.getView().getContext()));
-      view.setBackgroundDrawable(NullDrawable.getInstance());
+      view.setBackground(NullDrawable.getInstance());
       view.setOnClickListener(this);
       initialize(text, icon, a);
     }

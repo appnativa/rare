@@ -91,10 +91,12 @@ public abstract class aCachingAdapter extends BaseAdapter {
     this.objectCache = objectCache;
   }
 
+  @Override
   public int getCount() {
     return objectKeys.size();
   }
 
+  @Override
   public Object getItem(int position) {
     Object s   = objectKeys.get(position);
     Object obj = getObjectCache().get(s);
@@ -107,6 +109,7 @@ public abstract class aCachingAdapter extends BaseAdapter {
     return obj;
   }
 
+  @Override
   public long getItemId(int position) {
     return position;
   }

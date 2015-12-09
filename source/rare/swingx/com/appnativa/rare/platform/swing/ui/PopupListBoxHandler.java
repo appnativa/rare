@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.platform.swing.ui;
 
+import javax.swing.ActionMap;
+
+import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.swing.ui.view.ListView;
 import com.appnativa.rare.ui.Container;
 import com.appnativa.rare.ui.PainterUtils;
@@ -36,12 +39,22 @@ public class PopupListBoxHandler extends ListBoxListHandler {
     super(new ListView(model), model);
     listComponent      = new Container(getView());
     containerComponent = listComponent;
-    ((ListView) getView()).getList().setAsPopupList(true);
+    ListView  list =(ListView) getView();
+    list.getList().setAsPopupList(true);
 
-    ListItemRenderer lr = new ListItemRenderer((ListView) getView(), true);
+    ListItemRenderer lr = new ListItemRenderer(list, true);
+    if(forMenu) {
+      list.setAutoHilight(true);
+    }
 
-    ((ListView) getView()).setItemRenderer(lr);    // set after we set the rendering defaults because we need insets to be set
+    list.setItemRenderer(lr);    // set after we set the rendering defaults because we need insets to be set
     PainterUtils.setPopupListRenderingDefaults(this, lr, forMenu);
+    ActionMap am   = list.getList().getActionMap();
+
+    am.put("Rare.origSelectNextRow", am.get("selectNextRow"));
+    am.put("Rare.origSelectPreviousRow", am.get("selectPreviousRow"));
+    am.put("selectNextRow", ActionHelper.selectNextRow);
+    am.put("selectPreviousRow", ActionHelper.selectPreviousRow);
   }
 
   @Override

@@ -47,26 +47,31 @@ public class RadioButtonWidget extends aGroupableButton {
     widgetType = WidgetType.RadioButton;
   }
 
+  @Override
   public void configure(Widget cfg) {
     configureEx((RadioButton) cfg);
     configurePainters((Button) cfg);
     fireConfigureEvent(cfg, iConstants.EVENT_CONFIGURE);
   }
 
+  @Override
   public Object getHTTPFormValue() {
     return isSelected()
            ? super.getHTTPFormValue()
            : null;
   }
 
+  @Override
   public boolean isValidForSubmission(boolean showerror) {
     return isSelected();
   }
 
+  @Override
   public void reset() {
     setSelected(initiallySelected);
   }
 
+  @Override
   protected ActionComponent createButton(Button cfg) {
     return new ActionComponent(getAppContext().getComponentCreator().getRadioButton(getViewer(), (RadioButton) cfg));
   }

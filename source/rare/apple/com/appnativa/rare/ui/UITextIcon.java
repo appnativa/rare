@@ -21,7 +21,6 @@
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.platform.apple.ui.view.LabelView;
-import com.appnativa.rare.ui.painter.aUIPainter;
 
 /**
  * An icon that draws text
@@ -43,12 +42,9 @@ public class UITextIcon extends aUITextIcon {
 
   @Override
   public void paint(iPlatformGraphics g, float x, float y, float width, float height) {
-    UIRectangle rect = aUIPainter.getRenderLocation(g.getComponent(), renderSpace, renderType, x, y, width, height,
-                         size.width, size.height, null);
-
-    g.translate(rect.x, rect.y);
+    g.translate(x, y);
     label.getView().paint(g);
-    g.translate(-rect.x, -rect.y);
+    g.translate(-x, -y);
   }
 
   @Override

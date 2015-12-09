@@ -34,7 +34,7 @@ public class AbsolutePanel extends aAbsolutePanel {
 
   static class AbsolutePanelView extends UtilityPanel {
     @Override
-    public void getMinimumSize(UIDimension size) {
+    public void getMinimumSize(UIDimension size, int maxWidth) {
       AbsolutePanel p = (AbsolutePanel) Component.fromView(this);
 
       p.getMinimumSize(size);

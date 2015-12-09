@@ -33,6 +33,7 @@ public class SpacerView extends JComponent implements iView {
 
   public SpacerView() {
     super();
+    setFocusable(false);
   }
 
   public SpacerView(int width, int height) {
@@ -50,7 +51,7 @@ public class SpacerView extends JComponent implements iView {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     size.width  = (width > -1)
                   ? width
                   : 0;

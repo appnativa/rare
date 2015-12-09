@@ -20,14 +20,23 @@
 
 package com.appnativa.rare.platform.apple;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.converters.aConverter;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionHandler;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iResourceFinder;
+import com.appnativa.rare.converters.aConverter;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -36,11 +45,9 @@ import com.appnativa.rare.scripting.Functions;
 import com.appnativa.rare.scripting.ScriptManager;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.Application;
-import com.appnativa.rare.spot.GridCell;
 import com.appnativa.rare.spot.NameValuePair;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.UIColorHelper;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.WindowManager;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -57,19 +64,6 @@ import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.OrderedProperties;
 import com.appnativa.util.PropertyResourceBundle;
 import com.appnativa.util.Streams.ISO88591Reader;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Rare extends aRare {
   private static long    startTime = System.currentTimeMillis();
@@ -100,45 +94,15 @@ public class Rare extends aRare {
   public void ignoreException(String msg, Throwable e) {
     if (isDebugEnabled()) {
       if ((msg != null) && (e == null)) {
-        log(Level.FINE, msg, null);
+        System.err.println(msg);
       } else if (e != null) {
         if (msg == null) {
           msg = "ignoreException";
         }
-
-        log(Level.FINE, msg, e);
+        System.err.println(msg);
+        e.printStackTrace();
       }
     }
-  }
-
-  /**
-   * Logs a FINE error to the default log
-   *
-   * @param level the logging level
-   * @param msg the message to log
-   * @param throwable the error
-   */
-  public static void log(Level level, String msg, Throwable throwable) {
-    AppContext app = AppContext.getContext();
-    Logger     l   = app.getLogger();
-
-    if (throwable == null) {
-      if (msg != null) {
-        l.log(level, msg);
-      }
-    } else {
-      l.log(level, msg, throwable);
-    }
-  }
-
-  /**
-   * Logs a warning  message to the default error log
-   *
-   * @param msg the message to log
-   * @param throwable the error
-   */
-  public static void logWarning(String msg, Throwable throwable) {
-    log(Level.WARNING, msg, throwable);
   }
 
   public void setupApplicationObjectEx(iURLConnection ic, String local) throws Exception {
@@ -398,7 +362,7 @@ public class Rare extends aRare {
         appContext = null;
       }
     } catch(Throwable e) {
-      logWarning("Shutdown Error", e);
+      ignoreException("Shutdown Error", e);
     }
   }
 
@@ -513,15 +477,6 @@ public class Rare extends aRare {
     }
 
     ((AppContext) appContext).setupUIDefaults();
-  }
-
-  @Override
-  protected void setupSelectionPainter(GridCell gc) {
-    if (gc != null) {
-      selectionPainter = UIColorHelper.configure(getRootViewer(), gc, null);
-    } else {
-      selectionPainter = new SelectionPainter(false);
-    }
   }
 
   @Override

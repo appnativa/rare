@@ -15,14 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
 
-import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.iPlatformGraphics;
 
 /**
  *
@@ -36,7 +34,4 @@ public class UIIconBorder extends aUIIconBorder {
   public UIIconBorder(int top, int left, int bottom, int right) {
     super(top, left, bottom, right);
   }
-
-  @Override
-  protected void paintPattern(UIImage image, iPlatformGraphics g, float x, float y, float width, float height) {}
 }

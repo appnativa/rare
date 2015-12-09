@@ -15,29 +15,28 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.view;
 
 import android.app.Dialog;
-
 import android.content.Context;
-
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.WindowManager;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.Frame;
-import com.appnativa.rare.ui.WindowManager;
+import com.appnativa.util.IdentityArrayList;
 
 /**
  *
  * @author Don DeCoteau
  */
 public class DialogEx extends Dialog {
-  Frame           frame;
-  boolean         undecorated;
-  private boolean usRuntimeDecorations;
+  protected Frame   frame;
+  protected boolean undecorated;
 
   public DialogEx(Context context) {
     super(context);
@@ -45,19 +44,32 @@ public class DialogEx extends Dialog {
     setCanceledOnTouchOutside(false);
   }
 
-  public DialogEx(Context context, boolean rareDecorated) {
-    super(context);
-    setCancelable(true);
-    setCanceledOnTouchOutside(false);
-  }
-
   public DialogEx(Context context, int style) {
     super(context, style);
-    undecorated = style == WindowManager.undecoratedStyle;
+    undecorated = style == com.appnativa.rare.ui.WindowManager.undecoratedStyle;
     setCancelable(true);
     setCanceledOnTouchOutside(false);
   }
+  
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent ev) {
+    IdentityArrayList aw = Platform.getAppContext().getActiveWindows();
+    Object            o  = aw.get(aw.size() - 1);
 
+    if (o instanceof PopupWindowEx) {
+      PopupWindowEx p = (PopupWindowEx) o;
+
+      if (p.isTransient()) {
+        p.dismiss();
+
+        return true;
+      }
+    }
+
+    return super.dispatchTouchEvent(ev);
+  }
+
+  @Override
   public void dismiss() {
     if (frame != null) {
       frame.close();
@@ -98,19 +110,13 @@ public class DialogEx extends Dialog {
     return undecorated;
   }
 
+  @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
     if (frame != null) {
-      frame.reset(getWindow(), null);
+      frame.reset(getWindow());
     }
-  }
-
-  public boolean isUsRuntimeDecorations() {
-    return usRuntimeDecorations;
-  }
-
-  public void setUsRuntimeDecorations(boolean usRuntimeDecorations) {
-    this.usRuntimeDecorations = usRuntimeDecorations;
   }
 }

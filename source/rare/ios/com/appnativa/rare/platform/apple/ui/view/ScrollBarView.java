@@ -42,6 +42,10 @@ public class ScrollBarView extends NonViewView {
   @Override
   public void dispose() {
     scrollView = null;
+    if(listenerList!=null) {
+      listenerList.clear();
+    }
+    listenerList=null;
   }
 
   public boolean isShowAlways() {
@@ -51,9 +55,9 @@ public class ScrollBarView extends NonViewView {
   public void setShowAlways(boolean showAlways) {
     if (scrollView != null) {
       if (horizontal) {
-        // scrollView.setShowsHorizontalScrollIndicator(showAlways);
+        scrollView.setShowsHorizontalScrollIndicator(showAlways);
       } else {
-        // scrollView.setShowsVerticalScrollIndicator(showAlways);
+        scrollView.setShowsVerticalScrollIndicator(showAlways);
       }
     }
 
@@ -105,11 +109,7 @@ public class ScrollBarView extends NonViewView {
       value     = v;
 
       if (hasListener()) {
-        if (changeEvent == null) {
-          changeEvent = new ChangeEvent(this);
-        }
-
-        notifyListeners(changeEvent);
+        notifyChangeListeners();
       }
     }
   }
@@ -162,9 +162,12 @@ public class ScrollBarView extends NonViewView {
     return listenerList != null;
   }
 
-  protected void notifyListeners(ChangeEvent e) {
+  public void setTheme(boolean b) {}
+
+  public void notifyChangeListeners() {
+    if(changeEvent==null) {
+      changeEvent=new ChangeEvent(scrollView);
+    }
     Utils.fireChangeEvent(getEventListenerList(), changeEvent);
   }
-
-  public void setTheme(boolean b) {}
 }

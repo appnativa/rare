@@ -230,7 +230,6 @@ StackPane ::= Extends Viewer {
   viewerURLs Set {
     url PrintableString [ name, mimeType, inline, deferred ]
   } Reference, // Design~urlset: a the set of URLs representing viewer configurations
-  disableBehavior Refine Default disable_container
 } [ onChange ]
 
 /**
@@ -254,7 +253,6 @@ SplitPane ::= Extends Viewer {
     region Region
   }, // Design: the set of regions
   transitionAnimator PrintableString Optional [ duration, direction, acceleration, deceleration, horizontal, fadeIn, fadeOut, diagonal, diagonalAnchor, autoOrient, customProperties ], // Behavior: name of the animator to use to animate transitions
-  disableBehavior Refine Default disable_container,
   scrollPane ScrollPane Reference  // Behavior~~reload: information specifying if the viewer is scrollable and how the associated scroll pane should be configured
 } [ onChange ]
 
@@ -304,7 +302,6 @@ TabPane ::= Extends Viewer {
   actAsFormViewer Boolean Default true, // Behavior: whether the pane should act as a form viewer (if false widgets will be registered with the next higher up form viewer)
   leadingHeaderWidget Any DefinedBy Widget Optional, // a leading widget for the tab area header
   trailingHeaderWidget Any DefinedBy Widget Optional, // a trailing widget for the tab area header
-  disableBehavior Refine Default disable_container,
   transitionAnimator PrintableString Optional [ duration, direction, acceleration, deceleration, horizontal, fadeIn, fadeOut, diagonal, diagonalAnchor, autoOrient, customProperties ], // Behavior: name of the animator to use to animate transitions
   textHAlignment Enumerated {
     auto     (0), // let the widget decide
@@ -366,10 +363,11 @@ DocumentPane ::= Extends Viewer {
  * This class represents the configuration information for a viewer that wraps a widget
  */
 WidgetPane ::= Extends Viewer {
+  actAsFormViewer Boolean Default false, // Behavior: whether the pane should act as a form viewer (if false widgets will be registered with the next higher up form viewer)
   autoResizeWidget Boolean Default true, // Behavior~~reload: whether the pane should resize the widget to fill available space
   scrollPane ScrollPane Reference, // Behavior~~reload: information specifying if the viewer is scrollable and how the associated scroll pane should be configured
   transitionAnimator PrintableString Optional [ duration, direction, acceleration, deceleration, horizontal, fadeIn, fadeOut, diagonal, diagonalAnchor, autoOrient, customProperties ], // Behavior: name of the animator to use to animate transitions
-  widget Any DefinedBy Widget Optional  // Hidden: the widget to be wrapped (if not specified that the dataURL is used)
+  widget Any DefinedBy Widget Optional  // Hidden: the widget to be wrapped (if not specified in the dataURLd)
 }
 
 /**
@@ -405,7 +403,6 @@ ImagePane ::= Extends Viewer {
  */
 CollapsiblePane ::= Extends WidgetPane {
   collapsibleInfo CollapsibleInfo, // Appearance~~reload: information specifying how the expand/collapse functionality should be configured
-  disableBehavior Refine Default disable_container
 } [ onWillExpand, onWillCollapse, onHasCollapsed, onHasExpanded ]
 
 /**
@@ -481,9 +478,6 @@ Table ::= Extends Viewer {
   autoSizeRowsToFit Boolean Default false, // Behavior: whether table rows should be automatically sized to fit their contents
   wordWrapByDefault Boolean Default false, // Behavior: whether table rows should be automatically sized to fit their contents
   resetColumnsOnFontChange Boolean Optional, // Design: whether data items automatically word wrap
-  inheritParentTableColumns Boolean Default true, // Behavior: if this is a child table whether it should inherit its parent's columns
-  inheritParentTableStyle Boolean Default true, // Behavior: if this is a child table whether it should inherit its parent's style
-  syncSelectionsWithParentTable Boolean Default true, // Behavior: if this is a child table whether its selections should be synchronized its parent's
   rowHeight PrintableString Range(0..32) Default "1ln", // Appearance: the height to use for each row in the table
   minVisibleRowCount Integer Default 1, // Appearance:the desired minimum number of visible rows
   visibleRowCount Integer Optional, // Appearance: the desired number of visible rows
@@ -499,7 +493,7 @@ Table ::= Extends Viewer {
     next_cell                      (2)  // moves to the next cell
   } Default next_component_unless_editable, // Behavior: what action should be taken when the enter key is pressed
   selectedIndex Integer Range(-1..) Default -1, // Appearance~~runtime: the index of the row that is to be initially selected
-  handleFirstFocusSelection Boolean Default true, // Behavior: whether the widget should automatically handle the selection when the widget recieves focus for the first time
+  handleFirstFocusSelection Boolean Default false, // Behavior: whether the widget should automatically handle the selection when the widget receives focus for the first time
   submitValue Enumerated {
     selected_value_text                  (0), // submit the text of the selected rows
     selected_value                       (1), // use the actual selection value (useful for manual submission)
@@ -539,6 +533,7 @@ TreeTable ::= Extends Table {
   expandAll Boolean Default false, // Design~expandAll: whether all of the table rows should be initially expanded
   showRootHandles Boolean Default true, // Appearance: whether root node handles should be shown
   parentItemsSelectable Boolean Default true, // Appearance: whether parent items are selectable
+  toggleOnTwistyOnly Boolean, // Appearance: whether parent items expand/collapse only when the twisty is clicked (double tap always toggles) selectable
   indentBy Integer Range(-1..100) Default 16, // Appearance: the number of pixels to use to indent a child node from a parent
   autoScrollOnExpansion Boolean Default true  // Behavior: whether to automatically scroll rows of a newly expanded branch into view
 } [ onHasCollapsed, onHasExpanded, onWillExpand, onWillCollapse ]
@@ -621,6 +616,9 @@ Tree ::= Extends Viewer {
   showRootHandles Boolean Default true, // Appearance: whether root node handles should be shown
   showRootNode Boolean Default true, // Appearance: whether the root node should be shown
   rootNodeCollapsible Boolean Default true, // Appearance: whether the root node is collapsible
+  parentItemsSelectable Boolean Default true, // Appearance: whether parent items are selectable
+  toggleOnTwistyOnly Boolean, // Appearance: whether parent items expand/collapse only when the twisty is clicked (double tap always toggles) selectable
+  indentBy Integer Range(-1..100) Default 16, // Appearance: the number of pixels to use to indent a child node from a parent
   changeSelColorOnLostFocus Boolean Default true, // Behavior: whether the selection color should change when the table looses focus (overrides the global default)
   deselectEventsEnabled Boolean Default false, // Behavior: whether events should be fired when an item is deselected
   itemCursorsSupported Boolean Default false [ whenNonNull="true", script ], // Behavior:whether to support cursors for data items
@@ -834,7 +832,7 @@ Viewer ::= Extends Widget {
     disable_container (0),
     disable_widgets   (1),
     disable_both      (2)
-  } Default disable_widgets [ disableOverlayColor ]  // Behavior: the behavior for a disabled viewer
+  } Default disable_container   // Behavior: the behavior for a disabled viewer
 } [ onLoad, onUnload, onDispose, viewerClass, language, lockable ]
 
 /**
@@ -950,7 +948,7 @@ Widget ::= Sequence {
   } Reference, // Design: registered actions that this widget supports
   popupMenu Set {
     menuItem MenuItem
-  } Reference [ cache, onAction, icon, scrollable ], // Design: popup menu for the widget.
+  } Reference [ cache, onAction, icon, cancelButtonText, modal ], // Design: popup menu for the widget.
   bgImageURL PrintableString Range(0..255) Optional [ opacity="100%", renderType="tiled", waitForLoad="false", renderSpace="within_border", composite="src_over", scaling, density ], // Appearance~image~backgroundOverlayPainter: an background image for the widget (not all widgets support background images)
   overlayImageURL PrintableString Range(0..255) Optional [ opacity="10%", renderType="tiled", waitForLoad="false", renderSpace="within_border", composite="src_over", scaling, displayed="always", density ], // Appearance~image~overlayPainter: an overlay image for the widget (not all widgets support overlay images)
   overlayWidget OverlayInfo Reference, // Hidden~~reload: widget to use as an overlay for this widget
@@ -1079,6 +1077,7 @@ TextField ::= Extends Widget {
   maxCharacters Integer Range(0..) Optional, // Behavior: the maximum characters to allow (use zero for no maximum)
   undoLimit Integer Range(-1..) Default 100, // Behavior: the maximum number of undos to support
   speechInputSupported Boolean Default true, // Behavior: whether the speech input is supported
+  allowDefaultSuggestions Boolean Default true, // Behavior: whether default suggestions are allowed
   keyboardType Enumerated {
     default_type             (0),
     text_type                (1),
@@ -1102,17 +1101,6 @@ TextField ::= Extends Widget {
     done_type    (7)
   } Default default_type [ autoEnable="true", text ]  // Design: the type of keyboard to use for input; text is custom text for the button if supported by the platform
 } [ onAction, onChange ]
-
-/**
- * This class represents the configuration for a widget that allows a file to be selected and subsequently
- * uploaded when the associated form is submitted
- */
-FileUploadField ::= Extends TextField {
-  dialogTitle PrintableString Optional, // Design:the title to use for the file selection dialog box
-  buttonText PrintableString Default "Browse...", // Appearance~~fileUploadButtonText: the text for the button that will initiate the file selection
-  buttonIcon PrintableString Range(0..255) Optional [ alt, slice,  size, scaling, density ]  // Appearance~icon~fileUploadButtonIcon: the icon for the button that will initiate the file selection
-  fileExtensions PrintableString Range(0..255) Optional  // Design: comma separated list of file extension
-}
 
 /**
  * This class represents the configuration for a widget that allows a password to be entered.
@@ -1188,10 +1176,10 @@ Button ::= Extends Widget {
   groupName PrintableString Range(0..64) Optional [ allowDeselection="false" ], // Design: the name of the group the button belongs to
   selected Boolean Default false, // Appearance: whether the button is initially selected
   wordWrap Boolean Default false [ os ]  // Behavior: whether word wrapping is supported or text is truncated
-  pressedPainter GridCell Reference [ foreground ], // Appearance: painter for when a button is pressed
-  selectionPainter GridCell Reference [ foreground ], // Appearance: painter for when a button is selected
-  rolloverPainter GridCell Reference [ foreground ], // Appearance: painter for when the button is rolled over
-  disabledPainter GridCell Reference [ foreground ], // Appearance: painter for when a button is disabled
+  pressedPainter GridCell Reference, // Appearance: painter for when a button is pressed
+  selectionPainter GridCell Reference, // Appearance: painter for when a button is selected
+  rolloverPainter GridCell Reference, // Appearance: painter for when the button is rolled over
+  disabledPainter GridCell Reference, // Appearance: painter for when a button is disabled
 } [ onAction ]
 
 /**
@@ -1370,7 +1358,7 @@ NumberSpinner ::= Extends Spinner {
   minValue Real Optional, // Behavior~spinner: minimum value for the spinner
   maxValue Real Optional, // Behavior~spinner: maximum value for the spinner
   incrementValue Real Optional, // Behavior~spinner: increment value for the spinner
-  supportDecimalValues Boolean Default false, // Behavior: whether the decimal values are supported
+  supportDecimalValues Boolean Default false [maximumPlaces], // Behavior: whether the decimal values are supported
   format PrintableString Range(0..64) Optional  // Behavior: a format string for how the number should be displayed
 }
 
@@ -1530,8 +1518,10 @@ ScrollPane ::= Sequence {
   rowHeader Any DefinedBy Widget Optional, // widget to use as the row header for the scroll pane it scrolls with when the main widget scrolls
   columnFooter Any DefinedBy Widget Optional, // widget to use as a fixed column footer
   rowFooter Any DefinedBy Widget Optional, // widget to use as a fixed row footer (does not necessarily scroll when the main widget scrolls)
-  urCorner Any DefinedBy Widget Optional [ always ], // upper right corner widget (when a corner is needed)
-  lrCorner Any DefinedBy Widget Optional [ always ], // lower right corner widget (when a corner is needed)
+  urCorner Any DefinedBy Widget Optional , // upper right corner widget (when a corner is needed)
+  lrCorner Any DefinedBy Widget Optional , // lower right corner widget (when a corner is needed)
+  ulCorner Any DefinedBy Widget Optional , // upper left corner widget (when a corner is needed)
+  llCorner Any DefinedBy Widget Optional , // lower left corner widget (when a corner is needed)
   wheelScrollingAllowed Boolean Default true, // whether scroll wheel scrolling is enabled
   extendVerticalScrollbar Boolean, // whether the vertical scrollbar should be extended to encompass column headers
   extendHorizontalScrollbar Boolean, // whether the horizontal scrollbar should be extended to encompass row headers and footers
@@ -1792,7 +1782,8 @@ ItemDescription ::= Sequence {
   editorWidget Any DefinedBy Widget Optional, // Design~widget: a widget to use to edit items
   font Font Optional, // Appearance~font: the font for items
   gridCell GridCell Reference, // Appearance~~reload: a cell description for the item
-  selectionGridCell GridCell Reference [ foreground ], // Appearance~~reload: a cell description for the item when it is selected
+  selectionGridCell GridCell Reference, // Appearance~~reload: a cell description for the item when it is selected
+  contentPadding Margin Reference, // Layout~insets:  the margin between the cell and its content
   fgColor PrintableString Range(0..64) Optional, // Appearance~color: the foreground color for items
   actionLink Link Reference, // Design: link to activate when an item is double-clicked
   icon PrintableString Range(0..255) Optional [ alt, slice,  size, scaling, density ], // Appearance~icon: url to use to retrieve the icon for items
@@ -1802,8 +1793,8 @@ ItemDescription ::= Sequence {
   headerIcon PrintableString Range(0..255) Optional [ alt, slice,  size, scaling, density ], // Appearance~icon: url to retrieve the icon to display on the item header
   headerColor PrintableString Range(0..64) Optional, // Appearance~color: the foreground color for the header
   headerCell GridCell Reference, // Appearance~~reload: a cell description for the header
-  headerRolloverCell GridCell Reference [ foreground ], // Appearance~~reload: a cell description for the header rollover effect
-  headerSelectionCell GridCell Reference [ foreground ], // Appearance~~reload: a cell description for the header selected effect
+  headerRolloverCell GridCell Reference, // Appearance~~reload: a cell description for the header rollover effect
+  headerSelectionCell GridCell Reference, // Appearance~~reload: a cell description for the header selected effect
   headerHorizontalAlign Enumerated {
     auto     (0), // let the widget decide
     left     (1), // the text is left aligned

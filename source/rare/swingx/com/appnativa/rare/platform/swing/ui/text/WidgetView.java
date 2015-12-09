@@ -20,13 +20,40 @@
 
 package com.appnativa.rare.platform.swing.ui.text;
 
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Enumeration;
+
+import javax.swing.ButtonModel;
+import javax.swing.ComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPasswordField;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Document;
+import javax.swing.text.Element;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.View;
+import javax.swing.text.html.FormView;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.Option;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
 import com.appnativa.rare.platform.swing.ui.text.HTMLEditorKitEx.iGroupView;
 import com.appnativa.rare.spot.Button;
 import com.appnativa.rare.spot.CheckBox;
 import com.appnativa.rare.spot.ComboBox;
-import com.appnativa.rare.spot.FileUploadField;
 import com.appnativa.rare.spot.GroupBox;
 import com.appnativa.rare.spot.ListBox;
 import com.appnativa.rare.spot.PasswordField;
@@ -54,38 +81,7 @@ import com.appnativa.rare.widget.RadioButtonWidget;
 import com.appnativa.rare.widget.TextAreaWidget;
 import com.appnativa.rare.widget.TextFieldWidget;
 import com.appnativa.rare.widget.iWidget;
-
 import com.jgoodies.forms.layout.CellConstraints;
-
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-
-import java.io.StringReader;
-
-import java.util.ArrayList;
-import java.util.Enumeration;
-
-import javax.swing.ButtonModel;
-import javax.swing.ComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPasswordField;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListModel;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.Document;
-import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.View;
-import javax.swing.text.html.FormView;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.Option;
 
 /**
  * FormView that supports Rare widgets
@@ -694,39 +690,6 @@ public class WidgetView extends FormView {
 
       if (!actionSet) {
         field.addActionListener(this);
-      }
-    } else if (type.equals("file")) {
-      int size = HTML.getIntegerAttributeValue(attr, HTML.Attribute.SIZE, -1);
-
-      if (size < 1) {
-        size = 20;
-      }
-
-      FileUploadField cfg = new FileUploadField();
-
-      if (is_sdf) {
-        DataParser.loadSPOTObjectSDF(parent, new StringReader(cls), cfg, "text/x-sdf", null);
-      } else {
-        cfg.templateName.setValue((cls != null)
-                                  ? cls
-                                  : Platform.getUIDefaults().getString("Rare.template.html.file"));
-      }
-
-      cfg.name.setValue(name);
-      setupConfiguration(cfg, attr, false, !is_sdf);
-      cfg.visibleCharacters.setValue(size);
-      size = HTML.getIntegerAttributeValue(attr, HTML.Attribute.MAXLENGTH, 0);
-
-      if (size > 0) {
-        cfg.maxCharacters.setValue(size);
-      }
-
-      w = createTextFieldWidget(parent, cfg);
-
-      JTextField field = (JTextField) w.getDataComponent();
-
-      if (model != null) {
-        field.setDocument((Document) model);
       }
     } else if (type.equals("button")) {
       String     imgSrc = (String) getAttribute(attr, HTML.Attribute.SRC);

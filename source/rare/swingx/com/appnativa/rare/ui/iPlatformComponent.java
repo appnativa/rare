@@ -47,11 +47,9 @@ public interface iPlatformComponent extends iComponent {
   @Override
   void setScaleIcon(boolean scale, float scaleFactor);
 
-  UIColor getDisabledColor();
-
   UIInsets getFocusInsets(UIInsets insets);
 
-  PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket defaultFocusPaint);
+  PaintBucket getFocusPaint(PaintBucket defaultFocusPaint);
 
   TransferHandler getTransferHandler();
 

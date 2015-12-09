@@ -17,11 +17,10 @@
 - (void) setOrientationEx: (NSUInteger) o ;
 - (void) unlockOrientation;
 - (void)disposeEx;
-- (void)textFieldDidBeginEditing:(UITextField *)textField;
-- (void)textFieldDidEndEditing:(UITextField *)textField;
 - (void) setUseDarkStatusBarText: (BOOL) dark;
 - (void) setStatusBarVisibleEx: (BOOL) visible;
 - (void) showContentController: (UIViewController*) content parent: (UIView*) parent rect: (CGRect) frame;
 - (void) hideContentController: (UIViewController*) content;
-
+- (void) resetScrolledContent:(BOOL) animate;
+-(void)scrollContentForResponder:(UIView *) view;
 @end

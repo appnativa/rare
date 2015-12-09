@@ -15,6 +15,7 @@
 #import "com/appnativa/rare/platform/apple/ui/view/ParentView.h"
 #import "com/appnativa/rare/platform/apple/ui/view/TextAreaView.h"
 #import "com/appnativa/rare/ui/listener/iTextChangeListener.h"
+#import "RAREUIViewController.h"
 
 @implementation RAREAPTextView
 
@@ -56,7 +57,8 @@
   }
   return NO;
 }
-
+-(void)textViewDidBeginEditing:(UITextView *)textView {
+}
 -(void)textViewDidEndEditing:(UITextView *)textView {
   showKeyBoardCalled= FALSE;
 }
@@ -77,11 +79,17 @@
 -(BOOL)becomeFirstResponder {
   BOOL ok=[super becomeFirstResponder];
   if(ok) {
+    RARETextAreaView *tv = (RARETextAreaView *) self.sparView;
+    if(tv->cursorPosition_>0 && tv->cursorPosition_<=self.text.length) {
+      [tv setSelectionWithInt:tv->cursorPosition_ withInt:tv->cursorPosition_];
+    }
     [self gainedFocusEx];
   }
   return ok;
 }
 -(BOOL)resignFirstResponder {
+  RARETextAreaView *tv = (RARETextAreaView *) self.sparView;
+  [tv saveCursorPosition];
   BOOL ok=[super resignFirstResponder];
   if(ok) {
     [self lostFocusEx];

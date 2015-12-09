@@ -42,7 +42,7 @@ public class UIIconRenderer extends UILabelRenderer {
   }
 
   public iPlatformRenderingComponent newCopy() {
-    return Renderers.setupNewCopy(this, new UIIconRenderer(getView().getContext()));
+    return setupNewCopy(new UIIconRenderer(view.getContext()));
   }
 
   /**

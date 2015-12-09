@@ -100,9 +100,6 @@ public class UIComponentRenderer extends aComponentRenderer implements iPlatform
   public void setAlignment(HorizontalAlign ha, VerticalAlign va) {}
 
   @Override
-  public void setColumnWidth(int width) {}
-
-  @Override
   public void setNativeView(Object proxy) {
     if (renderingComponent != null) {
       renderingComponent.getView().setProxy(proxy);

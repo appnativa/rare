@@ -60,7 +60,9 @@ public class DateFormatSymbols implements Cloneable {
   }
 
   public  Object clone() throws CloneNotSupportedException {
-    return super.clone();
+    DateFormatSymbols dfs=(DateFormatSymbols) super.clone();
+    dfs.initialize(locale);
+    return dfs;
   }
 
   /**
@@ -230,12 +232,14 @@ public class DateFormatSymbols implements Cloneable {
    *
    * @return an array of strings.
    */
-  public native String[] getWeekdays()/*-[
+  public native String[] getWeekdays()
+  /*-[
    NSArray* a=[((NSDateFormatter*)proxy_) weekdaySymbols];
     return [AppleHelper toStringArray:a];
   ]-*/;
 
-  private native void initialize(Locale locale)/*-[
+  private native void initialize(Locale locale)
+  /*-[
     proxy_= [[NSDateFormatter alloc] init];
     if(locale!=nil) {
       [((NSDateFormatter*)proxy_) setLocale:([AppleHelper toNSLocale: locale])];

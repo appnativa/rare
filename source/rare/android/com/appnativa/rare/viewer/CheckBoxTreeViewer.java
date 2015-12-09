@@ -53,6 +53,7 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
   /**
    * Clears all check marks
    */
+  @Override
   public void clearCheckMarks() {
     getListView().clearChoices();
   }
@@ -62,12 +63,14 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
    *
    * @param indices the indices of the rows to select
    */
+  @Override
   public void setCheckedRows(int[] indices) {
     TreeViewEx lv = getListView();
 
     lv.setCheckedRows(indices);
   }
 
+  @Override
   public void setLinkSelection(boolean linked) {
     super.setLinkSelection(linked);
     getListView().setLinkedSelection(linkedSelection);
@@ -79,6 +82,7 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
     getListView().setSelectionType(type);
   }
 
+  @Override
   public void setManageChildNodeSelections(boolean manage) {
     getListView().setManageChildNodeSelections(manage);
   }
@@ -89,6 +93,7 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
    * @param row the row
    * @param checked true to check the row; false to un-check
    */
+  @Override
   public void setRowChecked(int row, boolean checked) {
     if (row > -1) {
       getListView().setRowChecked(row, checked);
@@ -99,6 +104,7 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
    * Returns whether there are any checked rows
    * @return true if there are checked rows; false otherwise
    */
+  @Override
   public boolean hasCheckedRows() {
     return getListView().getCheckedItemPosition() > -1;
   }
@@ -110,6 +116,7 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
    *
    * @return true if the specified row is checked; false otherwise
    */
+  @Override
   public boolean isRowChecked(int row) {
     return getListView().isRowChecked(row);
   }
@@ -118,6 +125,7 @@ public class CheckBoxTreeViewer extends aCheckBoxTreeViewer {
     return (TreeViewEx) getDataView();
   }
 
+  @Override
   protected void setIcons(iPlatformIcon checked, iPlatformIcon unchecked, iPlatformIcon indeterminate) {
     getListView().setIcons(checked, unchecked, indeterminate);
   }

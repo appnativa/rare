@@ -51,7 +51,7 @@ public class SeparatorView extends LineView {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     size.width  = 8;
     size.height = 8;
   }

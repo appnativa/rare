@@ -15,15 +15,31 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iDataItemParserCallback;
@@ -31,11 +47,12 @@ import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iWidgetCustomizer;
 import com.appnativa.rare.iWorkerTask;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.CollectionURLConnection;
 import com.appnativa.rare.net.FormHelper;
 import com.appnativa.rare.net.JavaURLConnection;
-import com.appnativa.rare.net.URLEncoder;
 import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -70,19 +87,6 @@ import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.dnd.DragEvent;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.dnd.iTransferable;
-import com.appnativa.rare.ui.effects.iAnimatorListener;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.ui.event.FocusEvent;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.event.ScriptActionListener;
-import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iActionable;
 import com.appnativa.rare.ui.iChangeable;
@@ -96,6 +100,21 @@ import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.iTabDocument;
 import com.appnativa.rare.ui.iTreeHandler;
+import com.appnativa.rare.ui.dnd.DragEvent;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.dnd.iTransferable;
+import com.appnativa.rare.ui.effects.iAnimatorListener;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.ui.event.EventBase;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.FocusEvent;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.event.ScriptActionListener;
+import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.UIImagePainter;
@@ -107,7 +126,6 @@ import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.util.DataItemCSVParser;
 import com.appnativa.rare.util.DataItemParserHandler;
 import com.appnativa.rare.util.DataParser;
-import com.appnativa.rare.util.JSONHelper;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iFormViewer;
@@ -120,31 +138,12 @@ import com.appnativa.util.FilterableList;
 import com.appnativa.util.Helper;
 import com.appnativa.util.ObjectHolder;
 import com.appnativa.util.SNumber;
+import com.appnativa.util.URLEncoder;
 import com.appnativa.util.iCancelable;
 import com.appnativa.util.iURLResolver;
-
+import com.appnativa.util.json.JSONException;
+import com.appnativa.util.json.JSONWriter;
 import com.google.j2objc.annotations.Weak;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.text.ParseException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * Base class for all widgets
@@ -904,7 +903,10 @@ public abstract class aWidget extends RenderableDataItem
         }
       }
     }
-
+    Margin in=id.getContentPadding();
+    if(in!=null) {
+      di.setMargin(in.getInsets());
+    }
     GridCell cell = id.getHeaderCell();
 
     s = id.headerColor.getValue();
@@ -915,7 +917,7 @@ public abstract class aWidget extends RenderableDataItem
       di.setHeaderPainter(pb);
 
       if (cell != null) {
-        UIColorHelper.configure(this, cell, pb);
+        ColorUtils.configure(this, cell, pb);
       }
 
       if (s != null) {
@@ -950,25 +952,25 @@ public abstract class aWidget extends RenderableDataItem
     cell = id.getSelectionGridCell();
 
     if (cell != null) {
-      di.setItemSelectionPainter(UIColorHelper.configure(this, cell, null));
+      di.setItemSelectionPainter(ColorUtils.configure(this, cell, null));
     }
 
     cell = id.getGridCell();
 
     if (cell != null) {
-      di.setItemPainter(UIColorHelper.configure(this, cell, null));
+      di.setItemPainter(ColorUtils.configure(this, cell, null));
     }
 
     cell = id.getHeaderRolloverCell();
 
     if (cell != null) {
-      di.setHeaderRollOverPainter(UIColorHelper.configure(this, cell, null));
+      di.setHeaderRollOverPainter(ColorUtils.configure(this, cell, null));
     }
 
     cell = id.getHeaderSelectionCell();
 
     if (cell != null) {
-      di.setHeaderSelectionPainter(UIColorHelper.configure(this, cell, null));
+      di.setHeaderSelectionPainter(ColorUtils.configure(this, cell, null));
     }
 
     SPOTSet set = DataParser.resolveSet(this, id.getSubItems(), ItemDescription.class);
@@ -1268,15 +1270,13 @@ public abstract class aWidget extends RenderableDataItem
         scriptingContex = null;
       }
 
-      iFormViewer fv = getFormViewer();
+      iFormViewer fv = getFormViewerEx();
 
       if (fv != null) {
         fv.unregisterFormWidget(this);
       }
 
       if (getDataComponent() != null) {
-        unregisterWithWidget(getDataComponent());
-        unregisterWithWidget(getContainerComponent());
         uninitializeListeners(getWidgetListener());
       } else {
         Platform.debugLog("null dataComponent during dispose");
@@ -2072,7 +2072,7 @@ public abstract class aWidget extends RenderableDataItem
     if (cell != null) {
       PaintBucket pb = new PaintBucket();
 
-      UIColorHelper.configure(widget, cell, pb);
+      ColorUtils.configure(widget, cell, pb);
 
       if ((pb.getBackgroundPainter() == null) && (pb.getImagePainter() == null)) {
         di.setBackground(pb.getBackgroundColor());
@@ -2303,8 +2303,20 @@ public abstract class aWidget extends RenderableDataItem
 
   /**
    * Shows the popup menu for the widget
+   * @param x the x-position (-1 for system default)
+   * @param y the y-position (-1 for system default)
    */
-  public abstract void showPopupMenu(int x, int y);
+  public void showPopupMenu(int x, int y) {
+    UIPopupMenu menu = getPopupMenu();
+
+    if (menu != null) {
+      if (menu.getActionScript() != null) {
+        aWidgetListener.evaluate(this, this.getScriptHandler(), menu.getActionScript(), new ExpansionEvent(menu,ExpansionEvent.Type.WILL_EXPAND));
+      }
+
+      menu.show(this, Platform.isTouchDevice());
+    }
+  }
 
   /**
    * Invoked when a widget is about to start loading data I will fire the
@@ -2337,7 +2349,7 @@ public abstract class aWidget extends RenderableDataItem
     aWidgetListener wl = getWidgetListener();
 
     if ((wl != null) && wl.isEnabled(iConstants.EVENT_STARTED_LOADING)) {
-      EventObject e = new EventObject(this);
+      EventObject e = new EventBase(this);
 
       wl.evaluate(iConstants.EVENT_STARTED_LOADING, e, false);
     }
@@ -2353,8 +2365,10 @@ public abstract class aWidget extends RenderableDataItem
    */
   public String toJSON() {
     StringWriter sw = new StringWriter();
-
-    writeJSONValue(true, sw);
+    JSONWriter jw=new JSONWriter(sw);
+    jw.object();
+    writeJSONValue(jw);
+    jw.endObject();
 
     return sw.toString();
   }
@@ -2476,31 +2490,18 @@ public abstract class aWidget extends RenderableDataItem
   }
 
   @Override
-  public boolean writeJSONValue(boolean first, Writer writer) {
+  public void writeJSONValue(JSONWriter writer) {
     try {
       String name  = getHTTPFormName();
       Object value = this.getHTTPFormValue();
 
       if ((name == null) ||!getDataComponent().isEnabled() || (value == null)) {
-        return false;
+        return;
       }
 
-      if (value instanceof String) {
-        if (!first) {
-          writer.write(",\n\t");
-        }
-
-        JSONHelper.encode(name, writer);
-        writer.write(": ");
-        JSONHelper.encode((String) value, writer);
-
-        return true;
-      } else if (value instanceof int[]) {
-        return FormHelper.writeJSONValue(first, writer, name, (int[]) value);
-      } else {
-        return FormHelper.writeJSONValue(first, writer, name, (String[]) value);
-      }
-    } catch(IOException e) {
+      writer.key(name);
+      writer.value(value);
+    } catch(JSONException e) {
       throw ApplicationException.runtimeException(e);
     }
   }
@@ -2631,16 +2632,6 @@ public abstract class aWidget extends RenderableDataItem
     setEnabled(!disabled);
   }
 
-  /**
-   * Sets the paint use to designate the viewer as disabled
-   *
-   * @param color
-   *          the color use to designate the viewer as disabled
-   */
-  public void setDisabledColor(UIColor color) {
-    getDataComponent().setDisabledColor(color);
-  }
-
   @Override
   public void setDisabledIcon(iPlatformIcon icon) {
     iPlatformComponent c = this.getDataComponent();
@@ -2654,14 +2645,7 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public void setEnabled(boolean enabled) {
-    iPlatformComponent dc = getDataComponent();
-    iPlatformComponent cc = getContainerComponent();
-
-    dc.setEnabled(enabled);
-
-    if (cc != dc) {
-      cc.setEnabled(enabled);
-    }
+    getContainerComponent().setEnabled(enabled);
   }
 
   @Override
@@ -2863,16 +2847,23 @@ public abstract class aWidget extends RenderableDataItem
    *          the new name for the widget
    */
   public void setName(String name) {
-    iWidget w = getFormViewer().getWidget(widgetName);
-
-    if ((w != null) && (w != this)) {
-      throw new ApplicationException(getAppContext().getResourceAsString("Rare.runtime.text.widgetExists"), name);
-    } else if (w != null) {
-      getFormViewer().unregisterNamedItem(widgetName);
+    iContainer p=getParent();
+    if(p!=null) {
+      iWidget w = getFormViewer().getWidget(widgetName);
+  
+      if ((w != null) && (w != this)) {
+        throw new ApplicationException(getAppContext().getResourceAsString("Rare.runtime.text.widgetExists"), name);
+      } else if (w != null) {
+        p.unregisterNamedItem(widgetName);
+        getFormViewer().unregisterFormWidget(this);
+      }
+      widgetName = name;
+      p.registerNamedItem(name, this);
+      getFormViewer().registerFormWidget(this);
     }
-
-    widgetName = name;
-    getFormViewer().registerNamedItem(name, w);
+    else {
+      widgetName = name;
+    }
   }
 
   /**
@@ -2910,7 +2901,7 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public void setParent(iContainer parent) {
-    if ((iWidget)parent != this) { //cast for jave->objc
+    if ((iWidget) parent != this) {    //cast for jave->objc
       parentContainer = parent;
     }
   }
@@ -3107,7 +3098,13 @@ public abstract class aWidget extends RenderableDataItem
    *          the widget listener
    */
   public void setWidgetListener(aWidgetListener listener) {
+    if(this.widgetListener!=null) {
+      uninitializeListeners(widgetListener);
+    }
     this.widgetListener = listener;
+    if(listener!=null) {
+      initializeListeners(listener);
+    }
   }
 
   @Override
@@ -3122,6 +3119,27 @@ public abstract class aWidget extends RenderableDataItem
   @Override
   public Object getApplicationContext() {
     return getAppContext();
+  }
+
+  /**
+   * Checks to specified value to sees if it represents a system variable or embedded function.
+   *
+   *
+   * @param value the value to check
+   * @return the resolved value or the value as passed in.
+   */
+  public String resolvePotentialVariableOrFunction(String value) {
+    char c = value.charAt(0);
+
+    if ((c == '%') || (c == '@') || (c == '$')) {
+      Object o = getWidgetAttribute(value);
+
+      return (o == null)
+             ? null
+             : o.toString();
+    }
+
+    return value;
   }
 
   @Override
@@ -3157,8 +3175,12 @@ public abstract class aWidget extends RenderableDataItem
       return getAppContext().getData(key.substring(1));
     }
 
+    if ((c == 'u') && key.startsWith(iConstants.UIPROPERTY_PREFIX)) {
+      key = key.substring(iConstants.UIPROPERTY_PREFIX.length());
+      return getAppContext().getUIDefaults().get(key);
+    }
     if ((c == 'r') && key.startsWith(iConstants.RESOURCE_PREFIX)) {
-      key = key.substring(9);
+      key = key.substring(iConstants.RESOURCE_PREFIX.length());
       o   = getAppContext().getUIDefaults().get(key);
 
       return (o == null)
@@ -3198,7 +3220,7 @@ public abstract class aWidget extends RenderableDataItem
    *         string.
    */
   public UIColor getBackgroundColor(String color) {
-    return UIColorHelper.getBackgroundColor(color);
+    return ColorUtils.getBackgroundColor(color);
   }
 
   @Override
@@ -3424,13 +3446,21 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public iFormViewer getFormViewer() {
+    iContainer c = findParent();
+
+    return (c == null)
+           ? null
+           : c.getFormViewer();
+  }
+  
+  protected iFormViewer getFormViewerEx() {
     iContainer c = getParent();
 
     return (c == null)
            ? null
            : c.getFormViewer();
   }
-
+  
   /**
    * Gets the HTTP form name for the widget
    *
@@ -3796,9 +3826,34 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public iContainer getParent() {
-    return parentContainer;
+     return parentContainer;
   }
-
+  
+  /**
+   * Finds the parent of a widget by searching the
+   * component tree if necessary
+   * 
+   * @return the parent
+   */
+  public iContainer findParent() {
+    if(parentContainer!=null) {
+      return parentContainer;
+    }
+    if(formComponent!=null) {
+      iParentComponent pc=formComponent.getParent();
+      iWidget w=pc==null ? null : Platform.findWidgetForComponent(pc);
+      if(w!=this) {
+        if(w instanceof iContainer) {
+          return (iContainer) w;
+        }
+        else if(w!=null) {
+          return w.getParent();
+        }
+      }
+    }
+    return null;
+  }
+  
   /**
    * Returns the widget's parent (HTML compatibility).
    *
@@ -4290,6 +4345,11 @@ public abstract class aWidget extends RenderableDataItem
   }
 
   @Override
+  public boolean isAttached() {
+    return isDisposed() ? false : getContainerComponent().isDisplayable();
+  }
+  
+  @Override
   public WindowViewer getWindow() {
     // check with parent first in case the parent window is set but the
     // component has not been added to the hierarchy
@@ -4361,6 +4421,14 @@ public abstract class aWidget extends RenderableDataItem
     return getContainerComponent().isFocusPainted();
   }
 
+  /**
+   * Returns whether or not the popup menu is currently visible
+   * @return true if there is a popup menu for the widget and it is showing; false otherwise
+   */
+  public boolean isPopupMenuShowing() {
+    return (popupMenu != null) && popupMenu.isShowing();
+  }
+
   public boolean isFocusableInCurrentState() {
     return dataComponent.isEnabled() && dataComponent.isVisible() && dataComponent.isFocusable();
   }
@@ -4404,7 +4472,7 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public boolean isSubmittable() {
-    return isSubmittable && (getName() != null) && getDataComponent().isShowing();
+    return isSubmittable && !isDisposed();
   }
 
   @Override
@@ -5086,7 +5154,7 @@ public abstract class aWidget extends RenderableDataItem
     aWidgetListener wl = getWidgetListener();
 
     if ((wl != null) && wl.isEnabled(iConstants.EVENT_FINISHED_LOADING)) {
-      EventObject e = new EventObject(this);
+      EventBase e = new EventBase(this);
 
       wl.evaluate(iConstants.EVENT_FINISHED_LOADING, e, false);
     }
@@ -5375,8 +5443,6 @@ public abstract class aWidget extends RenderableDataItem
   protected void loadStarted(final ActionLink link) {
     getAppContext().getAsyncLoadStatusHandler().loadStarted(aWidget.this, link, null);
   }
-
-  protected void popupMenuClosing(UIPopupMenu menu) {}
 
   /**
    * Registers a widget's component for cut, copy, and paste functionality

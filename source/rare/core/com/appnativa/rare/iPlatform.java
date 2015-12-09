@@ -20,28 +20,26 @@
 
 package com.appnativa.rare;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.net.URL;
+import java.util.EventObject;
+import java.util.List;
+import java.util.Map;
+
 import com.appnativa.rare.converters.iDataConverter;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIProperties;
-import com.appnativa.rare.ui.dnd.iFlavorCreator;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.dnd.iFlavorCreator;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.iCancelable;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-
-import java.net.URL;
-
-import java.util.EventObject;
-import java.util.List;
-import java.util.Map;
 
 public interface iPlatform {
   void addJarURL(URL url);
@@ -79,14 +77,6 @@ public interface iPlatform {
    * @return the chart handler
    */
   Object createChartHandler();
-
-  /**
-   * Creates an object that is an instance of the the specified class
-   * @param className the class name
-   *
-   * @return the new object or null if the object could not be created
-   */
-  Object createObject(String className);
 
   /**
    * Creates a platform component from a native component
@@ -565,6 +555,20 @@ public interface iPlatform {
    */
   boolean isTouchableDevice();
 
+  /**
+   * Checks to see if the device has a physical keyboard
+   * 
+   * @return true if it does; false otherwise
+   */
+  boolean hasPhysicalKeyboard();
+  
+  /**
+   * Checks to see if the device has a physical pointing device
+   * 
+   * @return true if it does; false otherwise
+   */
+  boolean hasPointingDevice();
+  
   /**
    * Checks to see if the current thread is the UI thread
    *

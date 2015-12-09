@@ -23,7 +23,6 @@ package com.appnativa.rare.ui;
 import com.appnativa.rare.platform.swing.ui.view.BorderLayoutView;
 import com.appnativa.rare.ui.layout.BorderLayout;
 import com.appnativa.rare.widget.iWidget;
-
 import com.jgoodies.forms.layout.CellConstraints;
 
 public class BorderPanel extends aBorderPanel {
@@ -59,16 +58,19 @@ public class BorderPanel extends aBorderPanel {
   }
 
   @Override
-  public void setHorizontal(boolean horizontal) {
-    ((BorderLayoutView) view).setHorizontal(horizontal);
+  public void setUseCrossPattern(boolean useCrossPattern) {
+    super.setUseCrossPattern(useCrossPattern);
+    ((BorderLayoutView) view).setUseCrossPattern(useCrossPattern);
   }
 
+  @Override
   public void setPadding(UIInsets in) {
     ((BorderLayoutView) view).setPadding(in);
   }
 
   @Override
   public void setTopBottomPriority(boolean topBottomPriority) {
+    super.setTopBottomPriority(topBottomPriority);
     ((BorderLayoutView) view).setTopBottomPriority(topBottomPriority);
   }
 
@@ -85,10 +87,5 @@ public class BorderPanel extends aBorderPanel {
   @Override
   protected iPlatformComponent getComponentAt(Location location) {
     return ((BorderLayoutView) view).getComponentAt(location);
-  }
-
-  @Override
-  protected CellConstraints getConstraints(Location location) {
-    return ((BorderLayoutView) view).getConstraints(location);
   }
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -46,22 +46,9 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
   TableComponent  table;
   OnTouchListener touchListener;
   int             headerHeight;
-
   public TableViewLayout(Context context) {
     super(context);
     setMeasureType(MeasureType.VERTICAL);
-  }
-
-  @Override
-  public void requestLayout() {
-    // TODO Auto-generated method stub
-    super.requestLayout();
-  }
-
-  protected boolean addViewInLayout(View child, int index, LayoutParams params, boolean preventRequestLayout) {
-    child.setOnTouchListener(touchListener);
-
-    return super.addViewInLayout(child, index, params, preventRequestLayout);
   }
 
   public void draw(Canvas canvas) {
@@ -88,12 +75,68 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
     graphics.clear();
   }
 
-  public void setScrollingEdgePainter(UIScrollingEdgePainter painter) {
-    table.getListView().setScrollingEdgePainter(painter);
+  public UIPoint getContentOffset() {
+    UIPoint p = table.getListView().getContentOffset();
+
+    p.x = getScrollX();
+
+    return p;
   }
 
   public UIScrollingEdgePainter getScrollingEdgePainter() {
     return table.getListView().getScrollingEdgePainter();
+  }
+
+  public boolean isAtBottomEdge() {
+    return table.getListView().isAtBottomEdge();
+  }
+
+  public boolean isAtLeftEdge() {
+    return getScrollX() == 0;
+  }
+
+  public boolean isAtRightEdge() {
+    return getScrollX() + getWidth() < ((View) getParent()).getWidth();
+  }
+
+  public boolean isAtTopEdge() {
+    return table.getListView().isAtTopEdge();
+  }
+
+  public boolean isScrolling() {
+    return table.getListView().isScrolling();
+  }
+
+  public void setFlingGestureListener(OnGestureListener flingGestureListener) {
+    table.getListView().setFlingGestureListener(flingGestureListener);
+  }
+
+  public void setHeaderHeight(int height) {
+    headerHeight = height;
+  }
+
+  @SuppressLint("ClickableViewAccessibility")
+  public void setOnTouchListener(OnTouchListener l) {
+    if (touchListener != l) {
+      super.setOnTouchListener(l);
+      touchListener = l;
+
+      int len = getChildCount();
+
+      for (int i = 0; i < len; i++) {
+        getChildAt(i).setOnTouchListener(l);
+      }
+    }
+  }
+
+  public void setScrollingEdgePainter(UIScrollingEdgePainter painter) {
+    table.getListView().setScrollingEdgePainter(painter);
+  }
+
+  protected boolean addViewInLayout(View child, int index, LayoutParams params, boolean preventRequestLayout) {
+    child.setOnTouchListener(touchListener);
+
+    return super.addViewInLayout(child, index, params, preventRequestLayout);
   }
 
   protected void drawVerticalLines(Canvas canvas) {
@@ -138,62 +181,32 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
     }
   }
 
-  public UIPoint getContentOffset() {
-    UIPoint p = table.getListView().getContentOffset();
-
-    p.x = getScrollX();
-
-    return p;
-  }
-
-  public boolean isAtBottomEdge() {
-    return table.getListView().isAtBottomEdge();
-  }
-
-  public boolean isAtLeftEdge() {
-    return getScrollX() == 0;
-  }
-
-  public boolean isAtRightEdge() {
-    return getScrollX() + getWidth() < ((View) getParent()).getWidth();
-  }
-
-  public boolean isAtTopEdge() {
-    return table.getListView().isAtTopEdge();
-  }
-
-  public boolean isScrolling() {
-    return table.getListView().isScrolling();
-  }
-
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     int  x  = getPaddingLeft();
     int  y  = getPaddingTop();
     int  w  = right - left - x - getPaddingRight();
-    int  h  = bottom - top - getPaddingBottom() - y;
+    View hv = table.getHeader().getView();
+    View lv = table.getListView();
+    int  yy = y;
     int  hh = 0;
-    View v  = getChildAt(0);
+    int  h  = 0;
 
-    if (v.getVisibility() != View.GONE) {
-      // if (changed) {
-      // v.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
-      // MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-      // }
-      hh = (headerHeight > 0)
-           ? headerHeight
-           : v.getMeasuredHeight();
-      v.layout(x, y, x + w, y + hh);
+    if (hv.getVisibility() != View.GONE) {
+      h = (headerHeight > 0)
+          ? headerHeight
+          : hv.getMeasuredHeight();
+      hv.layout(x, yy, x + w, yy + h);
+      yy += h;
+      hh += h;
     } else {
-      // if (changed) {
-      // measureExactly(v, w, hh);
-      // }
-      ((TableHeaderLayout) v).onLayout(false, x, y, x + w, y + hh);
+      ((TableHeaderLayout) hv).onLayout(false, x, y, x + w, y + hh);
     }
 
-    v = getChildAt(1);
-    measureExactly(v, w, h - hh);
-    v.layout(x, hh + y, x + w, y + h);
+    h = bottom - top - getPaddingBottom() - y;
+
+    measureExactly(lv, w, h - hh);
+    lv.layout(x, yy, x + w, yy + h - hh);
 
     if (changed) {
       if (table.isKeepSelectionVisible()) {
@@ -216,6 +229,8 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
     final int w      = Math.max(width - getPaddingLeft() - getPaddingRight(), 0);
     final int h      = Math.max(height - getPaddingTop() - getPaddingBottom(), 0);
     int       hh     = headerHeight;
+    View vh = table.getHeader().getView();
+    View lv = table.getListView();
 
     if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY) {
       measureSize.setSize(width, height);
@@ -224,11 +239,8 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
         table.updateColumnSizes(w, h);
       }
 
-      View v = getChildAt(1);
 
       if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY) {
-        View vh = getChildAt(0);
-
         if (hh == 0) {
           vh.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                      MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));    // measure
@@ -241,15 +253,14 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
 
           if (vh.getVisibility() != View.GONE) {
             hh = vh.getMeasuredHeight();
-            measureExactly(vh, width, hh);
+            measureExactly(vh, w, hh);
           }
         } else {
-          measureExactly(vh, width, hh);
+          measureExactly(vh, w, hh);
         }
 
-        measureExactly(v, w, h - hh);
+        measureExactly(lv, w, h - hh);
       } else {
-        View vh = getChildAt(0);
 
         vh.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));    // measure
@@ -262,19 +273,17 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
 
         if (vh.getVisibility() != View.GONE) {
           hh = vh.getMeasuredHeight();
-          measureExactly(vh, width, hh);
+          measureExactly(vh, w, hh);
         }
 
-        v.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
+        lv.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                   MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        measureSize.height = v.getMeasuredHeight() + hh;
+        measureSize.height = lv.getMeasuredHeight() + hh;
       }
     } else if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY) {
       measureSize.setSize(width, height);
 
-      View v = getChildAt(0);
-
-      v.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+      vh.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));    // measure
       // even
       // if
@@ -283,26 +292,24 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
       // align
       // columns
 
-      if (v.getVisibility() != View.GONE) {
-        hh = v.getMeasuredHeight();
+      if (vh.getVisibility() != View.GONE) {
+        hh = vh.getMeasuredHeight();
       }
 
-      int ww = v.getMeasuredWidth();
-
-      v = getChildAt(1);
+      int ww = vh.getMeasuredWidth();
 
       if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY) {
         measureSize.width = width;
-        measureExactly(v, w, h - hh);
+        measureExactly(lv, w, h - hh);
       } else {
-        v.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+        lv.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                   MeasureSpec.makeMeasureSpec(h - hh, MeasureSpec.EXACTLY));
-        measureSize.width = Math.max(ww, v.getMeasuredWidth());
-        measureExactly(v, measureSize.intWidth(), h - hh);
+        measureSize.width = Math.max(ww, lv.getMeasuredWidth());
+        measureExactly(lv, measureSize.intWidth(), h - hh);
       }
 
       if (hh != 0) {
-        measureExactly(getChildAt(0), measureSize.intWidth(), hh);
+        measureExactly(vh, measureSize.intWidth(), hh);
       }
     } else {
       table.measurePreferredSizeEx(measureSize, width);
@@ -312,25 +319,4 @@ public class TableViewLayout extends ViewGroupEx implements iFlingSupport {
                          resolveSize(measureSize.intHeight(), heightMeasureSpec));
   }
 
-  public void setFlingGestureListener(OnGestureListener flingGestureListener) {
-    table.getListView().setFlingGestureListener(flingGestureListener);
-  }
-
-  public void setHeaderHeight(int height) {
-    headerHeight = height;
-  }
-
-  @SuppressLint("ClickableViewAccessibility")
-  public void setOnTouchListener(OnTouchListener l) {
-    if (touchListener != l) {
-      super.setOnTouchListener(l);
-      touchListener = l;
-
-      int len = getChildCount();
-
-      for (int i = 0; i < len; i++) {
-        getChildAt(i).setOnTouchListener(l);
-      }
-    }
-  }
 }

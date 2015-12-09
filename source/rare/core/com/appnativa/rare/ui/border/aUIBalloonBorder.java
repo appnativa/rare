@@ -15,12 +15,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.border;
 
-import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.BorderUtils;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
@@ -81,9 +80,9 @@ public abstract class aUIBalloonBorder extends UILineBorder {
       return;
     }
 
-    UIColor color = getColor();
+    UIColor color = getPaintColor(g.getComponent());
 
-    if (color == null) {
+    if (color.getAlpha() == 0) {
       return;
     }
 
@@ -264,21 +263,6 @@ public abstract class aUIBalloonBorder extends UILineBorder {
     p.translate(x, y);
 
     return p;
-  }
-
-  @Override
-  protected UIColor getColor() {
-    if (lineColor == null) {
-      UIColor c = Platform.getUIDefaults().getColor("Rare.BalloonBorder.color");
-
-      if (c != null) {
-        return c;
-      }
-
-      return getDefaultLineColor();
-    }
-
-    return lineColor;
   }
 
   public boolean isAutoLocatePeak() {

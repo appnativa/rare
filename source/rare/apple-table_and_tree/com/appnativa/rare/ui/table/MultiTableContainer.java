@@ -15,10 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
+
+import java.util.List;
 
 import com.appnativa.rare.ui.Container;
 import com.appnativa.rare.ui.RenderableDataItem;
@@ -26,11 +28,8 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.event.iDataModelListener;
 import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.table.TableComponent;
-
-import java.util.List;
+import com.appnativa.rare.ui.event.iDataModelListener;
 
 public class MultiTableContainer extends Container implements iDataModelListener {
   boolean     preferedSizeDirty = true;
@@ -51,9 +50,8 @@ public class MultiTableContainer extends Container implements iDataModelListener
   public void contentsChanged(Object source, int index0, int index1) {
     preferedSizeDirty = true;
   }
-
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     float width  = 0;
     float height = 0;
     int   len    = getComponentCount();
@@ -61,7 +59,7 @@ public class MultiTableContainer extends Container implements iDataModelListener
     for (int i = 0; i < len; i++) {
       TableComponent tc = (TableComponent) getComponentAt(i);
 
-      tc.getMinimumSize(size);
+      tc.getMinimumSize(size, maxWidth);
       height = Math.max(height, size.height);
       width  += size.width;
     }

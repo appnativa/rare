@@ -43,6 +43,7 @@ public class StatusBarViewer extends aStatusBarViewer {
     super(parent);
   }
 
+  @Override
   protected aStatusBar createStatusBarAndComponents(StatusBar cfg) {
     FormsView  view = new FormsView(getAndroidContext());
     AStatusBar sb   = new AStatusBar(view);

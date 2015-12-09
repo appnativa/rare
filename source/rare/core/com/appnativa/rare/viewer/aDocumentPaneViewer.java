@@ -20,9 +20,14 @@
 
 package com.appnativa.rare.viewer;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.net.URL;
+
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.FormHelper;
 import com.appnativa.rare.spot.DocumentPane;
@@ -33,14 +38,7 @@ import com.appnativa.rare.ui.iSpeechEnabler;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.ui.text.iTextAttributes;
 import com.appnativa.rare.ui.text.iTextEditor;
-import com.appnativa.rare.util.JSONHelper;
 import com.appnativa.util.Streams;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-
-import java.net.URL;
 
 public abstract class aDocumentPaneViewer extends aPlatformViewer {
   protected boolean             htmlDocument;
@@ -359,44 +357,14 @@ public abstract class aDocumentPaneViewer extends aPlatformViewer {
   }
 
   @Override
-  public boolean writeJSONValue(boolean first, Writer writer) {
-    try {
-      String name = getName();
-      int    len  = getTextLength();
-
-      if ((name == null) ||!isEnabled() || (len == 0)) {
-        return false;
-      }
-
-      if (!first) {
-        writer.write(",\n\t");
-      }
-
-      String text;
-
-      if (htmlDocument) {
-        text = getHTMLText();
-      } else {
-        text = getPlainText();
-      }
-
-      JSONHelper.encode(name, writer);
-      writer.write(": \"");
-
-      try {
-        writer.write(text);
-      } catch(IOException ex) {
-        handleException(ex);
-      }
-
-      writer.write('\"');
-
-      return true;
-    } catch(Exception e) {
-      throw ApplicationException.runtimeException(e);
+  public Object getHTTPFormValue() {
+    if (htmlDocument) {
+      return getHTMLText();
+    } else {
+      return getPlainText();
     }
   }
-
+ 
   /**
    * Sets the position of the caret
    *
@@ -407,6 +375,11 @@ public abstract class aDocumentPaneViewer extends aPlatformViewer {
     iTextEditor e = textEditor;
 
     e.setCaretPosition(position);
+  }
+
+
+  public void setChangeEventsEnabled(boolean enabled) {
+    textEditor.setChangeEventsEnabled(enabled);
   }
 
   /**

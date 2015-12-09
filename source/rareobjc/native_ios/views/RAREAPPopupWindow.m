@@ -57,6 +57,9 @@
   }
   return self;
 }
+-(BOOL) isTransient {
+  return transient_ && !modal_;
+}
 
 -(void) setDecorated: (BOOL) decorated {
   
@@ -68,7 +71,9 @@
   if(self.hidden!=hidden) {
     [super setHidden:hidden];
     if(popupMenuListener_) {
-      RAREExpansionEvent* e=[[RAREExpansionEvent alloc] initWithId:self];
+      RAREExpansionEvent* e=[[RAREExpansionEvent alloc] initWithId:self withRAREExpansionEvent_TypeEnum: hidden
+                             ? [RAREExpansionEvent_TypeEnum WILL_COLLAPSE]
+                             :[RAREExpansionEvent_TypeEnum WILL_EXPAND]];
       if(!hidden) {
         [popupMenuListener_ popupMenuWillBecomeVisibleWithRAREExpansionEvent:e];
       }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.event;
@@ -27,6 +27,8 @@ import com.appnativa.rare.platform.EventHelper;
  * @author Don DeCoteau
  */
 public class KeyEvent extends InputEvent {
+  public static enum Type { KEY_UP, KEY_DOWN, KEY_TYPED, KEY_UNKNOWN}
+
   public KeyEvent(Object source, Object ke) {
     super(source, ke);
   }
@@ -37,6 +39,10 @@ public class KeyEvent extends InputEvent {
 
   public int getKeyCode() {
     return EventHelper.getKeyCode(nativeEvent);
+  }
+
+  public Type getEventType() {
+    return EventHelper.getKeyType(nativeEvent);
   }
 
   public int getWhich() {
@@ -105,5 +111,15 @@ public class KeyEvent extends InputEvent {
 
   public boolean isUpArrowKeyPressed() {
     return EventHelper.isUpArrowKeyPressed(nativeEvent);
+  }
+
+  /**
+   * Returns whether of the this event represents and event of the specified type
+   *
+   * @param type the type
+   * @return true if it does; false otherwise
+   */
+  public boolean isType(Type type) {
+    return type == getEventType();
   }
 }

@@ -137,14 +137,14 @@ public class CarouselContainer extends BorderPanel {
     }
 
     @Override
-    protected void getMinimumSizeEx(UIDimension size) {
+    protected void getMinimumSizeEx(UIDimension size,float maxWidth) {
       size.setSize(0, 0);
 
       if (getComponentCount() == 1) {
         iPlatformComponent c = getComponentAt(0);
 
         if (c.isVisible()) {
-          c.getMinimumSize(size);
+          c.getMinimumSize(size,maxWidth);
         }
       }
     }

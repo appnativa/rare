@@ -15,10 +15,14 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.EventObject;
 
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.apple.ui.view.CustomButtonView;
@@ -32,11 +36,6 @@ import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.painter.PainterHolder;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
-import java.util.EventObject;
 
 /**
  *
@@ -52,8 +51,10 @@ public class ActionComponent extends Component
   protected float         scaleFactor;
   protected boolean       scaleIcon;
   protected iPlatformIcon selectedIcon;
-  private int             iconGap = 4;
-  private boolean         minHeightSet;
+  protected int           iconGap = 4;
+  protected boolean       minHeightSet;
+  protected boolean       adjustButtonSize;
+  protected boolean       adjustTextFieldSize;
 
   public ActionComponent(View view) {
     super(view);
@@ -61,6 +62,8 @@ public class ActionComponent extends Component
     if (!(view instanceof TextFieldView)) {
       useBorderInSizeCalculation = false;
     }
+
+    setAutoAdjustSize(true);
   }
 
   protected ActionComponent() {
@@ -133,6 +136,77 @@ public class ActionComponent extends Component
   }
 
   @Override
+  public UIAction getAction() {
+    return action;
+  }
+
+  @Override
+  public iPaintedButton.ButtonState getButtonState() {
+    return Utils.getState(isEnabled(), isPressed(), isSelected(), isMouseOver());
+  }
+
+  @Override
+  public iPlatformIcon getDisabledIcon() {
+    return disabledIcon;
+  }
+
+  @Override
+  public iPlatformIcon getIcon() {
+    return icon;
+  }
+
+  /**
+   * @return the iconGap
+   */
+  @Override
+  public int getIconGap() {
+    return iconGap;
+  }
+
+  /**
+   * @return the iconPosition
+   */
+  @Override
+  public IconPosition getIconPosition() {
+    return iconPosition;
+  }
+
+  @Override
+  public float getIconScaleFactor() {
+    return scaleFactor;
+  }
+
+  @Override
+  public UIInsets getMargin() {
+    return view.getMargin();
+  }
+
+  /**
+   * @return the pressedIcon
+   */
+  @Override
+  public iPlatformIcon getPressedIcon() {
+    return pressedIcon;
+  }
+
+  /**
+   * @return the selectedIcon
+   */
+  @Override
+  public iPlatformIcon getSelectedIcon() {
+    return selectedIcon;
+  }
+
+  @Override
+  public CharSequence getText() {
+    CharSequence s = view.getText();
+
+    return (s == null)
+           ? ""
+           : s;
+  }
+
+  @Override
   public boolean heightChangesBasedOnWidth() {
     if (!view.isWordWrap()) {
       return false;
@@ -144,6 +218,21 @@ public class ActionComponent extends Component
   }
 
   @Override
+  public boolean isScaleIcon() {
+    return scaleIcon && (scaleFactor > 0);
+  }
+
+  @Override
+  public boolean isSelected() {
+    return view.isSelected();
+  }
+
+  @Override
+  public boolean isWordWrap() {
+    return view.isWordWrap();
+  }
+
+  @Override
   public void propertyChange(PropertyChangeEvent pce) {
     if (!(pce.getSource() instanceof UIAction)) {
       return;
@@ -152,7 +241,7 @@ public class ActionComponent extends Component
     UIAction a        = (UIAction) pce.getSource();
     String   property = pce.getPropertyName();
 
-    if (property.equals("enabled")) {
+    if (property.equals(aUIAction.ENABLED)) {
       if (a.isEnabled()) {
         setEnabled(true);
 
@@ -166,20 +255,12 @@ public class ActionComponent extends Component
           setIcon(a.getDisabledIcon());
         }
       }
-    } else if (property.equals("ActionText")) {
+    } else if (property.equals(aUIAction.ACTION_TEXT)) {
       setText((String) pce.getNewValue());
-    } else if (property.equals("SmallIcon")) {
-      if (a.isEnabled()) {
-        setIcon((iPlatformIcon) pce.getNewValue());
-      } else {
-        if (a.getDisabledIcon() == null) {
-          setIcon((iPlatformIcon) pce.getNewValue());
-        }
-      }
-    } else if (property.equals("DisabledIcon")) {
-      if (!a.isEnabled()) {
-        setIcon((iPlatformIcon) pce.getNewValue());
-      }
+    } else if (property.equals(aUIAction.ICON)) {
+      setIcon((iPlatformIcon) pce.getNewValue());
+    } else if (property.equals(aUIAction.DISABLED_ICON)) {
+      setDisabledIcon((iPlatformIcon) pce.getNewValue());
     }
 
     updateUI();
@@ -208,22 +289,6 @@ public class ActionComponent extends Component
     if (listenerList != null) {
       listenerList.remove(iChangeListener.class, l);
     }
-  }
-
-  @Override
-  public void stateChanged(EventObject e) {
-    if ((listenerList != null) && listenerList.hasListeners(iChangeListener.class)) {
-      if (changeEvent != null) {
-        changeEvent = new ChangeEvent(this);
-      }
-
-      Utils.fireChangeEvent(listenerList, changeEvent);
-    }
-  }
-
-  @Override
-  public String toString() {
-    return getText().toString();
   }
 
   @Override
@@ -264,6 +329,19 @@ public class ActionComponent extends Component
   @Override
   public void setAlignment(HorizontalAlign hal, VerticalAlign val) {
     view.setTextAlignment(hal, val);
+  }
+
+  @Override
+  public void setAutoAdjustSize(boolean adjustSize) {
+    adjustButtonSize = adjustTextFieldSize = false;
+
+    if (adjustSize) {
+      if (view instanceof CustomButtonView) {
+        adjustButtonSize = true;
+      } else if (view instanceof TextFieldView) {
+        adjustTextFieldSize = true;
+      }
+    }
   }
 
   @Override
@@ -375,13 +453,13 @@ public class ActionComponent extends Component
   }
 
   @Override
-  public void setMargin(UIInsets insets) {
-    view.setMargin(insets);
+  public void setMargin(float top, float right, float bottom, float left) {
+    view.setMargin(top, right, bottom, left);
   }
 
   @Override
-  public void setMargin(float top, float right, float bottom, float left) {
-    view.setMargin(top, right, bottom, left);
+  public void setMargin(UIInsets insets) {
+    view.setMargin(insets);
   }
 
   @Override
@@ -471,94 +549,24 @@ public class ActionComponent extends Component
   }
 
   @Override
-  public UIAction getAction() {
-    return action;
+  public void stateChanged(EventObject e) {
+    if ((listenerList != null) && listenerList.hasListeners(iChangeListener.class)) {
+      if (changeEvent != null) {
+        changeEvent = new ChangeEvent(this);
+      }
+
+      Utils.fireChangeEvent(listenerList, changeEvent);
+    }
   }
 
   @Override
-  public iPaintedButton.ButtonState getButtonState() {
-    return Utils.getState(isEnabled(), isPressed(), isSelected(), isMouseOver());
+  public String toString() {
+    return getText().toString();
   }
 
   @Override
-  public iPlatformIcon getDisabledIcon() {
-    return disabledIcon;
-  }
-
-  @Override
-  public iPlatformIcon getIcon() {
-    return icon;
-  }
-
-  /**
-   * @return the iconGap
-   */
-  @Override
-  public int getIconGap() {
-    return iconGap;
-  }
-
-  /**
-   * @return the iconPosition
-   */
-  @Override
-  public IconPosition getIconPosition() {
-    return iconPosition;
-  }
-
-  @Override
-  public float getIconScaleFactor() {
-    return scaleFactor;
-  }
-
-  @Override
-  public UIInsets getMargin() {
-    return view.getMargin();
-  }
-
-  /**
-   * @return the pressedIcon
-   */
-  @Override
-  public iPlatformIcon getPressedIcon() {
-    return pressedIcon;
-  }
-
-  /**
-   * @return the selectedIcon
-   */
-  @Override
-  public iPlatformIcon getSelectedIcon() {
-    return selectedIcon;
-  }
-
-  @Override
-  public CharSequence getText() {
-    CharSequence s = view.getText();
-
-    return (s == null)
-           ? ""
-           : s;
-  }
-
-  @Override
-  public boolean isScaleIcon() {
-    return scaleIcon && (scaleFactor > 0);
-  }
-
-  @Override
-  public boolean isSelected() {
-    return view.isSelected();
-  }
-
-  @Override
-  public boolean isWordWrap() {
-    return view.isWordWrap();
-  }
-
-  @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    super.getPreferredSizeEx(size, 0);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    super.getPreferredSizeEx(size, maxWidth);
 
     boolean addBackIconWidth = false;
 
@@ -613,6 +621,17 @@ public class ActionComponent extends Component
           }
         }
       }
+    }
+  }
+
+  @Override
+  protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    super.getPreferredSizeEx(size, maxWidth);
+
+    if (adjustButtonSize) {
+      Utils.adjustButtonSize(size);
+    } else if (adjustTextFieldSize) {
+      Utils.adjustTextFieldSize(size);
     }
   }
 }

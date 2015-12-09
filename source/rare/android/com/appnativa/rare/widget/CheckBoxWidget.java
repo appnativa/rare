@@ -47,6 +47,7 @@ public class CheckBoxWidget extends aCheckBoxWidget {
    *
    * @param state the state
    */
+  @Override
   public void setState(State state) {
     if ((state == State.INDETERMINATE) && (dataComponent.getView() instanceof CheckBoxView)) {
       ((CheckBoxView) dataComponent.getView()).setIndeterminate();
@@ -60,6 +61,7 @@ public class CheckBoxWidget extends aCheckBoxWidget {
    *
    * @return the current state of the checkbox
    */
+  @Override
   public State getState() {
     if ((dataComponent.getView() instanceof CheckBoxView)
         && ((CheckBoxView) dataComponent.getView()).isIndeterminate()) {

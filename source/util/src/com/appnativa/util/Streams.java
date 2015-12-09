@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
-import java.net.URLDecoder;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -1323,7 +1322,7 @@ public class Streams {
     private final Reader getReader() throws IOException {
       if (reader == null) {
         String s=streamToString(stream);
-        s=URLDecoder.decode(s,charset);
+        s=URLEncoder.decode(s,charset);
         reader = new StringReader(s);
       }
       return reader;

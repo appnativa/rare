@@ -20,32 +20,32 @@
 
 package com.appnativa.rare.platform.android;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-
 import android.graphics.PixelFormat;
-
 import android.net.Uri;
-
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.SystemClock;
-
 import android.provider.Settings;
-
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.UtteranceProgressListener;
-
 import android.util.Log;
-
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
@@ -56,9 +56,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
 import android.webkit.CookieSyncManager;
-
 import android.widget.Toast;
 
 import com.appnativa.rare.Platform;
@@ -78,26 +76,16 @@ import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.WaitCursorHandler.SpinnerDialog;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.iPlatformMenuBar;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.EventListenerList;
-import com.appnativa.rare.ui.iPlatformMenuBar;
+import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.viewer.MenuBarViewer;
 import com.appnativa.rare.viewer.aContainer;
 import com.appnativa.rare.viewer.aViewer;
-import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.IdentityArrayList;
-
-import java.io.File;
-
-import java.lang.reflect.Method;
-
-import java.net.URL;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 
 /**
  *
@@ -144,10 +132,7 @@ public class MainActivity extends Activity implements iActivity {
 
   public void addPopupWindow(PopupWindowEx popup) {
     getAppContext().getActiveWindows().add(popup);
-
-    if (popup.isTransient()) {
-      popupWindow = popup;
-    }
+    popupWindow = popup;
   }
 
   public boolean isGoogleGlass() {
@@ -242,7 +227,9 @@ public class MainActivity extends Activity implements iActivity {
     }
 
     if ((popupWindow != null) && (event.getAction() == MotionEvent.ACTION_DOWN) && popupWindow.isOutsideTouch(event)) {
-      popupWindow.cancelPopup(false);
+      if(popupWindow.isTransient()) {
+        popupWindow.cancelPopup(false);
+      }
 
       return true;
     }
@@ -343,12 +330,14 @@ public class MainActivity extends Activity implements iActivity {
 
   public boolean isUsingDebuggingBridge() {
     try {
-      int adb = Settings.Secure.getInt(getContentResolver(), Settings.Secure.ADB_ENABLED, 0);
+      int adb = Settings.Global.getInt(getContentResolver(), Settings.Global.ADB_ENABLED, 0);
 
-      return adb == 1;
+      if(adb == 1) {
+        return Debug.isDebuggerConnected();
+      }
     } catch(Exception ignore) {
-      return false;
     }
+    return false;
   }
 
   public void lockUI() {}
@@ -383,6 +372,10 @@ public class MainActivity extends Activity implements iActivity {
       }
 
       if (rare.isBackPressedHandled()) {
+        return;
+      }
+      if(popupWindow!=null) {
+        popupWindow.dismiss();
         return;
       }
     }
@@ -438,14 +431,20 @@ public class MainActivity extends Activity implements iActivity {
         if (w.getDataComponent() instanceof iContextMenuHandler) {
           pm = ((iContextMenuHandler) w.getDataComponent()).getPopupMenu(v, menuInfo);
         } else {
-          pm = (w instanceof aPlatformWidget)
-               ? ((aPlatformWidget) w).getPopupMenu()
-               : null;
+          pm = null;
         }
 
         Platform.invokeLater(new Runnable() {
           public void run() {
-            pm.show(w, true);
+            if(pm!=null) {
+              if (pm.getActionScript() != null) {
+                aWidgetListener.evaluate(w, w.getScriptHandler(), pm.getActionScript(), new ExpansionEvent(pm,ExpansionEvent.Type.WILL_EXPAND));
+              }
+              pm.show(w, true);
+            }
+            else {
+              ((aWidget)w).showPopupMenu(-1, -1);
+            }
           }
         });
       } catch(Throwable e) {

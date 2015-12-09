@@ -24,7 +24,6 @@ import com.appnativa.rare.platform.swing.ui.view.LabelView;
 import com.appnativa.rare.platform.swing.ui.view.LineView;
 import com.appnativa.rare.spot.Line;
 import com.appnativa.rare.ui.ActionComponent;
-import com.appnativa.rare.ui.BorderPanel;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.aLineHelper;
@@ -48,15 +47,6 @@ public class LineWidget extends aLineWidget {
    */
   public LineWidget(iContainer parent) {
     super(parent);
-  }
-
-  @Override
-  public void setHorizontal(boolean horizontal) {
-    if (formComponent instanceof BorderPanel) {
-      ((BorderPanel) formComponent).setHorizontal(horizontal);
-    }
-
-    super.setHorizontal(horizontal);
   }
 
   @Override

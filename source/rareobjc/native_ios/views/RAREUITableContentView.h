@@ -9,12 +9,8 @@
 #import "RAREAPView.h"
 @class RAREUIStroke;
 @class RAREUIColor;
-@interface RAREUITableContentView : RAREAPView {
-  @package
-  CGPoint pressedPoint;
-}
+@interface RAREUITableContentView : RAREAPView
 @property (nonatomic,retain) NSObject* cellRenderers;
 
 -(void) sparPrepareForReuse;
--(int) getPressedViewIndex;
 @end

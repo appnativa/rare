@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -35,6 +35,7 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIColorHelper;
 import com.appnativa.rare.ui.UIFontHelper;
 import com.appnativa.rare.ui.UIImageHelper;
+import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.aWidgetListener;
 import com.appnativa.rare.ui.event.iExpandedListener;
@@ -339,17 +340,6 @@ public abstract class aTreeViewer extends aListViewer implements iTreeHandler {
   }
 
   /**
-   * Repaints a row
-   *
-   * @param row
-   *          the row to repaint
-   */
-  @Override
-  public void repaintRow(int row) {
-    rowChanged(row);
-  }
-
-  /**
    * Notifies the tree that the contents of the specified row has changed
    *
    * @param index
@@ -617,6 +607,11 @@ public abstract class aTreeViewer extends aListViewer implements iTreeHandler {
   }
 
   @Override
+  public void setExpandAll(boolean expandAll) {
+    treeHandler.setExpandAll(expandAll);
+  }
+
+  @Override
   public void setTreeEventsEnabled(boolean enabled) {
     if (treeHandler != null) {
       treeHandler.setTreeEventsEnabled(enabled);
@@ -628,6 +623,16 @@ public abstract class aTreeViewer extends aListViewer implements iTreeHandler {
   @Override
   public void setTwistyMarginOfError(int twistyMarginOfError) {
     treeHandler.setTwistyMarginOfError(twistyMarginOfError);
+  }
+
+  @Override
+  public void setParentItemsSelectable(boolean parentItemsSelectable) {
+    treeHandler.setParentItemsSelectable(parentItemsSelectable);
+  }
+
+  @Override
+  public boolean isParentItemsSelectable() {
+    return treeHandler.isParentItemsSelectable();
   }
 
   /**
@@ -1024,7 +1029,12 @@ public abstract class aTreeViewer extends aListViewer implements iTreeHandler {
     min = Math.max(min, leafIcon.getIconHeight());
     listComponent.setMinRowHeight(min);
     configureSelectionModelGroup(cfg.selectionGroupName, new Object());
-    listComponent.setSingleClickAction(cfg.singleClickActionEnabled.booleanValue());
+    if (cfg.singleClickActionEnabled.spot_valueWasSet()) {
+      listComponent.setSingleClickAction(cfg.singleClickActionEnabled.booleanValue());
+    }
+    else if(Platform.isTouchDevice()) {
+      listComponent.setSingleClickAction(true);
+    }
 
     String s = null;
 
@@ -1071,10 +1081,18 @@ public abstract class aTreeViewer extends aListViewer implements iTreeHandler {
         break;
     }
 
-    setTreeIcons(new PainterUtils.TwistyIcon(dataComponent,false),
-        new PainterUtils.TwistyIcon(dataComponent,true));
+    setTreeIcons(new PainterUtils.TwistyIcon(dataComponent, false), new PainterUtils.TwistyIcon(dataComponent, true));
     treeHandler.setShowRootNode(cfg.showRootNode.booleanValue());
     treeHandler.setShowRootHandles(cfg.showRootHandles.booleanValue());
+    treeHandler.setIndentBy(UIScreen.platformPixels(cfg.indentBy.intValue()));
+    treeHandler.setExpandAll(cfg.expandAll.booleanValue());
+    treeHandler.setParentItemsSelectable(cfg.parentItemsSelectable.booleanValue());
+
+    if (cfg.toggleOnTwistyOnly.spot_hasValue()) {
+      treeHandler.setToggleOnTwistyOnly(cfg.toggleOnTwistyOnly.booleanValue());
+    } else {
+      treeHandler.setToggleOnTwistyOnly(!Platform.isTouchDevice());
+    }
 
     try {
       if (cfg.editingMode.spot_valueWasSet()) {

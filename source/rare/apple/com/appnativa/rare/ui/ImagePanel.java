@@ -29,12 +29,10 @@ import com.appnativa.rare.ui.effects.SizeAnimation;
 import com.appnativa.rare.ui.effects.aAnimator.BoundsChanger;
 import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.event.ScaleEvent;
 import com.appnativa.rare.ui.event.ScaleGestureObject;
 import com.appnativa.rare.ui.listener.iMouseListener;
 import com.appnativa.rare.ui.listener.iMouseMotionListener;
 import com.appnativa.rare.widget.iWidget;
-
 import com.google.j2objc.annotations.Weak;
 import com.google.j2objc.annotations.WeakOuter;
 
@@ -79,19 +77,19 @@ public class ImagePanel extends aImagePanel {
                                   iPlatformAnimator animator)
   /*-[
   #if TARGET_OS_IPHONE
-  UIView* view=(UIView*)uiview;
-  CGRect frame=CGRectMake(x, y, width, height);
-  if(animator) {
-    [animateSizeChangeListener_ animationStartedWithRAREiPlatformAnimator: animator];
-  }
-  [view layoutIfNeeded];
-  [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-    view.frame=frame;
-  } completion:^(BOOL finished) {
+    UIView* view=(UIView*)uiview;
+    CGRect frame=CGRectMake(x, y, width, height);
     if(animator) {
-      [animateSizeChangeListener_ animationEndedWithRAREiPlatformAnimator: animator];
+      [animateSizeChangeListener_ animationStartedWithRAREiPlatformAnimator: animator];
     }
-  }];
+    [view layoutIfNeeded];
+    [UIView animateWithDuration:0.2f delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+      view.frame=frame;
+    } completion:^(BOOL finished) {
+      if(animator) {
+        [animateSizeChangeListener_ animationEndedWithRAREiPlatformAnimator: animator];
+      }
+    }];
   #else
   #endif
   ]-*/
@@ -502,12 +500,12 @@ public class ImagePanel extends aImagePanel {
       ScaleGestureObject so = (ScaleGestureObject) sgd;
 
       switch(type) {
-        case ScaleEvent.SCALE_BEGIN :
+        case SCALE_BEGIN :
           pinchZoomHandlerStart(so.getFocusX(), so.getFocusY());
 
           break;
 
-        case ScaleEvent.SCALE_END :
+        case SCALE_END :
           pinchZoomHandlerEnd(so.getFocusX(), so.getFocusY());
 
           break;

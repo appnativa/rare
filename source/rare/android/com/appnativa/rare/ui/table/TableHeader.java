@@ -21,13 +21,12 @@
 package com.appnativa.rare.ui.table;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
-
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListAdapter;
 
 import com.appnativa.rare.platform.android.iContextMenuInfoHandler;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
@@ -67,7 +66,8 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
   AndroidGraphics   columnGraphics;
   boolean           columnsReordered;
   TableComponent    table;
-  private TableType tableType;
+  TableType tableType;
+  
 
   public TableHeader(Context context, TableComponent table) {
     super();
@@ -84,12 +84,14 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     addMouseMotionListener(l);
   }
 
+  @Override
   public void afterOnDraw(View v, Canvas canvas) {
     if (v instanceof ListViewEx) {
       drawVerticalLines((ViewGroup) view, (ListViewEx) v, canvas);
     }
   }
 
+  @Override
   public void beforeOnDraw(View v, Canvas canvas) {
     paintColumnHilites((ViewGroup) view, v, canvas);
   }
@@ -132,11 +134,18 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     this.table = null;
   }
 
-  public void moveColumn(int col, int newCol) {
-    ColumnView cv = getColumnView(col);
+  @Override
+  public void moveColumn(int from, int to) {
+    ViewGroup vg=(ViewGroup) view;
+    View cv = vg.getChildAt(from);
 
-    ((ViewGroup) view).removeViewAt(col);
-    ((ViewGroup) view).addView(cv, newCol);
+    vg.removeViewAt(from);
+    vg.addView(cv, to);
+    ListAdapter a = table.getListView().getAdapter();
+    if(a instanceof aTableAdapter) {
+      ((aTableAdapter)a).columnMoved(from, to);
+    }
+    columnMoved(from,to);
   }
 
   public void paintEmptyRowColumns(iPlatformGraphics g, float y, float height, float width) {
@@ -197,6 +206,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     getColumnView(col).setDataIndex(index);
   }
 
+  @Override
   public void setColumnIcon(int col, iPlatformIcon icon) {
     ColumnView v = getColumnView(col);
 
@@ -207,6 +217,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     revalidate();
   }
 
+  @Override
   public void setColumnTitle(int col, CharSequence title) {
     ColumnView v = getColumnView(col);
 
@@ -215,6 +226,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     revalidate();
   }
 
+  @Override
   protected void setColumnVisibleEx(int col, boolean visible) {
     ColumnView v = getColumnView(col);
 
@@ -226,11 +238,13 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     setColumnsEx();
   }
 
+  @Override
   public void setColumns(List<Column> columns) {
     ((TableHeaderLayout) view).removeAllViews();
     super.setColumns(columns);
   }
 
+  @Override
   public void setFont(UIFont f) {
     super.setFont(f);
 
@@ -241,6 +255,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     revalidate();
   }
 
+  @Override
   public void setForeground(UIColor fg) {
     super.setForeground(fg);
 
@@ -397,6 +412,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     }
   }
 
+  @Override
   protected void repaintColumn(int col) {
     ColumnView v = getColumnView(col);
 
@@ -417,18 +433,20 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     v.invalidate();
   }
 
+  @Override
   protected void setColumnsEx() {
     Column[]          cols = this.columns;
     final int         len  = cols.length;
     TableHeaderLayout tl   = (TableHeaderLayout) view;
 
-    tl.removeAllViewsInLayout();
+    tl.removeAllViews();
 
     Context context = tl.getContext();
     Column  col;
+    int vp[]=viewPositions;
 
     for (int i = 0; i < len; i++) {
-      col = cols[i];
+      col = cols[vp[i]];
 
       iPlatformComponent c = createColumnComponent(col, context, i);
 
@@ -436,7 +454,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
         c.setVisible(false);
       }
 
-      tl.addViewEx((View) c.getView());
+      tl.addViewEx(c.getView());
     }
 
     if (columnSelectionAllowed) {
@@ -444,7 +462,6 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     }
 
     tableType = table.getTableType();
-    // revalidate();
   }
 
   protected iPlatformComponent getColumnComponent(int col) {
@@ -462,7 +479,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
 
     ColumnView tv = new ColumnView(context, c, index);
 
-    tv.setBackgroundDrawable(NullDrawable.getInstance());
+    tv.setBackground(NullDrawable.getInstance());
     tv.setText(c.getColumnTitle());
 
     return configureColumn(new UILabelRenderer(tv), c);
@@ -495,7 +512,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
     }
 
     public void addViewEx(View v) {
-      addViewInLayout(v, -1, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT), true);
+      addView(v,new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     }
 
     @Override
@@ -533,38 +550,38 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
 
         int       h   = getHeight();
         final int len = getChildCount();
-
-        p.setColor(header.marginColor.getColor());
-
-        View v;
-
-        d = 0;
-
-        for (int i = 1; i < len; i++) {
-          v = getChildAt(i);
-
-          if (v.getVisibility() == View.VISIBLE) {
-            int x = v.getLeft() - d;
-
-            canvas.drawLine(x, 0, x, h, p);
+        if(header.marginColor!=null) {
+          p.setColor(header.marginColor.getColor());
+  
+          View v;
+  
+          d = 0;
+  
+          for (int i = 1; i < len; i++) {
+            v = getChildAt(i);
+  
+            if (v.getVisibility() == View.VISIBLE) {
+              int x = v.getLeft() - d;
+  
+              canvas.drawLine(x, 0, x, h, p);
+            }
+          }
+  
+          if (header.tableType != null) {
+            int right = getWidth();
+  
+            switch(header.tableType) {
+              case MAIN :
+                canvas.drawLine(right - d, 0, right - d, h, p);
+                canvas.drawLine(0, 0, 0, h, p);
+  
+                break;
+  
+              default :
+                break;
+            }
           }
         }
-
-        if (header.tableType != null) {
-          int right = getWidth();
-
-          switch(header.tableType) {
-            case MAIN :
-              canvas.drawLine(right - d, 0, right - d, h, p);
-              canvas.drawLine(0, 0, 0, h, p);
-
-              break;
-
-            default :
-              break;
-          }
-        }
-
         if (header.bottomMarginColor != null) {
           p.setColor(header.bottomMarginColor.getColor());
           canvas.drawLine(0, h - .75f, getWidth(), h - .75f, p);
@@ -605,6 +622,11 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
 
       return (int) v.getX();
     }
+    
+    public void moveColumn(int from, int to) {
+      View v=getChildAt(from);
+      addView(v, to);
+    }
 
     @Override
     public void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -614,6 +636,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
       int       x    = getPaddingLeft();
       int       y    = getPaddingTop();
       Column[]  cols = header.columns;
+      int vp[]=header.viewPositions;
       int       d    = 0;    // ScreenUtils.PLATFORM_PIXELS_1;
       View      lv   = null;
 
@@ -621,7 +644,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
         View v = getChildAt(i);
 
         if (v.getVisibility() != View.GONE) {
-          w = cols[i].getWidth();
+          w = cols[vp[i]].getWidth();
           v.layout(x, y, x + w, height);
           x  += w + d;
           lv = v;
@@ -644,13 +667,14 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
       int height = MeasureSpec.getSize(heightMeasureSpec);
 
       if ((MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.EXACTLY)
-          && ((TableComponent) header.table).isColumnSizesInitialized()) {
+          && header.table.isColumnSizesInitialized()) {
         if (header.isGridView()) {
           measureSize.width  = width - getPaddingLeft() - getPaddingRight();
           measureSize.height = 0;
         } else {
           boolean  hexactly = MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.EXACTLY;
           Column[] cols     = header.columns;
+          int vp[]=header.viewPositions;
 
           height -= getPaddingTop() - getPaddingBottom();
 
@@ -669,7 +693,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
 
           for (int i = 0; i < len; i++) {
             View   v = getChildAt(i);
-            Column c = cols[i];
+            Column c = cols[vp[i]];
 
             if (v.getVisibility() != View.GONE) {
               w = c.getWidth() + d;
@@ -735,6 +759,7 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
       }
     }
 
+    @Override
     public void draw(Canvas canvas) {
       PaintBucket pb = null;
 
@@ -780,8 +805,10 @@ public class TableHeader extends aTableHeader implements iDrawCallback {
       }
     }
 
+    @Override
     public void handleContextMenuInfo(View v, ContextMenuInfo menuInfo) {}
 
+    @Override
     public void setComponentPainter(iPlatformComponentPainter cp) {}
 
     public void setDataIndex(int dataIndex) {

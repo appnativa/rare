@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
@@ -64,14 +64,7 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
   public aSpinnerWidget(iContainer parent) {
     super(parent);
     widgetType = WidgetType.Spinner;
-  }
-
-  /**
-   * Swaps the spinners buttons such that the up icon
-   * is on the down button and vice-versa
-   */
-  public void swapButtonIcons() {
-    spinner.swapButtonIcons();
+    selectAllAllowed=true;
   }
 
   /**
@@ -93,6 +86,13 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
     } catch(Exception e) {
       Platform.ignoreException(null, e);
     }
+  }
+
+  /**
+   * Commits the text value in an editable spinner
+   */
+  public void commitEdit() {
+    spinner.commitEdit();
   }
 
   /**
@@ -206,6 +206,117 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
   }
 
   /**
+   * Gets the spinner model
+   *
+   * @return the spinner model
+   */
+  public iSpinnerModel getModel() {
+    return spinner.getModel();
+  }
+
+  /**
+   * Return the object in the sequence that comes after the object returned by getValue().
+   *
+   * @return the next value
+   */
+  public Object getNextValue() {
+    return spinner.getNextValue();
+  }
+
+  /**
+   * Return the object in the sequence that comes before the object returned by getValue().
+   *
+   * @return the previous value
+   */
+  public Object getPreviousValue() {
+    return spinner.getPreviousValue();
+  }
+
+  /**
+   * Returns the last selected index or -1 if the selection is empty
+   * or if the spinner is not a list-type spinner
+   *
+   * @return the last selected index or -1 if the selection is empty
+   */
+  public int getSelectedIndex() {
+    try {
+      SpinnerListModel m = (SpinnerListModel) getModel();
+      Object           o = m.getValue();
+
+      return (o == null)
+             ? -1
+             : m.getList().indexOf(o);
+    } catch(ClassCastException e) {
+      return -1;
+    }
+  }
+
+  @Override
+  public Object getSelection() {
+    return spinner.getValue();
+  }
+
+  @Override
+  public int getValueAsInt() {
+    iSpinnerModel m = spinner.getModel();
+
+    if (m instanceof SpinnerNumberModel) {
+      return ((SpinnerNumberModel) m).getNumber().intValue();
+    }
+
+    return super.getValueAsInt();
+  }
+
+  /**
+   * Returns whether the spinner button are side by side
+   * or above below.
+   *
+   * @return true for side by side; false for above/below
+   *
+   * @see #setButtonsSideBySide(boolean)
+   */
+  public boolean isButtonsSideBySide() {
+    return spinner.isButtonsSideBySide();
+  }
+
+  /**
+   * Gets the visibility of the spinner buttons
+   *
+   * @return visible true for visible; false otherwise
+   */
+  public boolean isButtonsVisible() {
+    return spinner.isButtonsVisible();
+  }
+
+  /**
+   * Gets whether selection changes will cause events to be fired
+   *
+   * @return true for enabled; false for disabled
+   */
+  public boolean isChangeEventsEnabled() {
+    return changeEventsEnabled;
+  }
+
+  /**
+   * Gets the visibility of the spinner editor
+   *
+   * @return true if the editor portion of the spinner is visible; false otherwise
+   */
+  public boolean isEditorVisible() {
+    return spinner.getEditor().getComponent().isVisible();
+  }
+
+  /**
+   * Makes the spinner buttons toolbar style.
+   * That is, they have transparent backgrounds untill pressed
+   */
+  public void makeButtonsToolbarStyle() {
+    if (spinner instanceof aSpinnerComponent) {
+      ((aSpinnerComponent) spinner).setButtonPainterHolder(PainterUtils.createToolBarButtonPaintHolder());
+    }
+  }
+
+  /**
    * Moves the spinner to the next value
    *
    * @return true if there was a next value; false otherwise
@@ -235,11 +346,6 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
     return v != null;
   }
 
-  @Override
-  public Object removeSelectedData(boolean returnData) {
-    return spinner.removeSelectedData(returnData);
-  }
-
   /**
    * Removes a previously added change listener
    *
@@ -248,6 +354,11 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
   @Override
   public void removeChangeListener(iChangeListener l) {
     spinner.removeChangeListener(l);
+  }
+
+  @Override
+  public Object removeSelectedData(boolean returnData) {
+    return spinner.removeSelectedData(returnData);
   }
 
   @Override
@@ -280,18 +391,6 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
   }
 
   /**
-   * Sets whether the buttons continuously perform
-   * their actions when held down automatically.
-   *
-   * This is only meaningful for desktop style spinners
-   *
-   * @param continuous true for continuous; false otherwise
-   */
-  public void setContinuousAction(boolean continuous) {
-    spinner.setContinuousAction(continuous);
-  }
-
-  /**
    * Sets whether selection changes will cause events to be fired
    *
    * @param enabled true to enable; false to disable
@@ -308,6 +407,18 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
         spinner.addChangeListener(l);
       }
     }
+  }
+
+  /**
+   * Sets whether the buttons continuously perform
+   * their actions when held down automatically.
+   *
+   * This is only meaningful for desktop style spinners
+   *
+   * @param continuous true for continuous; false otherwise
+   */
+  public void setContinuousAction(boolean continuous) {
+    spinner.setContinuousAction(continuous);
   }
 
   /**
@@ -337,7 +448,10 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
       ((SpinnerNumberModel) sm).setStepSize(increment);
     }
   }
-
+   @Override
+  public void selectAll() {
+    spinner.getEditor().selectAll();
+  }
   /**
    * Sets the maximum value for a number spinner
    *
@@ -451,104 +565,11 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
   }
 
   /**
-   * Gets the spinner model
-   *
-   * @return the spinner model
+   * Swaps the spinners buttons such that the up icon
+   * is on the down button and vice-versa
    */
-  public iSpinnerModel getModel() {
-    return spinner.getModel();
-  }
-
-  /**
-   * Return the object in the sequence that comes after the object returned by getValue().
-   *
-   * @return the next value
-   */
-  public Object getNextValue() {
-    return spinner.getNextValue();
-  }
-
-  /**
-   * Return the object in the sequence that comes before the object returned by getValue().
-   *
-   * @return the previous value
-   */
-  public Object getPreviousValue() {
-    return spinner.getPreviousValue();
-  }
-
-  /**
-   * Returns the last selected index or -1 if the selection is empty
-   * or if the spinner is not a list-type spinner
-   *
-   * @return the last selected index or -1 if the selection is empty
-   */
-  public int getSelectedIndex() {
-    try {
-      SpinnerListModel m = (SpinnerListModel) getModel();
-      Object           o = m.getValue();
-
-      return (o == null)
-             ? -1
-             : m.getList().indexOf(o);
-    } catch(ClassCastException e) {
-      return -1;
-    }
-  }
-
-  @Override
-  public Object getSelection() {
-    return spinner.getValue();
-  }
-
-  @Override
-  public int getValueAsInt() {
-    iSpinnerModel m = spinner.getModel();
-
-    if (m instanceof SpinnerNumberModel) {
-      return ((SpinnerNumberModel) m).getNumber().intValue();
-    }
-
-    return super.getValueAsInt();
-  }
-
-  /**
-   * Returns whether the spinner button are side by side
-   * or above below.
-   *
-   * @return true for side by side; false for above/below
-   *
-   * @see #setButtonsSideBySide(boolean)
-   */
-  public boolean isButtonsSideBySide() {
-    return spinner.isButtonsSideBySide();
-  }
-
-  /**
-   * Gets the visibility of the spinner buttons
-   *
-   * @return visible true for visible; false otherwise
-   */
-  public boolean isButtonsVisible() {
-    return spinner.isButtonsVisible();
-  }
-
-  /**
-   * Gets whether selection changes will cause events to be fired
-   *
-   * @return true for enabled; false for disabled
-   */
-  public boolean isChangeEventsEnabled() {
-    return changeEventsEnabled;
-  }
-
-  /**
-   * Gets the visibility of the spinner editor
-   *
-   * @return true if the editor portion of the spinner is visible; false otherwise
-   */
-  public boolean isEditorVisible() {
-    return spinner.getEditor().getComponent().isVisible();
+  public void swapButtonIcons() {
+    spinner.swapButtonIcons();
   }
 
   /**
@@ -668,16 +689,6 @@ public abstract class aSpinnerWidget extends aPlatformWidget implements iChangea
     }
 
     spinner.setModel(m);
-  }
-
-  /**
-   * Makes the spinner buttons toolbar style.
-   * That is, they have transparent backgrounds untill pressed
-   */
-  public void makeButtonsToolbarStyle() {
-    if (spinner instanceof aSpinnerComponent) {
-      ((aSpinnerComponent) spinner).setButtonPainterHolder(PainterUtils.createToolBarButtonPaintHolder());
-    }
   }
 
   @Override

@@ -95,8 +95,8 @@ public class CarouselContainer extends BorderPanel {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
-    super.getMinimumSizeEx(size);
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    super.getMinimumSizeEx(size,maxWidth);
     size.height += scrollbarHeight;
   }
 
@@ -132,14 +132,14 @@ public class CarouselContainer extends BorderPanel {
     }
 
     @Override
-    protected void getMinimumSizeEx(UIDimension size) {
+    protected void getMinimumSizeEx(UIDimension size,float maxWidth) {
       size.setSize(0, 0);
 
       if (getComponentCount() == 1) {
         iPlatformComponent c = getComponentAt(0);
 
         if (c.isVisible()) {
-          c.getMinimumSize(size);
+          c.getMinimumSize(size,maxWidth);
         }
       }
     }
@@ -152,7 +152,7 @@ public class CarouselContainer extends BorderPanel {
         iPlatformComponent c = getComponentAt(0);
 
         if (c.isVisible()) {
-          c.getPreferredSize(size);
+          c.getPreferredSize(size,maxWidth);
         }
       }
     }

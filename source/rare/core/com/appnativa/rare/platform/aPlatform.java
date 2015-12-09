@@ -20,6 +20,21 @@
 
 package com.appnativa.rare.platform;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
 import com.appnativa.rare.iConstants;
@@ -48,29 +63,13 @@ import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.rare.util.DataItemParserHandler;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.CharArray;
 import com.appnativa.util.ObjectHolder;
 import com.appnativa.util.OrderedProperties;
 import com.appnativa.util.SNumber;
 import com.appnativa.util.iCancelable;
 import com.appnativa.util.json.JSONObject;
 import com.appnativa.util.json.JSONTokener;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import java.util.ArrayList;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 
 public abstract class aPlatform implements iPlatform {
   protected Validator validator;
@@ -167,6 +166,7 @@ public abstract class aPlatform implements iPlatform {
     d.showDialog(cb);
   }
 
+  @SuppressWarnings("resource")
   @Override
   public Map<String, UIImageIcon> loadResourceIcons(iPlatformAppContext app, Map<String, UIImageIcon> appIcons,
           ActionLink link, boolean clear, boolean defaultDeferred)
@@ -204,12 +204,12 @@ public abstract class aPlatform implements iPlatform {
       if (context == null) {
         context = app.getRootViewer();
       }
-
+      CharArray ca=new CharArray();
       final Map<String, Object> map     = validator.options;
       URL                       linkURL = link.isInlineURL()
               ? context.getViewer().getContextURL()
               : link.getURL(context);
-
+              
       while(it.hasNext()) {
         map.clear();
         me    = (Entry) it.next();
@@ -223,7 +223,10 @@ public abstract class aPlatform implements iPlatform {
           density     = PlatformHelper.getScaledImageDensity();
           deferred    = defaultDeferred;
           scaling     = ScalingType.BILINEAR;
-
+          ca.set(key);
+          ca.toLowerCase();
+          ca.replace('.', '_');
+          key=ca.toString();
           if (!map.isEmpty()) {
             s = (String) map.get("screen");
 
@@ -616,6 +619,22 @@ public abstract class aPlatform implements iPlatform {
   @Override
   public boolean isTouchableDevice() {
     return false;
+  }
+  
+  public boolean hasPhysicalKeyboard() {
+    Object o=Platform.getUIDefaults().get("Rare.hasPhysicalKeyboard");
+    if(o instanceof Boolean) {
+      return ((Boolean)o).booleanValue();
+    }
+    return PlatformHelper.hasPhysicalKeyboard();
+  }
+  
+  public boolean hasPointingDevice() {
+    Object o=Platform.getUIDefaults().get("Rare.hasPointingDevice");
+    if(o instanceof Boolean) {
+      return ((Boolean)o).booleanValue();
+    }
+    return PlatformHelper.hasPointingDevice();
   }
 
   protected void handleUIProperty(iWidget context, UIProperties defs, String property, Object value) {}

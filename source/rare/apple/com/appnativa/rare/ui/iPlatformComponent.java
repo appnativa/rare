@@ -29,8 +29,6 @@ import com.appnativa.rare.widget.iWidget;
 public interface iPlatformComponent extends iComponent {
   public iPlatformComponent copy();
 
-  public UIColor getDisabledColor();
-
   @Override
   void dispatchEvent(KeyEvent keyEvent);
 
@@ -39,9 +37,6 @@ public interface iPlatformComponent extends iComponent {
 
   @Override
   void updateUI();
-
-  @Override
-  void setDisabledColor(UIColor color);
 
   void setLocked(boolean lock);
 
@@ -53,7 +48,7 @@ public interface iPlatformComponent extends iComponent {
 
   UIInsets getFocusInsets(UIInsets insets);
 
-  PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket defFocusPaint);
+  PaintBucket getFocusPaint(PaintBucket defFocusPaint);
 
   @Override
   iParentComponent getParent();

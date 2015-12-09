@@ -20,6 +20,10 @@
 
 package com.appnativa.rare.ui;
 
+import javax.swing.AbstractButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.ui.view.CheckBoxView;
 import com.appnativa.rare.platform.swing.ui.view.LabelView;
@@ -28,7 +32,6 @@ import com.appnativa.rare.platform.swing.ui.view.ListView;
 import com.appnativa.rare.platform.swing.ui.view.RadioButtonView;
 import com.appnativa.rare.platform.swing.ui.view.SliderView;
 import com.appnativa.rare.platform.swing.ui.view.TextAreaView;
-import com.appnativa.rare.platform.swing.ui.view.TextFieldView;
 import com.appnativa.rare.platform.swing.ui.view.TreeView;
 import com.appnativa.rare.spot.Bean;
 import com.appnativa.rare.spot.CheckBox;
@@ -49,10 +52,6 @@ import com.appnativa.rare.spot.Tree;
 import com.appnativa.rare.ui.table.TableView;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.widget.iWidget;
-
-import javax.swing.AbstractButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 
 public interface iPlatformComponentFactory extends iComponentFactory {
 
@@ -220,7 +219,7 @@ public interface iPlatformComponentFactory extends iComponentFactory {
    *
    * @return the view
    */
-  TextFieldView getTextField(iWidget context, TextField cfg);
+  JTextField getTextField(iWidget context, TextField cfg);
 
   /**
    * Gets a text area

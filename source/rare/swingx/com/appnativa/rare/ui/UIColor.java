@@ -15,12 +15,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.converters.Conversions;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 
 import java.awt.Color;
 import java.awt.Paint;
@@ -96,6 +97,7 @@ public class UIColor extends Color implements iPlatformPaint, Cloneable {
    * The color black.  In the default sRGB space.
    */
   public final static UIColor BLACK = new UIColor(0, 0, 0);
+  private UIColor             disabledColor;
 
   public UIColor(Color color) {
     super(color.getRGB(), true);
@@ -230,8 +232,23 @@ public class UIColor extends Color implements iPlatformPaint, Cloneable {
     }
   }
 
-  public UIColor getDisabledColor(UIColor def) {
-    return def;
+  public UIColor getColor(ButtonState state) {
+    switch(state) {
+      case DISABLED :
+      case DISABLED_SELECTED :
+        return getDisabledColor();
+
+      default :
+        return this;
+    }
+  }
+
+  public UIColor getDisabledColor() {
+    if (disabledColor == null) {
+      disabledColor = ColorUtils.getDisabledVersion(this);
+    }
+
+    return disabledColor;
   }
 
   public static class UIColorResource extends UIColor implements UIResource {

@@ -20,12 +20,11 @@
 
 package com.appnativa.rare.platform.android.ui.view;
 
+import java.util.Map;
+
 import android.annotation.SuppressLint;
-
 import android.content.Context;
-
 import android.graphics.drawable.ColorDrawable;
-
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,7 +34,6 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewParent;
 import android.view.WindowManager;
-
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
 
@@ -52,6 +50,9 @@ import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.WindowPane;
 import com.appnativa.rare.ui.WindowTarget;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.effects.aAnimator;
 import com.appnativa.rare.ui.effects.iAnimator.Direction;
@@ -60,16 +61,10 @@ import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iPopupMenuListener;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.viewer.iViewer;
-import com.appnativa.rare.widget.iWidget;
-
-import java.util.Map;
 
 /**
  * Class the display widgets in a popup
@@ -90,9 +85,10 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
   protected OnTouchListener    touchListener;
   protected boolean            visibleIsforward;
   protected boolean            visiblityFired;
-  private iPlatformAnimator    animator;
-  private boolean              dismissing;
-  private boolean              sizeSet;
+  protected iPlatformAnimator    animator;
+  protected boolean              dismissing;
+  protected boolean              sizeSet;
+  protected int timeout;
 
   public PopupWindowEx(Context context) {
     super(context);
@@ -104,6 +100,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     init(context);
   }
 
+  @Override
   public void addPopupMenuListener(iPopupMenuListener l) {
     if (listenerList == null) {
       listenerList = new EventListenerList();
@@ -112,6 +109,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     listenerList.add(iPopupMenuListener.class, l);
   }
 
+  @Override
   public void cancelPopup(boolean useAnimation) {
     if (useAnimation && (animator != null)) {
       setVisible(false, null, 0, 0, 0, false);
@@ -120,6 +118,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public void dispose() {
     dispose(false);
   }
@@ -151,11 +150,13 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public void hidePopup() {
     canceled = false;
     this.dismiss();
   }
 
+  @Override
   public void onDismiss() {
     ((MainActivity) Platform.getAppContext().getActivity()).removePopupWindow(this);
     dismissing = true;
@@ -180,6 +181,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   @SuppressLint("ClickableViewAccessibility")
   public boolean onTouch(View view, MotionEvent me) {
     if (touchListener != null) {
@@ -205,6 +207,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     rootPane.setBounds(0, 0, d.width, d.height);
   }
 
+  @Override
   public void removePopupMenuListener(iPopupMenuListener l) {
     if (listenerList != null) {
       listenerList.remove(iPopupMenuListener.class, l);
@@ -232,20 +235,6 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
 
     fireEvent(false);
 
-    View topParent = Platform.getWindowViewer().getDataComponent().getView();
-
-    if (((parent != null) && ((y < 0) && (-y > parent.getHeight())))
-        || (parent.getWindowToken() != topParent.getWindowToken())) {
-      dropDown = false;
-
-      int loc[] = new int[2];
-
-      parent.getLocationOnScreen(loc);
-      y      += loc[1] + parent.getHeight();
-      x      += loc[0];
-      parent = topParent;
-    }
-
     if (dropDown) {
       super.showAsDropDown(parent, x, y);
     } else {
@@ -253,20 +242,35 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
 
     ((MainActivity) Platform.getAppContext().getActivity()).addPopupWindow(this);
+    if(timeout>0) {
+      Platform.invokeLater(new Runnable() {
+        
+        @Override
+        public void run() {
+          if(isVisible()) {
+            setVisible(false);
+          }
+        }
+      }, timeout);
+    }
   }
 
+  @Override
   public void showAsDropDown(View anchor) {
     showAsDropDown(anchor, 0, 0);
   }
 
+  @Override
   public void showAsDropDown(View anchor, int xoff, int yoff) {
     setVisible(true, anchor, 0, xoff, yoff, true);
   }
 
+  @Override
   public void showAtLocation(View parent, int gravity, int x, int y) {
     setVisible(true, parent, gravity, x, y, false);
   }
 
+  @Override
   public void showModalPopup() {
     modal = true;
     this.setWindowLayoutMode(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -281,14 +285,17 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
                false);
   }
 
+  @Override
   public void showPopup() {
     showPopup(owner, x, y);
   }
 
+  @Override
   public void showPopup(float x, float y) {
     showPopup(owner, x, y);
   }
 
+  @Override
   public void showPopup(iPlatformComponent ref, float x, float y) {
     if (ref == null) {
       ref = owner;
@@ -329,6 +336,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public void setAnimator(iPlatformAnimator animator) {
     this.animator = animator;
 
@@ -347,19 +355,17 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     rootPane.setBackground(bg);
   }
 
+  @Override
   public void setComponentPainter(iPlatformComponentPainter painter) {
     rootPane.setComponentPainter(painter);
   }
 
+  @Override
   public void setContent(iPlatformComponent component) {
-    if (component.getWidget() instanceof iViewer) {
-      setViewer((iViewer) component.getWidget());
-    } else {
-      target.removeViewer();
-      rootPane.setContent(component);
-    }
+    rootPane.setContent(component);
   }
 
+  @Override
   public void setMovable(boolean moveble) {}
 
   @Override
@@ -367,8 +373,10 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     this.dismissListener = listener;
   }
 
+  @Override
   public void setOptions(Map<String, String> options) {}
 
+  @Override
   public void setPopupLocation(float x, float y) {
     if (isShowing()) {
       this.update(UIScreen.snapToPosition(x), UIScreen.snapToPosition(y), getWidth(), getHeight());
@@ -378,10 +386,12 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public void setPopupOwner(iPlatformComponent component) {
     owner = component;
   }
 
+  @Override
   public void setSize(float width, float height) {
     sizeSet = true;
     this.setHeight(UIScreen.snapToSize(height));
@@ -389,8 +399,12 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     rootPane.setBounds(0, 0, width, height);
   }
 
-  public void setTimeout(int timeout) {}
+  @Override
+  public void setTimeout(int timeout) {
+    this.timeout=timeout;
+  }
 
+  @Override
   public void setTitle(String title) {
     rootPane.setTitle(title);
   }
@@ -400,6 +414,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     touchListener = l;
   }
 
+  @Override
   public void setTransient(boolean isTransient) {
     this.isTransient = isTransient;
 
@@ -408,6 +423,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public iViewer setViewer(iViewer viewer) {
     return target.setViewer(viewer);
   }
@@ -426,6 +442,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public void getPreferredSize(UIDimension size) {
     if (rootPane != null) {
       rootPane.getPreferredSize(size);
@@ -434,12 +451,14 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
+  @Override
   public WindowPane getWindowPane() {
     return rootPane;
   }
 
+  @Override
   public boolean isTransient() {
-    return isTransient;
+    return isTransient && !modal;
   }
 
   public boolean isVisible() {
@@ -452,7 +471,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
 
     Object[]       listeners = listenerList.getListenerList();
-    ExpansionEvent e         = new ExpansionEvent(this);
+    ExpansionEvent e         = new ExpansionEvent(this,ExpansionEvent.Type.WILL_COLLAPSE);
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iPopupMenuListener.class) {
@@ -477,7 +496,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
 
     Object[]       listeners = listenerList.getListenerList();
-    ExpansionEvent e         = new ExpansionEvent(this);
+    ExpansionEvent e         = new ExpansionEvent(this,dismissed ? ExpansionEvent.Type.WILL_COLLAPSE : ExpansionEvent.Type.WILL_EXPAND);
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iPopupMenuListener.class) {
@@ -494,7 +513,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     // final WindowFormsView v = new WindowFormsView(context, new
     // FormLayout("f:d:g", "f:d,f:d,f:d,f:d:g,f:d"));
     // rootPane = new WindowPaneEx(v);
-    rootPane = new WindowPaneEx(new WindowFormsView(context));
+    rootPane = new WindowPaneEx(new PopupWindowFormsView(context),this);
     super.setContentView(rootPane.getView());
 
     String targetName = "PopupWindow-" + Integer.toHexString(System.identityHashCode(this));
@@ -533,7 +552,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     if (visible == isVisible()) {
       return;
     }
-
+    PlatformHelper.hideVirtualKeyboard(parent);
     if (animator == null) {
       if (visible) {
         show(parent, gravity, x, y, dropDown);
@@ -541,7 +560,7 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
         dismiss();
       }
     } else {
-      final WindowFormsView root = (WindowFormsView) rootPane.getView();
+      final PopupWindowFormsView root = (PopupWindowFormsView) rootPane.getView();
 
       if (visible) {
         show(parent, gravity, x, y, dropDown);
@@ -573,12 +592,13 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
     }
   }
 
-  static class WindowFormsView extends FormsView {
+  public static class PopupWindowFormsView extends FormsView {
     boolean animating;
     int     left;
     int     top;
+    public PopupWindowEx window;
 
-    public WindowFormsView(Context context) {
+    public PopupWindowFormsView(Context context) {
       super(context, WindowPane.createPaneFormLayout());
     }
 
@@ -602,25 +622,33 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
       }
     }
+
+    public void closeWindow() {
+      if(window!=null) {
+        window.dismiss();
+      }
+    }
+    
+    @Override
+    public void dispose() {
+      super.dispose();
+      window=null;
+    }
   }
 
 
   static class WindowPaneEx extends WindowPane {
-    public WindowPaneEx(iWidget context) {
-      super(context);
-    }
-
-    public WindowPaneEx(Object view) {
+    public WindowPaneEx(PopupWindowFormsView view, PopupWindowEx popupWindowEx) {
       super(view);
+      view.window=popupWindowEx;
     }
-
     @Override
     public void setBounds(int x, int y, int w, int h) {
       sizeCache.minDirty             = true;
       sizeCache.minDirty             = true;
       sizeCache.resuestLayoutChecked = false;
 
-      WindowFormsView v = (WindowFormsView) view;
+      PopupWindowFormsView v = (PopupWindowFormsView) view;
 
       if (v.animating) {
         v.left = x;

@@ -20,23 +20,6 @@
 
 package com.appnativa.rare.ui.table;
 
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
-import com.appnativa.rare.ui.Column;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.aUIComponentPainter;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.ui.renderer.ListItemRenderer;
-import com.appnativa.rare.ui.renderer.UILabelRenderer;
-import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -50,6 +33,24 @@ import javax.swing.SwingConstants;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.aUIComponentPainter;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.ui.renderer.ListItemRenderer;
+import com.appnativa.rare.ui.renderer.UILabelRenderer;
+import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
 
 public class TableHeader extends aTableHeader implements TableCellRenderer {
   public static final String USE_TEXTAREA_PROPERTY = "__RARE_TABLEHEADER_USE_TEXTAREA__";
@@ -84,6 +85,9 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   @Override
   public boolean handleMouseRelease(MouseEvent e) {
+    if(!isEnabled()) {
+      return true;
+    }
     if (!columnSizing) {
       return true;
     }
@@ -119,6 +123,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   public void moveColumn(int column, int targetColumn) {
     headerView.getColumnModel().moveColumn(column, targetColumn);
+    columnMoved(column, targetColumn);
   }
 
   @Override
@@ -263,14 +268,10 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   @Override
   protected void setColumnVisibleEx(int col, boolean visible) {
-    int index = tableview.getJTable().convertColumnIndexToView(col);
-
-    if (index != -1) {
-      Column c = columns[index];
+     Column c = columns[col];
 
       c.setVisible(visible);
-      updateColumnModel(index);
-    }
+      updateColumnModel(col);
   }
 
   public void setTableComponent(iTableComponent tc) {
@@ -552,6 +553,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
     CornerRenderer(boolean top) {
       this.top = top;
       setFocusable(false);
+      setBorder(BorderUtils.EMPTY_FOCUS_AWARE_BORDER);
     }
 
     @Override
@@ -571,6 +573,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
     @Override
     protected void paintComponent(Graphics g) {
+      graphics.setComponent(TableHeader.this);
       super.paintComponent(g);
 
       if (!top) {

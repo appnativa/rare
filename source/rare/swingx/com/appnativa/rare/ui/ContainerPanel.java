@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -50,6 +50,12 @@ public class ContainerPanel extends Container implements iTargetContainer {
   }
 
   @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    ((FrameView) view).setLocked(!enabled);
+  }
+
+  @Override
   public boolean isFocusPainted() {
     return false;
   }
@@ -65,7 +71,7 @@ public class ContainerPanel extends Container implements iTargetContainer {
   }
 
   @Override
-  public PaintBucket getFocusPaint(iPlatformGraphics g, PaintBucket def) {
+  public PaintBucket getFocusPaint(PaintBucket def) {
     if (!focusPainted || (getComponentCount() == 0)) {
       return null;
     }
@@ -167,14 +173,14 @@ public class ContainerPanel extends Container implements iTargetContainer {
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     size.setSize(0, 0);
 
     if (getComponentCount() > 0) {
       iPlatformComponent c = getComponentAt(0);
 
       if (c.isVisible()) {
-        c.getMinimumSize(size);
+        c.getMinimumSize(size, maxWidth);
       }
     }
 

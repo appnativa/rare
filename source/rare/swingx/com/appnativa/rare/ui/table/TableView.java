@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 /**
@@ -78,7 +78,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-
 import java.util.List;
 
 import javax.swing.DefaultListSelectionModel;
@@ -89,6 +88,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
@@ -194,19 +194,28 @@ public class TableView extends JTable
   }
 
   @Override
-  public void clearPopupMenuIndex() {
+  public void clearContextMenuIndex() {
     popupIndex = -1;
   }
-
+  @Override
+  public void columnMoved(TableColumnModelEvent e) {
+    super.columnMoved(e);
+    header.columnMoved(e.getFromIndex(), e.getToIndex());
+  }
+  
   public void columnResized() {
+    TableColumn tc = getTableHeader().getResizingColumn();
     if (autoSizeRows) {
-      TableColumn tc = getTableHeader().getResizingColumn();
+       tc = getTableHeader().getResizingColumn();
 
       if (tc != null) {
         header.columns[tc.getModelIndex()].setWidth(tc.getWidth());
       }
 
       needSizeToFitCall = true;
+    }
+    if(tc!=null) {
+      header.columnSizeChanged(header.getViewIndexForColumnAt(tc.getModelIndex()));
     }
   }
 
@@ -256,12 +265,10 @@ public class TableView extends JTable
 
   @Override
   public void intervalAdded(Object source, int index0, int index1) {
-    // TODO Auto-generated method stub
   }
 
   @Override
   public void intervalRemoved(Object source, int index0, int index1, List<RenderableDataItem> removed) {
-    // TODO Auto-generated method stub
   }
 
   @Override
@@ -280,43 +287,37 @@ public class TableView extends JTable
 
   @Override
   public void mouseMoved(MouseEvent e) {
-    int n = rowAtPoint(e.getPoint());
-
-    if (n != hilightIndex) {
-      hilightIndex = n;
-
-      Rectangle r1 = getCellRect(n, 0, true);
-      Rectangle r2 = getCellRect(n, getColumnCount() - 1, true);
-
-      repaint(r1.union(r2));
+    if(isEnabled()) {
+      int n = rowAtPoint(e.getPoint());
+  
+      if (n != hilightIndex) {
+        hilightIndex = n;
+  
+        Rectangle r1 = getCellRect(n, 0, true);
+        Rectangle r2 = getCellRect(n, getColumnCount() - 1, true);
+  
+        repaint(r1.union(r2));
+      }
     }
   }
 
   @Override
   public void mousePressed(MouseEvent e) {
-    header.tableHadInteraction();
+    if (isEnabled() && !e.isConsumed()) {
+      header.tableHadInteraction();
 
-    if (!e.isPopupTrigger() && isEnabled()) {
-      mousePressedPoint = e.getLocationOnScreen();
-      mousePressedTime  = e.getWhen();
-    }
-
-    if (e.isPopupTrigger() && isEnabled()) {
-      requestFocus();
-
-      int row = rowAtPoint(e.getPoint());
-
-      if ((row == -1) || isRowSelected(row)) {
-        return;
+      if (e.isPopupTrigger()) {
+        popupIndex = rowAtPoint(e.getPoint());
+      } else {
+        mousePressedPoint = e.getLocationOnScreen();
+        mousePressedTime  = e.getWhen();
+        popupIndex=-1;
       }
-
-      getSelectionModel().setSelectionInterval(row, row);
     }
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    mousePopupCheck(e);
     clickCheck(e, true);
   }
 
@@ -508,7 +509,9 @@ public class TableView extends JTable
         sizeRowsToFit(0, getRowCount() - 1);
         updated = true;
       }
-
+      if(updated) {
+        header.columnSizeChanged(-1);
+      }
       return updated;
     } else {
       return false;
@@ -883,7 +886,7 @@ public class TableView extends JTable
   }
 
   @Override
-  public int getPopupMenuIndex() {
+  public int getContextMenuIndex() {
     return popupIndex;
   }
 
@@ -959,7 +962,7 @@ public class TableView extends JTable
       h = rowItem.getHeight();
 
       if (h < 1) {
-        h = TableHelper.calculateRowHeight(table, itemRenderer, tm, row, header.columns, false, rh);
+        h = TableHelper.calculateRowHeight(table, itemRenderer, tm, row, header.columns, false, rh,header.viewPositions);
         h += 4;
         rowItem.setHeight(h);
       }
@@ -1090,22 +1093,6 @@ public class TableView extends JTable
     return singleClickAction;
   }
 
-  void mousePopupCheck(MouseEvent e) {
-    if (e.isPopupTrigger() && (this != null) && isEnabled()) {
-      requestFocus();
-
-      int row = rowAtPoint(e.getPoint());
-
-      popupIndex = row;
-
-      if ((row == -1) || isRowSelected(row)) {
-        return;
-      }
-
-      getSelectionModel().setSelectionInterval(row, row);
-    }
-  }
-
   protected void calculateOffset() {}
 
   protected boolean checkForCellHotspot(int row, float x, float y, float width, float height) {
@@ -1131,7 +1118,7 @@ public class TableView extends JTable
 
     int row = rowAtPoint(e.getPoint());
 
-    if (row == -1 || getSelectedIndex()!=row) {
+    if ((row == -1) || (getSelectedIndex() != row)) {
       return;
     }
 
@@ -1199,14 +1186,14 @@ public class TableView extends JTable
       if (!rowHeightSet) {
         rh = 0;
       }
-
+      int []vp=header.viewPositions;
       for (int i = 0; i < len; i++) {
         RenderableDataItem rowItem = tm.getRow(i);
 
         h = rowItem.getHeight();
 
         if (h < 1) {
-          h = TableHelper.calculateRowHeight(table, itemRenderer, tm, i, header.columns, false, rh);
+          h = TableHelper.calculateRowHeight(table, itemRenderer, tm, i, header.columns, false, rh,vp);
           h += 4;
           rowItem.setHeight(h);
         }

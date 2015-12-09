@@ -45,7 +45,7 @@ public class BeanViewer extends aPlatformViewer {
   public BeanViewer(iContainer parent, iPlatformComponent fcomp, iPlatformComponent dcomp) {
     super(parent);
     formComponent = fcomp;
-    formComponent = dcomp;
+    dataComponent = dcomp;
     configure(DEFAULT_CFG);
   }
 

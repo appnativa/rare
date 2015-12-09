@@ -67,7 +67,11 @@ public class FormsView extends UtilityPanel {
 
     layout.addLayoutComponent(c, cc);
   }
-
+ @Override
+public Dimension getPreferredSize() {
+  // TODO Auto-generated method stub
+  return super.getPreferredSize();
+}
   public void dispose() {
     if (painters != null) {
       Arrays.fill(painters, null);
@@ -83,7 +87,7 @@ public class FormsView extends UtilityPanel {
 
   @Override
   public Dimension minimumLayoutSize(java.awt.Container parent) {
-    getMinimumSize(size);
+    getMinimumSize(size, 0);
 
     return SwingHelper.setDimension(null, size);
   }
@@ -160,10 +164,10 @@ public class FormsView extends UtilityPanel {
   }
 
   @Override
-  public void getMinimumSize(UIDimension size) {
+  public void getMinimumSize(UIDimension size, int maxWidth) {
     Container container = (Container) Component.fromView(this);
 
-    getFormLayout().getMinimumSize(container, size);
+    getFormLayout().getMinimumSize(container, size,maxWidth);
   }
 
   public void getPreferredSize(UIDimension size) {

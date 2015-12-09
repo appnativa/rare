@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.renderer;
@@ -31,6 +31,7 @@ import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iPlatformBorder;
@@ -92,99 +93,11 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
   }
 
   @Override
-  public final void invalidate() {}
-
-  @Override
-  public iPlatformRenderingComponent newCopy() {
-    return new UITextAreaRenderer();
+  public void dispose() {
+    if (component != null) {
+      component.dispose();
+    }
   }
-
-  @Override
-  public final void repaint() {}
-
-  @Override
-  public final void repaint(Rectangle r) {}
-
-  @Override
-  public final void repaint(long tm, int x, int y, int width, int height) {}
-
-  @Override
-  public final void revalidate() {}
-
-  @Override
-  public void updateUI() {
-    super.updateUI();
-    adjustUI();
-  }
-
-  @Override
-  public void setAlignment(HorizontalAlign ha, VerticalAlign va) {}
-
-  @Override
-  public void setBackground(UIColor bg) {
-    setBackground((Color) bg);
-  }
-
-  @Override
-  public void setBorder(iPlatformBorder b) {
-    setBorder((Border) b);
-  }
-
-  public void setColumnWidth(int columnWidth) {
-    this.columnWidth = columnWidth;
-  }
-
-  public void setDisabledIcon(Icon icon) {}
-
-  @Override
-  public void setFont(UIFont font) {
-    setFont((Font) font);
-  }
-
-  @Override
-  public void setForeground(UIColor fg) {
-    setForeground((Color) fg);
-  }
-
-  public void setHorizontalAlignment(int alignment) {}
-
-  public void setHorizontalTextPosition(int position) {}
-
-  public void setIcon(Icon icon) {}
-
-  @Override
-  public void setIcon(iPlatformIcon icon) {}
-
-  @Override
-  public void setIconPosition(IconPosition position) {}
-
-  /**
-   * Sets linefeed wrapping
-   *
-   * @param linefeedWrap true to wrap on line feeds false otherwise
-   */
-  public void setLinefeedWrap(boolean linefeedWrap) {
-    this.linefeedWrap = linefeedWrap;
-  }
-
-  @Override
-  public void setMargin(UIInsets insets) {}
-
-  @Override
-  public void setOptions(Map<String, Object> options) {
-
-    /**
-     * Sets the prototype character
-     * @param prototypeChar the prototype character
-     */
-  }
-
-  @Override
-  public void setOrientation(Orientation o) {}
-
-  public void setVerticalAlignment(int alignment) {}
-
-  public void setVerticalTextPosition(int position) {}
 
   public Dimension getAutoPreferredSize() {
     Dimension d = null;
@@ -327,8 +240,144 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
     return super.getPreferredSize();
   }
 
+  @Override
+  public void getPreferredSize(UIDimension size, int maxWidth) {
+    maxWidth += columnWidth;    //will only be set <=0
+
+    if (maxWidth < 0) {
+      maxWidth = 0;
+    }
+
+    super.getPreferredSize(size, maxWidth);
+
+    Number i = (Number) getClientProperty(iConstants.RARE_HEIGHT_MIN_VALUE);
+
+    if ((i != null) && (i.intValue() > size.height)) {
+      size.height = i.intValue();
+    }
+  }
+
+  @Override
+  public final void invalidate() {}
+
   public boolean isLinefeedWrap() {
     return linefeedWrap;
+  }
+
+  @Override
+  public iPlatformRenderingComponent newCopy() {
+    return setupNewCopy(new UITextAreaRenderer());
+  }
+
+  @Override
+  public void prepareForReuse(int row, int column) {
+    setComponentPainter(null);
+    component.getView().setBackground(null);
+  }
+
+  @Override
+  public final void repaint() {}
+
+  @Override
+  public final void repaint(long tm, int x, int y, int width, int height) {}
+
+  @Override
+  public final void repaint(Rectangle r) {}
+
+  @Override
+  public final void revalidate() {}
+
+  @Override
+  public void setAlignment(HorizontalAlign ha, VerticalAlign va) {}
+
+  @Override
+  public void setBackground(UIColor bg) {
+    setBackground((Color) bg);
+  }
+
+  @Override
+  public void setBorder(iPlatformBorder b) {
+    setBorder((Border) b);
+  }
+
+  @Override
+  public void setColumnWidth(int columnWidth) {
+    this.columnWidth = columnWidth;
+
+    if (columnWidth > 0) {
+      setColumns(columnWidth);
+    } else {
+      this.columnWidth = columnWidth;
+    }
+  }
+
+  @Override
+  public void setComponentPainter(iPlatformComponentPainter cp) {
+    component.setComponentPainterEx(cp);
+  }
+
+  public void setDisabledIcon(Icon icon) {}
+
+  @Override
+  public void setFont(UIFont font) {
+    setFont((Font) font);
+  }
+
+  @Override
+  public void setForeground(UIColor fg) {
+    setForeground((Color) fg);
+  }
+
+  public void setHorizontalAlignment(int alignment) {}
+
+  public void setHorizontalTextPosition(int position) {}
+
+  public void setIcon(Icon icon) {}
+
+  @Override
+  public void setIcon(iPlatformIcon icon) {}
+
+  @Override
+  public void setIconPosition(IconPosition position) {}
+
+  /**
+   * Sets linefeed wrapping
+   *
+   * @param linefeedWrap true to wrap on line feeds false otherwise
+   */
+  public void setLinefeedWrap(boolean linefeedWrap) {
+    this.linefeedWrap = linefeedWrap;
+  }
+
+  @Override
+  public void setMargin(UIInsets insets) {}
+
+  @Override
+  public void setOptions(Map<String, Object> options) {
+
+    /**
+     * Sets the prototype character
+     * @param prototypeChar the prototype character
+     */
+  }
+
+  @Override
+  public void setOrientation(Orientation o) {}
+
+  @Override
+  public void setScaleIcon(boolean scale, float scaleFactor) {}
+
+  public void setVerticalAlignment(int alignment) {}
+
+  public void setVerticalTextPosition(int position) {}
+
+  @Override
+  public void setWordWrap(boolean wrap) {}
+
+  @Override
+  public void updateUI() {
+    super.updateUI();
+    adjustUI();
   }
 
   protected void adjustUI() {
@@ -345,27 +394,14 @@ public class UITextAreaRenderer extends TextAreaView implements iPlatformRenderi
     setForeground(ColorUtils.getForeground());
   }
 
-  @Override
-  public void dispose() {
-    if (component != null) {
-      component.dispose();
+  protected iPlatformRenderingComponent setupNewCopy(UITextAreaRenderer r) {
+    r.linefeedWrap = linefeedWrap;
+    r.columnWidth  = columnWidth;
+
+    if (columnWidth > 0) {
+      r.setColumns(columnWidth);
     }
-  }
 
-  @Override
-  public void setWordWrap(boolean wrap) {}
-
-  @Override
-  public void setScaleIcon(boolean scale, float scaleFactor) {}
-
-  @Override
-  public void prepareForReuse(int row, int column) {
-    setComponentPainter(null);
-    component.getView().setBackground(null);
-  }
-
-  @Override
-  public void setComponentPainter(iPlatformComponentPainter cp) {
-    component.setComponentPainterEx(cp);
+    return Renderers.setupNewCopy(this, r);
   }
 }

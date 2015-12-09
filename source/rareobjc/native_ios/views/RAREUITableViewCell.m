@@ -17,7 +17,7 @@
 #import "AppleHelper.h"
 #import "com/appnativa/rare/platform/apple/ui/util/AppleGraphics.h"
 #import "com/appnativa/rare/ui/iPlatformIcon.h"
-
+static NSLineBreakMode defaultLinebreakMode=NSLineBreakByWordWrapping;
 @implementation RAREUITableViewCell {
 @public
   UIImageView* selectionView;
@@ -25,17 +25,25 @@
   BOOL centerEditingView;
   CGFloat contentViewX;
   BOOL hasRAREBackgroundView;
+  
 }
 
 + (Class)layerClass
 {
   return [RARECAGradientLayer class];
 }
++(NSLineBreakMode) getDefaultLineBreakMode {
+  return defaultLinebreakMode;
+}
++(void) setDefaultLineBreakMode:(NSLineBreakMode) mode {
+  defaultLinebreakMode=mode;
+}
+
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
   self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
   if (self) {
-    [self.textLabel setLineBreakMode:NSLineBreakByCharWrapping];
+    [self.textLabel setLineBreakMode:defaultLinebreakMode];
     verticalAlighment = RARERenderableDataItem_VerticalAlign_AUTO;
     iconGap_ = 4;
     iconPosition = RARERenderableDataItem_IconPosition_AUTO;
@@ -45,6 +53,7 @@
   }
   return self;
 }
+
 -(BOOL) isRowEditorOrChild:(UIView*) view {
   if(editingView) {
     return editingView==view || [view isDescendantOfView:editingView];
@@ -56,7 +65,8 @@
   if([layer isKindOfClass:[RARECAGradientLayer class]]) {
     [((RARECAGradientLayer*)layer) sparResetLayer];
   }
-  [self.textLabel setLineBreakMode:NSLineBreakByCharWrapping];
+  [self.textLabel setLineBreakMode:defaultLinebreakMode];
+  contentViewX=0;
   verticalAlighment = RARERenderableDataItem_VerticalAlign_AUTO;
   iconGap_ = 4;
   iconPosition = RARERenderableDataItem_IconPosition_AUTO;
@@ -84,9 +94,6 @@
   self.imageView.image=nil;
 }
 
--(int) getPressedContentViewIndex {
-  return tableContent ? [tableContent getPressedViewIndex] : -1;
-}
 -(UIView*) getPressedContentViewAtIndex: (int) index {
   return (UIView*)[[tableContent subviews] objectAtIndex:index];
 }

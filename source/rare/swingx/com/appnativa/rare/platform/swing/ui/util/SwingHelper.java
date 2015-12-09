@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.util;
@@ -36,33 +36,32 @@ import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.spot.ScrollPane;
 import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.GraphicsComposite;
+import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
-import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.aWidgetListener;
 import com.appnativa.rare.ui.dnd.TransferFlavor;
 import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.ui.iComposite.CompositeType;
 import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iRenderingComponent;
 import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-import com.appnativa.rare.ui.painter.iBackgroundPainter;
-import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.viewer.FormViewer;
+import com.appnativa.rare.viewer.aViewer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTEnumerated;
@@ -318,8 +317,69 @@ public class SwingHelper {
     int    height = (viewHeight == -1)
                     ? label.getHeight()
                     : viewHeight;
+    Insets in     = label.getInsets(insets);
 
-    insets       = label.getInsets(insets);
+    if (in != insets) {
+      insets.set(in.top, in.left, in.bottom, in.right);
+    }
+
+    viewR.x      = insets.left;
+    viewR.y      = insets.top;
+    viewR.width  = width - (insets.left + insets.right);
+    viewR.height = height - (insets.top + insets.bottom);
+
+    final int  igap = label.getIconTextGap();
+    final int  htp  = label.getHorizontalTextPosition();
+    final int  vtp  = label.getVerticalTextPosition();
+    final Icon icon = label.isEnabled()
+                      ? label.getIcon()
+                      : label.getDisabledIcon();
+
+    if ((viewWidth != -1) && (viewHeight != -1)) {
+      View view = (View) label.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
+
+      if (view != null) {
+        if (icon != null) {
+          if ((htp == JLabel.CENTER) && ((vtp == JLabel.TOP) || (vtp == JLabel.BOTTOM))) {
+            viewR.height -= (igap + icon.getIconHeight());
+          } else {
+            viewR.width -= (igap + icon.getIconWidth());
+          }
+        }
+
+        view.setSize(viewR.width, viewR.height);
+      }
+    }
+
+    iconR.x = iconR.y = iconR.width = iconR.height = 0;
+    textR.x = textR.y = textR.width = textR.height = 0;
+
+    Font f = label.getFont();
+
+    if (f == null) {
+      f = FontUtils.getDefaultFont();
+    }
+
+    SwingUtilities.layoutCompoundLabel(label, label.getFontMetrics(f), text, icon, label.getVerticalAlignment(),
+                                       label.getHorizontalAlignment(), vtp, htp, viewR, iconR, textR, igap);
+    textR.x -= insets.left;
+  }
+
+  public static void calculateButtonRects(AbstractButton label, Rectangle viewR, Rectangle iconR, Rectangle textR,
+          Insets insets, int viewWidth, int viewHeight) {
+    String text   = label.getText();
+    int    width  = (viewWidth == -1)
+                    ? label.getWidth()
+                    : viewWidth;
+    int    height = (viewHeight == -1)
+                    ? label.getHeight()
+                    : viewHeight;
+    Insets in     = label.getInsets(insets);
+
+    if (in != insets) {
+      insets.set(in.top, in.left, in.bottom, in.right);
+    }
+
     viewR.x      = insets.left;
     viewR.y      = insets.top;
     viewR.width  = width - (insets.left + insets.right);
@@ -528,45 +588,21 @@ public class SwingHelper {
     }
   }
 
-  public static void configureScrollPane(iWidget context, JScrollPane pane, ScrollPane cfg) {
-    if ((pane != null) && (cfg != null)) {
-      configureScrollPanePolicy(context, pane, cfg);
-      configureScrollPaneHeaderFooter(context, pane, cfg);
-      configureScrollPaneCorners(context, pane, cfg);
+  public static iPlatformComponent configureScrollPane(aViewer lv, iPlatformComponent fc, ScrollPaneEx pane,
+          ScrollPane cfg) {
+    if (cfg != null) {
+      configureScrollPanePolicy(lv, pane, cfg);
+      fc = configureScrollPaneHeaderFooter(fc, lv, pane, cfg);
+      configureScrollPaneCorners(lv, pane, cfg);
 
-      if (!context.isDesignMode()) {
-        configureScrollBar(context, pane, pane.getHorizontalScrollBar(), cfg.horizontalScrollbar);
-        configureScrollBar(context, pane, pane.getVerticalScrollBar(), cfg.verticalScrollbar);
+      if (!lv.isDesignMode()) {
+        configureScrollBar(lv, pane, pane.getHorizontalScrollBar(), cfg.horizontalScrollbar);
+        configureScrollBar(lv, pane, pane.getVerticalScrollBar(), cfg.verticalScrollbar);
       }
     }
-  }
+    configureScrollPaneCorners(lv, pane, cfg);
 
-  /**
-   * Configures scroll pane corner based on the value of a ui property
-   *
-   * @param pane
-   *          the scroll pane
-   * @param o
-   *          property value
-   * @param corner
-   *          the corner
-   */
-  public static void configureScrollPaneCornerFromUIProperty(JScrollPane pane, Object o, String corner) {
-    if (o != null) {
-      ActionComponent l = new ActionComponent(new LabelView());
-
-      if (o instanceof UIColor) {
-        l.setBackground((UIColor) o);
-      } else if (o instanceof iBackgroundPainter) {
-        UIComponentPainter.setBackgroundPainter(l, (iBackgroundPainter) o);
-      } else if (o instanceof PaintBucket) {
-        ((PaintBucket) o).install(l);
-      } else if (o instanceof iPlatformPainter) {
-        UIComponentPainter.setBackgroundOverlayPainter(l, (iPlatformPainter) o);
-      }
-
-      pane.setCorner(corner, l.getView());
-    }
+    return fc;
   }
 
   /**
@@ -579,84 +615,115 @@ public class SwingHelper {
    * @param cfg
    *          the configuration
    */
-  public static void configureScrollPaneCorners(iWidget context, JScrollPane pane, ScrollPane cfg) {
-    Widget  wc = null;
-    iWidget w;
+  public static void configureScrollPaneCorners(aViewer host, JScrollPane pane, ScrollPane cfg) {
+    Widget wc = (cfg == null)
+                ? null
+                : (Widget) cfg.urCorner.getValue();
 
-    wc = (Widget) cfg.urCorner.getValue();
+    setCorner(host, wc, pane, JScrollPane.UPPER_RIGHT_CORNER);
+    wc = (cfg == null)
+         ? null
+         : (Widget) cfg.lrCorner.getValue();
+    setCorner(host, wc, pane, JScrollPane.LOWER_RIGHT_CORNER);
+    wc = (cfg == null)
+         ? null
+         : (Widget) cfg.ulCorner.getValue();
+    setCorner(host, wc, pane, JScrollPane.UPPER_LEFT_CORNER);
+    wc = (cfg == null)
+         ? null
+         : (Widget) cfg.llCorner.getValue();
+    setCorner(host, wc, pane, JScrollPane.LOWER_LEFT_CORNER);
+  }
+
+  public static void setCorner(aViewer host, Widget wc, JScrollPane pane, String loc) {
+    iWidget w = null;
 
     if (wc != null) {
-      w = FormViewer.createWidget(context.getContainerViewer(), wc);
+      w = FormViewer.createWidget(host.getContainerViewer(), wc);
+    } else {
+      Location x = null,
+               y = null;
 
-      if (w != null) {
-        w.setFocusable(false);
-        context.getFormViewer().registerNamedItem(w.getName(), w);
-        pane.setCorner(JScrollPane.UPPER_RIGHT_CORNER, w.getContainerComponent().getView());
+      if (loc == JScrollPane.LOWER_LEFT_CORNER) {
+        x = Location.LEFT;
+        y = Location.BOTTOM;
+      } else if (loc == JScrollPane.LOWER_RIGHT_CORNER) {
+        x = Location.RIGHT;
+        y = Location.BOTTOM;
+      } else if (loc == JScrollPane.UPPER_RIGHT_CORNER) {
+        x = Location.RIGHT;
+        y = Location.TOP;
+      } else if (loc == JScrollPane.UPPER_LEFT_CORNER) {
+        x = Location.LEFT;
+        y = Location.TOP;
       }
+
+      w = Utils.createScrollPaneCornerFromUIProperty(host, x, y);
     }
 
-    wc = (Widget) cfg.lrCorner.getValue();
-
-    if (wc != null) {
-      w = FormViewer.createWidget(context.getContainerViewer(), wc);
-
-      if (w != null) {
-        w.setFocusable(false);
-        context.getFormViewer().registerNamedItem(w.getName(), w);
-        pane.setCorner(JScrollPane.LOWER_RIGHT_CORNER, w.getContainerComponent().getView());
-      }
+    if (w != null) {
+      w.setFocusable(false);
+      host.registerOrphanWidget(w);
+      pane.setCorner(loc, w.getContainerComponent().getView());
     }
   }
 
-  public static void configureScrollPaneHeaderFooter(iWidget context, JScrollPane pane, ScrollPane cfg) {
-    Widget  wc = null;
-    iWidget w;
+  public static iPlatformComponent configureScrollPaneHeaderFooter(iPlatformComponent fc, aViewer lv,
+          ScrollPaneEx pane, ScrollPane sp) {
+    if (sp.hasColumnWidgets() || sp.hasRowWidgets()) {
+      Widget  wc = null;
+      iWidget w;
 
-    wc = (Widget) cfg.columnHeader.getValue();
-
-    if (wc != null) {
-      w = FormViewer.createWidget(context.getContainerViewer(), wc);
+      wc = (Widget) sp.columnHeader.getValue();
+      w  = getWidget(lv, wc);
 
       if (w != null) {
+        lv.registerOrphanWidget(w);
         pane.setColumnHeaderView(w.getContainerComponent().getView());
-        context.getFormViewer().registerNamedItem(w.getName(), w);
       }
-    }
 
-    wc = (Widget) cfg.rowHeader.getValue();
-
-    if (wc != null) {
-      w = FormViewer.createWidget(context.getContainerViewer(), wc);
+      wc = (Widget) sp.columnFooter.getValue();
+      w  = getWidget(lv, wc);
 
       if (w != null) {
-        context.getFormViewer().registerNamedItem(w.getName(), w);
+        pane.setColumnFooterView(w.getContainerComponent().getView());
+        lv.registerOrphanWidget(w);
+      }
+
+      wc = (Widget) sp.rowHeader.getValue();
+      w  = getWidget(lv, wc);
+
+      if (w != null) {
+        lv.registerOrphanWidget(w);
         pane.setRowHeaderView(w.getContainerComponent().getView());
       }
-    }
 
-    if (pane instanceof ScrollPaneEx) {
-      wc = (Widget) cfg.columnFooter.getValue();
+      wc = (Widget) sp.rowFooter.getValue();
+      w  = getWidget(lv, wc);
 
-      if (wc != null) {
-        w = FormViewer.createWidget(context.getContainerViewer(), wc);
-
-        if (w != null) {
-          context.getFormViewer().registerNamedItem(w.getName(), w);
-          ((ScrollPaneEx) pane).setColumnFooterView(w.getContainerComponent().getView());
-        }
-      }
-
-      wc = (Widget) cfg.rowFooter.getValue();
-
-      if (wc != null) {
-        w = FormViewer.createWidget(context.getContainerViewer(), wc);
-
-        if (w != null) {
-          context.getFormViewer().registerNamedItem(w.getName(), w);
-          ((ScrollPaneEx) pane).setRowFooterView(w.getContainerComponent().getView());
-        }
+      if (w != null) {
+        lv.registerOrphanWidget(w);
+        pane.setRowFooterView(w.getContainerComponent().getView());
       }
     }
+
+    return fc;
+  }
+
+  static iWidget getWidget(iWidget context, Widget wc) {
+    if (wc == null) {
+      return null;
+    }
+
+    return FormViewer.createWidget(context.getContainerViewer(), wc);
+  }
+
+  static JViewportEx getViewPort(iWidget w) {
+    JViewportEx vp = new JViewportEx();
+
+    vp.setView(w.getContainerComponent().getView());
+
+    return vp;
   }
 
   /**
@@ -1181,16 +1248,16 @@ public class SwingHelper {
     });
   }
 
-  public static void retargetKeyEvent(int id, KeyEvent e, Component target) {
-    if ((target == null) || ((target == e.getSource()) && (id == e.getID()))) {
+  public static void retargetKeyEvent(KeyEvent e, Component target) {
+    if ((target == null) || (target == e.getSource()) ) {
       return;
     }
 
     target.dispatchEvent(e);
   }
-
-  public static void retargetMouseEvent(int id, MouseEvent e, Component target) {
-    if ((target == null) || ((target == e.getSource()) && (id == e.getID()))) {
+ 
+  public static void retargetMouseEvent(MouseEvent e, Component target) {
+    if ((target == null) || ((target == e.getSource()) )) {
       return;
     }
 

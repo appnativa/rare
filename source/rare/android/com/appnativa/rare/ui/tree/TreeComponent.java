@@ -23,12 +23,11 @@ package com.appnativa.rare.ui.tree;
 import com.appnativa.rare.exception.ExpandVetoException;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Container;
-import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.event.EventListenerList;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iExpansionListener;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iTreeHandler;
 
 /**
  *
@@ -81,14 +80,6 @@ public class TreeComponent extends Container {
     lm.setTree(list);
     setForeground(ColorUtils.getListForeground());
     setBackground(ColorUtils.getListBackground());
-
-    UIColor c = ColorUtils.getListDisabledForeground();
-
-    if (c == null) {
-      c = ColorUtils.getDisabledForeground();
-    }
-
-    setDisabledColor(c);
   }
 
   public void dispose() {

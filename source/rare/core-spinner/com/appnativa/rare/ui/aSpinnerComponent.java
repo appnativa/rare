@@ -102,6 +102,7 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
     } else {
       editor.setValue(value);
       spinnerModel.setValue(value);
+      editor.selectField();
     }
 
     repaint();
@@ -115,6 +116,10 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
   @Override
   public void commitEdit() {
     getEditor().commitEdit();
+  }
+
+  public void selectAll() {
+    getEditor().selectAll();
   }
 
   @Override
@@ -206,6 +211,8 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
 
       iPaintedButton.ButtonState ustate  = up.getButtonState();
       iPaintedButton.ButtonState dstate  = down.getButtonState();
+      UIColor                    defg      = ColorUtils.getForeground();
+      UIColor                    difg      = defg.getDisabledColor();
       UIColor                    fg      = null;
       PainterHolder              ph      = buttonPainterHolder;
       float                      hheight = rect.height / 2;
@@ -231,8 +238,8 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
 
         if (ustate == dstate) {
           fg = up.isEnabled()
-               ? UIColorHelper.getForeground()
-               : UIColorHelper.getDisabledForeground();
+               ? defg
+               : difg;
           ph = null;
         }
       }
@@ -244,8 +251,8 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
 
       if (fg == null) {
         fg = up.isEnabled()
-             ? UIColorHelper.getForeground()
-             : UIColorHelper.getDisabledForeground();
+            ? defg
+            : difg;
       }
 
       if (upIcon != null) {
@@ -276,8 +283,8 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
 
       if (fg == null) {
         fg = down.isEnabled()
-             ? UIColorHelper.getForeground()
-             : UIColorHelper.getDisabledForeground();
+            ? defg
+            : difg;
       }
 
       if (downIcon != null) {
@@ -595,7 +602,6 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
       size.height = height;
     }
 
-    Utils.adjustTextFieldSize(size);
   }
 
   @Override
@@ -770,7 +776,7 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (editorView.isVisible()) {
       editorView.getMinimumSize(size);
     } else {

@@ -111,4 +111,6 @@ public interface iTextEditor {
   boolean isEditable();
 
   boolean isFollowHyperlinks();
+  
+  void setChangeEventsEnabled(boolean enabled);
 }

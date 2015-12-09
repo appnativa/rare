@@ -23,6 +23,7 @@ package com.appnativa.rare.platform.apple.ui.util;
 import com.appnativa.rare.platform.apple.ui.view.View;
 /*-[
  #import <com/appnativa/rare/ui/UIFont.h>
+ #import <com/appnativa/rare/ui/UIColor.h>
 ]-*/
 
 public class AppleGraphics extends aAppleGraphics {
@@ -30,11 +31,15 @@ public class AppleGraphics extends aAppleGraphics {
     super(g, view);
   }
 
+  @Override
   public native void drawString(String str, float x, float y, float height)
   /*-[
     RAREUIFont* f=[self getFont];
     BOOL pushed=[self setContextAsCurrent];
-    [str drawAtPoint:CGPointMake(x, y) withFont:(UIFont*)[f getIOSProxy]];
+    NSMutableDictionary* attributes=[RAREAppleGraphics addDictionaryAttributeWithNSString:NSFontAttributeName withId:[f getIOSProxy] withBoolean:YES];
+    RAREUIColor* fg=[self getColor];
+    [attributes setObject:[fg getAPColor] forKey:NSForegroundColorAttributeName];
+    [str drawAtPoint:CGPointMake(x, y) withAttributes:attributes];
     if(pushed) {
       [self restoreOldContextAsCurrent];
     }
@@ -43,28 +48,29 @@ public class AppleGraphics extends aAppleGraphics {
 
   @Override
   protected native Object getRoundedRectPath(float x, float y, float width, float height, float arcWidth,
-          float arcHeight)    /*-[
-CGFloat radius=(arcHeight/2)+((arcWidth*arcWidth)/(8*arcHeight));
-return [UIBezierPath bezierPathWithRoundedRect:CGRectMake(x,y,width,height) cornerRadius:radius];
-]-*/
+          float arcHeight)    
+  /*-[
+    CGFloat radius=(arcHeight/2)+((arcWidth*arcWidth)/(8*arcHeight));
+    return [UIBezierPath bezierPathWithRoundedRect:CGRectMake(x,y,width,height) cornerRadius:radius];
+  ]-*/
   ;
 
   @Override
   protected native boolean setContextAsCurrent()
   /*-[
-  CGContextRef ctx=(__bridge CGContextRef)[self getContextRef];
-          if(UIGraphicsGetCurrentContext()==ctx) {
-                  return false;
-          }
-          UIGraphicsPushContext(ctx);
-return true;
-]-*/
+    CGContextRef ctx=(__bridge CGContextRef)[self getContextRef];
+    if(UIGraphicsGetCurrentContext()==ctx) {
+      return false;
+    }
+    UIGraphicsPushContext(ctx);
+    return true;
+  ]-*/
   ;
 
   @Override
   protected native void restoreOldContextAsCurrent()
   /*-[
-  UIGraphicsPopContext();
+    UIGraphicsPopContext();
   ]-*/
   ;
 }

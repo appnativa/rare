@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.appnativa.studio.designer_1.4jar" id="com.appnativa.studio.designer" version="1.4">
+   <feature url="features/com.appnativa.studio.designer_1.5.1jar" id="com.appnativa.studio.designer" version="1.5.1">
       <category name="appNativa_studio"/>
    </feature>
    <category-def name="appNativa_studio" label="appNativa Studio"/>

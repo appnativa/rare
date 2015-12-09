@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -40,6 +40,11 @@ public class ProgressBarComponent extends Component implements iProgressBar {
     pb = component;
     setMaximum(100);
     setMinimum(0);
+  }
+
+  @Override
+  public boolean isFocusable() {
+    return false;
   }
 
   @Override

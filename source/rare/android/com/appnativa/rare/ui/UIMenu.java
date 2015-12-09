@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -100,6 +100,13 @@ public class UIMenu extends aUIMenu implements iPlatformMenuBar {
 
   @Override
   public void add(iPlatformComponent item) {}
+
+  public void setHeader(iPlatformComponent comp) {
+    if (popupMenu instanceof ContextMenu) {
+      ((ContextMenu) popupMenu).setHeaderView(comp==null ? null : comp.getView());
+    }
+    
+  }
 
   public UIMenuItem createCheckboxMenuItem(String text, iPlatformIcon icon, Object data) {
     return new UIMenuItem(text, icon, data, true);

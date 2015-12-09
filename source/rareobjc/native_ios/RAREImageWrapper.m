@@ -34,12 +34,12 @@
 + (RAREImageWrapper *)createImageFromView:(UIView *)view {
   CGRect frame=view.bounds;
   UIGraphicsBeginImageContext(frame.size);
-  if([view respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)])  {
-    [view drawViewHierarchyInRect:frame afterScreenUpdates:NO];
-  }
-  else {
+//  if([view respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)])  {
+//    [view drawViewHierarchyInRect:frame afterScreenUpdates:NO];
+//  }
+//  else {
     [view.layer renderInContext:UIGraphicsGetCurrentContext()];
-  }
+//  }
   UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
   return [[RAREImageWrapper alloc] initWithImage:img];
