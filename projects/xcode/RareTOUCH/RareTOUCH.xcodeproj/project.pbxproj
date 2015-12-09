@@ -2526,7 +2526,7 @@
 		169B649019C7DBF100E6F3BD /* Office2003TabPainter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Office2003TabPainter.m; sourceTree = "<group>"; };
 		169B649119C7DBF100E6F3BD /* TabDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TabDocument.m; sourceTree = "<group>"; };
 		169B649319C7DBF100E6F3BD /* aTabPaneViewer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = aTabPaneViewer.m; sourceTree = "<group>"; };
-		16A6E46E1A15AF1300CDE573 /* libjre_emul.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjre_emul.a; path = ../../../sdk/lib/apple/libjre_emul.a; sourceTree = "<group>"; };
+		16A6E46E1A15AF1300CDE573 /* libjre_emul.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjre_emul.a; path = ../../../libs/libjre_emul.a; sourceTree = "<group>"; };
 		16A891FF1BE18CF0004AE6D9 /* UINotifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UINotifier.m; sourceTree = "<group>"; };
 		16A892001BE18CF0004AE6D9 /* UIResizerPanel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIResizerPanel.m; sourceTree = "<group>"; };
 		16B984151B55E2BD00DAF569 /* ByteArrayInputStreamEx.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ByteArrayInputStreamEx.m; sourceTree = "<group>"; };
@@ -8911,7 +8911,6 @@
 					"$(inherited)",
 					../../../libs,
 					../../../libs,
-					../../../sdk/lib/apple,
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = (
@@ -8954,7 +8953,6 @@
 					"$(inherited)",
 					../../../libs,
 					../../../libs,
-					../../../sdk/lib/apple,
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = (

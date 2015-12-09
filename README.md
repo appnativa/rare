@@ -27,7 +27,7 @@ You can find the real-world **BellaVista** clinical client application on GitHub
 ##Geting Started
 ###Importing Projects
 ####Eclipse
-Add a path variable named **APPNATIVA_SDK** with the value of `<installation_directory>/source` to the environment.
+Add a path variable named **APPNATIVA_SOURCE** with the value of `<installation_directory>/source` to the environment.
 
 This can be done via the Eclipse preferences "*General->Workspace->Linked Resources*" option.
 
