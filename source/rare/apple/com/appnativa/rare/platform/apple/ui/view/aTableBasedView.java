@@ -63,12 +63,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected static final int       ICON_GAP                     = ScreenUtils.PLATFORM_PIXELS_4;
   protected static final int       PAD_SIZE                     = 2;
   protected static final int       SELECTION_ICON_SIZE          = ScreenUtils.platformPixels(24);
-  protected static int             INDICATOR_SLOP               = ScreenUtils.platformPixels(Platform.isTouchDevice()
-          ? 24
-          : 5);
+  protected static int             INDICATOR_SLOP               = ScreenUtils.platformPixels(Platform.isTouchDevice() ? 24 : 5);
   protected int[]                  EMPTY_ARRAY                  = new int[0];
-  protected int                    editingRow                   = -1;
-  protected int                    lastEditedRow                = -1;
   protected boolean                selectable                   = true;
   protected boolean                fixedRowSize                 = true;
   protected boolean                editable                     = false;
@@ -100,7 +96,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected PaintBucket            lostFoucsSelectionPainter;
   protected int                    minRowHeight;
   protected int                    minVisibleRows;
-  protected int                    popupMenuIndex = -1;
+  protected int                    popupMenuIndex               = -1;
   protected PaintBucket            pressedPainter;
   protected int                    rightOffset;
   protected int                    rowHeight;
@@ -111,11 +107,11 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected int                    visibleRows;
   protected boolean                keepSelectionVisible;
   protected UIDimension            rowHeightCalSize;
-  private float oldWidth;
+  private float                    oldWidth;
 
   protected aTableBasedView(Object nsview) {
     super(nsview);
-    selectionPainter          = Platform.getAppContext().getSelectionPainter();
+    selectionPainter = Platform.getAppContext().getSelectionPainter();
     lostFoucsSelectionPainter = Platform.getAppContext().getLostFocusSelectionPainter();
 
     if (!Platform.getAppContext().isPlatformColorTheme()) {
@@ -127,12 +123,12 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   @Override
   public void setBounds(float x, float y, float w, float h) {
-    if(!fixedRowSize && oldWidth!=w) {
+    if (!fixedRowSize && oldWidth != w) {
       resetHeightInfo(0, listModel.size() - 1);
     }
-    oldWidth=w;
+    oldWidth = w;
     super.setBounds(x, y, w, h);
-    if(!fixedRowSize) {
+    if (!fixedRowSize) {
       repaintVisibleRows();
     }
     if (keepSelectionVisible) {
@@ -162,15 +158,19 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   public abstract int getSelectedIndexCount();
 
+  public abstract int[] getSelectedIndexes();
+
+  public abstract int[] getCheckedIndexes();
+
   public void setContextMenuIndex(MouseEvent e) {
-    if(popupMenuIndex!=-1) {
+    if (popupMenuIndex != -1) {
       clearContextMenuIndex();
     }
     int n = rowAtPoint(e.getX(), e.getY());
-    if(n!=-1 && !isSelectable(n, -1,null)) {
-        n=-1;
+    if (n != -1 && !isSelectable(n, -1, null)) {
+      n = -1;
     }
-    popupMenuIndex=n;
+    popupMenuIndex = n;
     if (n != -1) {
       repaintRow(n);
 
@@ -218,15 +218,13 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
       }
     }
   }
-
+  
   @Override
   public void contentsChanged(Object source) {
     if (!fixedRowSize) {
       resetHeightInfo(0, listModel.size() - 1);
     }
-
-    lastEditedRow = -1;
-    refreshItems();
+    someDataChanged();
   }
 
   @Override
@@ -245,15 +243,12 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     if (!fixedRowSize) {
       resetHeightInfo(index0, index1);
     }
-
-    lastEditedRow = -1;
-    refreshItems();
+    someDataChanged();
   }
 
   @Override
   public void intervalRemoved(Object source, int index0, int index1, List<RenderableDataItem> removed) {
-    lastEditedRow = -1;
-    refreshItems();
+    someDataChanged();
   }
 
   public void paintRow(RowView view, AppleGraphics g, RenderableDataItem item, UIRectangle rect, iTreeItem ti) {
@@ -267,14 +262,14 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     if (border != null) {
       UIInsets in = border.getBorderInsets(null);
 
-      leftOffset  = in.intLeft();
+      leftOffset = in.intLeft();
       rightOffset = in.intRight();
     } else {
-      leftOffset  = 0;
+      leftOffset = 0;
       rightOffset = 0;
     }
   }
-
+  
   public abstract void refreshItems();
 
   @Override
@@ -285,7 +280,9 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected abstract void removePressedHilight(int index);
 
   protected abstract void reloadVisibleRows();
-
+  protected void someDataChanged() {
+    
+  }
   public void repaintRow(RenderableDataItem item) {
     int n = listModel.indexOf(item);
 
@@ -309,13 +306,11 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   public abstract void rowsChanged(int firstRow, int lastRow);
 
   public void rowsDeleted(int firstRow, int lastRow) {
-    lastEditedRow = -1;
-    refreshItems();
+    someDataChanged();
   }
 
   public void rowsInserted(int firstRow, int lastRow) {
-    lastEditedRow = -1;
-    refreshItems();
+    someDataChanged();
   }
 
   @Override
@@ -324,8 +319,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
       resetHeightInfo(0, listModel.size() - 1);
     }
 
-    lastEditedRow = -1;
-    refreshItems();
+    someDataChanged();
   }
 
   @Override
@@ -355,7 +349,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   }
 
   @Override
-  public void setAutoHilight(boolean autoHilight) {}
+  public void setAutoHilight(boolean autoHilight) {
+  }
 
   @Override
   public void makeSelectionVisible() {
@@ -369,14 +364,13 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   @Override
   public void setDividerLine(UIColor color, UIStroke stroke) {
     dividerLineColor = color;
-    dividerStroke    = stroke;
+    dividerStroke = stroke;
   }
 
   public void setEditable(boolean editable) {
     this.editable = editable;
   }
 
-  @Override
   public void setEditingMode(EditingMode mode) {
     if (mode == null) {
       mode = EditingMode.NONE;
@@ -384,11 +378,11 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
     aListViewer lv = (aListViewer) Component.fromView(this).getWidget();
 
-    editingMode     = mode;
+    editingMode = mode;
     draggingAllowed = (mode == EditingMode.REORDERING) || (mode == EditingMode.REORDERING_AND_SELECTION)
-                      || (mode == EditingMode.REORDERING_AND_DELETEING);
+        || (mode == EditingMode.REORDERING_AND_DELETEING);
     editingSelectionAllowed = (mode == EditingMode.SELECTION) || (mode == EditingMode.REORDERING_AND_SELECTION);
-    deletingAllowed         = lv.canDelete();
+    deletingAllowed = lv.canDelete();
   }
 
   public void setEditingSwipingAllowed(boolean editingSwipingAllowed) {
@@ -399,7 +393,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     this.extendBackgroundRendering = extendBackgroundRendering;
   }
 
-  public void setFlingThreshold(int i) {}
+  public void setFlingThreshold(int i) {
+  }
 
   public void setItemRenderer(ListItemRenderer lr) {
     itemRenderer = lr;
@@ -407,7 +402,6 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   public void setListModel(iPlatformListDataModel listModel) {
     this.listModel = listModel;
-    lastEditedRow  = -1;
   }
 
   public void setMinRowHeight(int min) {
@@ -436,7 +430,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     effectiveMinRowHeight = height;
   }
 
-  public void setSelectFlinged(boolean b) {}
+  public void setSelectFlinged(boolean b) {
+  }
 
   @Override
   public abstract void setSelectable(boolean selectable);
@@ -462,25 +457,25 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   @Override
   public void setSelectionMode(SelectionMode selectionMode) {
-    switch(selectionMode) {
-      case NONE :
+    switch (selectionMode) {
+      case NONE:
         setMultipleSelection(false);
         setSelectable(false);
 
         break;
 
-      case INVISIBLE :
+      case INVISIBLE:
         setMultipleSelection(false);
         selectable = true;
 
         break;
 
-      case MULTIPLE :
+      case MULTIPLE:
         setMultipleSelection(true);
 
         break;
 
-      default :
+      default:
         setMultipleSelection(false);
 
         break;
@@ -506,7 +501,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     visibleRows = rows;
   }
 
-  public void setWholeViewFling(boolean b) {}
+  public void setWholeViewFling(boolean b) {
+  }
 
   public iActionListener getActionListener() {
     return actionListener;
@@ -517,27 +513,23 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   }
 
   @Override
+  public void updateForColorChange() {
+    super.updateForColorChange();
+    refreshItems();
+  }
+
+  @Override
   public UIColor getAlternatingRowColor() {
-    return alternatingColumns
-           ? null
-           : alternatingColor;
+    return alternatingColumns ? null : alternatingColor;
   }
 
   public iItemChangeListener getChangeListener() {
     return changeListener;
   }
 
-  public int getEditingRow() {
-    return editingRow;
-  }
-
   @Override
   public int getHilightedIndex() {
     return -1;
-  }
-
-  public int getLastEditedRow() {
-    return lastEditedRow;
   }
 
   @Override
@@ -550,11 +542,11 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   }
 
   @Override
-  public void getMinimumSize(UIDimension size,float maxWidth) {
-    int h  = TableHelper.getMinimumListHeight(Component.findFromView(this), minVisibleRows, rowHeight);
+  public void getMinimumSize(UIDimension size, float maxWidth) {
+    int h = TableHelper.getMinimumListHeight(Component.findFromView(this), minVisibleRows, rowHeight);
     int ch = ScreenUtils.toPlatformPixels(1, component, true);
 
-    size.width  = ch * 3;
+    size.width = ch * 3;
     size.height = h;
   }
 
@@ -564,25 +556,25 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   }
 
   public int getRowHeight(int row, float maxWidth) {
-    int rh=getRowHeight();
-    if(fixedRowSize) {
+    int rh = getRowHeight();
+    if (fixedRowSize) {
       return rh;
     }
-    UIDimension size=rowHeightCalSize;
-    if(size==null) {
-      size=rowHeightCalSize=new UIDimension();
+    UIDimension size = rowHeightCalSize;
+    if (size == null) {
+      size = rowHeightCalSize = new UIDimension();
     }
-    TableHelper.calculateItemSize(component, itemRenderer, itemRenderer.getItemDescription(), listModel.get(row), row, null, size, (int) maxWidth, rh);
-    rh=(int)Math.ceil(size.height);
-    if(rh<effectiveMinRowHeight) {
-      rh=effectiveMinRowHeight;
+    TableHelper.calculateItemSize(component, itemRenderer, itemRenderer.getItemDescription(), listModel.get(row), row, null, size,
+        (int) maxWidth, rh);
+    rh = (int) Math.ceil(size.height);
+    if (rh < effectiveMinRowHeight) {
+      rh = effectiveMinRowHeight;
     }
     return rh;
   }
+
   public int getRowCount() {
-    return (listModel != null)
-           ? listModel.size()
-           : 0;
+    return (listModel != null) ? listModel.size() : 0;
   }
 
   public abstract int getRowHeight();
@@ -645,7 +637,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
   protected void disposeEx() {
     changeListener = null;
     actionListener = null;
-    listModel      = null;
+    listModel = null;
     super.disposeEx();
   }
 
@@ -666,7 +658,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     index1++;
 
     iPlatformListDataModel list = listModel;
-    int                    len  = list.size();
+    int len = list.size();
 
     if (index1 > len) {
       index1 = len;
@@ -709,14 +701,6 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
 
   protected float getSelectionPaintStartX(float currentStartX) {
     return currentStartX;
-  }
-
-  protected PaintBucket getSelectionPainter() {
-    if (!isEditing()) {
-      return itemRenderer.getSelectionPaintForExternalPainter(false);
-    }
-
-    return null;
   }
 
   protected RowView getViewForRow(int index) {
@@ -771,7 +755,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
       super(proxy);
     }
 
-    public void hideRowEditingComponent(boolean animate) {}
+    public void hideRowEditingComponent(boolean animate) {
+    }
 
     public void paint(AppleGraphics g, UIRectangle rect) {
       paintBackground(g, this, rect);
@@ -810,11 +795,9 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
         componentPainter.paint(g, rect.x, rect.y, rect.width, height, iPainter.UNKNOWN);
       }
 
-      PaintBucket pb = getBackgroundPaint((popupMenuIndex == -1)
-              ? isPressed()
-              : false, isSelected());
-      float       sx = getSelectionPaintStartX(rect.x);
-      float       ex = getSelectionPaintEndX(rect.x + rect.width);
+      PaintBucket pb = getBackgroundPaint((popupMenuIndex == -1) ? isPressed() : false, isSelected());
+      float sx = getSelectionPaintStartX(rect.x);
+      float ex = getSelectionPaintEndX(rect.x + rect.width);
 
       if (pb != null) {
         UIComponentPainter.paint(g, sx, rect.y, ex - sx, height, pb);
@@ -841,7 +824,8 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
       return pb;
     }
 
-    public void showRowEditingComponent(iPlatformComponent component, boolean animate) {}
+    public void showRowEditingComponent(iPlatformComponent component, boolean animate) {
+    }
 
     @Override
     public void setComponentPainter(iPlatformComponentPainter cp) {
@@ -856,14 +840,16 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
       }
     }
 
-    public void setImage(UIImage image) {}
+    public void setImage(UIImage image) {
+    }
 
     public void setNativeView(Object proxy) {
       setProxy(proxy);
     }
 
     @Override
-    public void setPaintHandlerEnabled(boolean enabled) {}
+    public void setPaintHandlerEnabled(boolean enabled) {
+    }
 
     @Override
     protected void disposeEx() {
@@ -872,7 +858,7 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     }
 
     protected void prepareForReuse(int row, int col) {
-      this.row    = row;
+      this.row = row;
       this.column = col;
       clearVisualState();
     }
@@ -883,12 +869,16 @@ public abstract class aTableBasedView extends ParentView implements iActionListe
     }
 
     @Override
-    protected void setFocusListenerEnabled(boolean enabled) {}
+    protected void setFocusListenerEnabled(boolean enabled) {
+    }
 
-    protected void setKeyBoardHandlerEnabled(boolean enabled) {}
+    protected void setKeyBoardHandlerEnabled(boolean enabled) {
+    }
 
-    protected void setMouseHandlerEnabled(boolean enabled) {}
+    protected void setMouseHandlerEnabled(boolean enabled) {
+    }
 
-    protected void setMouseMotionHandlerEnabled(boolean enabled) {}
+    protected void setMouseMotionHandlerEnabled(boolean enabled) {
+    }
   }
 }

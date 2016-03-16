@@ -22,8 +22,8 @@ package com.appnativa.rare.ui;
 
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 
 public interface iFormsPanel {
   public void add(iPlatformComponent c, Object constraints);

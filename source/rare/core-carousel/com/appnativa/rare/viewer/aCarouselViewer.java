@@ -183,7 +183,7 @@ public abstract class aCarouselViewer extends aPlatformViewer {
           }
         }
 
-        s = URLEncoder.encode(s);
+        s = URLEncoder.encodeComponent(s);
 
         if (useLinkedData) {
           row.setLinkedData(s);

@@ -62,7 +62,8 @@
   //demo= @"/apps/covergirls/coverflow_view.sdf";
   demo= @"/demos/medical/Medical-android/assets/application.rml";
   //demo= @"/demos/mail/Mail-android/assets/application.rml";
-  demo= @"//xhrdemos/tests/application.rml";
+ // demo= @"//xhrdemos/blackmajic/application.rml";
+ // demo= @"//xhrdemos/tests/table.rml";
   arguments=[NSArray arrayWithObject:[NSString stringWithFormat:@"%@%@",server,demo]];
   //arguments = [NSArray arrayWithObject: @"lib:assets/application.rml"];
   

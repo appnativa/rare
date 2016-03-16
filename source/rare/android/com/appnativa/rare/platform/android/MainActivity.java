@@ -56,7 +56,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.CookieSyncManager;
 import android.widget.Toast;
 
 import com.appnativa.rare.Platform;
@@ -157,19 +156,21 @@ public class MainActivity extends Activity implements iActivity {
   }
 
   public void setUseFullScreen(boolean use) {
-    View decorView = getWindow().getDecorView();
+    setUseFullScreen(getWindow(), use);
+  }
+  public void setUseFullScreen(Window window,boolean use) {
+    View decorView = window.getDecorView();
 
     if (use) {
       decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                                       | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION    // hide nav bar
                                       | View.SYSTEM_UI_FLAG_FULLSCREEN    // hide status bar
-                                      | View.SYSTEM_UI_FLAG_IMMERSIVE);
+                                      | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     } else {
       decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                                       | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
     }
   }
-
   public boolean isUseFullScreen() {
     View decorView = getWindow().getDecorView();
 
@@ -893,8 +894,6 @@ public class MainActivity extends Activity implements iActivity {
 
       try {
         cancelToast();
-        PlatformHelper.clearSessionCookies();
-        CookieSyncManager.getInstance().stopSync();
       } catch(Throwable e) {
         e.printStackTrace();
       }
@@ -929,7 +928,6 @@ public class MainActivity extends Activity implements iActivity {
 
   @Override
   protected void onPause() {
-    CookieSyncManager.getInstance().stopSync();
     cancelToast();
 
     if (rare != null) {
@@ -940,7 +938,6 @@ public class MainActivity extends Activity implements iActivity {
   }
 
   protected void onResume() {
-    CookieSyncManager.getInstance().startSync();
     super.onResume();
 
     if (rare != null) {
@@ -957,7 +954,6 @@ public class MainActivity extends Activity implements iActivity {
   protected void setInitialOptions() {
     getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     PlatformHelper.initialize(this, getWindowManager().getDefaultDisplay());
-    CookieSyncManager.createInstance(this);
 
     if (googleGlass) {
       googleGestureDetector = new GestureDetector(this, new GlassGestureListener());

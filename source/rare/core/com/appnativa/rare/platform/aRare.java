@@ -343,24 +343,14 @@ public abstract class aRare implements iExceptionHandler, iAsyncLoadStatusHandle
 
   @Override
   public void errorOccured(iWidget context, ActionLink link, Throwable error) {
-    WaitCursorHandler.stopWaitCursor((context == null)
-                                     ? null
-                                     : context.getContainerComponent(), false);
   }
 
   @Override
   public void loadCompleted(iWidget context, ActionLink link) {
-    WaitCursorHandler.stopWaitCursor((context == null)
-                                     ? null
-                                     : context.getContainerComponent(), false);
   }
 
   @Override
   public void loadStarted(iWidget context, ActionLink link, iCancelable cancelable) {
-    WaitCursorHandler.startWaitCursor((context == null)
-                                      ? null
-                                      : context.getContainerComponent(), cancelable,
-                                      Platform.getUIDefaults().getInt("Rare.asyncLoadStatusHandler.delay", 200));
   }
 
   /**
@@ -739,6 +729,9 @@ public abstract class aRare implements iExceptionHandler, iAsyncLoadStatusHandle
     ActionLink link = ActionLink.getActionLink(v, app.lookAndFeelPropertiesURL, 0);
 
     if (link != null) {
+      if("true".equals(app.lookAndFeelPropertiesURL.spot_getAttribute("keep_color_keys"))) {
+        ColorUtils.KEEP_COLOR_KEYS=true;
+      }
       try {
         Platform.loadUIProperties(getRootViewer(), link, appContext.getUIDefaults());
       } catch(IOException ex) {

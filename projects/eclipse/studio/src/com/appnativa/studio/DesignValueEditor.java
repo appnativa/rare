@@ -20,8 +20,6 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
 
 import com.appnativa.rare.platform.swing.ui.view.TextFieldView;
 import com.appnativa.rare.spot.Widget;
@@ -33,7 +31,6 @@ import com.appnativa.spot.SPOTPrintableString;
 import com.appnativa.spot.SPOTSequence;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.studio.DesignPane.DesignEdit;
-import com.appnativa.studio.DesignPane.DesignUndoableEdit;
 
 /**
  *
@@ -145,11 +142,7 @@ public class DesignValueEditor extends TextFieldView {
         DesignEdit edit = FormChanger.changeValue(_pane, _seq, "value", s);
 
         if (edit != null) {
-          DesignPane.DesignCompoundEdit edits = new DesignPane.DesignCompoundEdit(_pane);
-
-          edits.addEdit(edit);
-          edits.addEdit(new SetValueUndoableEdit(_pane, _widget, s));    //will set the value
-          _pane.addUndoableEdit(edits, true, (Widget) _widget.getLinkedData());
+          _pane.addUndoableEdit(edit, true, (Widget) _widget.getLinkedData());
         } else {
           _pane.repaint();
         }
@@ -176,29 +169,5 @@ public class DesignValueEditor extends TextFieldView {
     }
 
     return r;
-  }
-
-  static class SetValueUndoableEdit extends DesignUndoableEdit {
-    String  newValue;
-    String  oldValue;
-    iWidget widget;
-
-    public SetValueUndoableEdit(DesignPane pane, iWidget widget, String nv) {
-      super(pane);
-      this.widget = widget;
-      oldValue    = widget.getValueAsString();
-      newValue    = nv;
-      widget.setValue(nv);
-    }
-
-    public void redo() throws CannotRedoException {
-      super.redo();
-      widget.setValue(newValue);
-    }
-
-    public void undo() throws CannotUndoException {
-      super.undo();
-      widget.setValue(oldValue);
-    }
   }
 }

@@ -263,7 +263,7 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
       }
     }
 
-    setIconAndAlignment(rc, item, null, col, enabled, false, false, !noicon, false);
+    setIconAndAlignment(rc, s,item, null, col, enabled, false, false, !noicon, false);
 
     if ((font == null) && (list != null)) {
       font = list.getFont();
@@ -343,10 +343,11 @@ public abstract class aListItemRenderer implements iPlatformItemRenderer {
     this.delayedIcon = delayedIcon;
   }
 
-  public void setIconAndAlignment(iPlatformRenderingComponent rc, RenderableDataItem item, RenderableDataItem row,
+  protected void setIconAndAlignment(iPlatformRenderingComponent rc, CharSequence text,RenderableDataItem item, RenderableDataItem row,
                                   Column col, boolean enabled, boolean center, boolean top, boolean seticon,
                                   boolean expanded) {
-    Utils.setIconAndAlignment(rc, item, row, col, enabled, center, top, seticon, expanded, delayedIcon);
+    iPlatformIcon icon=Utils.getIcon(item, col, enabled, expanded, delayedIcon);
+    Utils.setIconAndAlignment(rc, item, row, col, enabled, center, top, seticon, icon);
   }
 
   @Override

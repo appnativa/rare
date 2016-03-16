@@ -64,7 +64,7 @@ public class CanvasRenderingContext2D extends aCanvasRenderingContext2D {
   public iCanvasPattern createPattern(iImageElement img, String repetition) {
     return new CanvasPattern(img, repetition);
   }
-
+  
   @Override
   public iCanvasGradient createRadialGradient(float x0, float y0, float r0, float x1, float y1, float r1) {
     return new CanvasGradient(x0, y0, r0, x1, y1, r1);

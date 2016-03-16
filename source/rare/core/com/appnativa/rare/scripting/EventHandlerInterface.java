@@ -40,6 +40,10 @@ public class EventHandlerInterface {
   String                                           queryString;
   Method                                           method;
 
+  public EventHandlerInterface(iEventHandler handler) {
+    this.eventHandler=handler;
+  }
+
   public EventHandlerInterface(String unparsedString) {
     unparsedString = Platform.getWindowViewer().expandString(unparsedString);
 
@@ -58,7 +62,6 @@ public class EventHandlerInterface {
       }
     }
   }
-
   public EventHandlerInterface(String methodName, String className) {
     this.methodName = methodName;
     this.className  = className;
@@ -82,24 +85,6 @@ public class EventHandlerInterface {
         throw new ApplicationException(e);
       }
     }
-  }
-
-  public iEventHandler getHandler() {
-    return eventHandler;
-  }
-
-  public static iEventHandler getHandler(String className) {
-    iWeakReference ref = handlerMap.get(className);
-    iEventHandler  h   = (iEventHandler) ((ref == null)
-            ? null
-            : ref.get());
-
-    if (h == null) {
-      h = (iEventHandler) Platform.createObject(className);
-      handlerMap.put(className, Platform.createWeakReference(h));
-    }
-
-    return h;
   }
 
   public void createHandler(String eventName, iWidget widget) {
@@ -157,5 +142,23 @@ public class EventHandlerInterface {
         throw new ApplicationException("could not find method:" + name + " in class:" + className);
       }
     }
+  }
+
+  public iEventHandler getHandler() {
+    return eventHandler;
+  }
+
+  public static iEventHandler getHandler(String className) {
+    iWeakReference ref = handlerMap.get(className);
+    iEventHandler  h   = (iEventHandler) ((ref == null)
+            ? null
+            : ref.get());
+
+    if (h == null) {
+      h = (iEventHandler) Platform.createObject(className);
+      handlerMap.put(className, Platform.createWeakReference(h));
+    }
+
+    return h;
   }
 }

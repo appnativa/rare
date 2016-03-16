@@ -45,7 +45,9 @@
 -(void) setContentView: (UIView*) view;
 -(BOOL) isMainWindow;
 -(BOOL) isModal;
+-(BOOL) isFullScreen;
 -(void) setModal: (BOOL) modal;
+-(void) setRotating: (BOOL) rotating;
 -(void) madeVisible;
 -(void) addViewToGlass: (RAREView*) view;
 -(void) removeViewFromGlass: (RAREView*) view;

@@ -20,15 +20,51 @@
 
 package com.appnativa.rare.ui;
 
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.net.URL;
+import java.text.ParseException;
+
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenuBar;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToolTip;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.MaskFormatter;
+
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.plaf.RareButtonUI;
+import com.appnativa.rare.platform.swing.plaf.SkinableSliderUI;
 import com.appnativa.rare.platform.swing.ui.text.TextEditor;
 import com.appnativa.rare.platform.swing.ui.text.TextPaneEditor;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
@@ -54,6 +90,7 @@ import com.appnativa.rare.spot.Bean;
 import com.appnativa.rare.spot.CheckBox;
 import com.appnativa.rare.spot.CollapsibleInfo;
 import com.appnativa.rare.spot.DocumentPane;
+import com.appnativa.rare.spot.GridCell;
 import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.spot.Line;
 import com.appnativa.rare.spot.ListBox;
@@ -70,49 +107,13 @@ import com.appnativa.rare.spot.TextArea;
 import com.appnativa.rare.spot.TextField;
 import com.appnativa.rare.spot.Tree;
 import com.appnativa.rare.spot.TreeTable;
+import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.table.TableView;
 import com.appnativa.rare.ui.table.TreeTableView;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.SNumber;
-
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-
-import java.net.URL;
-
-import java.text.ParseException;
-
-import javax.swing.AbstractButton;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.Box;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JMenuBar;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JToolTip;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.MaskFormatter;
 
 /**
  * Class hat holds base components
@@ -495,10 +496,26 @@ public class ComponentFactory implements iPlatformComponentFactory {
   @Override
   public SliderView getSlider(iWidget context, Slider cfg) {
     SliderView v = new SliderView();
-
+    GridCell gc=cfg.getTrackPainter();
+    SkinableSliderUI ui=null;
+    if(gc!=null) {
+      ui=new SkinableSliderUI(v);
+      PaintBucket pb = ColorUtils.configure(context, gc, null);
+      ui.setTrackPainter(pb.getPainter());
+      int w=gc.width.intValue();
+      if(w>0) {
+        ui.setTrackPainterWidth(w);
+      }
+      v.setUI(ui);
+    }
+    Icon icon=context.getIcon(cfg.thumbIcon);
+    if(ui==null) {
+      ui=new SkinableSliderUI(v);
+      v.setUI(ui);
+    }
+    ui.setThumbIcon(icon);
     v.setFont(FontUtils.getDefaultFont());
     v.setForeground(ColorUtils.getForeground());
-
     return v;
   }
 

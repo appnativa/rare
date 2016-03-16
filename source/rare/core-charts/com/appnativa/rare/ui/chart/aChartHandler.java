@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.chart;
@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -81,6 +82,7 @@ public abstract class aChartHandler {
   protected UIColor        plotBackground;
   protected UIColor        plotLabelColor;
   protected UIFont         plotLabelFont;
+  protected static boolean  supportsMultipleRangeValues;
   public static int        LABELS_PADDING = ScreenUtils.PLATFORM_PIXELS_8;
 
   public aChartHandler() {
@@ -651,13 +653,11 @@ public abstract class aChartHandler {
 
   public abstract void setDomainLabel(iPlatformComponent chartPanel, ChartDefinition cd);
 
-  public abstract void setDomainLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd);
+  public abstract void setDomainLabelsAngle(iPlatformComponent chartPanel, ChartDefinition cd);
 
   public void setHorizontalScrollingEnabled(iPlatformComponent chartComponent, boolean enable) {}
 
   public abstract void setRangeLabel(iPlatformComponent chartPanel, ChartDefinition cd);
-
-  public abstract void setRangeLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd);
 
   public abstract void setShowDomainLabels(iPlatformComponent chartPanel, ChartDefinition cd);
 
@@ -674,13 +674,7 @@ public abstract class aChartHandler {
 
   public void setVerticalScrollingEnabled(iPlatformComponent chartComponent, boolean enable) {}
 
-  /**
-   * Unzooms the chart
-   *
-   * @param chartPanel
-   *          the chart panel
-   */
-  public abstract void unzoom(iPlatformComponent chartPanel);
+  public abstract void unzoom(iPlatformComponent chartPanel, ChartDefinition cd);
 
   public abstract void updateRangeAxis(iPlatformComponent chartPanel, ChartDefinition cd);
 
@@ -923,6 +917,32 @@ public abstract class aChartHandler {
     if ((legendLabelColor == null) &&!allowNull) {
       legendLabelColor = plotLabelColor;
     }
+  }
+
+  public static boolean areAllTheSameType(ChartDefinition cd) {
+    List<RenderableDataItem> rows = cd.getSeries();
+    int                      len  = (rows == null)
+                                    ? 0
+                                    : rows.size();
+
+    if (len == 0) {
+      return true;
+    }
+
+    ChartType oct = null;
+
+    for (int i = 0; i < len; i++) {
+      ChartDataItem series = (ChartDataItem) rows.get(i);
+      ChartType     ct     = getSeriesChartType(cd, series);
+
+      if (oct == null) {
+        oct = ct;
+      } else if (oct != ct) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -1318,6 +1338,8 @@ public abstract class aChartHandler {
       }
     }
 
+    data.resolve();
+
     return data;
   }
 
@@ -1704,6 +1726,14 @@ public abstract class aChartHandler {
     return niceFraction * Math.pow(10, exponent);
   }
 
+  public static boolean isSupportsMultipleRangeValues() {
+    return supportsMultipleRangeValues;
+  }
+
+  public static void setSupportsMultipleRangeValues(boolean support) {
+     supportsMultipleRangeValues = support;
+  }
+
   public static class LabelData implements Comparable {
     public String label;
     public float  width;
@@ -1766,13 +1796,10 @@ public abstract class aChartHandler {
     public void setDomainLabel(iPlatformComponent chartPanel, ChartDefinition cd) {}
 
     @Override
-    public void setDomainLabelAngel(iPlatformComponent chartComponent, ChartDefinition cd) {}
+    public void setDomainLabelsAngle(iPlatformComponent chartComponent, ChartDefinition cd) {}
 
     @Override
     public void setRangeLabel(iPlatformComponent chartPanel, ChartDefinition cd) {}
-
-    @Override
-    public void setRangeLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd) {}
 
     @Override
     public void setShowDomainLabels(iPlatformComponent chartPanel, ChartDefinition cd) {}
@@ -1784,7 +1811,7 @@ public abstract class aChartHandler {
     public void setShowRangeLabels(iPlatformComponent chartPanel, ChartDefinition cd) {}
 
     @Override
-    public void unzoom(iPlatformComponent chartPanel) {}
+    public void unzoom(iPlatformComponent chartPanel, ChartDefinition cd) {}
 
     @Override
     public void updateRangeAxis(iPlatformComponent chartPanel, ChartDefinition cd) {}
@@ -1810,64 +1837,78 @@ public abstract class aChartHandler {
 
 
   public static class SeriesData {
-    public List<Number>        rangeValues;
-    public List<Comparable>    domainValues;
-    public boolean             showPointLabels = true;
-    public List<ChartDataItem> dataItems;
-    public HashSet             domainMap;
-    public String              legend;
-    public Object              linkedData;
-    public boolean             isNumberRange;
-    public ChartType           chartType;
-    public int                 seriesIndex;
-    public int                 dataIndex;
-    public LabelType           labelType = LabelType.VALUES;
-    public UIColor             outlineColor;
-    public UIColor             fillColor;
-    private double             pieTotal;
-    private NumberFormat       percentFormat;
-    private NumberFormat       totalFormat;
+    public List<Number>                      rangeValues;
+    public List<Comparable>                  domainValues;
+    public boolean                           showPointLabels = true;
+    public List<ChartDataItem>               dataItems;
+    public LinkedHashMap<Comparable, Number> domainMap;
+    public String                            legend;
+    public Object                            linkedData;
+    public boolean                           isNumberRange;
+    public ChartType                         chartType;
+    public int                               seriesIndex;
+    public int                               dataIndex;
+    public LabelType                         labelType = LabelType.VALUES;
+    public UIColor                           outlineColor;
+    public UIColor                           fillColor;
+    private double                           pieTotal;
+    private NumberFormat                     percentFormat;
+    private NumberFormat                     totalFormat;
 
     public SeriesData(String legend, int size, LabelType lt) {
       rangeValues    = new ArrayList<Number>(size);
       domainValues   = new ArrayList<Comparable>(size);
       dataItems      = new ArrayList<ChartDataItem>(size);
       this.legend    = legend;
-      domainMap      = new HashSet();
+      domainMap      = new LinkedHashMap<Comparable, Number>();
       this.labelType = (lt == null)
                        ? LabelType.VALUES
                        : lt;
     }
 
-    public SeriesData(String legend, int size, LabelType lt, List<Comparable> domainValues, HashSet domains) {
-      rangeValues       = new ArrayList<Number>(size);
-      dataItems         = new ArrayList<ChartDataItem>(size);
-      this.domainValues = domainValues;
-      this.legend       = legend;
-      this.domainMap    = domains;
-      this.labelType    = (lt == null)
-                          ? LabelType.VALUES
-                          : lt;
+    public SeriesData(String legend, LabelType lt, LinkedHashMap<Comparable, Number> data) {
+      int len = data.size();
+
+      rangeValues    = new ArrayList<Number>(len);
+      domainValues   = new ArrayList<Comparable>(len);
+      dataItems      = new ArrayList<ChartDataItem>(len);
+      this.legend    = legend;
+      this.domainMap = data;
+      this.labelType = (lt == null)
+                       ? LabelType.VALUES
+                       : lt;
+      resolve();
     }
 
-    public void addDomainValues(List<Comparable> values) {
-      for (Comparable c : values) {
-        if (!domainMap.contains(c)) {
-          domainValues.add(c);
+    public void addValue(ChartDataItem item, Comparable domain, Number value, String label) {
+      if(supportsMultipleRangeValues) {
+      Number ov = domainMap.get(domain);
+
+      if (ov != null) {
+        if (ov instanceof NumberListNumber) {
+          ((NumberListNumber) ov).addNumber(value);
+        } else {
+          NumberListNumber list = new NumberListNumber();
+
+          list.addNumber(ov);
+          list.addNumber(value);
+          domainMap.put(domain, list);
         }
+      } else {
+        domainMap.put(domain, value);
       }
+      } else {
+        domainMap.put(domain, value);
+      }
+
+      dataItems.add(item);
     }
 
-    public int addValue(ChartDataItem item, Comparable domain, Number range, String label) {
-      if (domainMap.add(domain)) {
-        dataItems.add(item);
-        rangeValues.add(range);
-        domainValues.add(domain);
-
-        return rangeValues.size() - 1;
-      }
-
-      return -1;
+    public void resolve() {
+      domainValues.clear();
+      rangeValues.clear();
+      domainValues.addAll(domainMap.keySet());
+      rangeValues.addAll(domainMap.values());
     }
 
     public void clearValues(boolean rangeOnly) {
@@ -2033,7 +2074,6 @@ public abstract class aChartHandler {
     public void addDomainValues(List<Comparable> list) {
       if ((domainValues == null) || domainValues.isEmpty()) {
         domainValues = new ArrayList<Comparable>(list);
-        ;
 
         if (domainMap == null) {
           domainMap = new HashSet(list);
@@ -2089,7 +2129,7 @@ public abstract class aChartHandler {
       int     len      = (serieses == null)
                          ? 0
                          : serieses.size();
-      boolean category = false;
+      boolean category = usesCategoryAxisAlways();
 
       if (len > 0) {
         int       start = cd.getStartColumn();
@@ -2195,6 +2235,10 @@ public abstract class aChartHandler {
           updateCategorDomainValues();
         }
       }
+    }
+
+    protected boolean usesCategoryAxisAlways() {
+      return false;
     }
 
     public void reset() {
@@ -2352,8 +2396,10 @@ public abstract class aChartHandler {
                             : nums.size();
 
         for (int n = 0; n < nlen; n++) {
-          if (data.isNumberRange) {
-            NumberRange r = (NumberRange) nums.get(n);
+          Number num=nums.get(n);
+          if (num instanceof NumberRange) {
+            
+            NumberRange r = (NumberRange) num;
 
             d    = r.getLowValue().doubleValue();
             ymin = Math.min(d, ymin);
@@ -2362,7 +2408,7 @@ public abstract class aChartHandler {
             ymin = Math.min(d, ymin);
             ymax = Math.max(d, ymax);
           } else {
-            d    = nums.get(n).doubleValue();
+            d    = num.doubleValue();
             ymin = Math.min(d, ymin);
             ymax = Math.max(d, ymax);
           }
@@ -2423,6 +2469,80 @@ public abstract class aChartHandler {
 
       xAxisValues = xrange;
       yAxisValues = yrange;
+    }
+  }
+
+
+  public static class NumberListNumber extends Number {
+    protected List<Number> numbers = new ArrayList<Number>();
+
+    @Override
+    public double doubleValue() {
+      return numbers.isEmpty()
+             ? 0
+             : numbers.get(0).doubleValue();
+    }
+
+    @Override
+    public float floatValue() {
+      return numbers.isEmpty()
+             ? 0
+             : numbers.get(0).floatValue();
+    }
+
+    @Override
+    public int intValue() {
+      return numbers.isEmpty()
+             ? 0
+             : numbers.get(0).intValue();
+    }
+
+    @Override
+    public long longValue() {
+      return numbers.isEmpty()
+             ? 0
+             : numbers.get(0).longValue();
+    }
+
+    @Override
+    public String toString() {
+      return numbers.isEmpty()
+             ? "0"
+             : numbers.get(0).toString();
+    }
+
+    public List<Number> getNumbers() {
+      return numbers;
+    }
+
+    public void addNumber(Number num) {
+      numbers.add(num);
+    }
+
+    public float[] floatValues() {
+      int     len = numbers.size();
+      float[] a   = new float[len];
+
+      if (len > 0) {
+        for (int i = 0; i < len; i++) {
+          a[i] = numbers.get(i).floatValue();
+        }
+      }
+
+      return a;
+    }
+
+    public double[] doubleValues() {
+      int      len = numbers.size();
+      double[] a   = new double[len];
+
+      if (len > 0) {
+        for (int i = 0; i < len; i++) {
+          a[i] = numbers.get(i).doubleValue();
+        }
+      }
+
+      return a;
     }
   }
 }

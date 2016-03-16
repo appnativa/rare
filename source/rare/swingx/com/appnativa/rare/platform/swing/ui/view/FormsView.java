@@ -32,9 +32,9 @@ import com.appnativa.rare.ui.painter.UICellPainter;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormLayout.LayoutInfo;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormLayout.LayoutInfo;
 
 import java.awt.Dimension;
 import java.awt.Graphics;

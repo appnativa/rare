@@ -100,10 +100,17 @@ public class WindowManager extends aWindowManager {
 
   @Override
   public void configure(MainWindow cfg) {
-    if (!cfg.decorated.booleanValue()) {
-      ((JFrame) mainFrame.getUIWindow()).setUndecorated(true);
+    boolean decorated=true;
+    if(Platform.getAppContext().okForOS(cfg.decorated)) {
+      decorated=cfg.decorated.booleanValue();
     }
-
+    String s=cfg.decorated.spot_getAttribute("color");
+    if (!decorated) {
+      ((JFrameEx) mainFrame.getUIWindow()).setUndecorated(true);
+    }
+    if(s!=null) {
+      ((JFrame) mainFrame.getUIWindow()).setBackground(ColorUtils.getColor(s));
+    }
     createScriptHandler(cfg);
 
     DataEvent event = new DataEvent(this, cfg);

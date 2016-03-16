@@ -27,6 +27,7 @@ import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.GridCell.CBorder;
 import com.appnativa.rare.spot.Margin;
 import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.ColorUtils.Shade;
 import com.appnativa.rare.ui.border.UIBackBorder;
 import com.appnativa.rare.ui.border.UIBalloonBorder;
 import com.appnativa.rare.ui.border.UIBevelBorder;
@@ -53,9 +54,7 @@ import com.appnativa.util.SNumber;
 
 import java.io.Reader;
 import java.io.StringReader;
-
 import java.lang.reflect.Constructor;
-
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
@@ -488,7 +487,7 @@ public class BorderUtils {
       case Widget.CBorder.line : {
         ca = (color == null)
              ? null
-             : ColorUtils.getColors(color, 2);
+             : ColorUtils.getColors(color, 1);
         c  = ((ca == null) || (ca[0] == null))
              ? UILineBorder.getDefaultLineColor()
              : ca[0];
@@ -1223,21 +1222,21 @@ public class BorderUtils {
     if ((c == null) || c.equals(UIColor.BLACK)) {
       c = ColorUtils.getBackground();
     }
-
+    boolean keep=ColorUtils.KEEP_COLOR_KEYS;
     if (c.isDarkColor()) {
-      c = c.brighter();
+      c = keep ? new UIColorShade(c, Shade.BRIGHTER) : c.brighter();
     }
 
     if (four) {
       ca    = new UIColor[4];
-      ca[3] = c.darker().darker();
-      ca[2] = c.darker();
-      ca[1] = c.brighterBrighter();
-      ca[0] = c.brighter();
+      ca[3] =  c = keep ? new UIColorShade(c, Shade.DARKER_DARKER) : c.darker().darker();
+      ca[2] =  c = keep ? new UIColorShade(c, Shade.DARKER) : c.darker();
+      ca[1] =  c = keep ? new UIColorShade(c, Shade.BRIGHTER_BRIGHTER) : c.brighterBrighter();
+      ca[0] =  c = keep ? new UIColorShade(c, Shade.BRIGHTER) : c.brighter();
     } else {
       ca    = new UIColor[2];
-      ca[0] = c.darkerDarker();
-      ca[1] = c.brighter();
+      ca[0] =  c = keep ? new UIColorShade(c, Shade.DARKER_DARKER) : c.darker().darker();
+      ca[1] =  c = keep ? new UIColorShade(c, Shade.BRIGHTER) : c.brighter();
     }
 
     return ca;

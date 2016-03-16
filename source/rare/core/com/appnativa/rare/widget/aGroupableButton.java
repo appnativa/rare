@@ -597,7 +597,9 @@ public abstract class aGroupableButton extends aPlatformWidget implements iActio
     }
 
     if (!Platform.isTouchDevice()) {
-      setFocusPainted(true);
+      if(!cfg.focusPainted.spot_valueWasSet() || cfg.focusPainted.booleanValue()) {
+        setFocusPainted(true);
+      }
     }
   }
 

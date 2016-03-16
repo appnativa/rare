@@ -24,6 +24,7 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.ComboBox;
 import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.ComboBoxComponent.ComboBoxListHandler;
 import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.border.UILineBorder;
 import com.appnativa.rare.ui.border.aUIBevelBorder;
@@ -49,6 +50,7 @@ import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.widget.ComboBoxWidget;
+import com.appnativa.rare.widget.aComboBoxWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.ContainsFilter;
@@ -178,7 +180,7 @@ public abstract class aComboBoxComponent extends XPContainer
   @Override
   public void cancelPopup() {
     if (isPopupVisible()) {
-      popupMenuCanceled(new ExpansionEvent(currentPopup,ExpansionEvent.Type.WILL_COLLAPSE));
+      popupMenuCanceled(new ExpansionEvent(currentPopup, ExpansionEvent.Type.WILL_COLLAPSE));
     }
   }
 
@@ -202,6 +204,12 @@ public abstract class aComboBoxComponent extends XPContainer
       } else {
         setPainterHolder(PainterUtils.createComboBoxPaintHolder());
       }
+    }
+
+    ComboBox cb = null;
+
+    if (cfg instanceof ComboBox) {
+      cb = (ComboBox) cfg;
     }
 
     iPlatformBorder border = getBorder();
@@ -234,25 +242,6 @@ public abstract class aComboBoxComponent extends XPContainer
       defaultPopupPainter = new UIComponentPainter();
       defaultPopupPainter.setBorder(popupBorder);
 
-      if (isDefaultContent) {
-        UIColor bg = listHandler.getContainerComponent().getBackground();
-
-        if (bg == null) {
-          bg = Platform.getUIDefaults().getColor("Rare.ComboBox.list.background");
-        }
-
-        if (bg == null) {
-          bg = ColorUtils.getListBackground();
-        }
-
-        if (bg == null) {
-          bg = UIColor.WHITE;
-        }
-
-        defaultPopupPainter.setBackgroundColor(bg);
-        listHandler.getContainerComponent().setOpaque(false);
-      }
-
       if (defaultPopupPainter.getBorder() == null) {
         UIColor c = getBorderColor(border);
 
@@ -264,7 +253,7 @@ public abstract class aComboBoxComponent extends XPContainer
           b = standardPopupBorder = new UILineBorder(c, ScreenUtils.PLATFORM_PIXELS_1, ScreenUtils.PLATFORM_PIXELS_6);
           standardPopupBorder.setFlatTop(true);
         } else {
-          if ((cfg instanceof ComboBox) && ((ComboBox) cfg).useSameBorderForPopup.booleanValue()) {
+          if (cb!=null && cb.useSameBorderForPopup.booleanValue()) {
             b = w.getBorder();
           } else {
             b = new UILineBorder(c);
@@ -272,6 +261,77 @@ public abstract class aComboBoxComponent extends XPContainer
         }
 
         defaultPopupPainter.setBorder(b);
+      }
+    } else {
+      if (usingDefaultBorder && (popupPainter.getBorder() == null)) {
+        UIColor c = getBorderColor(border);
+
+        if (c == null) {
+          c = UILineBorder.getDefaultLineColor();
+        }
+
+        standardPopupBorder = new UILineBorder(c, ScreenUtils.PLATFORM_PIXELS_1, ScreenUtils.PLATFORM_PIXELS_6);
+        standardPopupBorder.setFlatTop(true);
+        popupPainter.setBorder(standardPopupBorder);
+      }
+
+      if ((cb != null) && (listHandler != null)) {
+        String s = cb.getPopupPainter().spot_getAttribute("showDivider");
+
+        if ("false".equals(s)) {
+          listHandler.setShowDivider(false);
+        } else {
+          s = cb.getPopupPainter().spot_getAttribute("dividerLineColor");
+
+          if (s != null) {
+            listHandler.setDividerLine(ColorUtils.getColor(s), null);
+          }
+
+          UIColor bg = popupPainter.getBackgroundColor();
+
+          if (bg != null) {
+            bg = bg.light(bg.isDarkColor()
+                          ? 10
+                          : -10);
+            listHandler.setDividerLine(bg, null);
+          }
+        }
+      }
+    }
+
+    if (listHandler != null) {
+      iPlatformComponentPainter p = (popupPainter == null)
+                                    ? defaultPopupPainter
+                                    : popupPainter;
+
+      if (p != null) {
+        if (!p.isBackgroundPaintEnabled()) {
+          UIColor bg = listHandler.getContainerComponent().getBackground();
+
+          if (bg == null) {
+            bg = Platform.getUIDefaults().getColor("Rare.ComboBox.list.background");
+          }
+
+          if (bg == null) {
+            bg = ColorUtils.getListBackground();
+          }
+
+          if (bg == null) {
+            bg = UIColor.WHITE;
+          }
+
+          p.setBackgroundColor(bg);
+        }
+
+        listHandler.getContainerComponent().setOpaque(false);
+      }
+    }
+
+    if (w instanceof aComboBoxWidget) {
+      aComboBoxWidget cw = (aComboBoxWidget) w;
+
+      if (listHandler instanceof ComboBoxListHandler) {
+        ((ComboBoxListHandler) listHandler).getItemRenderer().setItemDescription(cw.getItemDescription());
       }
     }
   }
@@ -832,6 +892,7 @@ public abstract class aComboBoxComponent extends XPContainer
     if (maxWidth > 0) {
       size.width = Math.min(maxWidth, size.width);
     }
+
     Utils.adjustComboBoxSize(size);
   }
 
@@ -1028,7 +1089,7 @@ public abstract class aComboBoxComponent extends XPContainer
       p.removePopupMenuListener(this);
 
       if (callhideOnPopup && (listenerList != null)) {
-        Utils.firePopupEvent(listenerList, new ExpansionEvent(this,ExpansionEvent.Type.WILL_COLLAPSE), false);
+        Utils.firePopupEvent(listenerList, new ExpansionEvent(this, ExpansionEvent.Type.WILL_COLLAPSE), false);
       }
 
       currentPopup = null;    // prevents the logic from being invoked again when
@@ -1121,10 +1182,10 @@ public abstract class aComboBoxComponent extends XPContainer
 
       if (fg == null) {
         fg = UIColorHelper.getForeground();
-        if(!down.isEnabled()) {
-          fg=fg.getDisabledColor();
+
+        if (!down.isEnabled()) {
+          fg = fg.getDisabledColor();
         }
-             
       }
 
       if (icon == null) {
@@ -1143,16 +1204,6 @@ public abstract class aComboBoxComponent extends XPContainer
   }
 
   protected void popupActionPerformed(ActionEvent e) {
-    if (listHandler != null) {
-      RenderableDataItem item = listHandler.getSelectedItem();
-
-      if ((item != null) && (item.getActionListener() != null)) {
-        item.getActionListener().actionPerformed(new ActionEvent(this));
-
-        return;
-      }
-    }
-
     if (listenerList != null) {
       Utils.fireActionEvent(listenerList, e);
     }
@@ -1302,7 +1353,7 @@ public abstract class aComboBoxComponent extends XPContainer
     size.width  = width;
     size.height = height;
   }
- 
+
   protected iWidget getPopupWidget() {
     return ((ComboBoxWidget) getWidget()).getPopupWidget();
   }

@@ -28,7 +28,7 @@ import com.appnativa.rare.viewer.FormViewer;
 import com.appnativa.rare.viewer.aViewer;
 import com.appnativa.rare.widget.iWidget;
 
-import com.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 public abstract class aBorderPanel extends XPContainer {
   static CellConstraints urCorner     = new CellConstraints(3, 1, 1, 1);

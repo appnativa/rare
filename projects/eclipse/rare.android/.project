@@ -39,7 +39,7 @@
 		<link>
 			<name>android-aicharts</name>
 			<type>2</type>
-			<location>APPNATIVA_SOURCE/rare/android-aicharts</location>
+			<locationURI>APPNATIVA_SOURCE/rare/android-aicharts</locationURI>
 		</link>
 		<link>
 			<name>core</name>

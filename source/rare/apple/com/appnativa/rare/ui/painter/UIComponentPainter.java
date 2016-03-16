@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
@@ -58,10 +58,13 @@ public class UIComponentPainter extends aUIComponentPainter {
       if (bp == null) {
         bp = backgroundPainter;
       }
+
       v.setBorder(b);
-      if(bp==null && bg!=null) {
+
+      if ((bp == null) && (bg != null)) {
         v.setBackgroundColorEx(bg);
       }
+
       v.setBackgroundPainter(bp);
     }
   }
@@ -105,5 +108,83 @@ public class UIComponentPainter extends aUIComponentPainter {
   @Override
   public UIColor getBackgroundColorEx() {
     return getBackgroundColor();
+  }
+
+  public void updateModCount() {
+    modCount++;
+
+    if (backgroundPainter != null) {
+      backgroundPainter.updateModCount();
+    }
+
+    if (overlayPainter != null) {
+      overlayPainter.updateModCount();
+    }
+
+    if (border != null) {
+      border.updateModCount();
+    }
+
+    if (bgOverlayPainter != null) {
+      bgOverlayPainter.updateModCount();
+    }
+
+    if (painterHolder != null) {
+      updatePainterHolderModCount(painterHolder);
+    }
+  }
+
+  public static void updatePainterHolderModCount(PainterHolder ph) {
+    if(ph!=null) {
+      if(ph.normalPainter!=null) {
+        updateBucketModCount(ph.normalPainter);
+      }
+      if(ph.pressedPainter!=null) {
+        updateBucketModCount(ph.pressedPainter);
+      }
+      if(ph.selectedPainter!=null) {
+        updateBucketModCount(ph.selectedPainter);
+      }
+      if(ph.disabledPainter!=null) {
+        updateBucketModCount(ph.disabledPainter);
+      }
+      if(ph.disabledSelectedPainter!=null) {
+        updateBucketModCount(ph.disabledSelectedPainter);
+      }
+      if(ph.rolloverPainter!=null) {
+        updateBucketModCount(ph.rolloverPainter);
+      }
+    }
+  }
+  public static void updateBucketModCount(PaintBucket pb) {
+    iComponentPainter cp = (pb == null)
+                           ? null
+                           : pb.getCachedComponentPainterEx();
+
+    if (cp != null) {
+      cp.updateModCount();
+
+      return;
+    }
+
+    if (pb != null) {
+      iBackgroundPainter p = pb.getBackgroundPainter();
+
+      if (p != null) {
+        p.updateModCount();
+      }
+
+      iImagePainter ip = pb.getImagePainter();
+
+      if (ip != null) {
+        ip.updateModCount();
+      }
+
+      iPlatformBorder b = pb.getBorder();
+
+      if (b != null) {
+        b.updateModCount();
+      }
+    }
   }
 }

@@ -39,6 +39,7 @@ import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
 import com.appnativa.rare.ui.table.TableComponent;
 import com.appnativa.rare.viewer.FormViewer;
 import com.appnativa.rare.viewer.aViewer;
+import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTEnumerated;
 
@@ -129,9 +130,10 @@ public class AppleHelper {
     aViewer v = (aViewer) widget.getViewer();
 
     if ((v != null) && (sp.hasColumnWidgets() || sp.hasRowWidgets())) {
-      Widget      wc;
-      iWidget     w;
-      BorderPanel bp = new BorderPanel();
+      Widget             wc;
+      iWidget            w;
+      BorderPanel        bp = new BorderPanel();
+      iPlatformComponent pc;
 
       bp.setUseCrossPattern(true);
       bp.setCenterView(c);
@@ -140,8 +142,9 @@ public class AppleHelper {
 
       if (w != null) {
         v.registerOrphanWidget(w);
-        bp.setTopView(w.getContainerComponent());
-        setScrollComponentView(fc, view, w.getContainerComponent(), Location.TOP);
+        pc = getScrollComponent(w);
+        bp.setTopView(pc);
+        setScrollComponentView(fc, view, pc, Location.TOP);
       }
 
       wc = (Widget) sp.columnFooter.getValue();
@@ -149,8 +152,9 @@ public class AppleHelper {
 
       if (w != null) {
         v.registerOrphanWidget(w);
-        bp.setBottomView(w.getContainerComponent());
-        setScrollComponentView(fc, view, w.getContainerComponent(), Location.BOTTOM);
+        pc = getScrollComponent(w);
+        bp.setBottomView(pc);
+        setScrollComponentView(fc, view, pc, Location.BOTTOM);
       }
 
       wc = (Widget) sp.rowFooter.getValue();
@@ -158,8 +162,9 @@ public class AppleHelper {
 
       if (w != null) {
         v.registerOrphanWidget(w);
-        bp.setRightView(w.getContainerComponent());
-        setScrollComponentView(fc, view, w.getContainerComponent(), Location.RIGHT);
+        pc = getScrollComponent(w);
+        bp.setRightView(pc);
+        setScrollComponentView(fc, view, pc, Location.RIGHT);
       }
 
       wc = (Widget) sp.rowHeader.getValue();
@@ -167,8 +172,9 @@ public class AppleHelper {
 
       if (w != null) {
         v.registerOrphanWidget(w);
-        bp.setLeftView(w.getContainerComponent());
-        setScrollComponentView(fc, view, w.getContainerComponent(), Location.LEFT);
+        pc = getScrollComponent(w);
+        bp.setLeftView(pc);
+        setScrollComponentView(fc, view, pc, Location.LEFT);
       }
 
       bp.setScrollPaneCorners(v, sp);
@@ -231,6 +237,33 @@ public class AppleHelper {
 
     return c;
   }
+
+  private static iPlatformComponent getScrollComponent(iWidget w) {
+    iPlatformComponent pc   = w.getContainerComponent();
+    View               view = pc.getView();
+    iPlatformComponent c;
+
+    if (view instanceof iScrollerSupport) {
+      c = pc;
+    } else {
+      c = new ScrollPanePanel(new ScrollView());
+      c.setVisible(pc.isVisible());
+      c.setEnabled(pc.isEnabled());
+      pc.setEnabled(true);
+      pc.setVisible(true);
+      addComponentAsWrapper((aPlatformWidget) w, (ScrollPanePanel) c);
+    }
+
+    return c;
+  }
+
+  private static native void addComponentAsWrapper(aPlatformWidget w, ScrollPanePanel c)
+  /*-[
+    [c  addWithRAREiPlatformComponent:w->formComponent_];
+    c->scollPaneWidget_=w;
+    w->formComponent_= c;
+  ]-*/
+  ;
 
   private static void setScrollComponentView(iPlatformComponent fc, View parent, iPlatformComponent child,
           Location loc) {

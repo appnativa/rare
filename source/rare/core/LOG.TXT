@@ -1,0 +1,6 @@
+Fix specifying a border for DateComboBox in RML causing exception
+Add iImageObservable to support delayed loading notification of things other than images
+Fix Swing CookieManager using a comma instead of a semicolon to separate multiple cookies
+Fix regression in studio not visually distinguishing locked viewers
+Fix AlertPanel not displaying complete message when message contains curly brace pairs
+Fix Studio removing multiple selection when changing for sizing type

@@ -938,7 +938,6 @@ public abstract class aTableAdapter extends aDataItemTableModel {
       PaintBucket selectionPaint;
 
       if (hilight) {
-        System.out.println("hilight=" + hilight);
         selectionPaint = itemRenderer.getAutoHilightPaint();
         pressed        = false;
       } else {

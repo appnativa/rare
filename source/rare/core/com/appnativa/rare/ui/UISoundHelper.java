@@ -32,13 +32,14 @@ public class UISoundHelper {
   static UISound error;
   static boolean errorLoadedTried;
   static boolean successLoadedTried;
+  private static int defaultVolume=25;
   public UISoundHelper() {}
 
   public static void beep() {
     PlatformHelper.beep();
   }
 
-  public static void errorSound() {
+  public static boolean errorSound() {
     if (error == null && !errorLoadedTried) {
       String s = Platform.getUIDefaults().getString("Rare.sound.error");
 
@@ -48,7 +49,7 @@ public class UISoundHelper {
       errorLoadedTried=true;
       try {
         error = Platform.getAppContext().getSound(s);
-        error.setVolume(25);
+        error.setVolume(defaultVolume);
       } catch(Exception e) {
         Platform.ignoreException(null, e);
       }
@@ -56,10 +57,9 @@ public class UISoundHelper {
 
     if (error != null) {
       error.play();
+      return true;
     }
-    else {
-      PlatformHelper.beep();
-    }
+    return false;
   }
 
   public static void successSound() {
@@ -72,7 +72,7 @@ public class UISoundHelper {
       try {
         successLoadedTried=true;
         success = Platform.getAppContext().getSound(s);
-        success.setVolume(25);
+        success.setVolume(defaultVolume);
       } catch(Exception e) {
         Platform.ignoreException(null, e);
       }
@@ -81,5 +81,13 @@ public class UISoundHelper {
     if (success != null) {
       success.play();
     }
+  }
+
+  public static int getDefaultVolume() {
+    return defaultVolume;
+  }
+
+  public static void setDefaultVolume(int defaultVolume) {
+    UISoundHelper.defaultVolume = defaultVolume;
   }
 }

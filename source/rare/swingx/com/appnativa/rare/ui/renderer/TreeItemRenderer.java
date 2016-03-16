@@ -43,7 +43,7 @@ public class TreeItemRenderer extends aTreeItemRenderer {
   }
 
   @Override
-  public void setIconAndAlignment(iPlatformRenderingComponent rc, RenderableDataItem item, RenderableDataItem row,
+  public void setIconAndAlignment(iPlatformRenderingComponent rc, CharSequence text, RenderableDataItem item, RenderableDataItem row,
                                   Column col, boolean enabled, boolean center, boolean top, boolean seticon,
                                   boolean oexpanded) {
     if (showItemIcons) {
@@ -83,12 +83,12 @@ public class TreeItemRenderer extends aTreeItemRenderer {
         }
       }
 
-      super.setIconAndAlignment(rc, item, row, col, enabled, center, top, false, expanded);
+      super.setIconAndAlignment(rc, text,item, row, col, enabled, center, top, false, expanded);
       rc.setIcon(enabled
                  ? icon
                  : dicon);
     } else {
-      super.setIconAndAlignment(rc, item, row, col, enabled, center, top, true, oexpanded);
+      super.setIconAndAlignment(rc, text,item, row, col, enabled, center, top, true, oexpanded);
     }
   }
 }

@@ -40,7 +40,7 @@ public class JFrameEx extends JFrame {
   public JFrameEx(String title) throws HeadlessException {
     super(title);
   }
-
+  
   @Override
   protected JRootPane createRootPane() {
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

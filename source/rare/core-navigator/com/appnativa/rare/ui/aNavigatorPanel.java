@@ -20,6 +20,8 @@
 
 package com.appnativa.rare.ui;
 
+import java.util.ArrayList;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.PlatformHelper;
@@ -32,15 +34,11 @@ import com.appnativa.rare.ui.painter.UIBackgroundPainter;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
 import com.appnativa.rare.ui.painter.iBackgroundPainter;
-import com.appnativa.rare.ui.painter.iGradientPainter.Direction;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.util.IdentityArrayList;
-
-import com.jgoodies.forms.layout.CellConstraints;
-
-import java.util.ArrayList;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 /**
  * A panel that manages a set of buttons
@@ -1173,10 +1171,6 @@ public abstract class aNavigatorPanel extends XPContainer implements iNavigatorP
     }
 
     if (p == null) {
-      UIBackgroundPainter bp = (UIBackgroundPainter) UIBackgroundPainter.BGCOLOR_GRADIENT_PAINTER_DK_DK.clone();
-
-      bp.setGradientDirection(Direction.VERTICAL_BOTTOM);
-      bp.setBackgroundColor(getBackground());
       p = pressedPainter = new UISimpleBackgroundPainter(ColorUtils.getControlDkShadow());
     }
 
@@ -1595,12 +1589,12 @@ public abstract class aNavigatorPanel extends XPContainer implements iNavigatorP
         setAction(a);
         selectedIcon = a.getSelectedIcon();
 
-        if (selectedIcon instanceof UIImageIcon) {
-          ((UIImageIcon) selectedIcon).isImageLoaded(aNavigatorPanel.this);
+        if (selectedIcon instanceof iObservableImage) {
+          ((iObservableImage) selectedIcon).isImageLoaded(aNavigatorPanel.this);
         }
 
-        if (a.getIcon() instanceof UIImageIcon) {
-          ((UIImageIcon) a.getIcon()).isImageLoaded(aNavigatorPanel.this);
+        if (a.getIcon() instanceof iObservableImage) {
+          ((iObservableImage) a.getIcon()).isImageLoaded(aNavigatorPanel.this);
         }
 
         action = a;
@@ -1611,8 +1605,8 @@ public abstract class aNavigatorPanel extends XPContainer implements iNavigatorP
       }
 
       if (icon != null) {
-        if (icon instanceof UIImageIcon) {
-          ((UIImageIcon) icon).isImageLoaded(aNavigatorPanel.this);
+        if (icon instanceof iObservableImage) {
+          ((iObservableImage) icon).isImageLoaded(aNavigatorPanel.this);
         }
 
         setIcon(icon);

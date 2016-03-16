@@ -24,12 +24,15 @@ import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
 import com.appnativa.rare.platform.apple.ui.view.ParentView;
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.viewer.CanvasViewer;
 import com.appnativa.rare.widget.iWidget;
 
 public class CanvasComponent extends Component implements iCanvasComponent {
   iContext context;
+  private boolean settingCanvasSize;
 
   public CanvasComponent(iWidget w) {
     super(new CanvasView());
@@ -44,6 +47,22 @@ public class CanvasComponent extends Component implements iCanvasComponent {
   @Override
   public iContext getContext() {
     return context;
+  }
+
+  @Override
+  public void setBounds(float x, float y, float width, float height) {
+    if (!settingCanvasSize) {
+      settingCanvasSize=true;
+      super.setBounds(x, y, width, height);
+      ((CanvasViewer) widget).setSize((int) width, (int) height, false);
+      settingCanvasSize=false;
+    }
+  }
+
+  @Override
+  protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+    size.width  = 50;
+    size.height = 50;
   }
 
   @Override

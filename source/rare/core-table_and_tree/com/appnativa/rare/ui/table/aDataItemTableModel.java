@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -103,8 +103,12 @@ public abstract class aDataItemTableModel extends aPlatformDataModel implements 
 
   @Override
   public boolean addAll(Collection<? extends RenderableDataItem> collection) {
-    rowData.addAll(collection);
-    updateForInsertionOrDeletion();
+    if (rowData == null) {
+      setAll(collection);
+    } else {
+      rowData.addAll(collection);
+      updateForInsertionOrDeletion();
+    }
 
     return true;
   }
@@ -924,7 +928,7 @@ public abstract class aDataItemTableModel extends aPlatformDataModel implements 
   @Override
   public boolean setAll(Collection<? extends RenderableDataItem> collection) {
     clearRows();
-    rowData = new FilterableList<RenderableDataItem>(collection);
+    rowData = new TableFilterableList(collection);
     tableDataChanged();
 
     return true;
@@ -1269,6 +1273,34 @@ public abstract class aDataItemTableModel extends aPlatformDataModel implements 
       }
     }
   }
+
+  class TableFilterableList extends FilterableList<RenderableDataItem> {
+    @Override
+    protected boolean passes(iFilter filter, RenderableDataItem e) {
+      if (e != null) {
+        e = e.getItemEx(activeColumn);
+      }
+
+      return super.passes(filter, e);
+    }
+
+    public TableFilterableList() {
+      super();
+    }
+
+    public TableFilterableList(Collection<? extends RenderableDataItem> c) {
+      super(c);
+    }
+
+    public TableFilterableList(int initialCapacity) {
+      super(initialCapacity);
+    }
+
+    public TableFilterableList(List<RenderableDataItem> list) {
+      super(list);
+    }
+  }
+
 
   protected void fireTableRowsDeleted(int index0, int index1, List<RenderableDataItem> removed) {
     if (!eventsEnabled || (listenerList == null)) {

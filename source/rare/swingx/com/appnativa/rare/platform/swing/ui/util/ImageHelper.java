@@ -55,19 +55,15 @@ import java.awt.image.ImageObserver;
 import java.awt.image.Kernel;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.net.URL;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.imageio.ImageIO;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
@@ -459,8 +455,8 @@ public class ImageHelper {
     if (url == null) {
       return null;
     }
-
-    if (url.getProtocol().equals("file")) {
+    String protocol=url.getProtocol();
+    if (protocol.equals("file") || protocol.equals("data")) {
       defer = false;
     }
 
@@ -496,7 +492,9 @@ public class ImageHelper {
 
       BufferedImage img = ImageIO.read(stream);
       String        s   = url.getFile();
-
+      if(img==null) {
+        return UIImageIcon.getBrokenImage();
+      }
       if (!s.endsWith(".9.png")) {
         if (s.contains("drawable-mdpi") && "ldpi".equals(defaultIconDensity)) {
           int nw = (int) Math.ceil(img.getWidth() * 2f / 3f);
@@ -896,6 +894,11 @@ public class ImageHelper {
       }
     }
 
+    @Override
+    public void load() throws Exception {
+      call();
+    }
+    
     @Override
     public UIImage call() throws Exception {
       UIImage img = null;

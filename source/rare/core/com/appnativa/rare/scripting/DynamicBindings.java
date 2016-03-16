@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
@@ -24,6 +24,8 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iFormViewer;
+
+import com.google.j2objc.annotations.Weak;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,19 +49,16 @@ public class DynamicBindings implements Bindings {
   static {
     generatedValues.put("document", "document");
     generatedValues.put("navigator", "navigator");
+    generatedValues.put("event", "event");
   }
 
-  final Bindings bindings;
-  final Bindings ctxBindings;
+  final Bindings       bindings;
+  @Weak
+  final aScriptManager scriptNamager;
 
-  public DynamicBindings(Bindings bindings) {
-    this.bindings    = bindings;
-    this.ctxBindings = bindings;
-  }
-
-  public DynamicBindings(Bindings bindings, Bindings ctxBindings) {
-    this.bindings    = bindings;
-    this.ctxBindings = ctxBindings;
+  public DynamicBindings(Bindings bindings, aScriptManager sm) {
+    this.bindings      = bindings;
+    this.scriptNamager = sm;
   }
 
   @Override
@@ -140,7 +139,7 @@ public class DynamicBindings implements Bindings {
     try {
       String s = (String) key;
       Object w = Platform.isUIThread()
-                 ? ctxBindings.get(WIDGET)
+                 ? scriptNamager.getWidget()
                  : null;
 
       if (w instanceof iContainer) {
@@ -152,7 +151,7 @@ public class DynamicBindings implements Bindings {
           win = (WindowViewer) w;
         } else if (w != null) {
           Object f = Platform.isUIThread()
-                     ? ctxBindings.get(FORM)
+                     ? scriptNamager.getFormViewer()
                      : null;
 
           if ((f != w) && (f instanceof iFormViewer)) {
@@ -162,9 +161,7 @@ public class DynamicBindings implements Bindings {
 
         if (o == null) {
           if (win == null) {
-            win = Platform.isUIThread()
-                  ? (WindowViewer) ctxBindings.get(WINDOW)
-                  : Platform.getWindowViewer();
+            win = scriptNamager.getWindow();
           }
 
           if (win != null) {
@@ -176,7 +173,9 @@ public class DynamicBindings implements Bindings {
               key = generatedValues.get(s);
 
               if (key != null) {
-                if (key.equals("document")) {
+                if (key.equals("event")) {
+                  o = win.getEvent();
+                } else if (key.equals("document")) {
                   o = win;
                 } else if (key.equals("navigator")) {
                   o = win.getNavigator();

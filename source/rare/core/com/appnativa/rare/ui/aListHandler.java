@@ -165,11 +165,6 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
   }
 
   @Override
-  public boolean isEditing() {
-    return listView.isEditing();
-  }
-
-  @Override
   public void setFilteredList(List<RenderableDataItem> list, iFilter lastFilter) {
     listModel.setFilteredList(list, lastFilter);
   }
@@ -1081,18 +1076,7 @@ public abstract class aListHandler extends AbstractList<RenderableDataItem>
 
   @Override
   public int getSelectedIndexCount() {
-    return (getSelectedIndex() == -1)
-           ? 0
-           : 1;
-  }
-
-  @Override
-  public int[] getSelectedIndexes() {
-    final int n = getSelectedIndex();
-
-    return (n == -1)
-           ? new int[0]
-           : new int[] { n };
+    return listView.getSelectedIndexCount();
   }
 
   @Override

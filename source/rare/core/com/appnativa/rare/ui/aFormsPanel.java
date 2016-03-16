@@ -20,12 +20,12 @@
 
 package com.appnativa.rare.ui;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
-import com.jgoodies.forms.layout.Size;
-import com.jgoodies.forms.layout.Sizes;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.ColumnSpec;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.RowSpec;
+import com.appnativa.jgoodies.forms.layout.Size;
+import com.appnativa.jgoodies.forms.layout.Sizes;
 
 public abstract class aFormsPanel extends XPContainer implements iFormsPanel {
   public static RowSpec    emptyRowSpec      = RowSpec.decode("14dlu");

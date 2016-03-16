@@ -44,7 +44,7 @@ import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.util.PropertyChangeSupportEx;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
-import com.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 public abstract class aComponent
         implements iPainterSupport, iPlatformComponent, iMouseListener, iMouseMotionListener, iKeyListener,

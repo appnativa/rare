@@ -15,31 +15,34 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.canvas;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.scripting.WidgetContext;
+import com.appnativa.rare.scripting.iScriptingContextSupport;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.canvas.iContext.iImageElement;
 import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.canvas.iContext.iImageElement;
 import com.appnativa.rare.widget.iWidget;
 
 /**
  *
  * @author Don DeCoteau
  */
-public class Image implements iImageElement, iImageObserver {
-  private iWidget context;
-  private UIImage image;
-  private Object  onabort;
-  private Object  onerror;
-  private Object  onload;
-  private int[]   pixelData;
-  private String  src;
+public class Image implements iImageElement, iImageObserver, iScriptingContextSupport {
+  private iWidget       context;
+  private UIImage       image;
+  private Object        onabort;
+  private Object        onerror;
+  private Object        onload;
+  private int[]         pixelData;
+  private String        src;
+  private WidgetContext scriptingContext;
 
   public Image() {}
 
@@ -59,9 +62,9 @@ public class Image implements iImageElement, iImageObserver {
     image.blurImage();
   }
 
-  public void createReflection(int y, int height, float opacity, int gap) {
+  public void addReflection(int y, int height, float opacity, int gap) {
     if (image != null) {
-      image = image.createReflectionImage(y, height, opacity, gap);
+      image.addReflectionImage(y, height, opacity, gap);
     }
   }
 
@@ -115,7 +118,9 @@ public class Image implements iImageElement, iImageObserver {
     if (src != null) {
       try {
         image = Platform.getContextRootViewer().getImage(src);
-
+        if(!image.isLoaded()) {
+          image.load();;
+        }
         if (onload != null) {
           executeEvent(src + "_onLoad", onload);
         }
@@ -212,6 +217,16 @@ public class Image implements iImageElement, iImageObserver {
     return (image == null)
            ? 0
            : image.getWidth();
+  }
+
+  @Override
+  public WidgetContext getScriptingContext() {
+    if (scriptingContext == null) {
+      scriptingContext = Platform.getAppContext().getScriptingManager().createScriptingContext(this);
+      scriptingContext.needsJSRetention=true;
+    }
+
+    return scriptingContext;
   }
 
   protected void executeEvent(String event, Object code) {

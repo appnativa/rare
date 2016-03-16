@@ -329,7 +329,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
   /*-[
     CGContextRef context=(__bridge CGContextRef)[self getContextRef];
     if(paint_) {
-      [paint_ paintWithRAREiPlatformGraphics:self withFloat:x withFloat:y withFloat:width withFloat:height withInt:0];
+      [paint_ fillWithRAREiPlatformGraphics:self withFloat:x withFloat:y withFloat:width withFloat:height withInt:0];
     }
     else {
       CGContextFillRect(context,CGRectMake(x,y,width,height));
@@ -785,7 +785,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
       if(paint_) {
         CGRect rect=CGContextGetPathBoundingBox(ctx);
         CGContextClip(ctx);
-        [paint_ paintWithRAREiPlatformGraphics:self withFloat:rect.origin.x withFloat:rect.origin.y withFloat:rect.size.width withFloat:rect.size.height withInt:0];
+        [paint_ fillWithRAREiPlatformGraphics:self withFloat:rect.origin.x withFloat:rect.origin.y withFloat:rect.size.width withFloat:rect.size.height withInt:0];
       }
       else {
         CGContextFillPath(ctx);
@@ -902,18 +902,20 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
   }
 
   static class Stack {
-    public UIStroke   stroke;
-    public UIColor    color;
-    public Object     parent;
-    public int        state;
-    public UIFont     font;
-    public iTransform transform;
+    public UIStroke       stroke;
+    public UIColor        color;
+    public Object         parent;
+    public int            state;
+    public UIFont         font;
+    public iTransform     transform;
+    public iPlatformPaint paint;
 
     public int save(aAppleGraphics g) {
       color     = g.color;
       stroke    = g.lineStroke;
       transform = g.transform;
       font      = g.font;
+      paint     = g.paint;
 
       Stack s = new Stack();
 
@@ -933,6 +935,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
       stroke    = null;
       transform = null;
       font      = null;
+      paint     = null;
 
       Stack s = (Stack) parent;
 
@@ -952,6 +955,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
       stroke    = null;
       transform = null;
       font      = null;
+      paint     = null;
 
       Stack s = (Stack) parent;
 
@@ -959,6 +963,7 @@ public abstract class aAppleGraphics implements iPlatformGraphics {
       g.lineStroke = s.stroke;
       g.transform  = s.transform;
       g.font       = s.font;
+      g.paint      = s.paint;
       g.stack      = s;
 
       return true;

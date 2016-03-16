@@ -15,17 +15,20 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.plaf.LabelExUI;
 import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.UIFont;
 
 public class LabelRenderer extends LabelView {
   private boolean _opaque;
@@ -36,6 +39,15 @@ public class LabelRenderer extends LabelView {
     if (Platform.getUIDefaults().getBoolean("Rare.LabelRenderer.useCustomEditorKit", true)) {
       setUI(new LabelExUI());
     }
+  }
+  @Override
+  public Dimension getPreferredSize() {
+    Dimension d=super.getPreferredSize();
+    if(wordWrap) {
+      d.width       = Math.min(FontUtils.getCharacterWidth(UIFont.fromFont(getFont())) * 3,d.width);
+      
+    }
+    return d;
   }
 
   public void callSuperInvalidate() {

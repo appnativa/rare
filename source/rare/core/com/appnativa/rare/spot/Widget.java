@@ -1,5 +1,5 @@
 /**************************************************************************
- * Widget.java - Wed Nov 18 17:50:58 PST 2015
+ * Widget.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -112,12 +112,6 @@ public class Widget extends SPOTSequence {
   /** Appearance~~runtime: the tool tip for the widget */
   public SPOTPrintableString tooltip = new SPOTPrintableString();
 
-  /** Behavior: link to activate for an action event */
-  protected Link actionLink = null;
-
-  /** Behavior: a comma separated list of events to invoke standard handlers for. When a specified event occurs the function with the name in the form of <event>_<widgetName> will be invoked */
-  public SPOTPrintableString standardHandlers = new SPOTPrintableString();
-
   /** Behavior: a comma separated list of property names/events to invoke when the named property changes */
   public SPOTPrintableString propertyChangeHandlers = new SPOTPrintableString();
 
@@ -202,7 +196,7 @@ public class Widget extends SPOTSequence {
    *
    */
   protected void spot_setElements()  {
-    this.elementsSizeHint  +=44;
+    this.elementsSizeHint  +=42;
     this.attributeSizeHint +=36;
     super.spot_setElements();
     spot_defineAttribute("onBlur",null);
@@ -273,8 +267,6 @@ public class Widget extends SPOTSequence {
     spot_addElement( "deletingAllowed", deletingAllowed );
     spot_addElement( "defaultContextMenu", defaultContextMenu );
     spot_addElement( "tooltip", tooltip );
-    spot_addElement( "actionLink", actionLink );
-    spot_addElement( "standardHandlers", standardHandlers );
     spot_addElement( "propertyChangeHandlers", propertyChangeHandlers );
     spot_addElement( "keystrokeMappings", keystrokeMappings );
     spot_addElement( "dataURL", dataURL );
@@ -415,38 +407,6 @@ public class Widget extends SPOTSequence {
   public void setCellPadding(iSPOTElement reference) throws ClassCastException {
     cellPadding = (Margin)reference;
     spot_setReference( "cellPadding" ,reference);
-  }
-
-  /**
-   * Gets the actionLink element
-   * 
-   * @return the actionLink element or null if a reference was never created
-   */
-  public Link getActionLink() { return actionLink; }
-
-  /**
-   * Gets the reference to the actionLink element
-   * A reference is created if necessary
-   * 
-   * @return the reference to the actionLink element
-   */
-  public Link getActionLinkReference() {
-    if ( actionLink == null ) {
-      actionLink = new Link(true);
-      super.spot_setReference( "actionLink" , actionLink);
-    }
-    return actionLink;
-  }
-
-  /**
-   * Sets the reference to the actionLink element
-   * @param reference the reference ( can be null)
-   * 
-   * @throws ClassCastException if the parameter is not valid
-   */
-  public void setActionLink(iSPOTElement reference) throws ClassCastException {
-    actionLink = (Link)reference;
-    spot_setReference( "actionLink" ,reference);
   }
 
   /**
@@ -721,10 +681,6 @@ public class Widget extends SPOTSequence {
 
   public void setVerticalAlignment(int align) {
     this.verticalAlign.setValue(align);
-  }
-
-  public void setStandardHandlers(String events) {
-    this.standardHandlers.setValue(events);
   }
 
   public void setEventHandler(String event, String code) {

@@ -96,11 +96,6 @@ public class MouseEvent extends InputEvent {
     this.gestureY  = y;
   }
 
-  @Override
-  public void consume() {
-    consumed = true;
-  }
-
   public int getClickCount() {
     return (clickCount == 0)
            ? EventHelper.getClickCount(startEvent, endEvent)

@@ -239,172 +239,17 @@ public class URLEncoder {
    * Encodes an array of bytes into an array of URL safe 7-bit
    * characters. Unsafe characters are escaped.
    *
-   * @param bytes array of bytes to convert to URL safe characters
-   * @return array of bytes containing URL safe characters
-   */
-  public static byte[] encode(byte[] bytes) {
-    return encodeUrl(WWW_FORM_URL, bytes);
-  }
-
-  /**
-   * Encodes an object into its URL safe form. Unsafe characters are
-   * escaped.
-   *
-   * @param pObject string to convert to a URL safe form
-   * @return URL safe object
-   * @throws FormatException Thrown if URL encoding is not
-   *                          applicable to objects of this type or
-   *                          if encoding is unsuccessful
-   */
-  public static Object encode(Object pObject) throws FormatException {
-    if (pObject == null) {
-      return null;
-    } else if (pObject instanceof byte[]) {
-      return encode((byte[]) pObject);
-    } else if (pObject instanceof String) {
-      return encode((String) pObject);
-    } else {
-      throw new FormatException("Objects of type " + pObject.getClass().getName() + " cannot be URL encoded");
-    }
-  }
-
-  /**
-   * Encodes a string into its URL safe form using the default string
-   * charset. Characters deemed unsafe for use with 'application/x-www-form-urlencoded' mime type are escaped.
-   *
-   * @param pString string to convert to a URL safe form
-   * @return URL safe string
-   * @throws FormatException Thrown if URL encoding is unsuccessful
-   *
-   * @see #getDefaultCharset()
-   */
-  public static String encode(String pString) throws FormatException {
-    if (pString == null) {
-      return null;
-    }
-
-    try {
-      return encode(pString, getDefaultCharset());
-    } catch(UnsupportedEncodingException e) {
-      throw new FormatException(e.getMessage());
-    }
-  }
-
-  /**
-   * Encodes a string into its URL safe form using the default string
-   * charset. Unsafe characters are escaped.
-   *
-   * @param pString string to convert to a URL safe form
-   * @return URL safe string
-   * @throws FormatException Thrown if URL encoding is unsuccessful
-   *
-   * @see #getDefaultCharset()
-   */
-  public static String encodeEx(String pString) throws FormatException {
-    if (pString == null) {
-      return null;
-    }
-
-    try {
-      if ((pString == null) || (pString.length() == 0)) {
-        return pString;
-      }
-
-      return new String(encodeUrl(ALL_URL, pString.getBytes(getDefaultCharset())), "US-ASCII");
-    } catch(UnsupportedEncodingException e) {
-      throw new FormatException(e.getMessage());
-    }
-  }
-
-  /**
-   * Encodes a string into its URL safe form using the specified
-   * string charset. Unsafe characters are escaped.
-   *
-   * @param pString string to convert to a URL safe form
-   * @param charset the charset for pString
-   * @return URL safe string
-   * @throws UnsupportedEncodingException Thrown if charset is not
-   *                                      supported
-   */
-  public static String encode(String pString, String charset) throws UnsupportedEncodingException {
-    if ((pString == null) || (pString.length() == 0)) {
-      return pString;
-    }
-
-    return new String(encode(pString.getBytes(charset)), "US-ASCII");
-  }
-
-  /**
-   * Encodes a string into its URL safe form using the specified
-   * string charset. Unsafe characters are escaped.
-   *
-   * @param pString string to convert to a URL safe form
-   * @param charset the charset for pString
-   * @param buffer buffer to use to store output a (US-ASCII)
-   * @throws UnsupportedEncodingException Thrown if charset is not
-   *                                      supported
-   */
-  public static void encode(String pString, String charset, OutputStream buffer)
-          throws UnsupportedEncodingException, IOException {
-    if ((pString == null) || (pString.length() == 0)) {
-      return;
-    }
-
-    encodeUrl(WWW_FORM_URL, pString.getBytes(charset), buffer);
-  }
-
-  /**
-   * Encodes a string into its URL safe form using the specified
-   * string charset. Unsafe characters are escaped.
-   *
-   * @param pString string to convert to a URL safe form
-   * @param charset the charset for pString
-   * @param buffer buffer to use to store output a (US-ASCII)
-   * @throws UnsupportedEncodingException Thrown if charset is not
-   *                                      supported
-   */
-  public static void encode(String pString, String charset, StringBuilder buffer) throws UnsupportedEncodingException {
-    if (pString == null) {
-      return;
-    }
-
-    encodeUrl(WWW_FORM_URL, pString.getBytes(charset), buffer);
-  }
-
-  /**
-   * Encodes a string into its URL safe form using the specified
-   * string charset. Unsafe characters are escaped.
-   *
-   * @param pString string to convert to a URL safe form
-   * @param charset the charset for pString
-   * @param buffer buffer to use to store output a (US-ASCII)
-   * @throws UnsupportedEncodingException Thrown if charset is not
-   *                                      supported
-   */
-  public static void encode(String pString, String charset, Writer buffer)
-          throws UnsupportedEncodingException, IOException {
-    if ((pString == null) || (pString.length() == 0)) {
-      return;
-    }
-
-    encodeUrl(WWW_FORM_URL, pString.getBytes(charset), buffer);
-  }
-
-  /**
-   * Encodes an array of bytes into an array of URL safe 7-bit
-   * characters. Unsafe characters are escaped.
-   *
    * @param urlsafe bitset of characters deemed URL safe
    * @param bytes array of bytes to convert to URL safe characters
    * @return array of bytes containing URL safe characters
    */
-  public static final byte[] encodeUrl(BitSet urlsafe, byte[] bytes) {
+  public static final byte[] encode(BitSet urlsafe, byte[] bytes) {
     if (bytes == null) {
       return null;
     }
 
     if (urlsafe == null) {
-      urlsafe = WWW_FORM_URL;
+      urlsafe = ALL_URL;
     }
 
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -444,13 +289,13 @@ public class URLEncoder {
    * @param bytes array of bytes to convert to URL safe characters
    * @param buffer buffer to use to store output a (US-ASCII)
    */
-  public static final void encodeUrl(BitSet urlsafe, byte[] bytes, OutputStream buffer) throws IOException {
+  public static final void encode(BitSet urlsafe, byte[] bytes, OutputStream buffer) throws IOException {
     if (bytes == null) {
       return;
     }
 
     if (urlsafe == null) {
-      urlsafe = WWW_FORM_URL;
+      urlsafe = ALL_URL;
     }
 
     for (int i = 0; i < bytes.length; i++) {
@@ -478,6 +323,8 @@ public class URLEncoder {
     }
   }
 
+ 
+ 
   /**
    * Encodes an array of bytes into an array of URL safe 7-bit
    * characters. Unsafe characters are escaped.
@@ -486,13 +333,13 @@ public class URLEncoder {
    * @param bytes array of bytes to convert to URL safe characters
    * @param buffer buffer to use to store output a (US-ASCII)
    */
-  public static final void encodeUrl(BitSet urlsafe, byte[] bytes, StringBuilder buffer) {
+  public static final void encode(BitSet urlsafe, byte[] bytes, StringBuilder buffer) {
     if (bytes == null) {
       return;
     }
 
     if (urlsafe == null) {
-      urlsafe = WWW_FORM_URL;
+      urlsafe = ALL_URL;
     }
 
     for (int i = 0; i < bytes.length; i++) {
@@ -528,7 +375,7 @@ public class URLEncoder {
    * @param bytes array of bytes to convert to URL safe characters
    * @param buffer buffer to use to store output a (US-ASCII)
    */
-  public static final void encodeUrl(BitSet urlsafe, byte[] bytes, Writer buffer) throws IOException {
+  public static final void encode(BitSet urlsafe, byte[] bytes, Writer buffer) throws IOException {
     if (bytes == null) {
       return;
     }
@@ -560,6 +407,226 @@ public class URLEncoder {
         buffer.write(hex2);
       }
     }
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Unsafe characters are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @param buffer buffer to use to store output a (US-ASCII)
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static void encode(String pString, String charset, OutputStream buffer)
+          throws UnsupportedEncodingException, IOException {
+    if ((pString == null) || (pString.length() == 0)) {
+      return;
+    }
+
+    encode(ALL_URL, pString.getBytes(charset), buffer);
+  }
+
+  /**
+   * Encodes an array of bytes into an array of URL safe 7-bit
+   * characters. Unsafe characters are escaped.
+   *
+   * @param bytes array of bytes to convert to URL safe characters
+   * @return array of bytes containing URL safe characters
+   */
+  public static byte[] encodeComponent(byte[] bytes) {
+    return encode(WWW_FORM_URL, bytes);
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the default string
+   * character set. Characters deemed unsafe for use
+   * with 'application/x-www-form-urlencoded' mime type are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @return URL safe string
+   * @throws FormatException Thrown if URL encoding is unsuccessful
+   *
+   * @see #getDefaultCharset()
+   */
+  public static String encodeComponent(String pString) throws FormatException {
+    if (pString == null) {
+      return null;
+    }
+
+    try {
+      return encodeComponent(pString, getDefaultCharset());
+    } catch(UnsupportedEncodingException e) {
+      throw new FormatException(e.getMessage());
+    }
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Characters deemed unsafe for use
+   * with 'application/x-www-form-urlencoded' mime type are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @return URL safe string
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static String encodeComponent(String pString, String charset) throws UnsupportedEncodingException {
+    if ((pString == null) || (pString.length() == 0)) {
+      return pString;
+    }
+
+    return new String(encode(WWW_FORM_URL,pString.getBytes(charset)), "US-ASCII");
+  }
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Characters deemed unsafe for use
+   * with 'application/x-www-form-urlencoded' mime type are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @param buffer buffer to use to store output a (US-ASCII)
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static void encodeComponent(String pString, String charset, OutputStream buffer)
+          throws UnsupportedEncodingException, IOException {
+    if ((pString == null) || (pString.length() == 0)) {
+      return;
+    }
+
+    encode(WWW_FORM_URL, pString.getBytes(charset), buffer);
+  }
+
+ 
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Characters deemed unsafe for use
+   * with 'application/x-www-form-urlencoded' mime type are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @param buffer buffer to use to store output a (US-ASCII)
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static void encodeComponent(String pString, String charset, StringBuilder buffer) throws UnsupportedEncodingException {
+    if (pString == null) {
+      return;
+    }
+
+    encode(WWW_FORM_URL, pString.getBytes(charset), buffer);
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Characters deemed unsafe for use
+   * with 'application/x-www-form-urlencoded' mime type are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @param buffer buffer to use to store output a (US-ASCII)
+   * @throws UnsupportedEncodingException Thrown if charset is not
+   *                                      supported
+   */
+  public static void encodeComponent(String pString, String charset, Writer buffer)
+          throws UnsupportedEncodingException, IOException {
+    if ((pString == null) || (pString.length() == 0)) {
+      return;
+    }
+
+    encode(WWW_FORM_URL, pString.getBytes(charset), buffer);
+  }
+
+
+  /**
+   * Encodes an array of bytes into an array of URL safe 7-bit
+   * characters. Unsafe characters are escaped.
+   *
+   * @param bytes array of bytes to convert to URL safe characters
+   * @return array of bytes containing URL safe characters
+   */
+  public static byte[] encodeUrl(byte[] bytes) {
+    return encode(ALL_URL, bytes);
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string charset. Unsafe characters are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @return URL safe string
+   * @throws FormatException Thrown if URL encoding is unsuccessful
+   *
+   * @see #getDefaultCharset()
+   */
+  public static String encodeUrl(String pString) throws FormatException {
+    if (pString == null) {
+      return null;
+    }
+
+    try {
+      return encodeUrl(pString, getDefaultCharset());
+    } catch(UnsupportedEncodingException e) {
+      throw new FormatException(e.getMessage());
+    }
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Unsafe characters are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @return URL safe string
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static String encodeUrl(String pString, String charset) throws UnsupportedEncodingException {
+    if ((pString == null) || (pString.length() == 0)) {
+      return pString;
+    }
+
+    return new String(encode(ALL_URL,pString.getBytes(charset)), "US-ASCII");
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Unsafe characters are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @param buffer buffer to use to store output a (US-ASCII)
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static void encodeUrl(String pString, String charset, StringBuilder buffer) throws UnsupportedEncodingException {
+    if (pString == null) {
+      return;
+    }
+
+    encode(ALL_URL, pString.getBytes(charset), buffer);
+  }
+
+  /**
+   * Encodes a string into its URL safe form using the specified
+   * string character set. Unsafe characters are escaped.
+   *
+   * @param pString string to convert to a URL safe form
+   * @param charset the character set for pString
+   * @param buffer buffer to use to store output a (US-ASCII)
+   * @throws UnsupportedEncodingException Thrown if character set is not
+   *                                      supported
+   */
+  public static void encodeUrl(String pString, String charset, Writer buffer)
+          throws UnsupportedEncodingException, IOException {
+    if ((pString == null) || (pString.length() == 0)) {
+      return;
+    }
+
+    encode(ALL_URL, pString.getBytes(charset), buffer);
   }
 
   /**

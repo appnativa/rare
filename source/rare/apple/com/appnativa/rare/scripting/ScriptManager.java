@@ -27,6 +27,7 @@ import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.apple.AppContext;
 import com.appnativa.rare.spot.Application;
 import com.appnativa.rare.ui.Frame;
+import com.appnativa.rare.ui.canvas.Image;
 import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.util.Streams;
@@ -111,7 +112,7 @@ public class ScriptManager extends aScriptManager {
   @Override
   public iScriptHandler getRootHandler(iPlatformAppContext app, iWindow frame, String type, String name, String source,
           boolean share) {
-    ScriptEngine engine = getEngine(type, false, null);
+    ScriptEngine engine = getEngine(type, true, null);
 
     if (name == null) {
       if (source == null) {
@@ -130,6 +131,11 @@ public class ScriptManager extends aScriptManager {
   protected Object InvokeNativeScriptFunctionObject(Object function, ScriptEngine engine, ScriptContext context,
           Object scriptObject) {
     return ((JavaScriptEngine) engine).InvokeNativeScriptFunctionObject(function, engine, context, scriptObject);
+  }
+
+  @Override
+  protected boolean canReuseEnginesForNonSharedScripts() {
+    return false;
   }
 
   @Override
@@ -157,9 +163,6 @@ public class ScriptManager extends aScriptManager {
 
     JavaScriptEngine je = (JavaScriptEngine) engine;
 
-    context.setBindings(je.createBindings(), ScriptContext.ENGINE_SCOPE);
-    context.setAttribute(DynamicBindings.FORM, theWindow, ScriptContext.ENGINE_SCOPE);
-    context.setAttribute(DynamicBindings.WIDGET, theWindow, ScriptContext.ENGINE_SCOPE);
     je.setPopulatingConstants(true);
 
     Iterator<Entry<String, Object>> it = globalBindings.entrySet().iterator();
@@ -170,25 +173,8 @@ public class ScriptManager extends aScriptManager {
       je.setConstantValue(e.getKey(), e.getValue());
     }
 
+    je.setConstantValue("Image", Image.class);
     je.setPopulatingConstants(false);
-
-    if (!"false".equalsIgnoreCase(Platform.getProperty("rare.scriptingRunInit",
-            Platform.getProperty("jnlp.rare.scriptingRunInit", null)))) {
-      String fileName = (String) context.getAttribute(ScriptEngine.FILENAME, ScriptContext.ENGINE_SCOPE);
-
-      try {
-        String source = engine.getFactory().getLanguageName().toLowerCase() + ".init";
-        String code   = getResourceStreamAsString(source);
-
-        if (code != null) {
-          context.setAttribute(ScriptEngine.FILENAME, source, ScriptContext.ENGINE_SCOPE);
-          engine.eval(code, context);
-        }
-      } catch(Throwable e) {
-        context.setAttribute(ScriptEngine.FILENAME, fileName, ScriptContext.ENGINE_SCOPE);
-        Platform.debugLog(e.toString());
-      }
-    }
   }
 
   @Override
@@ -213,8 +199,9 @@ public class ScriptManager extends aScriptManager {
 
   @Override
   protected void setupDynamicBindings(ScriptEngine e, ScriptContext sc) {
-    sc.setBindings(new DynamicBindings(sc.getBindings(ScriptContext.GLOBAL_SCOPE),
-                                       sc.getBindings(ScriptContext.ENGINE_SCOPE)), ScriptContext.GLOBAL_SCOPE);
+    sc.setBindings(new DynamicBindings(sc.getBindings(ScriptContext.GLOBAL_SCOPE), this), ScriptContext.GLOBAL_SCOPE);
+//    sc.setBindings(new DynamicBindings(sc.getBindings(ScriptContext.GLOBAL_SCOPE),
+//                                       sc.getBindings(ScriptContext.ENGINE_SCOPE)), ScriptContext.GLOBAL_SCOPE);
   }
 
   @Override
@@ -301,4 +288,14 @@ public class ScriptManager extends aScriptManager {
 
     return null;
   }
+
+  @Override
+  public boolean releaseEngineEx(ScriptEngine e) {
+    JavaScriptEngine je = (JavaScriptEngine) e;
+
+    je.dispose();
+
+    return true;
+  }
+ 
 }

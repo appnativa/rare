@@ -29,13 +29,15 @@ import com.appnativa.rare.ui.iPlatformGraphics;
  */
 public interface iPlatformPainter extends iPainter {
   @Override
-  public void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation);
+  void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation);
 
-  public boolean canUseMainLayer();
+  boolean canUseMainLayer();
 
-  public boolean canUseLayer();
+  boolean canUseLayer();
 
-  public int getModCount();
+  int getModCount();
 
-  public boolean isSingleColorPainter();
+  boolean isSingleColorPainter();
+  
+  void updateModCount();
 }

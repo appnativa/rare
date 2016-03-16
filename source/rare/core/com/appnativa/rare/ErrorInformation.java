@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare;
@@ -187,7 +187,6 @@ public class ErrorInformation implements Cloneable {
     }
 
     return sw.toString();
-//      return Helper.tokenReplacement(toString(), "\n", "<br/>", true, null, null, 20);
   }
 
   /**

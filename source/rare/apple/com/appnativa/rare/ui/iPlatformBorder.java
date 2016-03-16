@@ -36,5 +36,6 @@ public interface iPlatformBorder extends iBorder {
   boolean requiresPanel();
 
   int getModCount();
-
+  
+  void updateModCount();
 }

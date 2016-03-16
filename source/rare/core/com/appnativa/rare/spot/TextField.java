@@ -1,5 +1,5 @@
 /**************************************************************************
- * TextField.java - Wed Nov 18 17:50:58 PST 2015
+ * TextField.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -67,7 +67,7 @@ public class TextField extends Widget {
 
 //GENERATED_COMMENT{}
   /** Behavior: whether default suggestions are allowed */ 
-  public SPOTBoolean allowDefaultSuggestions = new SPOTBoolean(null, true, false );
+  public SPOTBoolean allowDefaultSuggestions = new SPOTBoolean(null, false, false );
 
   /** Design: the type of keyboard to use for input. spellCheck is true/false; autoCapatilize is none/words/sentences/all */
   public CKeyboardType keyboardType = new CKeyboardType(null, null, CKeyboardType.default_type, "default_type", false );

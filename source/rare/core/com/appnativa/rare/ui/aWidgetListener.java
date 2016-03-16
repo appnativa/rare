@@ -311,38 +311,8 @@ public abstract class aWidgetListener
   public static Map createEventMap(Widget cfg, String name, iScriptHandler sh) {
     Map<String, Object> map = createEventMap(cfg.spot_getAttributesEx());
     String              code;
-    String              func;
-    String              event;
-
-    func = cfg.standardHandlers.getValue();
-
-    if ((func != null) && (func.length() > 0)) {
-      CharScanner sc = perThreadScanner.get();
-
-      if (map == null) {
-        map = new HashMap<String, Object>();
-      }
-
-      sc.reset(func);
-
-      int sl = iConstants.EVENT_PREFIX.length();
-
-      while((func = sc.nextToken(',', true)) != null) {
-        event = fromWebEventEx(func);
-
-        if (event == null) {
-          continue;
-        }
-
-        func = name + "_" + event.substring(sl);
-        func = sh.getFunctionCall(func, null);
-
-        if (!map.containsKey(event)) {
-          map.put(event, func);
-        }
-      }
-    }
-
+  
+  
     code = cfg.propertyChangeHandlers.getValue();
 
     if ((code != null) && (code.length() > 0)) {

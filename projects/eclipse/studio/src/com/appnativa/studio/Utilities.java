@@ -115,11 +115,11 @@ import com.appnativa.util.SimpleURLResolver;
 import com.appnativa.util.Streams;
 import com.appnativa.util.StringCache;
 import com.appnativa.util.iURLResolver;
-import com.jgoodies.forms.layout.BoundedSize;
-import com.jgoodies.forms.layout.ConstantSize;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.Size;
-import com.jgoodies.forms.layout.Sizes;
+import com.appnativa.jgoodies.forms.layout.BoundedSize;
+import com.appnativa.jgoodies.forms.layout.ConstantSize;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.Size;
+import com.appnativa.jgoodies.forms.layout.Sizes;
 
 /**
  *

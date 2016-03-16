@@ -8,6 +8,51 @@
 
 package com.appnativa.studio;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iAppContext;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.platform.ActionHelper;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.swing.ui.text.UndoManagerEx;
+import com.appnativa.rare.platform.swing.ui.text.UndoManagerEx.iModNotifier;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.FrameView;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
+import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
+import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIAction;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIMenu;
+import com.appnativa.rare.ui.UIMenuItem;
+import com.appnativa.rare.ui.UISoundHelper;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
+import com.appnativa.rare.ui.border.UILineBorder;
+import com.appnativa.rare.ui.dnd.TransferFlavor;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.iLayoutManager;
+import com.appnativa.rare.ui.iLayoutManager.iLayoutTracker;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformGraphics;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iTabDocument;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
+import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.viewer.aRegionViewer;
+import com.appnativa.rare.viewer.aTabPaneViewer;
+import com.appnativa.rare.viewer.iContainer;
+import com.appnativa.rare.viewer.iTarget;
+import com.appnativa.rare.viewer.iViewer;
+import com.appnativa.rare.widget.aWidget;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.rare.widget.iWidget.WidgetType;
+import com.appnativa.spot.SPOTSequence;
+import com.appnativa.spot.iSPOTElement;
+import com.appnativa.util.Helper;
+import com.appnativa.util.IdentityArrayList;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -21,6 +66,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -36,8 +82,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+
 import java.net.MalformedURLException;
 import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -62,48 +110,6 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoableEdit;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iAppContext;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.platform.ActionHelper;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.swing.ui.text.UndoManagerEx;
-import com.appnativa.rare.platform.swing.ui.text.UndoManagerEx.iModNotifier;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.FrameView;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
-import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
-import com.appnativa.rare.spot.Widget;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.MenuUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIMenu;
-import com.appnativa.rare.ui.UISoundHelper;
-import com.appnativa.rare.ui.iLayoutManager;
-import com.appnativa.rare.ui.iLayoutManager.iLayoutTracker;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformGraphics;
-import com.appnativa.rare.ui.iTabDocument;
-import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
-import com.appnativa.rare.ui.border.UILineBorder;
-import com.appnativa.rare.ui.dnd.TransferFlavor;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-import com.appnativa.rare.ui.painter.UISimpleBackgroundPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.viewer.aRegionViewer;
-import com.appnativa.rare.viewer.aTabPaneViewer;
-import com.appnativa.rare.viewer.iContainer;
-import com.appnativa.rare.viewer.iTarget;
-import com.appnativa.rare.viewer.iViewer;
-import com.appnativa.rare.widget.aWidget;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.rare.widget.iWidget.WidgetType;
-import com.appnativa.spot.SPOTSequence;
-import com.appnativa.spot.iSPOTElement;
-import com.appnativa.util.Helper;
-
 /**
  *
  * @author decoteaud
@@ -112,10 +118,10 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   private static int               DRAG_SLOP      = 10;
   private static long              sequenceNumber = 0;
   public boolean                   dropTrackingCanceled;
-  Rectangle                        bounds         = new Rectangle();
-  Rectangle                        unionRect      = new Rectangle();
-  SelectionArea                    trackingArea   = new SelectionArea();
-  SelectionArea                    activeArea     = new SelectionArea();
+  Rectangle                        bounds       = new Rectangle();
+  Rectangle                        unionRect    = new Rectangle();
+  SelectionArea                    trackingArea = new SelectionArea();
+  SelectionArea                    activeArea   = new SelectionArea();
   iAppContext                      appContext;
   UILineBorder                     cellBorder;
   ChangeEvent                      changeEvent;
@@ -133,7 +139,6 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   UIColor                          trackingColor;
   private ArrayList<SelectionArea> selections     = new ArrayList<SelectionArea>();
   private boolean                  modified       = false;
-  private boolean                  focusOwner     = true;
   private boolean                  fireEvents     = true;
   private boolean                  absoluteLayout = false;
   private boolean                  showGrid       = true;
@@ -149,7 +154,6 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   private Point                    mouseScreenDown;
   private final long               paneID;
   private iContainer               rootWidget;
-  // private List<Widget> selectedConfigs;
   private iWidget                  selectedWidget;
   private boolean                  selectionEventsDisabled;
   private UtilityPanel             topPanel;
@@ -160,27 +164,28 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     super();
 
     if (JPanelEx.SYSTEM_PAINTER == null) {
-      JPanelEx.SYSTEM_PAINTER = new DesignModePainter();
+      JPanelEx.SYSTEM_PAINTER               = new DesignModePainter();
       ColorUtils.DISABLED_TRANSPARENT_COLOR = new UIColor(0, 0, 0, 64);
     }
 
-    component = new DesignPaneContainer(this);
-    paneID = sequenceNumber++;
-    topPanel = top;
-    syncCounter = ai;
-    appContext = Platform.getAppContext();
+    shortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    component       = new DesignPaneContainer(this);
+    paneID          = sequenceNumber++;
+    topPanel        = top;
+    syncCounter     = ai;
+    appContext      = Platform.getAppContext();
     setOpaque(false);
     this.undoManager = new UndoManagerEx();
     this.undoManager.setModNotifier(this);
-    gridColor = UIColor.GREEN;
+    gridColor     = UIColor.GREEN;
     trackingColor = UIColor.DARKGRAY;
-    lineStroke = SwingHelper.DASHED_STROKE;
+    lineStroke    = SwingHelper.DASHED_STROKE;
 
     UILineBorder b = new UILineBorder(trackingColor, 2, 4);
 
-    cellBorder = b;
-    b = new UILineBorder(UIColor.BLUE, 2, 4);
-    selectionBorder = b;
+    cellBorder            = b;
+    b                     = new UILineBorder(UIColor.BLUE, 2, 4);
+    selectionBorder       = b;
     trackingArea.tracking = true;
     this.addHierarchyListener(this);
     // DragSourceAdapter.configure(this);
@@ -203,15 +208,12 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       protected Transferable createTransferable(JComponent c) {
         return new DesignTransferable((WidgetList) getSelection(), paneID);
       }
-
       public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
         return DesignTransferable.hasSupportedFlavor(transferFlavors);
       }
-
       public void exportToClipboard(JComponent comp, Clipboard clip, int action) throws IllegalStateException {
         DesignPane.this.exportToClipboard(clip, action);
       }
-
       public boolean importData(JComponent comp, Transferable t) {
         return DesignPane.this.importData(t);
       }
@@ -252,21 +254,24 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   public void endEditsCapture(boolean discard, boolean update, Widget wc) {
     DesignCompoundEdit e = editCapturer;
+
     editCapturer = null;
+
     if (!discard && e.hasEdits()) {
       addUndoableEdit(e, update, wc);
     }
   }
 
   public boolean hasCapturedEdits() {
-    return editCapturer != null && editCapturer.hasEdits();
+    return (editCapturer != null) && editCapturer.hasEdits();
   }
 
   public void addUndoableEdit(UndoableEdit e, boolean update, Widget wc) {
     if (e instanceof DesignCompoundEdit) {
-      ((DesignCompoundEdit) e).end(); // design edits should be completed prior
-                                      // to adding to the undo manager
+      ((DesignCompoundEdit) e).end();    // design edits should be completed prior
+      // to adding to the undo manager
     }
+
     if (editCapturer != null) {
       editCapturer.addEdit(e);
     } else {
@@ -304,6 +309,14 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     return (selectedWidget != rootWidget) && (selectedWidget != null);
   }
 
+  public boolean canUndo() {
+    return (undoManager != null) && (undoManager.canUndo());
+  }
+
+  public boolean canRedo() {
+    return (undoManager != null) && (undoManager.canRedo());
+  }
+
   public boolean canImport(DataFlavor[] flavors) {
     if (!canPaste()) {
       return false;
@@ -328,8 +341,12 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     return activeArea.valid && (rootWidget instanceof iContainer);
   }
 
-  public boolean canSelectAll() {
+  public boolean canSelectAll(boolean selected) {
     iWidget w = activeArea.gridWidget;
+
+    if (selected && (selectedWidget != null)) {
+      w = selectedWidget;
+    }
 
     if (w == null) {
       w = rootWidget;
@@ -382,15 +399,16 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   public Object deleteSelectedData(boolean returnData) {
     DesignCompoundEdit edits = new DesignCompoundEdit(this);
-    UndoableEdit e;
-    iWidget w;
-    Object o = this.getSelectedWidgetConfigsEx(false);
+    UndoableEdit       e;
+    iWidget            w;
+    Object             o = this.getSelectedWidgetConfigsEx(false);
 
     for (SelectionArea a : selections) {
       w = a.selectionWidget;
 
       if ((w != null) && (w != rootWidget)) {
-        e = FormChanger.removeWidget(this, (SPOTSequence) w.getParent().getLinkedData(), w, (Widget) w.getLinkedData(), true);
+        e = FormChanger.removeWidget(this, (SPOTSequence) w.getParent().getLinkedData(), w, (Widget) w.getLinkedData(),
+                                     true);
 
         if (e != null) {
           edits.addEdit(e);
@@ -433,16 +451,6 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     return null;
   }
 
-  public void focusGained() {
-    focusOwner = true;
-    changeFocusStateColor();
-  }
-
-  public void focusLost() {
-    focusOwner = false;
-    changeFocusStateColor();
-  }
-
   public void handleDrop(Point p, Widget cfg, iWidget selected) {
     if (p == null) {
       FormsUtils.handleDrop(this, cfg);
@@ -454,6 +462,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   public void handleSingleMouseClick(Point p) {
     if (motionTracking) {
       DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
       designEvent.setWidget(FormsUtils.getWidgetAtPoint(DesignPane.this, p));
       designEvent.setEvent(EventType.MOTION_TRACKING_CLICK);
       designEvent.setData(p);
@@ -465,7 +474,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
       Component c = getParent();
 
-      while ((c != null) && !(c instanceof ScrollPaneEx)) {
+      while((c != null) &&!(c instanceof ScrollPaneEx)) {
         c = c.getParent();
       }
 
@@ -505,7 +514,9 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     if (mod != modified) {
       modified = mod;
+
       DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
       designEvent.setWidget(rootWidget);
       designEvent.setEvent(EventType.DOCUMENT_MODIFIED);
       fireEvent(designEvent);
@@ -535,16 +546,10 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
     designEvent.setWidget(selectedWidget);
     designEvent.setEvent(EventType.RELOAD_REQUEST);
     designEvent.setData(wc);
-
-    // if (wc == null) {
-    // selectedConfigs = this.getSelectedWidgetConfigsEx(true);
-    // } else {
-    // selectedConfigs = Collections.singletonList(wc);
-    // }
-
     fireEvent(designEvent);
   }
 
@@ -573,11 +578,30 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     setSelectedWidgets(widgets, anchor);
   }
 
+  public void setSelectedWidgets(List<Widget> list) {
+    if(list==null) {
+      clearSelections();
+    }
+    else {
+      List<iWidget> widgets = findWidgets(rootWidget, list, null);
+      iWidget anchor=widgets.isEmpty() ? null : widgets.get(0);
+      setSelectedWidgetsEx(widgets, anchor, false);
+    }
+  }
+
   public void selectByElementEquals(iSPOTElement e) {
     iWidget w = findByElementEquals(rootWidget, e);
 
     if (w != null) {
       setSelectedWidget(w);
+
+      if ((selectedWidget != null) && (selectedWidget instanceof iContainer)) {
+        SelectionArea aa = new SelectionArea();
+
+        if (FormsUtils.getSelectionAreaFromCell(this, (iContainer) selectedWidget, aa, 0, 0)) {
+          selectArea(aa, 0);
+        }
+      }
     }
   }
 
@@ -595,19 +619,24 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     if (c != null) {
       c.remove(this);
     }
+
     if (component != null) {
       component.dispose();
     }
+
     if (undoManager != null) {
       undoManager.setModNotifier(null);
     }
+
     selectedWidget = null;
-    rootWidget = null;
-    scrollPane = null;
-    component = null;
-    undoManager = null;
+    rootWidget     = null;
+    scrollPane     = null;
+    component      = null;
+    undoManager    = null;
     ActionHelper.clearFocusedComponentReferences();
-    return new Rectangle(activeArea.selectionPoint.x, activeArea.selectionPoint.y, activeArea.rowColumn.x, activeArea.rowColumn.y);
+
+    return new Rectangle(activeArea.selectionPoint.x, activeArea.selectionPoint.y, activeArea.rowColumn.x,
+                         activeArea.rowColumn.y);
   }
 
   public void update() {
@@ -627,6 +656,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     if (rootWidget == null) {
       return false;
     }
+
     if (!(rootWidget instanceof iContainer)) {
       trackingArea.setValid(false);
 
@@ -636,7 +666,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     Rectangle ir = null;
 
     if (imageRect != null) {
-      ir = imageRect.getBounds();
+      ir          = imageRect.getBounds();
       imageRect.x = p.x - 5;
       imageRect.y = p.y - 5;
 
@@ -647,16 +677,21 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       }
     }
 
-    Rectangle ob = trackingArea.isValid() ? trackingArea.getComponentLocation() : new Rectangle();
+    Rectangle ob = trackingArea.isValid()
+                   ? trackingArea.getComponentLocation()
+                   : new Rectangle();
 
     FormsUtils.getSelectionAreaFromPoint(this, p, trackingArea);
 
     if (trackingArea.isValid()) {
       iWidget w = trackingArea.selectionWidget;
-      iViewer v = (w == null) ? trackingArea.gridWidget : w.getViewer();
+      iViewer v = (w == null)
+                  ? trackingArea.gridWidget
+                  : w.getViewer();
 
       trackingArea.setValid(false);
-      loop: do {
+loop:
+      do {
         if ((w != null) && dndlocal) {
           if ((w == selectedWidget) || isChildOf(selectedWidget, w)) {
             break;
@@ -664,17 +699,17 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         }
 
         if ((w == null) && (trackingArea.gridWidget == selectedWidget) && (selectedWidget != null)) {
-          switch (selectedWidget.getWidgetType()) {
-            case WidgetPane:
-            case CollapsiblePane:
-            case SplitPane:
-            case GridPane:
-            case Form:
-            case GroupBox:
-            case TabPane:
+          switch(selectedWidget.getWidgetType()) {
+            case WidgetPane :
+            case CollapsiblePane :
+            case SplitPane :
+            case GridPane :
+            case Form :
+            case GroupBox :
+            case TabPane :
               break;
 
-            default:
+            default :
               break loop;
           }
         }
@@ -684,7 +719,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         }
 
         trackingArea.setValid(true);
-      } while (false);
+      } while(false);
     }
 
     JComponent c = gridComponent;
@@ -705,8 +740,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
           ir = ir.union(ob);
         }
 
-        ob = nb; // SwingUtilities.convertRectangle(c, trackingArea.srcBounds,
-                 // this);
+        ob = nb;    // SwingUtilities.convertRectangle(c, trackingArea.srcBounds,
+        // this);
         ob.grow(3, 3);
         ir = ir.union(ob);
         scrollPane.paintImmediately(ir);
@@ -720,8 +755,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     return trackingArea.isValid();
   }
 
-  public void willPerformLayout(iLayoutManager lm) {
-  }
+  public void willPerformLayout(iLayoutManager lm) {}
 
   public void setBaseURL(URL url) {
     this.baseURL = url;
@@ -760,26 +794,29 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     requestRepaint();
   }
 
-  Object paneOwner;
+  Object      paneOwner;
+  private int shortcutKeyMask;
 
   public void setOwner(Object owner) {
     paneOwner = owner;
   }
 
-  public void setReloadedRootWidget(final iContainer w) {
+  public void setReloadedRootWidget(final iContainer w,boolean recalculateSelections) {
     if (rootWidget == null) {
       setRootWidget(w, null);
     } else {
-      rootWidget = w;
+      rootWidget     = w;
       selectedWidget = null;
-      gridComponent = null;
-      recalculateSelections();
+      gridComponent  = null;
+      if(recalculateSelections) {
+        recalculateSelections();
+      }
       lockViewer(w);
     }
   }
 
   public void setRootWidget(iContainer w, Rectangle a) {
-    rootWidget = w;
+    rootWidget     = w;
     selectedWidget = null;
 
     if (!isLocked(w)) {
@@ -798,13 +835,13 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   public void setSelectedCell(final int row, final int column) {
     Studio.runInSwingThread(new Runnable() {
-
       @Override
       public void run() {
         if (activeArea.gridWidget != null) {
           SelectionArea area = new SelectionArea();
 
-          if (FormsUtils.getSelectionAreaFromCell(DesignPane.this, (iContainer) activeArea.gridWidget, area, row, column)) {
+          if (FormsUtils.getSelectionAreaFromCell(DesignPane.this, (iContainer) activeArea.gridWidget, area, row,
+                  column)) {
             selectArea(area, 0);
           }
         }
@@ -814,7 +851,6 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   public void setSelectedWidget(final iWidget w) {
     Studio.runInSwingThread(new Runnable() {
-
       @Override
       public void run() {
         if ((w == selectedWidget) && (getSelectionCount() == 1)) {
@@ -877,7 +913,9 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   public iWidget getGridWidget() {
-    return (activeArea.gridWidget == null) ? rootWidget : activeArea.gridWidget;
+    return (activeArea.gridWidget == null)
+           ? rootWidget
+           : activeArea.gridWidget;
   }
 
   public int getModCount() {
@@ -901,8 +939,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   public List<iWidget> getSelectedWidgets() {
-    ArrayList<iWidget> list = new ArrayList<iWidget>(selections.size());
-    iWidget w;
+    ArrayList<iWidget> list = new IdentityArrayList<iWidget>(selections.size());
+    iWidget            w;
 
     if ((selectedWidget != rootWidget) && (selectedWidget != null)) {
       list.add(selectedWidget);
@@ -963,10 +1001,9 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     for (SelectionArea a : selections) {
       a.resetForReload();
     }
-    rootWidget = null;
-    gridComponent = null;
-    dropTracking = false;
 
+    gridComponent = null;
+    dropTracking  = false;
   }
 
   public int getSelectionCount() {
@@ -978,7 +1015,9 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       }
     }
 
-    return (count == 0) ? 1 : count;
+    return (count == 0)
+           ? 1
+           : count;
   }
 
   public UtilityPanel getTopPanel() {
@@ -994,7 +1033,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   public boolean isDirty() {
-    return undoManager==null || undoManager.getModCount() != 0;
+    return (undoManager == null) || (undoManager.getModCount() != 0);
   }
 
   public boolean isDropTracking() {
@@ -1008,7 +1047,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     iViewer v = w.getViewer();
 
-    while ((v != null) && (v != rootWidget)) {
+    while((v != null) && (v != rootWidget)) {
       if (v.getViewerActionLink() != null) {
         return true;
       }
@@ -1040,7 +1079,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       return false;
     }
 
-    if ((selections.size() > 1) && !absoluteLayout) {
+    if ((selections.size() > 1) &&!absoluteLayout) {
       return false;
     }
 
@@ -1086,6 +1125,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       if (olds != news) {
         this.firePropertyChange(iConstants.RARE_SELECTION_PROPERTY, Boolean.valueOf(olds), Boolean.valueOf(news));
       }
+
       DesignEvent designEvent = new DesignEvent(this, paneOwner);
 
       designEvent.setWidget(selectedWidget);
@@ -1099,6 +1139,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   void fireWidgetActionEvent() {
     DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
     designEvent.setWidget(selectedWidget);
     designEvent.setEvent(EventType.WIDGET_ACTION);
     fireEvent(designEvent);
@@ -1129,7 +1170,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   int indexOfBoundsSelection(Rectangle r) {
-    int len = selections.size();
+    int           len = selections.size();
     SelectionArea a;
 
     for (int i = 0; i < len; i++) {
@@ -1144,7 +1185,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   int indexOfWidgetSelection(iWidget w) {
-    int len = selections.size();
+    int           len = selections.size();
     SelectionArea a;
 
     for (int i = 0; i < len; i++) {
@@ -1159,13 +1200,13 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   void paintRegionsBorders(Graphics g, Component c, aRegionViewer rv) {
-    int len = rv.getRegionCount();
+    int       len = rv.getRegionCount();
     Component cc;
-    Point p;
+    Point     p;
 
     for (int i = 0; i < len; i++) {
       cc = rv.getRegion(i).getContainerComponent().getView();
-      p = cc.getLocation();
+      p  = cc.getLocation();
       g.drawRect(p.x + 1, p.y + 1, cc.getWidth() - 2, cc.getHeight() - 2);
     }
 
@@ -1174,13 +1215,15 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   void paintSelections(Graphics g) {
     SelectionArea sa = activeArea;
-    Border b;
-    Border cb = cellBorder;
-    Border sb = selectionBorder;
+    Border        b;
+    Border        cb = cellBorder;
+    Border        sb = selectionBorder;
 
     for (SelectionArea a : selections) {
       if (a != sa) {
-        b = (a.selectionWidget == null) ? cb : sb;
+        b = (a.selectionWidget == null)
+            ? cb
+            : sb;
         a.paintBorderEx(this, g, b, false, false);
       }
     }
@@ -1206,6 +1249,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     if (!show) {
       return;
     }
+
     // We only want to show the root widget selected when we last clicked ouside
     // of it's bounds
     if ((selectedWidget == rootWidget) && (activeArea.selectionWidget == rootWidget)) {
@@ -1220,18 +1264,18 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     if (!FormsUtils.paintGridLines(g, gridComponent, lineStroke, gridColor)) {
       Stroke stroke = g.getStroke();
-      Color color = g.getColor();
+      Color  color  = g.getColor();
 
       g.setColor(gridColor);
       g.setStroke(lineStroke);
 
-      switch (w.getWidgetType()) {
-        case SplitPane:
+      switch(w.getWidgetType()) {
+        case SplitPane :
           paintRegionsBorders(g, c, (aRegionViewer) w);
 
           break;
 
-        default:
+        default :
           g.drawRect(0, 0, c.getWidth() - 1, c.getHeight() - 1);
       }
 
@@ -1241,8 +1285,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   boolean performSelection(SelectionArea area, int modifiers) {
-    boolean add = isControlDown(modifiers) || isShiftDown(modifiers) || isAltDown(modifiers);
-    iWidget w = area.selectionWidget;
+    boolean add = isAddToSelectioModifier(modifiers);
+    iWidget w   = area.selectionWidget;
     // if (add && (area.selectionWidget == null)) {
     // return false;
     // }
@@ -1258,9 +1302,9 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       n = indexOfWidgetSelection(w);
     }
 
-    if ((n != -1) && !isAltDown(modifiers) && add) { // selected and not
-                                                     // changing primary
-                                                     // selection
+    if ((n != -1) &&!isAltDown(modifiers) && add) {    // selected and not
+      // changing primary
+      // selection
       selections.remove(n);
 
       if (w == selectedWidget) {
@@ -1271,7 +1315,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       return true;
     }
 
-    if (isAltDown(modifiers) || !add) {
+    if (isAltDown(modifiers) ||!add) {
       activeArea = area;
 
       if (selectedWidget != area.selectionWidget) {
@@ -1307,100 +1351,54 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     return true;
   }
 
-  //
-  // void recalculateSelectionRects(List<SelectionArea> list, iWidget gw) {
-  // Point gridSize = null;
-  //
-  // if (gw != null) {
-  // gridSize = FormsUtils.getGridSize((iContainer) gw);
-  //
-  // if (gridSize != null) {
-  // gridSize.x--;
-  // gridSize.y--;
-  // }
-  // }
-  //
-  // Point p;
-  //
-  // for (SelectionArea a : list) {
-  // if (a.selectionWidget != null) {
-  // continue;
-  // }
-  //
-  // if (gridSize != null) {
-  // p = a.rowColumn;
-  //
-  // if (p.x > gridSize.x) {
-  // p.x = gridSize.x;
-  // }
-  //
-  // if (p.y > gridSize.y) {
-  // p.y = gridSize.y;
-  // }
-  //
-  // if (p.x < 0) {
-  // p.x = 0;
-  // }
-  //
-  // if (p.y < 0) {
-  // p.y = 0;
-  // }
-  //
-  // SelectionArea aa = new SelectionArea();
-  //
-  // if (FormsUtils.getSelectionAreaFromCell(DesignPane.this, (iContainer) gw,
-  // aa, p.y, p.x)) {
-  // selectArea(aa, MouseEvent.CTRL_DOWN_MASK);
-  //
-  // continue;
-  // }
-  // }
-  //
-  // p = a.getComponentLocation().getLocation();
-  // p.x += 4;
-  // p.y += 4;
-  // selectWidgetAtPoint(p, MouseEvent.CTRL_DOWN_MASK);
-  // }
-  // }
-
   void recalculateSelections() {
     if (rootWidget == null) {
       return;
     }
+
     try {
       List<SelectionArea> list = (List<SelectionArea>) selections.clone();
+
       selections.clear();
+
       if (!activeArea.revalidate()) {
         activeArea.reset();
       }
+
       selectedWidget = null;
-      iWidget w;
-      int len = list.size();
-      iContainer root = rootWidget.getContainerViewer();
+
+      iWidget       w;
+      int           len  = list.size();
+      iContainer    root = rootWidget.getContainerViewer();
       SelectionArea area = new SelectionArea();
+
       for (int i = 0; i < len; i++) {
         SelectionArea a = list.get(i);
+
         if (a == activeArea) {
           if (a.isValid()) {
             selections.add(a);
           }
         } else if (a.selectionWidgetConfig instanceof Widget) {
           w = Utilities.findWidget(root, (Widget) a.selectionWidgetConfig);
+
           if (w != null) {
             FormsUtils.getSelectionAreaFromWidget(this, w, area, null);
 
-            if (performSelection(area, MouseEvent.CTRL_DOWN_MASK)) {
+            if (performSelection(area, shortcutKeyMask)) {
               area = new SelectionArea();
             }
           }
         } else if (a.gridWidgetConfig instanceof Widget) {
           w = Utilities.findWidget(root, (Widget) a.gridWidgetConfig);
+
           if (w != null) {
             recalculateSelectionRect(a, w);
             area = new SelectionArea();
           }
         }
       }
+
       if (activeArea.gridWidget != null) {
         setupGridComponent(activeArea.gridWidget);
         selectedWidget = activeArea.selectionWidget;
@@ -1448,74 +1446,21 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       SelectionArea aa = new SelectionArea();
 
       if (FormsUtils.getSelectionAreaFromCell(DesignPane.this, (iContainer) gw, aa, p.y, p.x)) {
-        selectArea(aa, MouseEvent.CTRL_DOWN_MASK);
+        selectArea(aa, shortcutKeyMask);
 
         return;
       }
     }
 
-    p = a.getComponentLocation().getLocation();
+    p   = a.getComponentLocation().getLocation();
     p.x += 4;
     p.y += 4;
-    selectWidgetAtPoint(p, MouseEvent.CTRL_DOWN_MASK);
-
+    selectWidgetAtPoint(p, shortcutKeyMask);
   }
 
-  // void recalculateSelections(iWidget gw) {
-  // if (rootWidget == null) {
-  // return;
-  // }
-  //
-  // if ((this.selectedConfigs == null) || (selectedConfigs.size() == 0)) {
-  // List<SelectionArea> list = (List<SelectionArea>) selections.clone();
-  //
-  // selections.clear();
-  // recalculateSelectionRects(list, gw);
-  //
-  // if (selectedWidget == null) {
-  // clearSelections();
-  // finishSelectionChanges(null);
-  // }
-  //
-  // return;
-  // }
-  //
-  // try {
-  // selections.clear();
-  // activeArea.reset();
-  // selectedWidget = null;
-  //
-  // iWidget w;
-  // int len = selectedConfigs.size();
-  // iContainer root = rootWidget.getContainerViewer();
-  // SelectionArea area = new SelectionArea();
-  //
-  // for (int i = 0; i < len; i++) {
-  // w = Utilities.findWidget(root, selectedConfigs.get(i));
-  //
-  // if (w != null) {
-  // FormsUtils.getSelectionAreaFromWidget(this, w, area, null);
-  //
-  // if (performSelection(area, 0)) {
-  // area = new SelectionArea();
-  // }
-  // }
-  // }
-  //
-  // if (selections.size() > 0) {
-  // selectedWidget = selections.get(0).selectionWidget;
-  // }
-  //
-  // if (selectedWidget == null) {
-  // clearSelections();
-  // }
-  // } finally {
-  // selectedConfigs = null;
-  // finishSelectionChanges(null);
-  // }
-  // }
   void requestDesignSwitch() {
     DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
     designEvent.setWidget(rootWidget);
     designEvent.setEvent(EventType.SWITCH_TO_DESIGN);
     fireEvent(designEvent);
@@ -1523,6 +1468,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   void requestSourceSwitch() {
     DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
     designEvent.setWidget(rootWidget);
     designEvent.setEvent(EventType.SWITCH_TO_SOURCE);
     fireEvent(designEvent);
@@ -1564,6 +1510,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   void sendEvent(EventType event, Object data) {
     DesignEvent designEvent = new DesignEvent(this, paneOwner);
+
     designEvent.setWidget(selectedWidget);
     designEvent.setEvent(event);
     designEvent.setData(data);
@@ -1581,16 +1528,18 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       return false;
     }
 
-    boolean ok = false;
-    SelectionArea a = new SelectionArea();
-    int alt = MouseEvent.CTRL_MASK | MouseEvent.ALT_MASK;
+    boolean       ok  = false;
+    SelectionArea a   = new SelectionArea();
+    int           alt = shortcutKeyMask| MouseEvent.ALT_MASK;
 
     for (iWidget w : widgets) {
       FormsUtils.getSelectionAreaFromWidget(this, w, a, null);
 
-      if (performSelection(a, (w == anchor) ? alt : MouseEvent.CTRL_MASK)) {
+      if (performSelection(a, (w == anchor)
+                              ? alt
+                              : shortcutKeyMask)) {
         ok = true;
-        a = new SelectionArea();
+        a  = new SelectionArea();
       }
     }
 
@@ -1599,16 +1548,17 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   List<Widget> getSelectedWidgetConfigsEx(boolean rootOk) {
     WidgetList list = new WidgetList(selections.size());
-    iWidget w;
+    iWidget    w;
 
     if (activeArea.selectionWidget != null) {
       list.add((Widget) activeArea.selectionWidget.getLinkedData());
     }
 
     for (SelectionArea a : selections) {
-      if (a.isValid()) {
+      if (!a.isValid()) {
         continue;
       }
+
       w = a.selectionWidget;
 
       if ((w == null) || (w == selectedWidget)) {
@@ -1618,7 +1568,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       list.add(((Widget) w.getLinkedData()));
     }
 
-    if ((list.size() == 0) && (activeArea.gridWidget != null) && activeArea.gridWidget != rootWidget) {
+    if ((list.size() == 0) && (activeArea.gridWidget != null) && (activeArea.gridWidget != rootWidget)) {
       list.add((Widget) activeArea.gridWidget.getLinkedData());
     }
 
@@ -1626,7 +1576,9 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       list.add(((Widget) rootWidget.getLinkedData()));
     }
 
-    return (list.size() == 0) ? null : list;
+    return (list.size() == 0)
+           ? null
+           : list;
   }
 
   SelectionArea getTrackingArea() {
@@ -1659,18 +1611,18 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       if (dragImage != null) {
         imageRect = new Rectangle(dragImage.getWidth(null), dragImage.getHeight(null));
       }
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       Platform.ignoreException("dragEnter", ex);
     }
 
-    dropTracking = true;
+    dropTracking   = true;
     motionTracking = false;
   }
 
   protected void dragExit() {
-    imageRect = null;
-    dragImage = null;
-    dropTracking = false;
+    imageRect      = null;
+    dragImage      = null;
+    dropTracking   = false;
     motionTracking = false;
     trackingArea.setValid(false);
     setupGridComponent(activeArea.gridWidget);
@@ -1710,18 +1662,18 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         local = false;
       }
 
-      if ((w == null) && !local) {
+      if ((w == null) &&!local) {
         UISoundHelper.errorSound();
         requestRepaint();
       } else {
         handleDrop(p, w, selectedWidget);
       }
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       ex.printStackTrace();
       requestRepaint();
     } finally {
       trackingArea.setValid(false);
-      dropTracking = false;
+      dropTracking   = false;
       motionTracking = false;
     }
   }
@@ -1741,7 +1693,10 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     for (String s : names) {
       iWidget w = fv.getWidget(s);
-      o = (w == null) ? null : w.getLinkedData();
+
+      o = (w == null)
+          ? null
+          : w.getLinkedData();
 
       if ((o instanceof iSPOTElement) && e.equals(o)) {
         return w;
@@ -1759,6 +1714,42 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     return null;
   }
 
+  protected List<iWidget> findWidgets(iContainer fv, List<Widget> list, List<iWidget> outList) {
+    if (outList == null) {
+      outList = new IdentityArrayList<iWidget>(list.size());
+    }
+
+    List<iWidget> widgets = fv.getWidgetList();
+    int           len     = (widgets == null)
+                            ? 0
+                            : widgets.size();
+    Widget anchor=len==0 ? null : list.get(0);
+    for (int i = 0; i < len; i++) {
+      iWidget w   = widgets.get(i);
+      Widget  cfg = (Widget) w.getLinkedData();
+
+      if (cfg != null) {
+        int n = list.indexOf(cfg);
+
+        if (n != -1) {
+          list.remove(n);
+          if(cfg==anchor) {
+            outList.add(0,w);
+          }
+          else {
+            outList.add(w);
+          }
+        }
+
+        if (!list.isEmpty() && (w instanceof iContainer)) {
+          findWidgets(fv, list, outList);
+        }
+      }
+    }
+
+    return outList;
+  }
+
   protected void paintChildren(Graphics g) {
     super.paintChildren(g);
   }
@@ -1773,19 +1764,13 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
-  protected void stopDraggin(boolean cancel) {
-  }
+  protected void stopDraggin(boolean cancel) {}
 
   protected void updateEx(boolean repaint) {
     if (rootWidget != null) {
       trackingArea.setValid(false);
-
-      // if (selectedConfigs == null) {
-      // selectedConfigs = getSelectedWidgetConfigsEx(true);
-      // }
-
       selectionEventsDisabled = hasHadSelection;
-      hasHadSelection = true;
+      hasHadSelection         = true;
 
       try {
         recalculateSelections();
@@ -1801,7 +1786,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   protected void setSelectedWidgetEx(iWidget w, boolean add) {
     SelectionArea area = new SelectionArea();
-    iWidget ow = selectedWidget;
+    iWidget       ow   = selectedWidget;
 
     if (w != null) {
       Component c = w.getContainerComponent().getView();
@@ -1816,24 +1801,13 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       area.reset();
     }
 
-    if (performSelection(area, add ? MouseEvent.CTRL_MASK : 0)) {
+    if (performSelection(area, add
+                               ? shortcutKeyMask
+                               : 0)) {
       finishSelectionChanges(ow);
     }
 
     repaint();
-  }
-
-  private void changeFocusStateColor() {
-    JScrollPane sp = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, DesignPane.this);
-
-    if ((sp != null) && (sp.getBorder() instanceof UICompoundBorder)) {
-      Border b = ((UICompoundBorder) sp.getBorder()).getOutsideBorder();
-
-      if (b instanceof UILineBorder) {
-        ((UILineBorder) b).setLineColor(focusOwner ? UIColor.CYAN : UIColor.LIGHTGRAY);
-        sp.repaint();
-      }
-    }
   }
 
   private void clearDropRectAndCursor(Point p) {
@@ -1876,7 +1850,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       if (action == TransferHandler.MOVE) {
         deleteSelectedData(false);
       }
-    } catch (IllegalStateException ise) {
+    } catch(IllegalStateException ise) {
       ise.printStackTrace();
     }
   }
@@ -1926,10 +1900,11 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
         for (Widget wc : list) {
           wc = (Widget) wc.clone();
-          FormsUtils.handleDropEx(this, wc, new DnDPopupMenu(), false);
+//          FormsUtils.handleDropEx(this, wc, new DnDPopupMenu(), false);
+          FormsUtils.handleDrop(this, wc);
         }
       }
-    } catch (Exception e) {
+    } catch(Exception e) {
       imported = false;
     }
 
@@ -1943,7 +1918,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       return;
     }
 
-    if (c != rootWidget && isLockable(c)) {
+    if ((c != rootWidget) && isLockable(c)) {
       c.setEnabled(false);
       c.getContainerComponent().setLocked(true);
 
@@ -1979,9 +1954,11 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     if (c instanceof aTabPaneViewer) {
-      aTabPaneViewer tv = (aTabPaneViewer) c;
-      iTabDocument doc = tv.getSelectedTabDocument();
-      iTarget t = (doc == null) ? null : doc.getTarget();
+      aTabPaneViewer tv  = (aTabPaneViewer) c;
+      iTabDocument   doc = tv.getSelectedTabDocument();
+      iTarget        t   = (doc == null)
+                           ? null
+                           : doc.getTarget();
 
       if (t != null) {
         v = t.getViewer();
@@ -2019,18 +1996,22 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     if (scrollPane != null) {
       scrollPane.repaint();
     }
+
     repaint();
 
     if (borderComponent != null) {
       borderComponent.repaint();
     }
+
     if (gridComponent != null) {
       gridComponent.repaint();
     }
   }
 
   private void setupGridComponent(iWidget w) {
-    w = (w == null) ? null : w.getContainerViewer();
+    w = (w == null)
+        ? null
+        : w.getContainerViewer();
 
     if (w == null) {
       w = rootWidget;
@@ -2044,10 +2025,10 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
   }
 
   private void showPopupMenu(MouseEvent e) {
-    UIMenu menu = new UIMenu();
-    Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), rootWidget.getContainerComponent().getView());
+    UIMenu menu = createPopupMenu();
+    Point  p    = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(),
+                    rootWidget.getContainerComponent().getView());
 
-    MenuUtils.addTextActions(menu, false, false);
     FormsUtils.addWidgetMenu(this, menu, p, activeArea.gridWidget);
 
     JPopupMenu pm = new JPopupMenu();
@@ -2078,13 +2059,33 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       }
 
       w = p;
-    } while (w != null);
+    } while(w != null);
 
     return false;
   }
 
-  private boolean isControlDown(int modifiers) {
-    return (modifiers & MouseEvent.CTRL_MASK) != 0;
+  private boolean isAddToSelectioModifier(int modifiers) {
+    if ((modifiers & shortcutKeyMask) != 0) {
+      return true;
+    }
+
+    if ((modifiers & MouseEvent.SHIFT_MASK) != 0) {
+      return true;
+    }
+
+    if ((modifiers & MouseEvent.ALT_MASK) != 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private boolean isShortcutModifier(int modifiers) {
+    if ((modifiers & MouseEvent.SHIFT_MASK) != 0) {
+      return false;
+    }
+
+    return (modifiers & shortcutKeyMask) != 0;
   }
 
   private boolean isShiftDown(int modifiers) {
@@ -2093,8 +2094,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
   private boolean isLockable(iViewer v) {
     try {
-      return v.getViewerActionLink() != null && v.getViewerActionLink().getURL(v) != null;
-    } catch (MalformedURLException e) {
+      return (v.getViewerActionLink() != null) && (v.getViewerActionLink().getURL(v) != null);
+    } catch(MalformedURLException e) {
       return true;
     }
   }
@@ -2106,6 +2107,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     boolean isReloadRequired();
   }
+
 
   public static class DesignCompoundEdit extends CompoundEdit implements DesignEdit {
     DesignPane      pane;
@@ -2209,6 +2211,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
+
   public static class DesignModePainter extends UIComponentPainter {
     @Override
     public void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation, boolean end) {
@@ -2218,7 +2221,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
       iWidget w = g.getComponent().getWidget();
 
-      if ((w == null) || !w.isDesignMode()) {
+      if ((w == null) ||!w.isDesignMode()) {
         return;
       }
 
@@ -2236,7 +2239,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     DesignPane findGlassPane(iWidget w) {
       Component parent = w.getContainerComponent().getView();
 
-      while (parent != null) {
+      while(parent != null) {
         if (parent instanceof FrameView) {
           if (((FrameView) parent).getGlassPane() instanceof DesignPane) {
             return (DesignPane) ((FrameView) parent).getGlassPane();
@@ -2249,6 +2252,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
       return null;
     }
   }
+
 
   public static class DesignUndoableEdit extends AbstractUndoableEdit implements DesignEdit {
     protected DesignPane pane;
@@ -2271,14 +2275,16 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
+
   class KeyboardHandler extends KeyAdapter {
     public void keyPressed(KeyEvent e) {
-      int row = getCurrentRow();
-      int col = getCurrentColumn();
-      boolean ok = true;
-      iWidget gw = getGridWidget();
+      int     row      = getCurrentRow();
+      int     col      = getCurrentColumn();
+      boolean ok       = true;
+      iWidget gw       = getGridWidget();
+      boolean shortcut = isShortcutModifier(e.getModifiers());
 
-      if (e.isControlDown()) {
+      if (shortcut) {
         dropAction = DnDConstants.ACTION_COPY;
       } else {
         dropAction = DnDConstants.ACTION_MOVE;
@@ -2290,36 +2296,113 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
             setCursor(Cursor.getDefaultCursor());
           } finally {
             dropTrackingCanceled = true;
-            dropTracking = false;
-            motionTracking = false;
+            dropTracking         = false;
+            motionTracking       = false;
             requestRepaint();
           }
         }
       } else {
         if (gw instanceof iContainer) {
-          switch (e.getKeyCode()) {
-
-            case KeyEvent.VK_UP:
+          switch(e.getKeyCode()) {
+            case KeyEvent.VK_UP :
               row--;
 
               break;
 
-            case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_DOWN :
               row++;
 
               break;
 
-            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_LEFT :
               col--;
 
               break;
 
-            case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_RIGHT :
               col++;
 
               break;
 
-            default:
+            case KeyEvent.VK_DELETE :
+            case KeyEvent.VK_BACK_SPACE :
+              ok = false;
+
+              if (e.isShiftDown() &&!e.isControlDown()) {
+                if (canCopy() && canDelete()) {
+                  cut();
+                }
+              } else {
+                deleteSelectedData(false);
+              }
+
+              break;
+
+            case KeyEvent.VK_INSERT :
+              ok = false;
+
+              if (shortcut && canPaste()) {
+                paste();
+              }
+
+              break;
+
+            case KeyEvent.VK_X :
+              ok = false;
+
+              if (shortcut && canCopy() && canDelete()) {
+                cut();
+              }
+
+              break;
+
+            case KeyEvent.VK_V :
+              ok = false;
+
+              if (shortcut && canPaste()) {
+                paste();
+              }
+
+              break;
+
+            case KeyEvent.VK_C :
+              ok = false;
+
+              if (shortcut && canCopy()) {
+                copy();
+              }
+
+              break;
+
+            case KeyEvent.VK_Y :
+              ok = false;
+
+              if (shortcut) {
+                if ((undoManager == null) ||!undoManager.canRedo()) {
+                  break;
+                }
+
+                undoManager.redo();
+              }
+
+              break;
+
+            case KeyEvent.VK_Z :
+              ok = false;
+
+              if (shortcut) {
+                if ((undoManager == null) ||!undoManager.canUndo()) {
+                  Platform.getWindowViewer().beep();
+
+                  break;
+                }
+
+                undoManager.undo();
+              }
+
+              break;
+
+            default :
               ok = false;
           }
 
@@ -2342,10 +2425,12 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
+
   class PaneBorder implements Border {
     public void paintBorder(Component comp, Graphics g, int x, int y, int width, int height) {
       if (!dropTracking) {
-        Point r = null, c = null;
+        Point r = null,
+              c = null;
 
         if (!activeArea.isValid()) {
           g.setColor(trackingColor);
@@ -2354,8 +2439,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         } else if (activeArea.gridWidget != null) {
           Rectangle b = activeArea.getComponentLocation();
 
-          r = b.getLocation();
-          c = b.getLocation();
+          r   = b.getLocation();
+          c   = b.getLocation();
           r.y += (b.height / 2);
           c.x += (b.width / 2);
           r.y--;
@@ -2376,6 +2461,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
+
   class PaneDropTargetListener implements DropTargetListener {
     public void dragEnter(DropTargetDragEvent dtde) {
       if (!dtde.isDataFlavorSupported(DesignTransferable.getMainDataFlavor())) {
@@ -2394,7 +2480,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     public void dragOver(DropTargetDragEvent dtde) {
       boolean local = dtde.isDataFlavorSupported(DesignTransferable.getLocalDataFlavor());
-      boolean ok = false;
+      boolean ok    = false;
       // don't trust DnD location on mac coming through SWT
       Point p = dtde.getLocation();
 
@@ -2422,8 +2508,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         setupGridComponent(activeArea.gridWidget);
 
         Transferable t = dtde.getTransferable();
-        Object o = t.getTransferData(DesignTransferable.getMainDataFlavor());
-        Widget w = null;
+        Object       o = t.getTransferData(DesignTransferable.getMainDataFlavor());
+        Widget       w = null;
 
         if (o instanceof List) {
           List l = (List) o;
@@ -2447,25 +2533,25 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
           local = false;
         }
 
-        if ((w == null) && !local) {
+        if ((w == null) &&!local) {
           UISoundHelper.errorSound();
           requestRepaint();
         } else {
           // don't trust DnD location on mac coming through SWT
           handleDrop(getMouseLocation(), w, selectedWidget);
         }
-      } catch (Exception ex) {
+      } catch(Exception ex) {
         ex.printStackTrace();
       } finally {
         trackingArea.setValid(false);
-        dropTracking = false;
+        dropTracking   = false;
         motionTracking = false;
       }
     }
 
-    public void dropActionChanged(DropTargetDragEvent dtde) {
-    }
+    public void dropActionChanged(DropTargetDragEvent dtde) {}
   }
+
 
   class PaneMouseAdapter extends MouseInputAdapter {
     private long mouseDownTime;
@@ -2479,13 +2565,14 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     public void mouseDragged(MouseEvent e) {
-      if (!dropTracking && !dropTrackingCanceled && !wasDropTracking && (selectedWidget != null) && (selectedWidget != rootWidget)) {
+      if (!dropTracking &&!dropTrackingCanceled &&!wasDropTracking && (selectedWidget != null)
+          && (selectedWidget != rootWidget)) {
         if ((Math.abs(e.getX() - mouseDown.x) > DRAG_SLOP) || (Math.abs(e.getY() - mouseDown.y) > DRAG_SLOP)) {
-          dropTracking = true;
+          dropTracking   = true;
           motionTracking = true;
-          okToDrop = false;
-          dropAction = DnDConstants.ACTION_MOVE;
-          dragImage = getDragImage();
+          okToDrop       = false;
+          dropAction     = DnDConstants.ACTION_MOVE;
+          dragImage      = getDragImage();
           setCursor(DragSource.DefaultMoveNoDrop);
 
           if (dragImage != null) {
@@ -2498,15 +2585,19 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         okToDrop = updateDropTracking(e.getPoint(), true);
 
         if (dropAction == DnDConstants.ACTION_COPY) {
-          setCursor(okToDrop ? DragSource.DefaultCopyDrop : DragSource.DefaultCopyNoDrop);
+          setCursor(okToDrop
+                    ? DragSource.DefaultCopyDrop
+                    : DragSource.DefaultCopyNoDrop);
         } else {
-          setCursor(okToDrop ? DragSource.DefaultMoveDrop : DragSource.DefaultMoveNoDrop);
+          setCursor(okToDrop
+                    ? DragSource.DefaultMoveDrop
+                    : DragSource.DefaultMoveNoDrop);
         }
       }
     }
 
     public void mouseEntered(MouseEvent e) {
-      dropTracking = wasDropTracking;
+      dropTracking    = wasDropTracking;
       wasDropTracking = false;
     }
 
@@ -2514,7 +2605,8 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     public void mouseExited(MouseEvent e) {
       wasDropTracking = dropTracking;
-      dropTracking = false;
+      dropTracking    = false;
+
       if (wasDropTracking) {
         requestRepaint();
         setCursor(Cursor.getDefaultCursor());
@@ -2528,29 +2620,32 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     public void mousePressed(MouseEvent e) {
-      mouseDown = e.getPoint();
-      mouseScreenDown = e.getLocationOnScreen();
+      mouseDown            = e.getPoint();
+      mouseScreenDown      = e.getLocationOnScreen();
       dropTrackingCanceled = false;
-      mouseDownTime = System.currentTimeMillis();
+      mouseDownTime        = System.currentTimeMillis();
 
       if (!isFocusOwner()) {
         requestFocusInWindow();
       }
 
       if (!motionTracking) {
-        if (rootWidget != null && !SwingUtilities.isRightMouseButton(e)) {
-          Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), rootWidget.getContainerComponent().getView());
+        if (rootWidget != null) {
+          Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(),
+                      rootWidget.getContainerComponent().getView());
+
           selectWidgetAtPoint(p, e.getModifiers());
         }
       }
 
-      if (e.isPopupTrigger()) {
+      if (!motionTracking && e.isPopupTrigger()) {
         showPopupMenu(e);
       }
     }
 
     public void mouseReleased(MouseEvent e) {
       wasDropTracking = false;
+
       if (dropTracking) {
         try {
           setCursor(Cursor.getDefaultCursor());
@@ -2563,7 +2658,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
             }
           }
         } finally {
-          dropTracking = false;
+          dropTracking   = false;
           motionTracking = false;
         }
       }
@@ -2578,6 +2673,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
+
   class SelectionArea {
     final Point     rowColumn      = new Point();
     final Point     selectionPoint = new Point();
@@ -2587,7 +2683,7 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     iSPOTElement    gridWidgetConfig;
     iWidget         selectionWidget;
     iSPOTElement    selectionWidgetConfig;
-    private boolean cellSelected   = true;
+    private boolean cellSelected = true;
     private boolean tracking;
     private boolean valid;
 
@@ -2611,13 +2707,16 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     public void paintBorderEx(Component c, Graphics g, Border border, boolean pane, boolean offset) {
       Rectangle r = getComponentLocation();
+
       if (r != null) {
         if (pane) {
           r.x -= 3;
           r.y -= 3;
         }
 
-        int d = offset ? 2 : 0;
+        int d = offset
+                ? 2
+                : 0;
 
         border.paintBorder(c, g, r.x - d, r.y - d, r.width + (d * 2), r.height + (d * 2));
       }
@@ -2625,10 +2724,10 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
     public void reset() {
       setValid(false);
-      constraints = null;
+      constraints     = null;
       selectionWidget = null;
-      cellSelected = true;
-      gridWidget = null;
+      cellSelected    = true;
+      gridWidget      = null;
     }
 
     public void resetForReload() {
@@ -2646,15 +2745,16 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     public boolean revalidate() {
-      boolean ok = false;
+      boolean ok  = false;
       boolean sel = cellSelected;
-      Point p = new Point(selectionPoint);
+      Point   p   = new Point(selectionPoint);
+
       do {
         if (selectionWidgetConfig != null) {
           iWidget w = findByElementEquals(rootWidget, selectionWidgetConfig);
 
           selectionWidgetConfig = null;
-          selectedWidget = w;
+          selectedWidget        = w;
 
           if ((w != null) && FormsUtils.getSelectionAreaFromWidget(DesignPane.this, w, this, this.selectionPoint)) {
             ok = true;
@@ -2667,11 +2767,12 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
           iWidget w = findByElementEquals(rootWidget, gridWidgetConfig);
 
           gridWidgetConfig = null;
+
           if (w instanceof iContainer) {
             gridWidget = (iContainer) w;
           } else {
             gridWidget = null;
-            w = null;
+            w          = null;
           }
 
           if (w != null) {
@@ -2684,13 +2785,16 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
         } else {
           gridWidget = null;
         }
-      } while (false);
+      } while(false);
+
       if (ok) {
         cellSelected = sel;
+
         if (srcBounds.contains(p)) {
           selectionPoint.setLocation(p);
         }
       }
+
       return ok;
     }
 
@@ -2699,18 +2803,21 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     public Rectangle getComponentLocation() {
-      Rectangle r = new Rectangle();
+      Rectangle r  = new Rectangle();
       Component gc = FormsUtils.getPaintBounds(DesignPane.this, this, r);
+
       if (gc == null) {
         valid = false;
+
         return null;
       }
+
       Component p = gc;
 
-      while (p != scrollPane) {
+      while(p != scrollPane) {
         r.x += p.getX();
         r.y += p.getY();
-        p = p.getParent();
+        p   = p.getParent();
       }
 
       return r;
@@ -2721,23 +2828,24 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
 
     void set(SelectionArea area) {
-      this.valid = area.valid;
+      this.valid           = area.valid;
       this.selectionWidget = area.selectionWidget;
-      this.gridWidget = area.gridWidget;
-      this.constraints = area.constraints;
-      this.tracking = area.tracking;
-      this.cellSelected = area.cellSelected;
+      this.gridWidget      = area.gridWidget;
+      this.constraints     = area.constraints;
+      this.tracking        = area.tracking;
+      this.cellSelected    = area.cellSelected;
       this.selectionPoint.setLocation(area.selectionPoint);
       this.rowColumn.setLocation(area.rowColumn);
     }
 
     private void repaint() {
       Rectangle r = getComponentLocation();
-      int d = 2;
+      int       d = 2;
 
       scrollPane.repaint(r.x - d, r.y - d, r.width + (d * 2), r.height + (d * 2));
     }
   }
+
 
   class SelectionPainter extends UIComponentPainter {
     @Override
@@ -2746,13 +2854,15 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
 
       if ((end == true) && (selections.size() > 0)) {
         Graphics2D g2 = g.getGraphics();
-        JViewport vp = (scrollPane == null) ? null : scrollPane.getViewport();
+        JViewport  vp = (scrollPane == null)
+                        ? null
+                        : scrollPane.getViewport();
 
         if (vp == null) {
           return;
         }
 
-        if ((valueEditor == null) || !valueEditor.isEditing()) {
+        if ((valueEditor == null) ||!valueEditor.isEditing()) {
           Shape clip = g2.getClip();
 
           g.clipRect(0, 0, vp.getWidth() + 6, vp.getHeight() + 6);
@@ -2767,7 +2877,83 @@ public class DesignPane extends UtilityPanel implements HierarchyListener, iModN
     }
   }
 
-  static class WidgetList extends ArrayList<Widget> {
+
+  private UIMenu createPopupMenu() {
+    UIMenu     menu = new UIMenu();
+    UIMenuItem item = new UIMenuItem(new PaneAction(iConstants.UNDO_ACTION_NAME));
+
+    menu.registerItem(iConstants.UNDO_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canUndo());
+    item = new UIMenuItem(new PaneAction(iConstants.REDO_ACTION_NAME));
+    menu.registerItem(iConstants.REDO_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canRedo());
+    menu.addSeparator();
+    item = new UIMenuItem(new PaneAction(iConstants.CUT_ACTION_NAME));
+    menu.registerItem(iConstants.CUT_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canCopy() && canDelete());
+    item = new UIMenuItem(new PaneAction(iConstants.COPY_ACTION_NAME));
+    menu.registerItem(iConstants.COPY_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canCopy());
+    item = new UIMenuItem(new PaneAction(iConstants.PASTE_ACTION_NAME));
+    menu.registerItem(iConstants.PASTE_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canPaste());
+    item = new UIMenuItem(new PaneAction(iConstants.DELETE_ACTION_NAME));
+    menu.registerItem(iConstants.DELETE_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canDelete());
+    menu.addSeparator();
+    item = new UIMenuItem(new PaneAction(iConstants.SELECTALL_ACTION_NAME));
+    menu.registerItem(iConstants.SELECTALL_ACTION_NAME, item);
+    menu.add(item);
+    item.setEnabled(canSelectAll(true));
+
+    return menu;
+  }
+
+  class PaneAction extends UIAction {
+    public PaneAction(String name) {
+      super(name);
+      setActionText(Platform.getResourceAsString(name));
+      name = name.replace(".action.", ".icon.");
+
+      iPlatformIcon icon = Platform.getResourceAsIconEx(name);
+
+      if (icon != null) {
+        setIcon(icon);
+      }
+    }
+
+    public PaneAction(String name, CharSequence text, iPlatformIcon icon) {
+      super(name, text, icon);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (actionName.equals(iConstants.SELECTALL_ACTION_NAME)) {
+        selectAll();
+      } else if (actionName.equals(iConstants.CUT_ACTION_NAME)) {
+        cut();
+      } else if (actionName.equals(iConstants.COPY_ACTION_NAME)) {
+        copy();
+      } else if (actionName.equals(iConstants.DELETE_ACTION_NAME)) {
+        deleteSelectedData(false);
+      } else if (actionName.equals(iConstants.PASTE_ACTION_NAME)) {
+        paste();
+      } else if (actionName.equals(iConstants.UNDO_ACTION_NAME)) {
+        undoManager.undo();
+      } else if (actionName.equals(iConstants.REDO_ACTION_NAME)) {
+        undoManager.redo();
+      }
+    }
+  }
+
+
+  static class WidgetList extends IdentityArrayList<Widget> {
     public WidgetList() {
       super();
     }

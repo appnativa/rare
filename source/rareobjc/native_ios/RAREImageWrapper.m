@@ -25,21 +25,23 @@
 @implementation RAREImageWrapper {
   CGSize imageSize;
   BOOL createdContext;
-  NSObject* context_;
+  CGContextRef context_;
   BOOL landscape;
   BOOL hasOrientatedVersion;
   NSString* failueString;
+  CGLayerRef cgLayer;
 }
 @synthesize resourceName=resourceName_;
+
 + (RAREImageWrapper *)createImageFromView:(UIView *)view {
   CGRect frame=view.bounds;
   UIGraphicsBeginImageContext(frame.size);
-//  if([view respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)])  {
-//    [view drawViewHierarchyInRect:frame afterScreenUpdates:NO];
-//  }
-//  else {
-    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
-//  }
+  //  if([view respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)])  {
+  //    [view drawViewHierarchyInRect:frame afterScreenUpdates:NO];
+  //  }
+  //  else {
+  [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+  //  }
   UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
   return [[RAREImageWrapper alloc] initWithImage:img];
@@ -56,21 +58,27 @@
     else {
       ro=NSDataReadingMappedIfSafe;
     }
-    NSData* data=[NSData dataWithContentsOfURL:nsurl options:ro error:&error];
-    if(data) {
-      image = [UIImage imageWithData: data scale: scale];
-      imageSize = image ? image.size : CGSizeZero;
-    }
-    else {
-      imageSize = CGSizeZero;
-      if(error) {
-        failueString=[AppleHelper toErrorString:error];
+    @try {
+      NSData* data=[NSData dataWithContentsOfURL:nsurl options:ro error:&error];
+      if(data) {
+        image = [UIImage imageWithData: data scale: scale];
+        imageSize = image ? image.size : CGSizeZero;
       }
+      else {
+        imageSize = CGSizeZero;
+        if(error) {
+          failueString=[AppleHelper toErrorString:error];
+        }
+      }
+      landscape=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
     }
-    landscape=UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation);
+    @catch(NSException *ex) {
+      imageSize = CGSizeZero;
+      failueString=[ex description];
+    }
     hasOrientatedVersion=YES;
   }
-
+  
   return self;
 }
 
@@ -185,39 +193,23 @@
   return NO;
 }
 - (void)dirtyCheck {
-  if (dirtyData && imageData) {
-    NSUInteger width = imageSize.width;
-    NSUInteger height = imageSize.height;
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    void *rawData = imageData.mutableBytes;
-
-    size_t bytesPerPixel = 4;
-    size_t bytesPerRow = bytesPerPixel * width;
-
-    NSUInteger bitsPerComponent = 8;
-    CGContextRef context = CGBitmapContextCreate(
-        rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace,
-        kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big
-    );
-    CGColorSpaceRelease(colorSpace);
-    CGImageRef ref = CGBitmapContextCreateImage(context);
-    CGContextRelease(context);
-    if (ref) {
-      image = [UIImage imageWithCGImage:ref];
-      CGImageRelease(ref);
-    }
-    else { //should never happen
-      UIGraphicsBeginImageContext(imageSize);
-      image = UIGraphicsGetImageFromCurrentImageContext();
-      UIGraphicsEndImageContext();
-      [RAREPlatform debugLogWithNSString: @"Failed to create image from mofied image data, blank image created instead!"];
-    }
+  if ((dirtyData && imageData) || cgLayer) {
+    CGSize size=image.size;
+    UIGraphicsBeginImageContext(size);
+    [self drawInRect:(CGRect){{},size}];
+    image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
     dirtyData = NO;
+    imageData=nil;
+    [self removeCGLayer];
   }
 }
 
 - (unsigned char *)getPixelData {
   if (!imageData) {
+    if(cgLayer) {
+      [self dirtyCheck];
+    }
     NSUInteger width = imageSize.width;
     NSUInteger height = imageSize.height;
     imageData = [NSMutableData dataWithLength:width * height * 4];
@@ -225,13 +217,13 @@
       void *rawData = imageData.mutableBytes;
       size_t bytesPerPixel = 4;
       size_t bytesPerRow = bytesPerPixel * width;
-
+      
       NSUInteger bitsPerComponent = 8;
       CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
       CGContextRef context = CGBitmapContextCreate(
-          rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace,
-          kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big
-      );
+                                                   rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace,
+                                                   kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big
+                                                   );
       CGColorSpaceRelease(colorSpace);
       CGContextDrawImage(context, CGRectMake(0, 0, width, height), image.CGImage);
       CGContextRelease(context);
@@ -241,52 +233,101 @@
 }
 
 - (id)createContext {
-  dirtyData = YES;
-  createdContext=YES;
+  //CGLayer is non performant and leaks so don't use; code left jsut in case apple fixes this going forward
   if(!context_) {
-    NSUInteger width = imageSize.width;
-    NSUInteger height = imageSize.height;
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    void *rawData = [self getPixelData];
-
-    size_t bytesPerPixel = 4;
-    size_t bytesPerRow = bytesPerPixel * width;
-
-    NSUInteger bitsPerComponent = 8;
-    CGContextRef context = CGBitmapContextCreate(
-        rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace,
-        kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big
-    );
-
-    CGColorSpaceRelease(colorSpace);
-    context_=CFBridgingRelease(context);
+//    if(imageData) {
+      NSUInteger width = imageSize.width;
+      NSUInteger height = imageSize.height;
+      CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+      void *rawData = [self getPixelData];
+      
+      size_t bytesPerPixel = 4;
+      size_t bytesPerRow = bytesPerPixel * width;
+      
+      NSUInteger bitsPerComponent = 8;
+      CGContextRef context = CGBitmapContextCreate(
+                                                   rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace,
+                                                   kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big
+                                                   );
+      
+      CGColorSpaceRelease(colorSpace);
+      context_=context;
+//    }
+//    else {
+//      cgLayer=CGLayerCreateWithContext(UIGraphicsGetCurrentContext(), image.size, NULL);
+//      CGContextRef context=CGLayerGetContext(cgLayer);
+//      context_=context;
+//    }
+    if(context_) {
+      dirtyData = YES;
+      createdContext=YES;
+    }
   }
-  return context_;
-}
-- (CGImageRef) createImageRef {
-  CGContextRef context = (__bridge CGContextRef)[self createContext];
-  CGImageRef ref = CGBitmapContextCreateImage(context);
-  return ref;
-}
-- (RAREImageWrapper *)getSubImageAtX:(int)x y:(int)y width:(int)width height:(int)height {
-  [self dirtyCheck];
-  CGImageRef ref = CGImageCreateWithImageInRect(image.CGImage, CGRectMake(x, y, width, height));
-  UIImage *img = [[UIImage alloc] initWithCGImage:ref];
-  CGImageRelease(ref);
-  return [[RAREImageWrapper alloc] initWithImage:img];
+  return (__bridge id)(context_);
 }
 
-- (RAREImageWrapper *)getScaledImageWithWidth:(int)width height:(int)height scalintType:(RAREiImagePainter_ScalingTypeEnum *)scalingType {
-  [self dirtyCheck];
+- (CGImageRef) getImageRef {
+  CGContextRef context = (__bridge CGContextRef)[self createContext];
+  if(context) {
+    CGImageRef ref = CGBitmapContextCreateImage(context);
+    return ref;
+  }
+  else {
+    return image.CGImage;
+  }
+}
+
+- (RAREImageWrapper *)getSubImageAtX:(int)x y:(int)y width:(int)width height:(int)height {
+  return [[RAREImageWrapper alloc] initWithImage:[self getSubImageExAtX:x y:y width:width height:height]];
+}
+
+- (UIImage *)getSubImageExAtX:(int)x y:(int)y width:(int)width height:(int)height {
+  CGSize size=image.size;
+  CGRect src=CGRectMake(x, y, width, height);
+  CGRect dst=CGRectMake(0, 0, size.width, size.height);
+  UIGraphicsBeginImageContext(src.size);
+  
+  CGContextRef ctx = UIGraphicsGetCurrentContext();
+  int sy=height-y;
+  CGContextTranslateCTM(ctx, x, sy);
+  CGContextScaleCTM(ctx, 1, -1);
+  if(cgLayer) {
+    CGContextDrawLayerInRect(ctx, dst, cgLayer);
+  }
+  else {
+    CGImageRef ref=[self getImageRef];
+    CGContextDrawImage(ctx, dst, ref);
+    if(ref!=image.CGImage) {
+      CGImageRelease(ref);
+    }
+  }
+  UIImage* img = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  return img;
+}
+
+- (RAREImageWrapper *)getScaledImageWithWidth:(int)width height:(int)height scalintType:(RAREiImagePainter_ScalingTypeEnum *)scalingType
+{
   CGSize size = CGSizeMake(width, height);
+  CGRect dst=CGRectMake(0, 0, width, height);
   UIGraphicsBeginImageContext(size);
   CGContextRef ctx = UIGraphicsGetCurrentContext();
   CGInterpolationQuality scaling = [RAREAppleGraphics getImageInterpolationWithRAREiImagePainter_ScalingTypeEnum:scalingType];
   CGContextSetInterpolationQuality(ctx, scaling);
   CGContextTranslateCTM(ctx, 0, height);
   CGContextScaleCTM(ctx, 1, -1);
-  CGContextDrawImage(ctx, (CGRect) {{}, size}, image.CGImage);
+  if(cgLayer) {
+    CGContextDrawLayerInRect(ctx, dst, cgLayer);
+  }
+  else {
+    CGImageRef ref=[self getImageRef];
+    CGContextDrawImage(ctx, dst, ref);
+    if(ref!=image.CGImage) {
+      CGImageRelease(ref);
+    }
+  }
   UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+  
   UIGraphicsEndImageContext();
   return [[RAREImageWrapper alloc] initWithImage:img];
 }
@@ -301,86 +342,95 @@
   image = [UIImage imageWithCIImage:outputImage];
 }
 
-- (RAREImageWrapper *)createReflectionVersionFromY:(int)y height:(int)height opacity:(int)opacity gap:(int)gap {
-  [self dirtyCheck];
+-(RAREImageWrapper*) createCopyWithReflectionWithHeight: (int) height opacity: (float) opacity gap: (int) gap {
   CGSize size = image.size;
+  int y=size.height-height;
   CGSize newSize = CGSizeMake(size.width, size.height + height + gap);
   UIGraphicsBeginImageContext(newSize);
-  CGContextRef ctx = UIGraphicsGetCurrentContext();
-  CGContextDrawImage(ctx, (CGRect) {{}, image.size}, image.CGImage);
+  [self drawInRect:(CGRect) {{}, size}];
   if (gap > 0) {
     [[UIColor blackColor] set];
-    CGContextFillRect(ctx, CGRectMake(0, size.height, size.width, gap));
+    UIRectFill(CGRectMake(0, y, size.width, gap));
   }
-  CGRect src = CGRectMake(0, y, size.width, height);
-  CGRect dst = CGRectMake(0, y + gap + height, size.width, height);
-  CGImageRef slice = CGImageCreateWithImageInRect(image.CGImage, src);
-  CGContextTranslateCTM(ctx, 0, height);
-  CGContextScaleCTM(ctx, 1, -1);
-  CGContextDrawImage(ctx, dst, slice);
-  CGImageRelease(slice);
-  CGContextTranslateCTM(ctx, 0, -height);
-  CGContextScaleCTM(ctx, 1, -1);
-
-  CGFloat alpha = opacity / 255.0;
-  CGColorRef start = [UIColor colorWithWhite:0 alpha:alpha].CGColor;
-  CGColorRef end = [UIColor clearColor].CGColor;
-  NSArray *colors = @[(__bridge id) start, (__bridge id) end];
-  CGGradientRef gradient = CGGradientCreateWithColors(NULL, (__bridge CFArrayRef) colors, NULL);
-  CGContextSetBlendMode(ctx, kCGBlendModeDestinationIn);
-  CGContextDrawLinearGradient(ctx, gradient, CGPointZero, CGPointMake(0, y + height + gap), kCGGradientDrawsAfterEndLocation);
-  CGGradientRelease(gradient);
-
-  UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+  
+  UIImage* img=[self getSubImageExAtX:0 y:y width:size.width height:height];
+  CGRect dst=(CGRect) {{0,size.height-height+gap}, img.size};
+  [img drawInRect:dst blendMode:kCGBlendModeScreen alpha:opacity];
+  img = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
-
+  
   return [[RAREImageWrapper alloc] initWithImage:img];
+  
 }
-
-- (RAREImageWrapper *)addReflectionVersionFromY:(int)y height:(int)height opacity:(int)opacity gap:(int)gap {
-  [self dirtyCheck];
-  CGSize newSize = image.size;
-  CGSize size = CGSizeMake(newSize.width, newSize.height - height - gap);
+-(RAREImageWrapper*) createReflectionWithHeight: (int) height opacity: (float) opacity gap: (int) gap {
+  CGSize size = image.size;
+  int y=size.height-height;
+  CGSize newSize = CGSizeMake(size.width, height + gap);
   UIGraphicsBeginImageContext(newSize);
-  CGContextRef ctx = UIGraphicsGetCurrentContext();
-  CGContextDrawImage(ctx, (CGRect) {{}, image.size}, image.CGImage);
   if (gap > 0) {
     [[UIColor blackColor] set];
-    CGContextFillRect(ctx, CGRectMake(0, size.height, size.width, gap));
+    UIRectFill(CGRectMake(0, y, size.width, gap));
   }
-  CGRect src = CGRectMake(0, y, size.width, height);
-  CGRect dst = CGRectMake(0, y + gap + height, size.width, height);
-  CGImageRef slice = CGImageCreateWithImageInRect(image.CGImage, src);
-  CGContextTranslateCTM(ctx, 0, height);
-  CGContextScaleCTM(ctx, 1, -1);
-  CGContextDrawImage(ctx, dst, slice);
-  CGImageRelease(slice);
-  CGContextTranslateCTM(ctx, 0, -height);
-  CGContextScaleCTM(ctx, 1, -1);
-
-  CGFloat alpha = opacity / 255.0;
-  CGColorRef start = [UIColor colorWithWhite:0 alpha:alpha].CGColor;
-  CGColorRef end = [UIColor clearColor].CGColor;
-  NSArray *colors = @[(__bridge id) start, (__bridge id) end];
-  CGGradientRef gradient = CGGradientCreateWithColors(NULL, (__bridge CFArrayRef) colors, NULL);
-  CGContextSetBlendMode(ctx, kCGBlendModeDestinationIn);
-  CGContextDrawLinearGradient(ctx, gradient, CGPointZero, CGPointMake(0, y + height + gap), kCGGradientDrawsAfterEndLocation);
-  CGGradientRelease(gradient);
-
-  UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+  UIImage* img=[self getSubImageExAtX:0 y:y width:size.width height:height];
+  CGRect dst=(CGRect) {{0,size.height-height+gap}, img.size};
+  [img drawInRect:dst blendMode:kCGBlendModeScreen alpha:opacity];
+  img = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
-
+  
   return [[RAREImageWrapper alloc] initWithImage:img];
+  
+}
+-(RAREImageWrapper*) addReflectionFromY: (int) y height: (int) height opacity: (float) opacity gap: (int) gap {
+  CGSize size = image.size;
+  CGContextRef ctx = (__bridge CGContextRef)([self createContext]);
+  CGContextSaveGState(ctx);
+  if (gap > 0) {
+    [[UIColor blackColor] set];
+    CGContextFillRect(ctx, CGRectMake(0, y, size.width, gap));
+  }
+  UIImage* img=[self getSubImageExAtX:0 y:y width:size.width height:height];
+  CGRect dst=(CGRect) {{0,size.height-height+gap}, img.size};
+  UIGraphicsPushContext(ctx);
+  [img drawInRect:dst blendMode:kCGBlendModeScreen alpha:opacity];
+  UIGraphicsPopContext();
+  CGContextRestoreGState(ctx);
+  return self;
 }
 
 - (RAREImageWrapper *)copyImage {
   [self dirtyCheck];
   return [[RAREImageWrapper alloc] initWithImage:image];
 }
-
--(CGImageRef)CGImage {
-  return [self getImage].CGImage;
+-(RAREImageWrapper*) rotateRight {
+  return [self rotate:90];
 }
+
+-(RAREImageWrapper*) rotateLeft {
+  return [self rotate:-90];
+}
+
+-(RAREImageWrapper*) rotate:(int) degrees{
+  [self dirtyCheck];
+  CGSize size= image.size;
+  CGSize newSize= CGSizeMake(size.height, size.width);
+  
+  UIGraphicsBeginImageContext(newSize);
+  CGContextRef ctx = UIGraphicsGetCurrentContext();
+  
+  CGContextTranslateCTM(ctx, newSize.width/2, newSize.height/2);
+  
+  CGContextRotateCTM(ctx, (degrees * M_PI / 180));
+  
+  CGContextScaleCTM(ctx, 1.0, -1.0);
+  CGContextDrawImage(ctx, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), [image CGImage]);
+  
+  UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  return [[RAREImageWrapper alloc] initWithImage:img];
+}
+
+
+
 
 - (void)transform:(CGAffineTransform)transform size:(CGSize)newSize {
   [self dirtyCheck];
@@ -388,7 +438,7 @@
   CGContextRef ctx = UIGraphicsGetCurrentContext();
   CGContextConcatCTM(ctx, transform);
   CGContextDrawImage(ctx, (CGRect) {{}, image.size}, image.CGImage);
-
+  
   image = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
 }
@@ -398,8 +448,8 @@
   CGSize size=image.size;
   UIGraphicsBeginImageContext(size);
   CGContextRef ctx = UIGraphicsGetCurrentContext();
-//  CGContextTranslateCTM(ctx, 0, size.height);
-//  CGContextScaleCTM(ctx, 1, -1);
+  //  CGContextTranslateCTM(ctx, 0, size.height);
+  //  CGContextScaleCTM(ctx, 1, -1);
   CGContextDrawImage(ctx, (CGRect) {{}, image.size}, image.CGImage);
   
   image = UIGraphicsGetImageFromCurrentImageContext();
@@ -408,12 +458,18 @@
 - (void)drawAtX:(int)x y:(int)y {
   [self orientationCheck];
   if (dirtyData && imageData && createdContext) {
-    CGImageRef ref=[self createImageRef];
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGImageRef ref=[self getImageRef];
     if(ref) {
-      CGContextRef ctx = UIGraphicsGetCurrentContext();
       CGContextDrawImage(ctx, (CGRect) {CGPointMake(x,y), imageSize}, ref);
-      CGImageRelease(ref);
+      if(ref!=image.CGImage) {
+        CGImageRelease(ref);
+      }
     }
+  }
+  else if(cgLayer) {
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextDrawLayerAtPoint(ctx, CGPointMake(x, y), cgLayer);
   }
   else {
     [self dirtyCheck];
@@ -430,7 +486,7 @@
     operation=[RAREAppleGraphics getCompositingOperationWithRAREiComposite_CompositeTypeEnum:[composite getCompositeType]];
   }
   if (dirtyData && imageData && createdContext) {
-    CGImageRef ref=[self createImageRef];
+    CGImageRef ref=[self getImageRef];
     if(ref) {
       CGContextRef ctx = UIGraphicsGetCurrentContext();
       CGContextSaveGState(ctx);
@@ -440,8 +496,14 @@
       }
       CGContextDrawImage(ctx, (CGRect) {CGPointMake(x,y), imageSize}, ref);
       CGContextRestoreGState(ctx);
-      CGImageRelease(ref);
+      if(ref!=image.CGImage) {
+        CGImageRelease(ref);
+      }
     }
+  }
+  else if(cgLayer) {
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextDrawLayerAtPoint(ctx, CGPointMake(x, y), cgLayer);
   }
   else {
     [self dirtyCheck];
@@ -457,12 +519,18 @@
 - (void)drawInRect:(CGRect)dstRect {
   [self orientationCheck];
   if (dirtyData && imageData && createdContext) {
-    CGImageRef ref=[self createImageRef];
+    CGImageRef ref=[self getImageRef];
     if(ref) {
       CGContextRef ctx = UIGraphicsGetCurrentContext();
       CGContextDrawImage(ctx, dstRect, ref);
-      CGImageRelease(ref);
+      if(ref!=image.CGImage) {
+        CGImageRelease(ref);
+      }
     }
+  }
+  else if(cgLayer) {
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextDrawLayerInRect(ctx, dstRect, cgLayer);
   }
   else {
     [self dirtyCheck];
@@ -493,7 +561,7 @@
   CGImageRef ref=img.CGImage;
   BOOL release=NO;
   if(!wholeImage) {
-   release=YES;
+    release=YES;
     ref=CGImageCreateWithImageInRect(ref,srcRect);
   }
   CGContextRef ctx = UIGraphicsGetCurrentContext();
@@ -517,18 +585,19 @@
     CGImageRelease(ref);
   }
 }
+
 - (RAREImageWrapper *)createDisabledVersion {
   [self dirtyCheck];
   UIImage *gsimage = [self createDeviceGrayScaleImage];
   UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0.0f);
   CGRect bounds = CGRectMake(0, 0, imageSize.width, imageSize.height);
-
+  
   [gsimage drawInRect:bounds blendMode:kCGBlendModeOverlay alpha:.5];
   [image drawInRect:bounds blendMode:kCGBlendModeDestinationIn alpha:1];
-
+  
   UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
-
+  
   return [[RAREImageWrapper alloc] initWithImage:img];
 }
 
@@ -537,11 +606,11 @@
   CGRect imageRect = CGRectMake(0, 0, imageSize.width, imageSize.height);
   CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceGray();
   CGContextRef context = CGBitmapContextCreate(nil, imageSize.width, imageSize.height, 8, 0, colorSpace, (CGBitmapInfo)kCGImageAlphaNone);
-
+  
   CGContextDrawImage(context, imageRect, [image CGImage]);
   CGImageRef ref = CGBitmapContextCreateImage(context);
   UIImage *img = [UIImage imageWithCGImage:ref];
-
+  
   CGColorSpaceRelease(colorSpace);
   CGContextRelease(context);
   CFRelease(ref);
@@ -558,7 +627,7 @@
     RAREImageWrapper *rapper = (RAREImageWrapper *) [[((RAREUIImageIcon *) icon) getImage] getProxy];
     return [rapper getImage];
   }
-
+  
   CGSize size = CGSizeMake([icon getIconWidth], [icon getIconHeight]);
   UIGraphicsBeginImageContext(size);
   CGContextRef ctx = UIGraphicsGetCurrentContext();
@@ -568,5 +637,24 @@
   UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
   UIGraphicsEndImageContext();
   return img;
+}
+
+-(void) removeCGLayer {
+  if(cgLayer) {
+    CGContextRelease((CGContextRef)context_);
+    CGLayerRelease(cgLayer);
+    context_=NULL;
+    cgLayer=NULL;
+    createdContext=NO;
+  }
+}
+
+-(void) dealloc {
+  if(context_) {
+    CGContextRelease((CGContextRef)context_);
+  }
+  if(cgLayer) {
+    CGLayerRelease(cgLayer);
+  }
 }
 @end

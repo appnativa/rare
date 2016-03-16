@@ -27,7 +27,7 @@ import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTSet;
 
-import com.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 
 import java.util.HashMap;
 

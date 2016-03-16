@@ -8,21 +8,6 @@
 
 package com.appnativa.studio.dialogs;
 
-import com.appnativa.studio.FormChanger;
-import com.appnativa.studio.Studio;
-import com.appnativa.studio.RMLDocument;
-import com.appnativa.studio.Utilities;
-import com.jgoodies.forms.layout.BoundedSize;
-import com.jgoodies.forms.layout.ConstantSize;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormSpec;
-import com.jgoodies.forms.layout.Size;
-import com.appnativa.rare.spot.GroupBox;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.rare.widget.iWidget.WidgetType;
-import com.appnativa.util.CharScanner;
-import com.appnativa.util.SNumber;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -43,6 +28,21 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+
+import com.appnativa.jgoodies.forms.layout.BoundedSize;
+import com.appnativa.jgoodies.forms.layout.ConstantSize;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormSpec;
+import com.appnativa.jgoodies.forms.layout.Size;
+import com.appnativa.rare.spot.GroupBox;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.rare.widget.iWidget.WidgetType;
+import com.appnativa.studio.FormChanger;
+import com.appnativa.studio.RMLDocument;
+import com.appnativa.studio.Studio;
+import com.appnativa.studio.Utilities;
+import com.appnativa.util.CharScanner;
+import com.appnativa.util.SNumber;
 
 public class FormsLayout extends Dialog {
   GroupBox            cfg;
@@ -215,7 +215,7 @@ public class FormsLayout extends Dialog {
     updateChoices();
   }
 
-  void rowColumnChanged(boolean typeChanged) {
+  void rowColumnChanged(final boolean typeChanged) {
     if (this.handleEvents) {
       this.enableEvents(false);
       this.dirtyTest(autoSave.getSelection());
@@ -244,7 +244,9 @@ public class FormsLayout extends Dialog {
 
         @Override
         public void run() {
-          document.designPane.setSelectedCell(rrow, ccol);
+          if(!typeChanged) {
+            document.designPane.setSelectedCell(rrow, ccol);
+          }
           rowColumnChangedInSwing();
         }
       });

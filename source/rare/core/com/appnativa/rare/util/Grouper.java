@@ -496,6 +496,8 @@ public class Grouper {
           item.setValue(s);
         } else if (gitem != null) {
           item.copyValue(gitem);
+          item.setForeground(gitem.getForeground());
+          item.setFont(gitem.getFont());
 
           if (preserveLinkedData) {
             item.setLinkedData(gitem.getLinkedData());

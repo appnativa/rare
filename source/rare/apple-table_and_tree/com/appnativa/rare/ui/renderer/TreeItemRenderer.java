@@ -41,7 +41,7 @@ public class TreeItemRenderer extends aTreeItemRenderer {
   }
 
   @Override
-  public void setIconAndAlignment(iPlatformRenderingComponent rc, RenderableDataItem item, RenderableDataItem row,
+  public void setIconAndAlignment(iPlatformRenderingComponent rc, CharSequence text,RenderableDataItem item, RenderableDataItem row,
                                   Column col, boolean enabled, boolean center, boolean top, boolean seticon,
                                   boolean oexpanded) {
     iPlatformIcon icon  = null;
@@ -82,7 +82,7 @@ public class TreeItemRenderer extends aTreeItemRenderer {
       }
     }
 
-    super.setIconAndAlignment(rc, item, row, col, enabled, center, top, false, expanded);
+    super.setIconAndAlignment(rc, text,item, row, col, enabled, center, top, false, expanded);
 
     if (!empty) {
       rc.setIcon(enabled

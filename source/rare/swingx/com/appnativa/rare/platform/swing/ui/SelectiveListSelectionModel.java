@@ -29,6 +29,7 @@ public class SelectiveListSelectionModel extends DefaultListSelectionModel {
   boolean                        checked;
   private iPlatformListDataModel listModel;
   private iSelectionChecker      selectionChecker;
+  private boolean toggleSelections;
 
   public SelectiveListSelectionModel(iPlatformListDataModel listModel) {
     this.listModel = listModel;
@@ -53,6 +54,18 @@ public class SelectiveListSelectionModel extends DefaultListSelectionModel {
 
   @Override
   public void setSelectionInterval(int index0, int index1) {
+    if(toggleSelections) {
+      if(index0==index1 && index0!=-1) {
+        if(isSelectedIndex(index0)) {
+          removeIndexInterval(index0, index1);
+          return;
+        }
+        else if(getSelectionMode()==MULTIPLE_INTERVAL_SELECTION){
+          addSelectionInterval(index0, index1);
+          return;
+        }
+      }
+    }
     if (checked) {
       super.setSelectionInterval(index0, index1);
     } else {
@@ -147,6 +160,14 @@ public class SelectiveListSelectionModel extends DefaultListSelectionModel {
     } finally {
       checked = false;
     }
+  }
+
+  public boolean isToggleSelections() {
+    return toggleSelections;
+  }
+
+  public void setToggleSelections(boolean toggleSelections) {
+    this.toggleSelections = toggleSelections;
   }
 
   public interface iSelectionChecker {

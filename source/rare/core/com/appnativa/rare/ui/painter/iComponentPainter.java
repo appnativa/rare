@@ -20,12 +20,13 @@
 
 package com.appnativa.rare.ui.painter;
 
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.border.SharedLineBorder;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformGraphics;
-
 import java.beans.PropertyChangeListener;
+
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformGraphics;
+import com.appnativa.rare.ui.border.SharedLineBorder;
 
 /**
  * Handle custom component painting
@@ -48,7 +49,7 @@ public interface iComponentPainter extends iBackgroundPainter {
   void clear();
 
   void copyFrom(iPlatformComponentPainter cp);
-
+  void updateColors(iPlatformComponent comp);
   /**
    * Performs the painting
    *

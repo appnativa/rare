@@ -20,18 +20,6 @@
 
 package com.appnativa.rare.viewer;
 
-import java.beans.PropertyChangeEvent;
-import java.io.Writer;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.NoSuchElementException;
-
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
@@ -52,6 +40,16 @@ import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.border.UIBalloonBorder;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.effects.iAnimator;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
+import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.ui.event.EventBase;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.iExpandedListener;
+import com.appnativa.rare.ui.event.iPopupMenuListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iCollapsible;
 import com.appnativa.rare.ui.iCollapsible.iTitleProvider;
@@ -63,22 +61,27 @@ import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.iWindow;
 import com.appnativa.rare.ui.iWindowManager;
-import com.appnativa.rare.ui.border.UIBalloonBorder;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.effects.iAnimator;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
-import com.appnativa.rare.ui.event.DataEvent;
-import com.appnativa.rare.ui.event.EventBase;
-import com.appnativa.rare.ui.event.ExpansionEvent;
-import com.appnativa.rare.ui.event.iExpandedListener;
-import com.appnativa.rare.ui.event.iPopupMenuListener;
 import com.appnativa.rare.ui.print.iPageSetup;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.IdentityArrayList;
 import com.appnativa.util.ObjectHolder;
+
+import java.beans.PropertyChangeEvent;
+
+import java.io.Writer;
+
+import java.net.URL;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Base class for viewers
@@ -89,43 +92,43 @@ import com.appnativa.util.ObjectHolder;
 public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   /** Listener for component and expansion events */
-  protected static final ViewerListener viewerListener  = new ViewerListener();
+  protected static final ViewerListener viewerListener = new ViewerListener();
 
   /** the application context for the viewer */
-  protected iPlatformAppContext         appContext;
+  protected iPlatformAppContext appContext;
 
   /** the viewer's context URL */
-  protected URL                         contextURL;
+  protected URL contextURL;
 
   /** whether the viewer is local */
-  protected boolean                     local;
+  protected boolean local;
 
   /** the registered name of the viewer */
-  protected String                      registeredName;
+  protected String registeredName;
 
   /** the action link that created the viewer */
-  protected ActionLink                  viewerActionLink;
+  protected ActionLink viewerActionLink;
 
   /** whether the viewer was reset */
-  protected boolean                     wasReset;
-  private boolean                       autoUnregister  = true;
-  private boolean                       disposable      = true;
+  protected boolean wasReset;
+  private boolean   autoUnregister = true;
+  private boolean   disposable     = true;
 
   /** the disable behavior for the viewer */
-  protected DisableBehavior             disableBehavior = DisableBehavior.DISABLE_CONTAINER;
-  protected boolean                       autoDispose     = true;
-  protected String                        collapsedTitle;
-  protected boolean                       loadFired;
-  protected iTarget                       myTarget;
+  protected DisableBehavior disableBehavior = DisableBehavior.DISABLE_CONTAINER;
+  protected boolean         autoDispose     = true;
+  protected String          collapsedTitle;
+  protected boolean         loadFired;
+  protected iTarget         myTarget;
 
   /** name map for holding registered named objects */
-  protected HashMap<String, Object>       nameMap;
+  protected HashMap<String, Object> nameMap;
 
   /** list for holding orphaned widgets */
-  protected IdentityArrayList<iWidget>    orphanWidgets;
-  protected boolean                       registered;
-  protected RenderType                    renderType;
-  protected boolean                       unloadFired;
+  protected IdentityArrayList<iWidget> orphanWidgets;
+  protected boolean                    registered;
+  protected RenderType                 renderType;
+  protected boolean                    unloadFired;
 
   /**
    * Constructs a new instance
@@ -239,8 +242,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   }
 
   @Override
-  public void pageSetup(iPageSetup ps) {
-  }
+  public void pageSetup(iPageSetup ps) {}
 
   @Override
   public void pageUp() {
@@ -274,11 +276,11 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   @Override
   public void configure(Widget cfg) {
-    if (widgetName == null) { // set here so load scripts will have the name
+    if (widgetName == null) {    // set here so load scripts will have the name
       widgetName = cfg.name.getValue();
 
       if ((widgetName == null) || (widgetName.length() == 0)) {
-        widgetName = Utils.makeWidgetName(cfg, this);
+        widgetName    = Utils.makeWidgetName(cfg, this);
         isSubmittable = false;
       }
     }
@@ -295,7 +297,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
    * @return true if the viewer contains the named item; false otherwise
    */
   public boolean containsNamedItem(String name) {
-    return (nameMap == null) ? false : nameMap.containsKey(name);
+    return (nameMap == null)
+           ? false
+           : nameMap.containsKey(name);
   }
 
   @Override
@@ -304,7 +308,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       return;
     }
 
-    synchronized (widgetType) {
+    synchronized(widgetType) {
       if (!isDisposed()) {
         if (viewerActionLink != null) {
           viewerActionLink.clear();
@@ -316,7 +320,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
           if ((wl != null) && wl.isEnabled(iConstants.EVENT_DISPOSE)) {
             wl.evaluate(iConstants.EVENT_DISPOSE, new EventBase(this), true);
           }
-        } catch (Throwable e) {
+        } catch(Throwable e) {
           Platform.ignoreException("calling onDispose exception", e);
         }
 
@@ -332,16 +336,16 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
           if (orphanWidgets != null) {
             orphanWidgets = null;
           }
-        } catch (Throwable e) {
+        } catch(Throwable e) {
           Platform.ignoreException("dispose exception", e);
         } finally {
-          disableBehavior = null;
-          nameMap = null;
-          contextURL = null;
-          registeredName = null;
+          disableBehavior  = null;
+          nameMap          = null;
+          contextURL       = null;
+          registeredName   = null;
           viewerActionLink = null;
-          renderType = null;
-          myTarget = null;
+          renderType       = null;
+          myTarget         = null;
           super.dispose();
         }
       }
@@ -365,7 +369,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
       if (orphanWidgets != null) {
         iFormViewer fv = getFormViewer();
-        iContainer p = findParent();
+        iContainer  p  = findParent();
 
         if (p != null) {
           for (iWidget w : orphanWidgets) {
@@ -480,14 +484,14 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   }
 
   public iPopup showAsPopup(iPlatformComponent owner, float x, float y, iPlatformAnimator animator, Map options) {
-    boolean trans = true;
-    float left = -1;
-    float top = -1;
-    float width = -1;
-    float height = -1;
-    float swidth = getAppContext().getWindowManager().getUsableScreenWidth();
-    float sheight = getAppContext().getWindowManager().getUsableScreenHeight();
-    UIColor bg = null;
+    boolean trans   = true;
+    float   left    = -1;
+    float   top     = -1;
+    float   width   = -1;
+    float   height  = -1;
+    float   swidth  = getAppContext().getWindowManager().getUsableScreenWidth();
+    float   sheight = getAppContext().getWindowManager().getUsableScreenHeight();
+    UIColor bg      = null;
 
     setParent(null);
 
@@ -573,7 +577,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       height = d.height;
     }
 
-    d.width = width;
+    d.width  = width;
     d.height = height;
 
     UIRectangle r = new UIRectangle();
@@ -672,8 +676,8 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
     if (target != myTarget) {
       iContainer cp = parentContainer;
-      iContainer p = null;
-      iWidget w = Platform.findWidgetForComponent(target.getContainerComponent());
+      iContainer p  = null;
+      iWidget    w  = Platform.findWidgetForComponent(target.getContainerComponent());
 
       if (w instanceof iContainer) {
         p = (iContainer) w;
@@ -745,10 +749,12 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       registered = false;
 
       if (orphanWidgets != null) {
-        iFormViewer fv = disposing ? null : getFormViewer();
+        iFormViewer fv = disposing
+                         ? null
+                         : getFormViewer();
 
         for (iWidget w : orphanWidgets) {
-          if ((fv != null) && !disposing) {
+          if ((fv != null) &&!disposing) {
             fv.unregisterFormWidget(w);
           }
 
@@ -766,7 +772,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
         }
       }
 
-      iWindowManager wm = (getAppContext() == null) ? null : getAppContext().getWindowManager();
+      iWindowManager wm = (getAppContext() == null)
+                          ? null
+                          : getAppContext().getWindowManager();
 
       if (wm != null) {
         if (registeredName != null) {
@@ -853,12 +861,12 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
 
-    switch (disableBehavior) {
-      case DISABLE_CONTAINER:
+    switch(disableBehavior) {
+      case DISABLE_CONTAINER :
         break;
 
-      case DISABLE_WIDGETS:
-      case DISABLE_BOTH:
+      case DISABLE_WIDGETS :
+      case DISABLE_BOTH :
         if (orphanWidgets != null) {
           for (iWidget w : orphanWidgets) {
             w.setEnabled(enabled);
@@ -970,8 +978,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
    * @param tooltip
    *          the tooltip for the item
    */
-  public void setItemTooltip(String name, String tooltip) {
-  }
+  public void setItemTooltip(String name, String tooltip) {}
 
   /**
    * Sets the value of a named item
@@ -1020,8 +1027,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   }
 
   @Override
-  public void setLoadAnimator(iAnimator wa) {
-  }
+  public void setLoadAnimator(iAnimator wa) {}
 
   @Override
   public void setName(String name) {
@@ -1045,7 +1051,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   @Override
   public void setViewerActionLink(ActionLink link) {
-    if ((link != null) && !link.hasURL()) {
+    if ((link != null) &&!link.hasURL()) {
       link = null;
     }
 
@@ -1101,13 +1107,17 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   @Override
   public String getCollapsedTitle() {
-    return (collapsedTitle == null) ? null : expandString(collapsedTitle, false);
+    return (collapsedTitle == null)
+           ? null
+           : expandString(collapsedTitle, false);
   }
 
   @Override
   public iCollapsible getCollapsiblePane() {
-    iTarget t = this.getTarget();
-    iParentComponent c = (t == null) ? null : t.getContainerComponent();
+    iTarget          t = this.getTarget();
+    iParentComponent c = (t == null)
+                         ? null
+                         : t.getContainerComponent();
 
     if (c instanceof iCollapsible) {
       return (iCollapsible) c;
@@ -1117,7 +1127,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       return (iCollapsible) c.getComponentAt(0);
     }
 
-    c = (c == null) ? null : c.getParent();
+    c = (c == null)
+        ? null
+        : c.getParent();
 
     if (c instanceof iCollapsible) {
       return (iCollapsible) c;
@@ -1139,7 +1151,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
     iContainer parent = getParent();
 
-    return (parent == null) ? null : parent.getContextURL();
+    return (parent == null)
+           ? null
+           : parent.getContextURL();
   }
 
   @Override
@@ -1201,7 +1215,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
       o = di.getLinkedData();
 
-      return (o == null) ? null : o.toString();
+      return (o == null)
+             ? null
+             : o.toString();
     }
 
     return null;
@@ -1254,8 +1270,8 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
     Object o = getNamedItem(name);
 
     if (o == null) {
-      throw new NoSuchElementException(PlatformHelper.format(getAppContext().getResourceAsString("Rare.runtime.text.noSuchItem"),
-          name));
+      throw new NoSuchElementException(
+          PlatformHelper.format(getAppContext().getResourceAsString("Rare.runtime.text.noSuchItem"), name));
     }
 
     return o;
@@ -1283,7 +1299,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   public iTarget getParentTarget() {
     iContainer p = getParent();
 
-    return (p == null) ? null : p.getTarget();
+    return (p == null)
+           ? null
+           : p.getTarget();
   }
 
   @Override
@@ -1325,7 +1343,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   @Override
   public String getTitle() {
-    String s = (widgetTitle == null) ? null : expandString(widgetTitle, false);
+    String s = (widgetTitle == null)
+               ? null
+               : expandString(widgetTitle, false);
 
     if (s == null) {
       return "";
@@ -1492,23 +1512,25 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
    *          the widget
    */
   public void registerOrphanWidget(iWidget widget) {
-    if (orphanWidgets == null) {
-      orphanWidgets = new IdentityArrayList<iWidget>(2);
-    }
+    if (widget != null) {
+      if (orphanWidgets == null) {
+        orphanWidgets = new IdentityArrayList<iWidget>(2);
+      }
 
-    if (orphanWidgets.addIfNotPresent(widget)) {
-      if (registered) {
-        widget.setParent(findParent());
-        getFormViewer().registerFormWidget(widget);
+      if (orphanWidgets.addIfNotPresent(widget)) {
+        if (registered) {
+          widget.setParent(findParent());
+          getFormViewer().registerFormWidget(widget);
 
-        if (widget instanceof aViewer) {
-          ((aViewer) widget).register();
+          if (widget instanceof aViewer) {
+            ((aViewer) widget).register();
 
-          if (widget instanceof aContainer) {
-            aContainer c = ((aContainer) widget);
+            if (widget instanceof aContainer) {
+              aContainer c = ((aContainer) widget);
 
-            if (!c.actAsFormViewer) {
-              c.registerWidgets(getFormViewer());
+              if (!c.actAsFormViewer) {
+                c.registerWidgets(getFormViewer());
+              }
             }
           }
         }
@@ -1524,7 +1546,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
    *          the widget
    */
   public void unregisterOrphanWidget(iWidget widget) {
-    if ((orphanWidgets != null) && orphanWidgets.remove(widget)) {
+    if ((widget != null) && (orphanWidgets != null) && orphanWidgets.remove(widget)) {
       if (registered) {
         getFormViewer().unregisterFormWidget(widget);
 
@@ -1560,15 +1582,14 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       o = options.get("onwillcollapse");
     }
 
-    final Object collapse = o;
-    iPopupMenuListener pml = new iPopupMenuListener() {
+    final Object       collapse = o;
+    iPopupMenuListener pml      = new iPopupMenuListener() {
       @Override
       public void popupMenuWillBecomeVisible(ExpansionEvent e) {
         if (expand != null) {
           getAppContext().getWindowViewer().eval(expand);
         }
       }
-
       @Override
       public void popupMenuWillBecomeInvisible(ExpansionEvent e) {
         if (collapse != null) {
@@ -1577,10 +1598,8 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
         popup.dispose();
       }
-
       @Override
-      public void popupMenuCanceled(ExpansionEvent e) {
-      }
+      public void popupMenuCanceled(ExpansionEvent e) {}
     };
 
     popup.addPopupMenuListener(pml);
@@ -1599,7 +1618,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
     if (dispose) {
       viewerActionLink = null;
-      displayIcon = null;
+      displayIcon      = null;
     }
   }
 
@@ -1626,14 +1645,14 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
    *          true to configure the margin; false otherwise
    */
   protected void configureEx(Viewer cfg, boolean border, boolean textMenus, boolean margin) {
-    ActionLink link = null;
-    iPlatformAppContext app = getAppContext();
-    String s = cfg.contextURL.getValue();
+    ActionLink          link = null;
+    iPlatformAppContext app  = getAppContext();
+    String              s    = cfg.contextURL.getValue();
 
     if ((s != null) && (s.length() > 0)) {
       try {
         setContextURL(getAppContext().getURL(s));
-      } catch (Exception e) {
+      } catch(Exception e) {
         handleException(e);
       }
     }
@@ -1659,30 +1678,32 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
         if (h.value instanceof Exception) {
           handleException((Exception) h.value);
-        } else if (h.value != null) { // will be null for a runOnce script that
+        } else if (h.value != null) {    // will be null for a runOnce script that
           // was already ran
           String type = (String) h.type;
           String code = (String) h.value;
           String location;
-          URL url;
+          URL    url;
 
           if (code != null) {
             String name = cfg.name.getValue();
 
             if (link.isInlineURL()) {
-              location = ((name == null) ? Utils.makeWidgetName(cfg, this) : name);
-              url = this.getContextURL();
+              location = ((name == null)
+                          ? Utils.makeWidgetName(cfg, this)
+                          : name);
+              url      = this.getContextURL();
 
               if (url != null) {
                 location = "[" + ((aAppContext) getAppContext()).getApplicationRelativeLocation(url) + "]" + location;
               }
             } else {
-              url = link.getURL(this);
+              url      = link.getURL(this);
               location = ((aAppContext) getAppContext()).getApplicationRelativeLocation(url);
             }
 
-            iScriptHandler sh = getScriptHandler();
-            boolean shared = true;
+            iScriptHandler sh     = getScriptHandler();
+            boolean        shared = true;
 
             if ("false".equalsIgnoreCase(cfg.scriptURL.spot_getAttribute("shared"))) {
               shared = false;
@@ -1691,13 +1712,13 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
             sh.setScriptingContext(this, type, location, code, shared);
           }
         }
-      } catch (Exception e) {
+      } catch(Exception e) {
         handleException(e);
       }
     } else {
       String type = cfg.spot_getAttribute("language");
 
-      if ((type != null) && (type.length() > 0) && !type.equals(app.getDefaultScrptingLanguage())) {
+      if ((type != null) && (type.length() > 0) &&!type.equals(app.getDefaultScrptingLanguage())) {
         iScriptHandler sh = getScriptHandler();
 
         sh.setScriptingContext(this, type, Utils.makeWidgetName(cfg, this), null, false);
@@ -1705,12 +1726,10 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
     }
 
     this.fireConfigureEvent(cfg, iConstants.EVENT_CREATED);
-
     disableBehavior = DisableBehavior.valueOf(cfg.disableBehavior.stringValue().toUpperCase(Locale.US));
-
-    unloadFired = false;
-    loadFired = false;
-    collapsedTitle = cfg.collapsedTitle.getValue();
+    unloadFired     = false;
+    loadFired       = false;
+    collapsedTitle  = cfg.collapsedTitle.getValue();
 
     if (cfg.local.spot_valueWasSet()) {
       local = cfg.local.booleanValue();
@@ -1760,7 +1779,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       return;
     }
 
-    final String event = loaded ? iConstants.EVENT_LOAD : iConstants.EVENT_UNLOAD;
+    final String event = loaded
+                         ? iConstants.EVENT_LOAD
+                         : iConstants.EVENT_UNLOAD;
 
     if (!l.isEnabled(event)) {
       return;
@@ -1770,11 +1791,11 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
     try {
       if (loaded) {
-        getWidgetListener().loadEvent(e);
+        l.loadEvent(e);
       } else {
-        getWidgetListener().unloadEvent(e);
+        l.unloadEvent(e);
       }
-    } catch (Exception ex) {
+    } catch(Exception ex) {
       getAppContext().getDefaultExceptionHandler().handleScriptException(ex);
     }
   }
@@ -1842,7 +1863,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
     if (c instanceof iCollapsible) {
       iCollapsible pane = (iCollapsible) c;
-      CharSequence s = pane.getTitle();
+      CharSequence s    = pane.getTitle();
 
       if ((s == null) || (s.length() == 0) || (collapsedTitle != null)) {
         pane.setTitleText(expandString(widgetTitle, false));
@@ -1852,8 +1873,8 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   protected void handleViewerConfigurationChanged(boolean reset) {
     if ((getWidgetListener() != null) && getWidgetListener().isPropertyChangeEventEnabled()) {
-      getWidgetListener().propertyChange(
-          new PropertyChangeEvent(this, iConfigurationListener.CONFIGURATION_CHANGED_PROPERTY, null, null));
+      getWidgetListener().propertyChange(new PropertyChangeEvent(this,
+              iConfigurationListener.CONFIGURATION_CHANGED_PROPERTY, null, null));
     } else if (reset) {
       reset();
     }
@@ -1861,9 +1882,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
   protected void handleViewerConfigurationWillChange(Object newConfig) {
     if ((getWidgetListener() != null) && getWidgetListener().isPropertyChangeEventEnabled()) {
-      getWidgetListener().propertyChange(
-          new PropertyChangeEvent(this, iConfigurationListener.CONFIGURATION_WILLCHANGE_PROPERTY, PlatformHelper
-              .getDeviceConfiguration(), newConfig));
+      getWidgetListener().propertyChange(new PropertyChangeEvent(this,
+              iConfigurationListener.CONFIGURATION_WILLCHANGE_PROPERTY, PlatformHelper.getDeviceConfiguration(),
+              newConfig));
     }
   }
 
@@ -1896,14 +1917,14 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   protected void loaded() {
     if (!loadFired) {
       unloadFired = false;
-      loadFired = true;
+      loadFired   = true;
       fireLoadEvent(true);
     }
   }
 
   protected WindowViewer showAsWindowOrDialog(Map winoptions, boolean dialog) {
     iWindowManager wm = getAppContext().getWindowManager();
-    iWindow win;
+    iWindow        win;
 
     if (winoptions == null) {
       winoptions = new HashMap(1);
@@ -1922,7 +1943,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
     setParent(winviewer);
     wm.setViewerEx(win.getTargetName(), this.getContainerViewer(), this);
 
-    Object show = (winoptions == null) ? null : winoptions.get("visible");
+    Object show = (winoptions == null)
+                  ? null
+                  : winoptions.get("visible");
 
     if (show instanceof Boolean) {
       if (Boolean.TRUE.equals(show)) {
@@ -1945,7 +1968,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   protected void unloaded() {
     if (!unloadFired) {
       unloadFired = true;
-      loadFired = false;
+      loadFired   = false;
       fireLoadEvent(false);
     }
   }
@@ -1953,7 +1976,7 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
   @Override
   protected Object getAttributeEx(char firstChar, String key) {
     Object o;
-    int n;
+    int    n;
 
     if (firstChar == '/') {
       n = key.indexOf('/', 1);
@@ -1966,11 +1989,15 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
         if (n == -1) {
           v = getAppContext().getViewer(key.substring(1));
 
-          return (v == null) ? null : v.getValueAsString();
+          return (v == null)
+                 ? null
+                 : v.getValueAsString();
         } else {
           v = getAppContext().getViewer(key.substring(1, n));
 
-          return (v == null) ? null : v.getAttribute(key.substring(n + 1));
+          return (v == null)
+                 ? null
+                 : v.getAttribute(key.substring(n + 1));
         }
       }
 
@@ -1989,7 +2016,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       int p = key.lastIndexOf('/');
 
       if (p == n) {
-        iWidget w = isContainer() ? ((iContainer) this).getWidget(key.substring(0, n)) : null;
+        iWidget w = isContainer()
+                    ? ((iContainer) this).getWidget(key.substring(0, n))
+                    : null;
 
         if (w != null) {
           return w.getAttribute(key.substring(n + 1));
@@ -2003,13 +2032,17 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
 
     if (n != -1) {
       prop = key.substring(n + 1);
-      key = key.substring(0, n);
+      key  = key.substring(0, n);
     }
 
-    iWidget w = isContainer() ? ((iContainer) this).getWidget(key) : null;
+    iWidget w = isContainer()
+                ? ((iContainer) this).getWidget(key)
+                : null;
 
     if (w != null) {
-      o = (prop == null) ? w.getHTTPFormValue() : w.getAttribute(prop);
+      o = (prop == null)
+          ? w.getHTTPFormValue()
+          : w.getAttribute(prop);
     } else {
       o = super.getAttributeEx(firstChar, key);
     }
@@ -2051,14 +2084,18 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
    *          the proposed location
    */
   protected void getProposedPopupBounds(iPlatformComponent owner, UIDimension contentSize, UIRectangle outBounds,
-      boolean adjustBallonBorder) {
-    iPlatformBorder b = adjustBallonBorder ? getBorder() : null;
+          boolean adjustBallonBorder) {
+    iPlatformBorder b = adjustBallonBorder
+                        ? getBorder()
+                        : null;
 
     if (contentSize == null) {
       contentSize = formComponent.getPreferredSize();
     }
 
-    UIBalloonBorder balloonBorder = (UIBalloonBorder) ((b instanceof UIBalloonBorder) ? b : null);
+    UIBalloonBorder balloonBorder = (UIBalloonBorder) ((b instanceof UIBalloonBorder)
+            ? b
+            : null);
 
     Utils.getProposedPopupBounds(outBounds, owner, contentSize, 0, HorizontalAlign.AUTO, b, false);
 
@@ -2136,7 +2173,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
           s = v.getTitle();
         }
 
-        return ((s != null) && (s.length() == 0)) ? null : s;
+        return ((s != null) && (s.length() == 0))
+               ? null
+               : s;
       }
 
       return null;
@@ -2149,7 +2188,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       if (v != null) {
         String s = v.getTitle();
 
-        return ((s != null) && (s.length() == 0)) ? null : s;
+        return ((s != null) && (s.length() == 0))
+               ? null
+               : s;
       }
 
       return null;
@@ -2159,7 +2200,9 @@ public abstract class aViewer extends aPlatformWidget implements iViewer {
       if (o instanceof iPlatformComponent) {
         iWidget w = ((iPlatformComponent) o).getWidget();
 
-        return (aPlatformViewer) ((w == null) ? null : w.getViewer());
+        return (aPlatformViewer) ((w == null)
+                                  ? null
+                                  : w.getViewer());
       }
 
       return null;

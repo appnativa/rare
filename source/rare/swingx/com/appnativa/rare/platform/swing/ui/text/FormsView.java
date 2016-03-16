@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.text;
@@ -133,13 +133,15 @@ public class FormsView extends BlockView implements iGroupView {
         };
       }
 
-      if (action instanceof String) {
-        cfg.getActionLinkReference().url.setValue((String) action);
+      if (cfg instanceof Form) {
+        if (action instanceof String) {
+          ((Form) cfg).getActionLinkReference().url.setValue((String) action);
 
-        try {
-          cfg.getActionLinkReference().target.setValue(target);
-        } catch(Exception e) {
-          AppContext.debugLog("invalid link target:" + target);
+          try {
+            ((Form) cfg).getActionLinkReference().target.setValue(target);
+          } catch(Exception e) {
+            AppContext.debugLog("invalid link target:" + target);
+          }
         }
       }
 

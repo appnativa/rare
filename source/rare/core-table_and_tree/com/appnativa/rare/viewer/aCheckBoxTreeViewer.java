@@ -402,11 +402,11 @@ public abstract class aCheckBoxTreeViewer extends TreeViewer {
     if (fg.isDarkColor()) {
       checked       = Platform.getResourceAsIcon("Rare.icon.checkboxchecked");
       unchecked     = Platform.getResourceAsIcon("Rare.icon.checkbox");
-      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkboxindeterminate");
+      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkbox.indeterminate.dark");
     } else {
       checked       = Platform.getResourceAsIcon("Rare.icon.checkboxchecked.light");
       unchecked     = Platform.getResourceAsIcon("Rare.icon.checkbox.light");
-      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkboxindeterminate.light");
+      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkbox.indeterminate.light");
     }
 
     setIcons(checked, unchecked, indeterminate);

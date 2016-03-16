@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -73,6 +73,7 @@ public class UIImage extends aUIImage implements Cloneable {
 
   protected UIImage() {}
 
+  @Override
   public void addReflectionImage(int y, int height, float opacity, int gap) {
     if (bitmap.getHeight() < y + height + gap + height) {
       throw new IllegalArgumentException(
@@ -82,12 +83,24 @@ public class UIImage extends aUIImage implements Cloneable {
     ImageUtils.addReflection(bitmap, y, height, opacity, gap);
   }
 
+  @Override
+  public UIImage createReflection(int height, float opacity, int gap) {
+    if (height == -1) {
+      return new UIImage(ImageUtils.createReflection(bitmap, opacity, gap));
+    } else {
+      return new UIImage(ImageUtils.createSubReflection(bitmap, bitmap.getHeight() - height, height, opacity, gap));
+    }
+  }
+
+  @Override
   public void blurImage() {
     ImageUtils.blurBitmap(bitmap);
   }
 
+  @Override
   public Object clone() {
     UIImage img = (UIImage) super.clone();
+
     img.bitmap = Bitmap.createBitmap(bitmap);
 
     return img;
@@ -103,6 +116,7 @@ public class UIImage extends aUIImage implements Cloneable {
     }
   }
 
+  @Override
   public UIImage createDisabledImage() {
     if (bitmap == null) {
       return null;
@@ -115,12 +129,14 @@ public class UIImage extends aUIImage implements Cloneable {
     return new AndroidGraphics(getBitmap());
   }
 
-  public UIImage createReflectionImage(int y, int height, float opacity, int gap) {
-    Bitmap bmp = ImageUtils.createReflection(bitmap, y, height, opacity, gap);
+  @Override
+  public UIImage createCopyWithReflection(int height, float opacity, int gap) {
+    Bitmap bmp = ImageUtils.createCopyWithReflection(bitmap, height, opacity, gap);
 
     return new UIImage(bmp);
   }
 
+  @Override
   public void dispose() {
     if (bitmap != null) {
       try {
@@ -150,6 +166,7 @@ public class UIImage extends aUIImage implements Cloneable {
            : d;
   }
 
+  @Override
   public void scale(int width, int height) {
     if ((bitmap != null) &&!isninePatch) {
       UIImage img = ImageHelper.scaleImage(this, width, height);
@@ -184,11 +201,13 @@ public class UIImage extends aUIImage implements Cloneable {
     drawable    = null;
   }
 
+  @Override
   public void setPixel(int x, int y, int value) {
     checkMutability();
     bitmap.setPixel(x, y, value);
   }
 
+  @Override
   public void setPixels(int[] pixels, int x, int y, int width, int height) {
     checkMutability();
     bitmap.setPixels(pixels, 0, width, x, y, width, height);
@@ -203,10 +222,12 @@ public class UIImage extends aUIImage implements Cloneable {
   /**
    * @return the bitmap
    */
+  @Override
   public Bitmap getBitmap() {
     return bitmap;
   }
 
+  @Override
   public Drawable getDrawable() {
     if (drawable == null) {
       if (bitmap != null) {
@@ -223,6 +244,24 @@ public class UIImage extends aUIImage implements Cloneable {
     return drawable;
   }
 
+  @Override
+  public Drawable createDrawable() {
+    Drawable d = null;
+
+    if (bitmap != null) {
+      d = new BitmapDrawable(Platform.getAppContext().getActivity().getResources(), bitmap);
+    } else if ((lastConfiguration != null) && (AppContext.getContext().getConfiguration() != lastConfiguration)) {
+      d = reloadDrawable(resID, drawable);
+
+      if (d instanceof BitmapDrawable) {
+        bitmap = ((BitmapDrawable) drawable).getBitmap();
+      }
+    }
+
+    return d;
+  }
+
+  @Override
   public int getHeight() {
     return (bitmap == null)
            ? (drawable == null)
@@ -231,10 +270,12 @@ public class UIImage extends aUIImage implements Cloneable {
            : bitmap.getHeight();
   }
 
+  @Override
   public String getLocation() {
     return location;
   }
 
+  @Override
   public NinePatch getNinePatch(boolean force) {
     if ((ninePatch == null) && (force || isNinePatch())) {
       ninePatch = new AndroidNinePatch(this);
@@ -243,12 +284,14 @@ public class UIImage extends aUIImage implements Cloneable {
     return ninePatch;
   }
 
+  @Override
   public int getPixel(int x, int y) {
     checkForBitmap();
 
     return bitmap.getPixel(x, y);
   }
 
+  @Override
   public int[] getPixels(int[] pixels, int x, int y, int width, int height) {
     checkForBitmap();
 
@@ -278,18 +321,21 @@ public class UIImage extends aUIImage implements Cloneable {
     throw new UnsupportedOperationException("No pixel data available");
   }
 
+  @Override
   public UIImage getSlice(int x, int y, int w, int h) {
     checkForBitmap();
 
     return new UIImage(Bitmap.createBitmap(getBitmap(), x, y, w, h));
   }
 
+  @Override
   public UIImage getSubimage(int x, int y, int w, int h) {
     checkForBitmap();
 
     return new UIImage(Bitmap.createBitmap(getBitmap(), x, y, w, h));
   }
 
+  @Override
   public int getWidth() {
     return (bitmap == null)
            ? (drawable == null)
@@ -297,6 +343,9 @@ public class UIImage extends aUIImage implements Cloneable {
              : drawable.getIntrinsicWidth()
            : bitmap.getWidth();
   }
+
+  @Override
+  public void load() throws Exception {}
 
   @Override
   protected boolean isLoadedEx(boolean hasObserver) {
@@ -346,6 +395,7 @@ public class UIImage extends aUIImage implements Cloneable {
       super(image, newColor, oldColor);
     }
 
+    @Override
     public void changeNinePatchColor(UIColor newColor, UIColor oldColor) {
       if (((UIImage) mImage).getDrawable() instanceof NinePatchDrawable) {
         return;
@@ -354,6 +404,7 @@ public class UIImage extends aUIImage implements Cloneable {
       super.changeNinePatchColor(newColor, oldColor);
     }
 
+    @Override
     public void draw(iPlatformGraphics g, float x, float y, float scaledWidth, float scaledHeight) {
       if (((UIImage) mImage).getDrawable() instanceof NinePatchDrawable) {
         Drawable d = ((UIImage) mImage).getDrawable();

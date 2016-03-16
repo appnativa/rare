@@ -62,13 +62,13 @@ public class ScriptManager extends aJavaScriptManager {
   @Override
   public iScriptHandler getRootHandler(iPlatformAppContext app, iWindow frame, String type, String name, String source,
       boolean share) {
-    ScriptEngine engine = getEngine(type, false, null);
+    ScriptEngine engine = getEngine(type, true, null);
 
     if (name == null) {
       if (source == null) {
         name = scriptName;
       } else {
-        name = "window";
+        name = DynamicBindings.WINDOW;
       }
     }
 
@@ -131,5 +131,4 @@ protected void addLoadedScript(String name) {
     }
     return null;
   }
-
 }

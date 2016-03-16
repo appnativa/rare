@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui;
@@ -226,6 +226,28 @@ public abstract class aPlatformListHandler extends aListHandler {
     } else if (listView instanceof TableView) {
       ((TableView) listView).setSelectedIndex(index);
     }
+  }
+
+  @Override
+  public int[] getSelectedIndexes() {
+    if (listView instanceof ListView) {
+      return ((ListView) listView).getSelectedIndices();
+    }
+
+    if (listView instanceof TableView) {
+      return ((TableView) listView).getSelectedIndices();
+    }
+
+    return null;
+  }
+
+  @Override
+  public int[] getCheckedIndexes() {
+    if (listView instanceof ListView) {
+      return ((ListView) listView).getCheckedIndexes();
+    }
+
+    return null;
   }
 
   @Override

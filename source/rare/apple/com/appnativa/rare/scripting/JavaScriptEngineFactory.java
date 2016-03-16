@@ -15,10 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
+
+import com.appnativa.util.IdentityArrayList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,9 +32,10 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
 public class JavaScriptEngineFactory implements ScriptEngineFactory {
-  private static List<String> extensions;
-  private static List<String> mimeTypes;
-  private static List<String> names;
+  private static List<String>           extensions;
+  private static List<String>           mimeTypes;
+  private static List<String>           names;
+  private static List<JavaScriptEngine> loadedEngines = new IdentityArrayList<JavaScriptEngine>(2);
 
   static {
     names = new ArrayList<String>(7);
@@ -178,10 +181,21 @@ public class JavaScriptEngineFactory implements ScriptEngineFactory {
     return ret;
   }
 
+  public void disposing(ScriptEngine e) {
+    synchronized(loadedEngines) {
+      loadedEngines.remove(e);
+    }
+  }
+
   @Override
   public ScriptEngine getScriptEngine() {
-    JavaScriptEngine ret = new JavaScriptEngine(this);
+    JavaScriptEngine e = new JavaScriptEngine(this);
 
-    return ret;
+    synchronized(loadedEngines) {
+      loadedEngines.add(e);
+    }
+
+    return e;
   }
+
 }

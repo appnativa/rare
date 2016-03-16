@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.chart.jfreechart;
@@ -312,7 +312,35 @@ public class ChartHandler extends aChartHandler {
 
   @Override
   public void itemChanged(iPlatformComponent chartComponent, ChartDefinition cd, ChartDataItem item) {
-    ChartInfo  info = (ChartInfo) cd.getChartHandlerInfo();
+    ChartInfo info = (ChartInfo) cd.getChartHandlerInfo();
+
+    switch(item.getItemType()) {
+      case SERIES :
+        dataChanged(chartComponent, cd);
+
+        return;
+
+      case DOMAIN_MARKER :
+        if ((info.chart != null) && (info.chart.getPlot() instanceof XYPlot)) {
+          updateMarkers(cd, (XYPlot) info.chart.getPlot(), false);
+        }
+
+        break;
+
+      case RANGE_MARKER :
+        if ((info.chart != null) && (info.chart.getPlot() instanceof XYPlot)) {
+          updateMarkers(cd, (XYPlot) info.chart.getPlot(), true);
+        }
+
+        break;
+
+      case POINT :
+        break;
+
+      default :
+        break;
+    }
+
     SeriesData data = info.updateSeries(cd, item);
     Plot       plot = info.chart.getPlot();
 
@@ -379,7 +407,7 @@ public class ChartHandler extends aChartHandler {
   }
 
   @Override
-  public void setDomainLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd) {
+  public void setDomainLabelsAngle(iPlatformComponent chartPanel, ChartDefinition cd) {
     setLabelAngel(chartPanel, cd, false);
   }
 
@@ -390,11 +418,6 @@ public class ChartHandler extends aChartHandler {
     if (a != null) {
       a.setLabel(cd.getRangeAxis().getLabel());
     }
-  }
-
-  @Override
-  public void setRangeLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd) {
-    setLabelAngel(chartPanel, cd, true);
   }
 
   @Override
@@ -439,7 +462,7 @@ public class ChartHandler extends aChartHandler {
   }
 
   @Override
-  public void unzoom(iPlatformComponent chartComponent) {
+  public void unzoom(iPlatformComponent chartComponent, ChartDefinition cd) {
     JComponent chartPanel = chartComponent.getView();
 
     ((ChartPanel) chartPanel).restoreAutoBounds();
@@ -729,7 +752,7 @@ public class ChartHandler extends aChartHandler {
             }
           };
 
-          if (img.isLoaded(io)) {
+          if (img.isImageLoaded(io)) {
             plot.setBackgroundImage(img.getImage());
           }
         }
@@ -1087,37 +1110,48 @@ public class ChartHandler extends aChartHandler {
       plot.getRangeAxis().setLabelAngle(0);
     }
 
-    List<ChartDataItem> markers = cd.getRangeMarkers();
+    updateMarkers(cd, plot, true);
+    updateMarkers(cd, plot, false);
+    customizeXYLineAndShapeRenderer(cd, plot, pi);
+    customizeSeriesAttributes(chartPanel, cd, plot, plot.getDatasetCount() > 1);
+    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+  }
+
+  protected void updateMarkers(ChartDefinition cd, XYPlot plot, boolean range) {
+    List<ChartDataItem> markers = range
+                                  ? cd.getRangeMarkers()
+                                  : cd.getDomainMarkers();
     int                 len     = (markers == null)
                                   ? 0
                                   : markers.size();
 
-    for (int i = 0; i < len; i++) {
-      plot.addRangeMarker(ChartHelper.createIntervalMarker(markers.get(i)));
+    len = (markers == null)
+          ? 0
+          : markers.size();
+
+    if (range) {
+      plot.clearRangeMarkers();
+
+      for (int i = 0; i < len; i++) {
+        plot.addRangeMarker(ChartHelper.createIntervalMarker(markers.get(i)));
+      }
+    } else {
+      plot.clearDomainMarkers();
+
+      IntervalMarker     marker;
+      ChartAxis.TimeUnit tm   = cd.getDomainAxis().getTimeUnit();
+      boolean            time = cd.isDateTimeType();
+
+      customizeAxis(cd, cd.getRangeAxis(), (NumberAxis) plot.getRangeAxis());
+      customizeAxis(cd, cd.getDomainAxis(), (NumberAxis) plot.getDomainAxis());
+
+      for (int i = 0; i < len; i++) {
+        marker = time
+                 ? ChartHelper.createIntervalMarker(markers.get(i), tm)
+                 : ChartHelper.createIntervalMarker(markers.get(i));
+        plot.addDomainMarker(marker);
+      }
     }
-
-    markers = cd.getDomainMarkers();
-    len     = (markers == null)
-              ? 0
-              : markers.size();
-
-    IntervalMarker     marker;
-    ChartAxis.TimeUnit tm   = cd.getDomainAxis().getTimeUnit();
-    boolean            time = cd.isDateTimeType();
-
-    customizeAxis(cd, cd.getRangeAxis(), (NumberAxis) plot.getRangeAxis());
-    customizeAxis(cd, cd.getDomainAxis(), (NumberAxis) plot.getDomainAxis());
-
-    for (int i = 0; i < len; i++) {
-      marker = time
-               ? ChartHelper.createIntervalMarker(markers.get(i), tm)
-               : ChartHelper.createIntervalMarker(markers.get(i));
-      plot.addDomainMarker(marker);
-    }
-
-    customizeXYLineAndShapeRenderer(cd, plot, pi);
-    customizeSeriesAttributes(chartPanel, cd, plot, plot.getDatasetCount() > 1);
-    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
   }
 
   protected Axis getAxis(ChartDefinition cd, boolean range) {
@@ -1371,32 +1405,6 @@ public class ChartHandler extends aChartHandler {
     if (cd.isShowToolTips()) {
       plot.setToolTipGenerator(new PieToolTipLabelGenerator(cd, false));
     }
-  }
-
-  boolean areAllTheSameType(ChartDefinition cd) {
-    List<RenderableDataItem> rows = cd.getSeries();
-    int                      len  = (rows == null)
-                                    ? 0
-                                    : rows.size();
-
-    if (len == 0) {
-      return true;
-    }
-
-    ChartType oct = null;
-
-    for (int i = 0; i < len; i++) {
-      ChartDataItem series = (ChartDataItem) rows.get(i);
-      ChartType     ct     = getSeriesChartType(cd, series);
-
-      if (oct == null) {
-        oct = ct;
-      } else if (oct != ct) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   public static List refreshTicks(LabelData[] labels, TextAnchor anchor, TextAnchor rotationAnchor, double width,

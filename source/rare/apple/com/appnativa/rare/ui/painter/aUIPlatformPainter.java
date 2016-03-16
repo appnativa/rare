@@ -20,6 +20,8 @@
 
 package com.appnativa.rare.ui.painter;
 
+import com.appnativa.rare.ui.iPlatformGraphics;
+
 public abstract class aUIPlatformPainter extends aUIPainter {
   public aUIPlatformPainter() {
     super();
@@ -34,4 +36,12 @@ public abstract class aUIPlatformPainter extends aUIPainter {
   public boolean canUseMainLayer() {
     return false;
   }
-}
+  
+  public void updateModCount() {
+    modCount++;
+  }
+
+  public void fill(iPlatformGraphics g, float x, float y, float width, float height, int orientation) {
+    paint(g, x, y, width, height, orientation);
+  }
+ }

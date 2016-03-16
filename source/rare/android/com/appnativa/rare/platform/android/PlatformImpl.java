@@ -21,19 +21,14 @@
 package com.appnativa.rare.platform.android;
 
 import android.app.Activity;
-
 import android.content.Intent;
 import android.content.res.Resources;
-
 import android.graphics.drawable.Drawable;
-
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Handler;
 import android.os.Looper;
-
 import android.view.View;
-
 import android.widget.TextView;
 
 import com.appnativa.rare.Platform;
@@ -66,11 +61,8 @@ import com.appnativa.util.iCancelable;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.lang.reflect.Method;
-
 import java.net.URL;
-
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -386,7 +378,7 @@ public class PlatformImpl extends aPlatform {
     Intent sendIntent = new Intent(Intent.ACTION_SEND);
 
     if (address != null) {
-      sendIntent.putExtra(Intent.EXTRA_SUBJECT, address.split(";"));
+      sendIntent.putExtra(Intent.EXTRA_EMAIL, address.split(";"));
     }
 
     if (subject != null) {

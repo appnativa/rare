@@ -209,6 +209,7 @@ public class TextAreaView extends aTextEditorView {
   /*-[
     if(fg) {
       ((RAREAPTextView*)proxy_).textColor=[fg getAPColor];
+      ((RAREAPTextView*)proxy_).tintColor=[fg getAPColor];
     }
   ]-*/
   ;

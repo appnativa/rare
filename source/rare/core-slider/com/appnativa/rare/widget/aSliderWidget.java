@@ -29,10 +29,10 @@ import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.aSliderComponent;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iChangeable;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.util.SNumber;
 
@@ -422,6 +422,7 @@ public abstract class aSliderWidget extends aPlatformWidget implements iChangeab
     boolean horiz = cfg.horizontal.booleanValue();
 
     setHorizontal(horiz);
+    setShowTicks(cfg.showTicks.booleanValue());
     setMajorTickSpacing(cfg.majorTickSpacing.intValue());
     setMaximum(cfg.maxValue.intValue());
     setMinimum(cfg.minValue.intValue());
@@ -430,7 +431,6 @@ public abstract class aSliderWidget extends aPlatformWidget implements iChangeab
     String        right   = cfg.rightLabel.getValue();
     iPlatformIcon leftic  = getIcon(cfg.leftIcon);
     iPlatformIcon rightic = getIcon(cfg.rightIcon);
-
     if ((left != null) || (right != null) || (leftic != null) || (rightic != null)) {
       if ((left != null) || (leftic != null)) {
         leftLabel = createLabel();
@@ -468,7 +468,9 @@ public abstract class aSliderWidget extends aPlatformWidget implements iChangeab
     }
 
     if (!Platform.isTouchDevice()) {
-      setFocusPainted(true);
+      if(!cfg.focusPainted.spot_valueWasSet() || cfg.focusPainted.booleanValue()) {
+        setFocusPainted(true);
+      }
     }
 
     configure(cfg, true, false, true, true);

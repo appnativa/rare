@@ -21,14 +21,13 @@
 package com.appnativa.rare.platform.android.ui;
 
 import android.graphics.Canvas;
-
 import android.view.View;
 
 import com.appnativa.rare.platform.android.ui.util.ImageHelper;
 import com.appnativa.rare.ui.UIImage;
-import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.aPlatformIcon;
 import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.iObservableImage;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.util.IdentityArrayList;
@@ -166,7 +165,7 @@ public class MultiStateIcon extends aPlatformIcon implements iImageObserver {
 
   protected void checkIcon(iPlatformIcon icon) {
     if (icon != null) {
-      if ((icon instanceof UIImageIcon) &&!((UIImageIcon) icon).isImageLoaded(this)) {
+      if ((icon instanceof iObservableImage) &&!((iObservableImage) icon).isImageLoaded(this)) {
         return;
       }
 

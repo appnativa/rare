@@ -20,10 +20,10 @@
 
 package com.appnativa.rare.ui.layout;
 
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.LayoutMap;
-import com.jgoodies.forms.layout.RowSpec;
+import com.appnativa.jgoodies.forms.layout.ColumnSpec;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.LayoutMap;
+import com.appnativa.jgoodies.forms.layout.RowSpec;
 
 public class BorderLayout extends FormLayout {
   public BorderLayout() {}

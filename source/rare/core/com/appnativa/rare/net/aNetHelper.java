@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.net;
@@ -23,6 +23,7 @@ package com.appnativa.rare.net;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.scripting.Functions;
 import com.appnativa.rare.widget.iWidget;
 
 import java.net.MalformedURLException;
@@ -57,7 +58,7 @@ public class aNetHelper {
       }
     }
 
-    return new URL("http", iConstants.COLLECTION_PROTOCOL_HOSTSTRING, (int)app.hashCode(),
+    return new URL("http", iConstants.COLLECTION_PROTOCOL_HOSTSTRING, (int) app.hashCode(),
                    collection + "?" + context.getPathName());
   }
 
@@ -75,15 +76,15 @@ public class aNetHelper {
       }
     }
 
-    String path;
+    String s;
 
     if (enc != null) {
-      path = mimeType + "~" + enc + "#" + data;
+      s = "data:" + mimeType + ";" + enc + "," + data;
     } else {
-      path = mimeType + "#" + data;
+      s = "data:" + mimeType + "," + data;
     }
 
-    return new URL("http", iConstants.INLINE_PROTOCOL_HOSTSTRING, path);
+    return new URL("http", iConstants.INLINE_PROTOCOL_STRING, Functions.encode(s));
   }
 
   /**
@@ -194,6 +195,7 @@ public class aNetHelper {
     String encoding;
     String inlineData;
     String mimeType;
+    String toString;
 
     public InlineStreamHandler(String data, String mime, String enc) {
       inlineData = data;
@@ -213,18 +215,20 @@ public class aNetHelper {
 
     @Override
     public String toExternalForm(URL url) {
-      return InlineURLConnection.toExternalForm(url);
+      if (toString == null) {
+        if (encoding != null) {
+          toString = "data:" + mimeType + ";" + encoding + "," + inlineData;
+        } else {
+          toString = "data:" + mimeType + "," + inlineData;
+        }
+      }
+
+      return toString;
     }
 
     @Override
     public String toString(URL url) {
-      String data = inlineData;
-
-      if (data.length() > 77) {
-        data = data.substring(0, 77) + "...";
-      }
-
-      return iConstants.INLINE_PROTOCOL_STRING + ":///" + mimeType + "?" + data;
+      return toExternalForm(url);
     }
 
     @Override

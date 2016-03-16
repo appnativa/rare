@@ -205,6 +205,7 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
     if (chart == null) {
       chart = new ChartViewEx(cd.getChartViewer().getAndroidContext());
     } else {
+      chart.getAreas().clear();
       chart.setChart(new ChartEngine());
     }
 
@@ -349,6 +350,7 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
     if (chartPanel == null) {
       chartPanel = new ChartPanelComponent(cd, chart, cd.getTitle());
     } else {
+      
       ((ChartPanelComponent) chartPanel).set(cd, chart, cd.getTitle());
     }
 
@@ -494,10 +496,11 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
     if (fg != null) {
       series.getTextPaint().setColor(fg.getColor());
     }
-
     for (int i = 0; i < len; i++) {
       num = rangeValues.get(i);
-
+      if(num instanceof NumberListNumber) {
+        num=((NumberListNumber)num).getNumbers().get(0);
+      }
       Object o = domainValues.get(i);
 
       if (o instanceof Date) {
@@ -713,7 +716,7 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
   public void onChanged(Object e, Object e1, int i) {}
 
   @Override
-  public void unzoom(iPlatformComponent chartPanel) {}
+  public void unzoom(iPlatformComponent chartPanel, ChartDefinition cd) {}
 
   @Override
   public void updateRangeAxis(iPlatformComponent chartPanel, ChartDefinition cd) {
@@ -859,7 +862,7 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
   }
 
   @Override
-  public void setDomainLabelAngel(iPlatformComponent chartComponent, ChartDefinition cd) {
+  public void setDomainLabelsAngle(iPlatformComponent chartComponent, ChartDefinition cd) {
     ChartAxis a = getAxis(cd, false);
 
     if (a != null) {
@@ -891,21 +894,7 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
       a.setTitle(cd.getRangeLabel());
     }
   }
-
-  @Override
-  public void setRangeLabelAngel(iPlatformComponent chartComponent, ChartDefinition cd) {
-    ChartAxis a = getAxis(cd, true);
-
-    if (a != null) {
-      int angle = cd.getRangeAxis().getAngle();
-
-      if (angle != (int) a.getLabelAngle()) {
-        a.setLabelAngle(angle);
-        a.getScale().setInterval(a.getScale().getInterval());
-      }
-    }
-  }
-
+  
   @Override
   public void setShowDomainLabels(iPlatformComponent chartPanel, ChartDefinition cd) {
     ChartAxis a = getAxis(cd, false);
@@ -1379,20 +1368,12 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
     ChartViewEx    chart;
     LinearLayoutEx panel;
     LabelView      titleView;
-    int            checkSize;
 
     public ChartPanelComponent(ChartDefinition cd, ChartViewEx chart, RenderableDataItem title) {
       set(cd, chart, title);
     }
 
-    @Override
-    public void setBounds(float x, float y, float w, float h) {
-      checkSize++;
-      super.setBounds(x, y, w, h);
-    }
-
     public void set(ChartDefinition cd, ChartViewEx chart, RenderableDataItem title) {
-      checkSize  = 1;
       this.chart = chart;
 
       if ((title == null) || (title.getValue() == null)) {
@@ -1714,8 +1695,6 @@ public class ChartHandler extends aChartHandler implements ChartCollection.IChan
 
   static class Marker extends ShapeDrawable {
     UIColor fillColor;
-    int     oldHeight;
-    int     oldWidth;
     Shape   shape;
     int     size;
     UIColor strokeColor;

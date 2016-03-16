@@ -253,10 +253,8 @@ public abstract class aWindowManager implements iPlatformWindowManager {
       windowPaintbucket = ColorUtils.getPaintBucket(cfg.bgColor);
 
       if (windowPaintbucket != null) {
-        windowPaintbucket.install(mainFrame.getComponent());
+        mainFrame.getComponent().setComponentPainter(windowPaintbucket.getCachedComponentPainter());
       }
-    } else if (cfg.decorated.booleanValue()) {
-      mainFrame.getComponent().setBackground(ColorUtils.getBackground());
     }
 
     aContainer context = (aContainer) appContext.getRootViewer();
@@ -373,7 +371,9 @@ public abstract class aWindowManager implements iPlatformWindowManager {
     if (options == null) {
       options = Collections.EMPTY_MAP;
     }
+
     iWindow w = createWindow(context, options);
+
     return w;
   }
 
@@ -1359,8 +1359,8 @@ public abstract class aWindowManager implements iPlatformWindowManager {
       activeViewers.put(name, PlatformHelper.createWeakReference(viewer));
 
       if (v != null) {
-          Platform.ignoreException(
-              Platform.getWindowViewer().getString("Rare.runtime.text.registeredViewerExists", name), null);
+        Platform.ignoreException(Platform.getWindowViewer().getString("Rare.runtime.text.registeredViewerExists",
+                name), null);
       }
     }
   }
@@ -1570,15 +1570,15 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   }
 
   @Override
-  public void unRegisterViewer(String name,iViewer viewer) {
+  public void unRegisterViewer(String name, iViewer viewer) {
     iWeakReference r = activeViewers.get(name);
 
-    if (r != null && r.get()==viewer) {
+    if ((r != null) && (r.get() == viewer)) {
       activeViewers.remove(name);
       r.clear();
     }
   }
-  
+
   @Override
   public void update() {
     mainFrame.update();
@@ -1653,7 +1653,7 @@ public abstract class aWindowManager implements iPlatformWindowManager {
   }
 
   protected iWidget createTitleWidget(MainWindow cfg) {
-    if (!cfg.decorated.booleanValue()) {
+    if (appContext.okForOS(cfg.titlePane)) {
       Widget wcfg = (Widget) cfg.titlePane.getValue();
 
       if (wcfg != null) {

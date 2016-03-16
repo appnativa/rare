@@ -15,28 +15,25 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import android.app.Dialog;
-
 import android.content.Context;
 import android.content.DialogInterface;
-
+import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
-
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.android.AppContext;
-import com.appnativa.rare.platform.android.MainActivity;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.platform.android.ui.view.LinearLayoutEx;
@@ -60,7 +57,7 @@ public class WaitCursorHandler {
 
   public static void showProgressPopup(iPlatformComponent comp, final CharSequence message,
           final iCancelable cancelable) {
-    showProgressPopup(comp, message, cancelable,Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
+    showProgressPopup(comp, message, cancelable, Platform.getUIDefaults().getInt("Rare.WaitCursorHandler.delay", 200));
   }
 
   public static void showProgressPopup(iPlatformComponent comp, final CharSequence message,
@@ -233,16 +230,20 @@ public class WaitCursorHandler {
   }
 
   public static class SpinnerDialog extends Dialog implements Runnable {
-    boolean                          canCancel = true;
     TextView                         label;
     CharSequence                     message;
     iCancelable                      cancelable;
     CharSequence                     title;
-    View                             contentView;
+    iPlatformComponent               content;
     static iPlatformComponentPainter componentPainter;
 
     public SpinnerDialog(Context context, boolean progress) {
       super(context, getTheme(context, progress));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
     }
 
     static int getTheme(Context ctx, boolean progress) {
@@ -254,18 +255,6 @@ public class WaitCursorHandler {
       return progress
              ? progressStyle
              : spinnerStyle;
-    }
-
-    public void onBackPressed() {
-      super.onBackPressed();
-
-      if (!canCancel) {
-        MainActivity ma = ((MainActivity) AppContext.getRootActivity());
-
-        if (ma != null) {
-          ma.handleDialogOnBackPressed(this);
-        }
-      }
     }
 
     public static SpinnerDialog show(Context context, CharSequence title, CharSequence message) {
@@ -288,29 +277,32 @@ public class WaitCursorHandler {
       } else {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
       }
-
+      
       if (cancelable != null) {
         dialog.setCancelable(true);
+        dialog.setOnCancelListener(new OnCancelListener() {
+          @Override
+          public void onCancel(DialogInterface dialog) {
+            dialogCanceled();
+          }
+        });
       } else {
         dialog.setCancelable(false);
-        dialog.canCancel = false;
       }
 
       dialog.setOnDismissListener(new OnDismissListener() {
         public void onDismiss(DialogInterface dialog) {}
       });
-      dialog.setOnCancelListener(new OnCancelListener() {
-        @Override
-        public void onCancel(DialogInterface dialog) {
-          dialogCanceled();
-        }
-      });
 
-      ProgressBarWrapper prw = new ProgressBarWrapper(new ActionComponent(new LabelView(context)));
-      View               pb  = prw.getComponent().getView();
+      final ActionComponent label = new ActionComponent(new LabelView(context));
+      UISpriteIcon    icon  = UISpriteIcon.getDefaultSpinner();
 
-      pb.setPadding(ScreenUtils.PLATFORM_PIXELS_4, ScreenUtils.PLATFORM_PIXELS_4, ScreenUtils.PLATFORM_PIXELS_4,
-                    ScreenUtils.PLATFORM_PIXELS_4);
+      label.setIcon(icon);
+
+      View labelView = label.getView();
+
+      labelView.setPadding(ScreenUtils.PLATFORM_PIXELS_4, ScreenUtils.PLATFORM_PIXELS_4, ScreenUtils.PLATFORM_PIXELS_4,
+                           ScreenUtils.PLATFORM_PIXELS_4);
 
       LinearLayoutEx l = new LinearLayoutEx(context);
 
@@ -329,7 +321,7 @@ public class WaitCursorHandler {
 
       l.setComponentPainter(componentPainter);
       l.setOrientation(LinearLayoutEx.HORIZONTAL);
-      l.addView(pb);
+      l.addView(labelView);
 
       if (message != null) {
         TextView tv;
@@ -380,13 +372,22 @@ public class WaitCursorHandler {
       l.setBackgroundColor(ColorUtils.getBackground().getColor());
 
       LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+      Container    c  = new Container(l) {
+        @Override
+        public void repaint() {
+          label.repaint();
+        }
+      };
 
+      icon.setOwner(c);
       dialog.setContentView(l, lp);
-      if (delay > 0) { 
-        dialog.contentView = l;
-        l.setVisibility(View.INVISIBLE);
+
+      if (delay > 0) {
+        dialog.content = c;
+        c.setVisible(false);
         Platform.invokeLater(dialog, delay);
       }
+
       dialog.show();
 
       return dialog;
@@ -399,15 +400,15 @@ public class WaitCursorHandler {
     }
 
     public void dismiss() {
-      contentView = null;
+      content = null;
       super.dismiss();
     }
 
     @Override
     public void run() {
-      if (contentView != null) {
-        contentView.setVisibility(View.VISIBLE);
-        contentView = null;
+      if (content != null) {
+        content.setVisible(true);
+        content = null;
       }
     }
   }

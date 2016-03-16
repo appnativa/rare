@@ -130,13 +130,22 @@ public class MultiTableTableComponent implements iTableComponent, iDataModelList
     }
 
     if (column < mainTable.getColumnCount()) {
-      return mainTable.getCellRect(row, column, includeMargin);
+      UIRectangle r = mainTable.getCellRect(row, column, includeMargin);
+      if(rowHeaderTable!=null) {
+        r.x+=rowHeaderTable.getTableHeader().getWidth();
+      }
+      return r;
     } else {
       column -= mainTable.getColumnCount();
     }
 
     if (rowFooterTable != null) {
-      return rowFooterTable.getCellRect(row, column, includeMargin);
+      UIRectangle r=rowFooterTable.getCellRect(row, column, includeMargin);
+      if(rowHeaderTable!=null) {
+        r.x+=rowHeaderTable.getTableHeader().getWidth();
+      }
+      r.x+=mainTable.getTableHeader().getWidth();
+      return r;
     }
 
     return null;

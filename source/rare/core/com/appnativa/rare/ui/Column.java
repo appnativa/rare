@@ -700,6 +700,7 @@ public class Column extends RenderableDataItem {
 
     switch(renderType) {
       case HEADER_INDEX_NORMAL :
+      case HEADER_INDEX:
       case HEADER_NORMAL :
       case HEADER :
         headerColumn = true;
@@ -707,6 +708,7 @@ public class Column extends RenderableDataItem {
         break;
 
       case FOOTER_INDEX_NORMAL :
+      case FOOTER_INDEX:
       case FOOTER_NORMAL :
       case FOOTER :
         footerColumn = true;
@@ -718,7 +720,9 @@ public class Column extends RenderableDataItem {
     }
 
     switch(renderType) {
+      case HEADER_INDEX:
       case HEADER_INDEX_NORMAL :
+      case FOOTER_INDEX:
       case FOOTER_INDEX_NORMAL :
         indexColumn = true;
 
@@ -730,7 +734,9 @@ public class Column extends RenderableDataItem {
 
     switch(renderType) {
       case HEADER :
+      case HEADER_INDEX:
       case FOOTER :
+      case FOOTER_INDEX:
         itemPainter = ColorUtils.getBackgroundBucket();
 
         break;

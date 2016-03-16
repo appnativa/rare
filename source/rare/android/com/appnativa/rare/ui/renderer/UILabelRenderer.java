@@ -20,11 +20,11 @@
 
 package com.appnativa.rare.ui.renderer;
 
+import java.util.Map;
+
 import android.content.Context;
 import android.content.res.ColorStateList;
-
 import android.view.ViewGroup;
-
 import android.widget.TextView;
 
 import com.appnativa.rare.Platform;
@@ -40,15 +40,13 @@ import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
-import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.iObservableImage;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
-import java.util.Map;
 
 /**
  * A renderer that displays text and an associated icon. A platform label
@@ -88,8 +86,8 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
     if (this.icon != icon) {
       this.icon = icon;
 
-      if (icon instanceof UIImageIcon) {
-        ((UIImageIcon) icon).isImageLoaded(this);
+      if (icon instanceof iObservableImage) {
+        ((iObservableImage) icon).isImageLoaded(this);
       }
 
       if (view instanceof LabelView) {
@@ -294,7 +292,7 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   public iPlatformComponent getComponent(iPlatformComponent list, Object value, RenderableDataItem item, int row,
           boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
     if (handleAll) {
-      Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, false, null);
+      Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, null);
       setBorder(item.getBorder());
 
       UIFont f = item.getFont();
@@ -334,7 +332,12 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
       _lastFgColor = fgColor;
 
       if (fgColor != null) {
-        fgColor.setTextColor(tv);
+        if(tv.isEnabled()) {
+          fgColor.setTextColor(tv);
+        }
+        else  {
+          fgColor.getDisabledColor().setTextColor(tv);
+        }
       } else {
         if (_origFgColors != null) {
           tv.setTextColor(_origFgColors);

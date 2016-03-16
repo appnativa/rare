@@ -120,7 +120,15 @@ public class TextFieldView extends JTextField implements iPainterSupport, iActio
 
     graphics.clear();
   }
-
+  
+  @Override
+  public void setForeground(Color fg) {
+    super.setForeground(fg);
+    if(fg!=null) {
+      setCaretColor(fg);
+    }
+  }
+  
   @Override
   public Color getDisabledTextColor() {
     Color c=super.getForeground();

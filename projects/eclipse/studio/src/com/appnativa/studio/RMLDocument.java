@@ -113,7 +113,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   public DesignPane                  designPane;
   public RMLEditor                   editor;
   public IFile                       file;
-  ListenerList                       listenerList    = new ListenerList();
+  ListenerList                       listenerList = new ListenerList();
   Project                            project;
   Tool                               selectedTool;
   private boolean                    allowScrolling;
@@ -122,10 +122,10 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   private WidgetPaneViewer           paneParentViewer;
   private int                        projectModCount;
   private final IUndoContext         undoContext;
-  List<Widget> oldSelections;
+  List<Widget>                       oldSelections;
 
   public RMLDocument(RMLEditor editor, IUndoContext undoContext) {
-    this.editor = editor;
+    this.editor      = editor;
     this.undoContext = undoContext;
     editor.getInputDocument().addDocumentListener(this);
 
@@ -133,8 +133,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       if (editor.getEditorInput() instanceof IFileEditorInput) {
         file = ((IFileEditorInput) editor.getEditorInput()).getFile();
       }
-    } catch (Exception ignore) {
-    }
+    } catch(Exception ignore) {}
   }
 
   public void addSelectionChangedListener(iSelectionListener listener) {
@@ -150,13 +149,15 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   }
 
   public iSPOTElement createConfigurationEx(iViewer v) throws Exception {
-    Project project = getProject();
-    WindowViewer w = v.getAppContext().getWindowViewer();
-    IDocument doc = editor.getInputDocument();
-    URL turl = getURL();
-    URL url;
+    Project      project = getProject();
+    WindowViewer w       = v.getAppContext().getWindowViewer();
+    IDocument    doc     = editor.getInputDocument();
+    URL          turl    = getURL();
+    URL          url;
 
-    TemplateHandler.setInstance(Platform.getAppContext(), (project == null) ? null : project.getTemplateHandler());
+    TemplateHandler.setInstance(Platform.getAppContext(), (project == null)
+            ? null
+            : project.getTemplateHandler());
 
     if ((designPane == null) || (cfg == null)) {
       url = w.createInlineURL(doc.get(), "text/x-sdf");
@@ -188,14 +189,16 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
     if (project != null) {
       projectModCount = project.getModCount();
     }
+
     cfg.spot_setLinkedData(v.getContextURL());
+
     return cfg;
   }
 
   public com.appnativa.rare.spot.Application createPreviewApplication() throws Exception {
-    iSPOTElement cfg = createConfigurationEx(Platform.getContextRootViewer());
+    iSPOTElement                        cfg = createConfigurationEx(Platform.getContextRootViewer());
     com.appnativa.rare.spot.Application a;
-    Project project = getProject();
+    Project                             project = getProject();
 
     if ((project != null) && (project.application == null)) {
       project = null;
@@ -219,7 +222,9 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       MainWindow mw = a.getMainWindow();
 
       if ((mw == null) || (!isapp)) {
-        mw = (project == null) ? new MainWindow() : project.getPreviewMainWindow(!isapp);
+        mw = (project == null)
+             ? new MainWindow()
+             : project.getPreviewMainWindow(!isapp);
         a.setMainWindow(mw);
       }
 
@@ -235,18 +240,18 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
   public iContainer createWidget(WindowViewer win, iViewer v) throws Exception {
     iSPOTElement cfg = createConfiguration(v);
-    iWidget w;
-    Project p = getProject();
+    iWidget      w;
+    Project      p = getProject();
 
     if (cfg instanceof Application) {
-      com.appnativa.rare.spot.Application aa = (com.appnativa.rare.spot.Application) ((Application) cfg).application;
-      URL u = null;
-      MainWindow wm = aa.getMainWindow();
-      ActionLink link = null;
+      com.appnativa.rare.spot.Application aa   = (com.appnativa.rare.spot.Application) ((Application) cfg).application;
+      URL                                 u    = null;
+      MainWindow                          wm   = aa.getMainWindow();
+      ActionLink                          link = null;
 
       if (p != null) {
         if (wm == null) {
-          wm = p.getMainWindow();
+          wm   = p.getMainWindow();
           link = p.getMainWindowActionLink();
         }
 
@@ -278,7 +283,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
         ((iViewer) w).setViewerActionLink(link);
       }
     } else if (cfg instanceof MainWindow) {
-      URL u = null;
+      URL        u  = null;
       MainWindow wm = (MainWindow) cfg;
 
       if ((p != null) && (p.application != cfg)) {
@@ -326,13 +331,12 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
     }
 
     project = null;
-    file = null;
-    editor = null;
+    file    = null;
+    editor  = null;
   }
 
   @Override
-  public void documentAboutToBeChanged(DocumentEvent e) {
-  }
+  public void documentAboutToBeChanged(DocumentEvent e) {}
 
   @Override
   public void documentChanged(DocumentEvent e) {
@@ -345,8 +349,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
       if ((p != null) && (projectModCount != p.getModCount())) {
         projectModCount = p.getModCount();
-        cfg = null;
-        reloadDesign();
+        cfg             = null;
+        reloadDesign(null);
       } else {
         designPane.requestRepaint();
       }
@@ -386,8 +390,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
       try {
         p.setDirty(true);
-      } catch (Exception e) {
-        Studio.showError(e);
+      } catch(Exception e) {
+        Studio.showError(e,false);
       }
 
       ignoreProjetChangeEvents = false;
@@ -413,9 +417,9 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       try {
         createConfiguration(w);
         updateSource(true);
-      } catch (Exception ex) {
+      } catch(Exception ex) {
         cfg = e;
-        Studio.showError(ex);
+        Studio.showError(ex,false);
       }
     }
   }
@@ -427,7 +431,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   public void handleToolDoubleClicked() {
     if (selectedTool != null) {
       final Widget cfg = (Widget) ((Widget) Studio.getAttribute(selectedTool.id)).clone();
-      Runnable r = new Runnable() {
+      Runnable     r   = new Runnable() {
         @Override
         public void run() {
           try {
@@ -447,14 +451,14 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
     }
   }
 
-  public void reloadDesign() {
+  public void reloadDesign(final Widget selectConfig) {
     if (SwingUtilities.isEventDispatchThread()) {
-      reloadDesignEx();
+      reloadDesignEx(selectConfig);
     } else {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          reloadDesignEx();
+          reloadDesignEx(selectConfig);
         }
       });
     }
@@ -478,10 +482,12 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       designPane.removeDesignListener(this);
       r = this.designPane.shatter();
     }
-    if(paneParentViewer!=null) {
+
+    if (paneParentViewer != null) {
       paneParentViewer.dispose();
-      paneParentViewer=null;
+      paneParentViewer = null;
     }
+
     designPane = null;
     fireSelectionChanged(emptySelection, emptyWSelection);
 
@@ -490,24 +496,24 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
   @Override
   public void somethingHappened(final DesignEvent event) {
-    switch (event.getEvent()) {
-      case RELOAD_REQUEST:
-        reloadDesign();
+    switch(event.getEvent()) {
+      case RELOAD_REQUEST :
+        reloadDesign((Widget) event.getData());
 
         return;
 
-      case WIDGET_ACTION:
+      case WIDGET_ACTION :
         checkIfActive((MultiPageEditor) event.getOwner());
         handleWidgetAction(event.getWidget());
 
         return;
 
-      case MOTION_TRACKING_CLICK:
+      case MOTION_TRACKING_CLICK :
         handleMotionTrackingClick(event);
 
         return;
 
-      default:
+      default :
         break;
     }
 
@@ -525,7 +531,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   }
 
   public void toolboxItemSelected(Tool tool) {
-    Cursor cursor = null;
+    Cursor          cursor  = null;
     java.awt.Cursor scursor = null;
 
     if (!"Pointer".equals(tool.name)) {
@@ -536,7 +542,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       Image img = Studio.getResourceAsIcon(tool.id);
 
       if (img != null) {
-        cursor = new Cursor(Display.getDefault(), img.getImageData(), 3, 3);
+        cursor  = new Cursor(Display.getDefault(), img.getImageData(), 3, 3);
         scursor = com.appnativa.studio.Utilities.createCursor(tool.name, Studio.getResourceAsBufferedImage(tool.id));
       }
 
@@ -549,24 +555,29 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
   @Override
   public void undoableEditHappened(UndoableEditEvent event) {
-    IOperationHistory history = editor.getSite().getWorkbenchWindow().getWorkbench().getOperationSupport().getOperationHistory();
+    IOperationHistory history =
+      editor.getSite().getWorkbenchWindow().getWorkbench().getOperationSupport().getOperationHistory();
     UndoableOperation op = new UndoableOperation("Design Change", event.getEdit());
 
     op.addContext(undoContext);
 
     try {
       history.execute(op, null, null);
-    } catch (ExecutionException e) {
+    } catch(ExecutionException e) {
       e.printStackTrace();
     }
   }
 
   public void updateSelections() {
-    List<Widget> sels = (designPane == null) ? null : designPane.getSelectedWidgetConfigs();
+    List<Widget>        sels = (designPane == null)
+                               ? null
+                               : designPane.getSelectedWidgetConfigs();
     StructuredSelection s;
-    final int count = (sels == null) ? 0 : sels.size();
-    WidgetAdaptable[] a;
-    WidgetAdaptable wa;
+    final int           count = (sels == null)
+                                ? 0
+                                : sels.size();
+    WidgetAdaptable[]   a;
+    WidgetAdaptable     wa;
 
     if (count == 0) {
       s = emptySelection;
@@ -596,6 +607,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
     if (force && (cfg != null)) {
       IDocument doc = editor.getInputDocument();
+
       if (cfg instanceof TemplateContext) {
         doc.set(cfg.toString());
       } else {
@@ -671,9 +683,9 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
   public String getAssetsRelativePrefix() {
     if (editor.getEditorInput() instanceof IFileEditorInput) {
-      IFile f = ((IFileEditorInput) editor.getEditorInput()).getFile();
+      IFile  f = ((IFileEditorInput) editor.getEditorInput()).getFile();
       String s = f.getProjectRelativePath().toString();
-      int n = s.lastIndexOf('/');
+      int    n = s.lastIndexOf('/');
 
       if (n != -1) {
         s = s.substring(0, n + 1);
@@ -686,7 +698,9 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   }
 
   public URL getBaseURL() {
-    Project p = (file == null) ? null : Project.getProject(file, true);
+    Project p = (file == null)
+                ? null
+                : Project.getProject(file, true);
 
     if (p != null) {
       return p.getBaseURL();
@@ -696,8 +710,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   }
 
   public iWidget getContextWidget() {
-    DesignPane pane = getDesignPane();
-    iWidget widget = null;
+    DesignPane pane   = getDesignPane();
+    iWidget    widget = null;
 
     if (pane != null) {
       widget = pane.getSelectedWidget();
@@ -731,28 +745,26 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       return null;
     }
 
-    iWidget gw = designPane.getGridWidget();
-    iWidget.WidgetType wt = (gw == null) ? iWidget.WidgetType.Label : gw.getWidgetType();
-    iSPOTElement cfg = null;
+    iWidget            gw  = designPane.getGridWidget();
+    iWidget.WidgetType wt  = (gw == null)
+                             ? iWidget.WidgetType.Label
+                             : gw.getWidgetType();
+    iSPOTElement       cfg = null;
 
-    switch (wt) {
-      case TabPane:
-        // if (gw instanceof FloorTabPaneViewer) {
-        // break;
-        // }
-        // //$FALL-THROUGH$
-      case SplitPane:
+    switch(wt) {
+      case TabPane :
+      case SplitPane :
         cfg = (iSPOTElement) gw.getLinkedData();
 
         break;
 
-      case GridPane:
+      case GridPane :
         cfg = ((GridPane) gw.getLinkedData()).regions;
 
         break;
 
-      case Form:
-      case GroupBox:
+      case Form :
+      case GroupBox :
         cfg = (iSPOTElement) gw.getLinkedData();
 
         if (!((GroupBox) cfg).layout.stringValue().equals("forms")) {
@@ -761,7 +773,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
         break;
 
-      default:
+      default :
         break;
     }
 
@@ -794,9 +806,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
       try {
         project.reloadApplicationConfig();
-      } catch (Exception e) {
-        e.printStackTrace();
-        Studio.showError(e);
+      } catch(Exception e) {
+        Studio.showError(e,false);
       }
 
       ignoreProjetChangeEvents = false;
@@ -808,7 +819,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   public URL getURL() {
     try {
       return editor.getInputURI().toURL();
-    } catch (MalformedURLException e) {
+    } catch(MalformedURLException e) {
       return null;
     }
   }
@@ -828,8 +839,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   public boolean isGUIWidget() {
     if (cfg == null) {
       try {
-        IDocument doc = editor.getInputDocument();
-        SDFNode node = SDFNode.parse(new StringReader(doc.get()));
+        IDocument doc  = editor.getInputDocument();
+        SDFNode   node = SDFNode.parse(new StringReader(doc.get()));
 
         node = node.getFirstNode();
 
@@ -856,22 +867,24 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
             return false;
           }
         }
-      } catch (Exception ignore) {
+      } catch(Exception e) {
+        Studio.showError(e, false);
       }
     }
 
-    return (cfg instanceof Widget) || (cfg instanceof MainWindow) || (cfg instanceof com.appnativa.rare.spot.Application);
+    return (cfg instanceof Widget) || (cfg instanceof MainWindow)
+           || (cfg instanceof com.appnativa.rare.spot.Application);
   }
 
   void editWithDialogEx(final Widget wc, final iWidget w) {
-    SPOTSet set = null;
-    String name = null;
+    SPOTSet set  = null;
+    String  name = null;
 
-    switch (w.getWidgetType()) {
-      case SplitPane: {
-        SplitPane sp = (SplitPane) wc;
-        SPOTSet props = sp.getSplitProportions();
-        float splits[];
+    switch(w.getWidgetType()) {
+      case SplitPane : {
+        SplitPane sp    = (SplitPane) wc;
+        SPOTSet   props = sp.getSplitProportions();
+        float     splits[];
 
         if (props == null) {
           splits = new float[] { .5f };
@@ -899,7 +912,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
               ((SplitPaneViewer) w).setSplitProportions(splits);
               w.update();
             }
-          } catch (MalformedURLException e) {
+          } catch(MalformedURLException e) {
             e.printStackTrace();
           }
         }
@@ -907,41 +920,48 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
         break;
       }
 
-      case TabPane: {
-        set = ((TabPane) wc).tabs;
+      case TabPane : {
+        set  = ((TabPane) wc).tabs;
         name = "Tab";
+
         break;
       }
 
-      case Table: {
-        set = ((Table) wc).columns;
+      case Table : {
+        set  = ((Table) wc).columns;
         name = "Column";
+
         break;
       }
 
-      case MenuBar: {
-        set = ((MenuBar) wc).getPopupMenuReference();
+      case MenuBar : {
+        set  = ((MenuBar) wc).getPopupMenuReference();
         name = "MenuItem";
+
         break;
       }
 
-      case Navigator: {
-        set = ((Navigator) wc).actions;
+      case Navigator : {
+        set  = ((Navigator) wc).actions;
         name = "Action";
+
         break;
       }
 
-      default:
+      default :
         break;
     }
+
     if (set != null) {
       SequenceArrayEditor ed = new SequenceArrayEditor(Display.getCurrent().getActiveShell(), set, name, true);
+
       designPane.startEditsCapture();
-      if (ed.open() == IDialogConstants.OK_ID && designPane.hasCapturedEdits()) {
+
+      if ((ed.open() == IDialogConstants.OK_ID) && designPane.hasCapturedEdits()) {
         SPOTSet e = (SPOTSet) ed.getSPOTElement();
+
         set.spot_copy(e, false);
         Studio.runInSwingThread(new Runnable() {
-
           @Override
           public void run() {
             designPane.endEditsCapture(false, true, wc);
@@ -952,212 +972,68 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       }
     }
   }
-
-  // void editWithDialogEx(final Widget wc, final iWidget w) {
-  // switch(w.getWidgetType()) {
-  // case SplitPane : {
-  // SplitPane sp = (SplitPane) wc;
-  // SPOTSet set = sp.getSplitProportions();
-  // float splits[];
-  //
-  // if (set == null) {
-  // splits = new float[] { .5f };
-  // } else {
-  // splits = set.floatValues();
-  // }
-  //
-  // SplitPaneEditor ed = new
-  // SplitPaneEditor(Display.getCurrent().getActiveShell(), splits);
-  //
-  // if (ed.open() == IDialogConstants.OK_ID) {
-  // splits = ed.getSplits();
-  //
-  // try {
-  // MutableInteger changed = new MutableInteger(0);
-  // //convert strings to get rid of impercise garbage
-  // String[] ssplits = new String[splits.length];
-  //
-  // for (int i = 0; i < splits.length; i++) {
-  // ssplits[i] = String.valueOf(splits[i]);
-  // }
-  //
-  // FormChanger.changeValue(designPane, sp.getSplitProportionsReference(),
-  // ssplits, false, true, changed);
-  //
-  // if (changed.get() == 1) {
-  // ((SplitPaneViewer) w).setSplitProportions(splits);
-  // w.update();
-  // }
-  // } catch(MalformedURLException e) {
-  // e.printStackTrace();
-  // }
-  // }
-  //
-  // break;
-  // }
-  //
-  // case TabPane : {
-  // SPOTSet tabs = ((TabPane) wc).tabs;
-  // SequenceArrayEditor ed = new
-  // SequenceArrayEditor(Display.getCurrent().getActiveShell(),
-  // (iSPOTElement) tabs.clone(), "Tab");
-  //
-  // if (ed.open() == IDialogConstants.OK_ID) {
-  // iSPOTElement e = ed.getSPOTElement();
-  //
-  // try {
-  // MutableInteger changed = new MutableInteger(0);
-  //
-  // FormChanger.changeValue(designPane, tabs, e, false, true, changed);
-  //
-  // if (changed.get() == 1) {
-  // designPane.requestReload(wc);
-  // }
-  // } catch(MalformedURLException ex) {
-  // ex.printStackTrace();
-  // }
-  // }
-  //
-  // break;
-  // }
-  //
-  // case Table : {
-  // SPOTSet columns = ((Table) wc).columns;
-  // SequenceArrayEditor ed = new
-  // SequenceArrayEditor(Display.getCurrent().getActiveShell(),
-  // (iSPOTElement) columns.clone(), "Column");
-  //
-  // if (ed.open() == IDialogConstants.OK_ID) {
-  // iSPOTElement e = ed.getSPOTElement();
-  //
-  // try {
-  // MutableInteger changed = new MutableInteger(0);
-  //
-  // FormChanger.changeValue(designPane, columns, e, false, true, changed);
-  //
-  // if (changed.get() == 1) {
-  // designPane.requestReload(wc);
-  // }
-  // } catch(MalformedURLException ex) {
-  // ex.printStackTrace();
-  // }
-  // }
-  //
-  // break;
-  // }
-  //
-  // case MenuBar : {
-  // SPOTSet menus = ((MenuBar) wc).getPopupMenuReference();
-  // SequenceArrayEditor ed = new
-  // SequenceArrayEditor(Display.getCurrent().getActiveShell(),
-  // (iSPOTElement) menus.clone(), "MenuItem");
-  //
-  // if (ed.open() == IDialogConstants.OK_ID) {
-  // iSPOTElement e = ed.getSPOTElement();
-  //
-  // try {
-  // MutableInteger changed = new MutableInteger(0);
-  //
-  // FormChanger.changeValue(designPane, menus, e, false, true, changed);
-  //
-  // if (changed.get() == 1) {
-  // designPane.requestReload(wc);
-  // }
-  // } catch(MalformedURLException ex) {
-  // ex.printStackTrace();
-  // }
-  // }
-  //
-  // break;
-  // }
-  //
-  // case Navigator : {
-  // SPOTSet actions = ((Navigator) wc).actions;
-  // SequenceArrayEditor ed = new
-  // SequenceArrayEditor(Display.getCurrent().getActiveShell(),
-  // (iSPOTElement) actions.clone(), "Action");
-  //
-  // if (ed.open() == IDialogConstants.OK_ID) {
-  // iSPOTElement e = ed.getSPOTElement();
-  //
-  // try {
-  // MutableInteger changed = new MutableInteger(0);
-  //
-  // FormChanger.changeValue(designPane, actions, e, false, true, changed);
-  //
-  // if (changed.get() == 1) {
-  // designPane.requestReload(wc);
-  // }
-  // } catch(MalformedURLException ex) {
-  // ex.printStackTrace();
-  // }
-  // }
-  //
-  // break;
-  // }
-  //
-  // default :
-  // break;
-  // }
-  // }
   void reload() {
     if (designPane != null) {
-      reloadDesign();
+      reloadDesign(null);
     } else {
       updateSource(true);
     }
   }
 
   void somethingHappenedEx(DesignEvent event) {
-    switch (event.getEvent()) {
-      case RELOAD_REQUEST:
-        reloadDesign();
+    switch(event.getEvent()) {
+      case RELOAD_REQUEST :
+        reloadDesign((Widget) event.getData());
 
         break;
 
-      case WIDGET_ACTION:
+      case WIDGET_ACTION :
         checkIfActive((MultiPageEditor) event.getOwner());
         handleWidgetAction(event.getWidget());
 
         break;
 
-      case SELECTION_CHANGED:
+      case SELECTION_CHANGED :
         updateSelections();
 
         break;
 
-      case MOTION_TRACKING_CLICK:
+      case MOTION_TRACKING_CLICK :
         handleMotionTrackingClick(event);
 
         break;
 
-      case DOCUMENT_MODIFIED:
+      case DOCUMENT_MODIFIED :
         if (designPane != null) {
           editor.setDirty(designPane.isDirty());
         }
 
         break;
 
-      case OPEN_DOCUMENT:
+      case OPEN_DOCUMENT :
         URL u = (URL) event.getData();
 
         try {
           final IFile[] a = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(u.toURI());
-          final IFile efile;
-          final File jfile;
+          final IFile   efile;
+          final File    jfile;
+
           if ((a != null) && (a.length > 0)) {
             efile = a[0];
             jfile = null;
           } else {
             FileEx f = new FileEx(u.getPath());
+
             if (f.exists() && f.isFile()) {
               jfile = f;
             } else {
               jfile = null;
             }
+
             efile = null;
           }
-          if (efile != null || jfile != null) {
+
+          if ((efile != null) || (jfile != null)) {
             Display.getDefault().asyncExec(new Runnable() {
               public void run() {
                 IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -1165,26 +1041,27 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
                 try {
                   if (jfile != null) {
                     IFileStore fileStore = EFS.getLocalFileSystem().getStore(jfile.toURI());
+
                     IDE.openEditorOnFileStore(page, fileStore);
                   } else {
-                    IEditorDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(efile.getName());
+                    IEditorDescriptor desc =
+                      PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(efile.getName());
+
                     page.openEditor(new FileEditorInput(efile), desc.getId());
                   }
-                } catch (Exception e) {
-                }
+                } catch(Exception e) {}
               }
             });
           }
 
           break;
-        } catch (URISyntaxException e1) {
-        }
+        } catch(URISyntaxException e1) {}
 
         Display.getDefault().beep();
 
         break;
 
-      default:
+      default :
         break;
     }
   }
@@ -1208,7 +1085,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       cleanElement(root, ((SPOTAny) e).getValue());
     } else if (e instanceof SPOTSequence) {
       SPOTSequence seq = (SPOTSequence) e;
-      int len = seq.spot_getCount();
+      int          len = seq.spot_getCount();
 
       for (int i = 0; i < len; i++) {
         if (cleanElement(root, e = seq.spot_elementAt(i))) {
@@ -1217,7 +1094,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       }
     } else if (e instanceof SPOTSet) {
       SPOTSet set = (SPOTSet) e;
-      int len = set.size();
+      int     len = set.size();
 
       for (int i = 0; i < len; i++) {
         cleanElement(root, (iSPOTElement) set.get(i));
@@ -1228,7 +1105,10 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   }
 
   protected void fireSelectionChanged(final StructuredSelection selection, final WidgetAdaptable[] wa) {
-    if(!isNewSelection()) return;
+    if (!isNewSelection()) {
+      return;
+    }
+
     Runnable r = new Runnable() {
       public void run() {
         Object[] listeners = listenerList.getListeners();
@@ -1247,31 +1127,44 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
     Studio.runInSWTThread(r);
   }
+
   protected boolean isNewSelection() {
     List<Widget> cfgs = null;
+
     do {
-      if(designPane==null) break;
-      cfgs = designPane.getSelectedWidgetConfigs();
-      int len = cfgs.size();
-      if (oldSelections == null || oldSelections.size() != cfgs.size()) {
+      if (designPane == null) {
         break;
       }
+
+      cfgs = designPane.getSelectedWidgetConfigs();
+
+      int len = cfgs.size();
+
+      if ((oldSelections == null) || (oldSelections.size() != cfgs.size())) {
+        break;
+      }
+
       int i = 0;
+
       for (i = 0; i < len; i++) {
         if (oldSelections.get(i) != cfgs.get(i)) {
           break;
         }
       }
+
       if (i == len) {
         return false;
       }
-    } while (false);
+    } while(false);
+
     oldSelections = cfgs;
+
     return true;
   }
+
   protected void handleMotionTrackingClick(DesignEvent event) {
     try {
-      Point p = (Point) event.getData();
+      Point  p   = (Point) event.getData();
       Widget cfg = (Widget) ((Widget) Studio.getAttribute(selectedTool.id)).clone();
 
       designPane.handleDrop(p, cfg, null);
@@ -1286,33 +1179,35 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
   }
 
   protected void handleWidgetAction(iWidget w) {
-    Widget wc = (w == null) ? null : (Widget) w.getLinkedData();
+    Widget wc = (w == null)
+                ? null
+                : (Widget) w.getLinkedData();
 
     if (wc == null) {
       return;
     }
 
     if ((w instanceof com.appnativa.rare.viewer.iViewer)) {
-      switch (w.getWidgetType()) {
-        case TabPane:
-        case SplitPane:
-        case Table:
-        case MenuBar:
+      switch(w.getWidgetType()) {
+        case TabPane :
+        case SplitPane :
+        case Table :
+        case MenuBar :
           editWithDialog(wc, w);
 
           break;
 
-        default:
+        default :
           break;
       }
     } else {
-      switch (w.getWidgetType()) {
-        case Navigator:
+      switch(w.getWidgetType()) {
+        case Navigator :
           editWithDialog(wc, w);
 
           break;
 
-        case Line:
+        case Line :
           // cfg=w.linkedData.linesReference
           // dialog=window.openDialog("lines.sdf","Line Chooser",cfg).returnValue
           // if(dialog!=null && dialog.okPressed) {
@@ -1324,7 +1219,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
           // }
           break;
 
-        default:
+        default :
           Studio.runInSwingThread(new Runnable() {
             @Override
             public void run() {
@@ -1350,7 +1245,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
             designPane.setTrackingColor(p.getTrackingColor());
             designPane.setGridColor(p.getGridColor());
             designPane.setCanvasColor(p.getCanvasColor());
-            reloadDesign();
+            reloadDesign(null);
           }
         }
       }
@@ -1378,45 +1273,32 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
     });
   }
 
-  private void reloadDesignEx() {
+  private void reloadDesignEx(Widget cfg) {
     if (designPane != null) {
       designPane.prepareForReload();
-      iWidget w =paneParentViewer.removeWidget();
-      WindowViewer win = Platform.getWindowViewer();
-      final boolean efc = PropertiesView.isEditorFocusedLocked();
-
-      if (!efc) {
-        PropertiesView.setEditorFocusedLocked(true);
-      }
-
-      try {
+      iWidget       w   = paneParentViewer.removeWidget();
+      WindowViewer  win = Platform.getWindowViewer();
+       try {
         iContainer c = createWidget(win, paneParentViewer);
-
         paneParentViewer.setWidget(c);
         paneParentViewer.update();
-        designPane.setReloadedRootWidget(c);
-      } catch (Exception e) {
-        e.printStackTrace();
-      } finally {
-        if (PropertiesView.isEditorFocusedLocked() != efc) {
-          Studio.runInSWTThread(new Runnable() {
-
-            @Override
-            public void run() {
-              PropertiesView.setEditorFocusedLocked(efc);
-            }
-          });
+        designPane.setReloadedRootWidget(c,cfg==null);
+        if(cfg!=null) {
+          designPane.selectByElementEquals(cfg);
         }
-      }
-
-      if (w != null) {
-        w.dispose();
+      } catch(Exception e) {
+        Studio.showError(e, true);
+      } finally {
+        if (w != null) {
+          w.dispose();
+        }
       }
     }
   }
 
   private void updateDesignPane() {
     designPane.prepareForReload();
+
     iWidget w = designPane.getRootWidget();
 
     paneParentViewer.setWidget((iWidget) null, false);
@@ -1432,13 +1314,13 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
       paneParentViewer.setWidget(c);
       paneParentViewer.update();
-      designPane.setReloadedRootWidget(c);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    if (w != null) {
-      w.dispose();
+      designPane.setReloadedRootWidget(c,true);
+    } catch(Exception e) {
+      Studio.showError(e, true);
+    } finally {
+      if (w != null) {
+        w.dispose();
+      }
     }
   }
 
@@ -1456,7 +1338,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
     return project;
   }
 
-  public static class WidgetAdaptable implements IAdaptable { // ,IWorkbenchAdapter
+  public static class WidgetAdaptable implements IAdaptable {    // ,IWorkbenchAdapter
     SequenceProperty   attributes;
     SPOTSequence       config;
     List<SPOTSequence> configs;
@@ -1468,13 +1350,13 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
 
     public WidgetAdaptable(RMLDocument doc, SPOTSequence config) {
       this.document = doc;
-      this.config = config;
+      this.config   = config;
     }
 
     public WidgetAdaptable(RMLDocument doc, List<SPOTSequence> configs, SPOTSequence base) {
       this.document = doc;
-      this.configs = configs;
-      this.config = base;
+      this.configs  = configs;
+      this.config   = base;
     }
 
     public void dispose() {
@@ -1483,15 +1365,15 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       }
 
       document = null;
-      widget = null;
+      widget   = null;
       property = null;
     }
 
-    public void handleReloadRequest(final iSPOTElement e, final Object value, final String prop,final boolean reload) {
+    public void handleReloadRequest(final iSPOTElement e, final Object value, final String prop, final boolean reload) {
       Studio.runInSwingThread(new Runnable() {
         @Override
         public void run() {
-          handleReloadRequestEx(e, value, prop,reload);
+          handleReloadRequestEx(e, value, prop, reload);
         }
       });
     }
@@ -1516,7 +1398,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
           }
         } else {
           boolean reload = SPOTInspector.needsReload(e);
-          String prop = SPOTInspector.getComponentProperty(e, value);
+          String  prop   = SPOTInspector.getComponentProperty(e, value);
+
           if (configs != null) {
             FormChanger.changeValues(document.designPane, configs, e, value, changed);
           } else {
@@ -1531,10 +1414,11 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
                 ((GridCell) config).setBorders(null);
               }
             }
-            handleReloadRequest(e, value, prop,reload);
+
+            handleReloadRequest(e, value, prop, reload);
           }
         }
-      } catch (MalformedURLException e1) {
+      } catch(MalformedURLException e1) {
         e1.printStackTrace();
       }
     }
@@ -1638,7 +1522,7 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
       return sorted;
     }
 
-    void handleReloadRequestEx(iSPOTElement e, Object value, String prop,boolean reload) {
+    void handleReloadRequestEx(iSPOTElement e, Object value, String prop, boolean reload) {
       do {
         iWidget w = getWidget();
 
@@ -1670,8 +1554,8 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
             }
           }
 
-          if ((value != null) && (prop != null) && (prop.length() > 1) && !prop.equals("reload")) {
-            char c = prop.charAt(0);
+          if ((value != null) && (prop != null) && (prop.length() > 1) &&!prop.equals("reload")) {
+            char          c  = prop.charAt(0);
             StringBuilder sb = new StringBuilder(prop.length() + 5);
 
             sb.append("set").append(Character.toUpperCase(c)).append(prop, 1, prop.length());
@@ -1687,12 +1571,14 @@ public class RMLDocument implements iDesignListener, UndoableEditListener, IDocu
             }
           }
         }
-        if(reload) {
+
+        if (reload) {
           document.updateDesignPane();
         }
-      } while (false);
+      } while(false);
     }
   }
+
 
   static class UndoableOperation extends AbstractOperation {
     UndoableEdit edit;

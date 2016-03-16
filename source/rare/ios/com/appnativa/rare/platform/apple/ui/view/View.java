@@ -65,6 +65,13 @@ public class View extends aView {
   ]-*/
   ;
 
+  public native float getAlpha()
+  /*-[
+    UIView * v=(UIView*)proxy_;
+    return v.alpha;
+  ]-*/
+  ;
+  
   public native void sendToBack()
   /*-[
     UIView * v=(UIView*)proxy_;

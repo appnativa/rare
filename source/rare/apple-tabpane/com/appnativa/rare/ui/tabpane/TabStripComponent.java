@@ -75,6 +75,11 @@ public class TabStripComponent extends aTabStripComponent {
     }
 
     @Override
+    public void updateChildrenForColorChange() {
+      super.updateChildrenForColorChange();
+      tabPainter.updatePaintersModCount();
+    }
+    @Override
     public void mouseEntered(MouseEvent e) {
       Component c = (Component) component.getParent();
 

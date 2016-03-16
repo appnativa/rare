@@ -20,27 +20,6 @@
 
 package com.appnativa.rare.platform.swing.ui.text;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.net.iURLConnection;
-import com.appnativa.rare.platform.swing.AppContext;
-import com.appnativa.rare.platform.swing.Rare;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.UISoundHelper;
-import com.appnativa.rare.ui.border.UIEmptyBorder;
-import com.appnativa.rare.ui.dnd.DropInformation;
-import com.appnativa.rare.ui.listener.iHyperlinkListener;
-import com.appnativa.rare.ui.painter.iComponentPainter;
-import com.appnativa.rare.util.iTextSearcher;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.ByteArray;
-import com.appnativa.util.UnescapingReader;
-import com.appnativa.util.iURLResolver;
-
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -61,7 +40,6 @@ import java.awt.event.KeyEvent;
 import java.awt.im.InputContext;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -115,6 +93,27 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.undo.UndoManager;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.net.iURLConnection;
+import com.appnativa.rare.platform.swing.AppContext;
+import com.appnativa.rare.platform.swing.Rare;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.ScrollPaneEx;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.UISoundHelper;
+import com.appnativa.rare.ui.border.UIEmptyBorder;
+import com.appnativa.rare.ui.dnd.DropInformation;
+import com.appnativa.rare.ui.listener.iHyperlinkListener;
+import com.appnativa.rare.ui.painter.iComponentPainter;
+import com.appnativa.rare.util.iTextSearcher;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.ByteArray;
+import com.appnativa.util.UnescapingReader;
+import com.appnativa.util.iURLResolver;
 
 /**
  *
@@ -771,13 +770,6 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
     this.zoomingSupported = zoomingSupported;
   }
 
-  @Override
-  public Object getApplicationContext() {
-    return (urlResolver == null)
-           ? null
-           : urlResolver.getApplicationContext();
-  }
-
   public AttributeSet getAttributeSet(int pos, boolean paragraph) {
     Document d = getDocument();
 
@@ -829,11 +821,6 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
 
   public JComponent getComponent() {
     return this;
-  }
-
-  @Override
-  public URLConnection getConnection(String file) throws IOException {
-    return getURL(file).openConnection();
   }
 
   @Override
@@ -954,11 +941,6 @@ public class TextEditor extends JTextPane implements FocusListener, iURLResolver
     }
 
     return super.getScrollableTracksViewportWidth();
-  }
-
-  @Override
-  public InputStream getStream(String file) throws IOException {
-    return getURL(file).openConnection().getInputStream();
   }
 
   public JEditorPane getTextComponent() {

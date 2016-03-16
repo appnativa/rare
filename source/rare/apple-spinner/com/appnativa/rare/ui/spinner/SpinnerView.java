@@ -26,6 +26,7 @@ import com.appnativa.rare.platform.apple.ui.view.ParentView;
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.aSpinnerComponent;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
 
 public class SpinnerView extends ParentView implements iAppleLayoutManager {
   public SpinnerView() {
@@ -46,5 +47,11 @@ public class SpinnerView extends ParentView implements iAppleLayoutManager {
     aSpinnerComponent sp = (aSpinnerComponent) component;
 
     sp.paintButtons(g, rect);
+  }
+  @Override
+  public void updateChildrenForColorChange() {
+    super.updateChildrenForColorChange();
+    aSpinnerComponent sp = (aSpinnerComponent) component;
+    UIComponentPainter.updatePainterHolderModCount(sp.getButtonPainterHolder());
   }
 }

@@ -630,7 +630,7 @@ public abstract class aCarouselPanel extends XPContainer implements iActionable,
     prefSizeSet = true;
 
     if ((minImageSize.width > width) || (minImageSize.height > height)) {
-      maxImageSize.setSize(width, height);
+      minImageSize.setSize(width, height);
     }
   }
 
@@ -1277,7 +1277,8 @@ public abstract class aCarouselPanel extends XPContainer implements iActionable,
 
     size.width  += flowInsets.left + flowInsets.right;
     size.height += flowInsets.top + flowInsets.bottom;
-    size.width  += (Math.max(1, maxSideItems - 2) * odw);
+    int n=maxSideItems==Short.MAX_VALUE ? 4 : maxSideItems;
+    size.width  += (Math.max(1, n - 2) * odw);
     size.width  += (sdw * 2);
     size.height += titleHeight;
   }

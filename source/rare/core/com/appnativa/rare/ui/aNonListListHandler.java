@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -42,6 +42,11 @@ public abstract class aNonListListHandler implements iPlatformListHandler {
   }
 
   @Override
+  public int[] getCheckedIndexes() {
+    return null;
+  }
+
+  @Override
   public boolean isAtLeftEdge() {
     return false;
   }
@@ -60,19 +65,18 @@ public abstract class aNonListListHandler implements iPlatformListHandler {
   public boolean isAtBottomEdge() {
     return false;
   }
-  
+
   @Override
   public void repaintRow(int row) {
-    // TODO Auto-generated method stub
   }
+
   @Override
   public UIPoint getContentOffset() {
     return null;
   }
-  
+
   @Override
-  public void setContentOffset(float x, float y) {
-  }
+  public void setContentOffset(float x, float y) {}
 
   @Override
   public void setScrollingEdgePainter(UIScrollingEdgePainter painter) {}
@@ -642,11 +646,6 @@ public abstract class aNonListListHandler implements iPlatformListHandler {
 
   @Override
   public boolean isDataEventsEnabled() {
-    return false;
-  }
-
-  @Override
-  public boolean isEditing() {
     return false;
   }
 

@@ -20,14 +20,18 @@
 
 package com.appnativa.rare.ui;
 
-public interface iImage {
+public interface iImage extends iObservableImage{
   public abstract int getHeight();
 
   public abstract int getWidth();
 
   public abstract boolean isLoaded();
 
-  public abstract boolean isLoaded(iImageObserver is);
 
   public abstract boolean isNinePatch();
+  /**
+   * Forces the image to be loaded inline if it is not already loaded
+   * @throws Exception
+   */
+  public void load() throws Exception;
 }

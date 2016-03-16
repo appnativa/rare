@@ -20,6 +20,7 @@
 
 package com.appnativa.rare.ui.border;
 
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.iPlatformPath;
 
@@ -56,7 +57,7 @@ public class UILineBorder extends aUILineBorder {
 
   @Override
   public boolean usesPath() {
-    return !has2MissingSides;
+    return !has2MissingSides && !ColorUtils.KEEP_COLOR_KEYS;
   }
 
   @Override
@@ -87,6 +88,9 @@ public class UILineBorder extends aUILineBorder {
 
   @Override
   public boolean canUseMainLayer() {
+    if(ColorUtils.KEEP_COLOR_KEYS) {
+      return false;
+    }
     if (roundedCorners && (flatBottom || flatTop || flatRight || flatLeft)) {
       return false;
     }

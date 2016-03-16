@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.converters;
@@ -297,17 +297,39 @@ public class Conversions {
     return sb.toString();
   }
 
+  public static String colorToCSSString(UIColor c) {
+    if (c == null) {
+      return null;
+    }
+
+    int alpha = c.getAlpha();
+
+    if (alpha == 255) {
+      return "color: rgb(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ");";
+    } else {
+      float a = (int) ((float) alpha / 255.0f * 100);
+
+      a /= 100;
+
+      return "color: rgba(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "," + a + ");";
+    }
+  }
+
   public static String colorToRGBString(UIColor c) {
     if (c == null) {
       return null;
     }
 
-    int a = c.getAlpha();
+    int alpha = c.getAlpha();
 
-    if (a == 255) {
-      return c.getRed() + "," + c.getGreen() + ", " + c.getBlue();
+    if (alpha == 255) {
+      return "rgb(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + ");";
     } else {
-      return c.getRed() + "," + c.getGreen() + ", " + c.getBlue() + ", " + a;
+      float a = (int) ((float) alpha / 255.0f * 100);
+
+      a /= 100;
+
+      return "rgba(" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "," + a + ");";
     }
   }
 
@@ -576,9 +598,17 @@ public class Conversions {
         SimpleDateFormatEx ddf = (dformat == null)
                                  ? null
                                  : createDateFormat(dformat, localize);
-        DateContext        dc  = new DateContext(a, ddf);
+        DateContext        def;
 
-        return dc;
+        if (date) {
+          def = Platform.getAppContext().getDefaultDateContext();
+        } else {
+          def = Platform.getAppContext().getDefaultDateTimeContext();
+        }
+
+        return (def == null)
+               ? new DateContext(a, ddf)
+               : def.create(a, ddf);
       } else {
         NumberFormat[] a = null;
 

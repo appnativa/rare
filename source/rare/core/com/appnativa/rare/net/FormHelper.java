@@ -21,7 +21,6 @@
 package com.appnativa.rare.net;
 
 import com.appnativa.rare.util.MIMEMap;
-import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.Streams;
 import com.appnativa.util.StringCache;
 import com.appnativa.util.URLEncoder;
@@ -328,15 +327,12 @@ public class FormHelper {
    * Writes map values as HTTP content
    *
    * @param first true if this is the first item; false otherwise
-   * @param context the context
    * @param writer the writer
    * @param boundary  the field boundary
    * @param values the map of values
-   * @param expand  true to expand the string values using the specified context; false otherwise
    * @throws IOException
    */
-  public static void writeHTTPContent(boolean first, iWidget context, Writer writer, String boundary, Map values,
-          boolean expand)
+  public static void writeHTTPContent(boolean first, Writer writer, String boundary, Map values)
           throws IOException {
     if (values != null) {
       Iterator<Map.Entry> it = values.entrySet().iterator();
@@ -366,10 +362,6 @@ public class FormHelper {
           first = false;
 
           if (value != null) {
-            if (expand && (context != null)) {
-              value = context.expandString(value, false);
-              value = UTF8Helper.utf8String(value);
-            }
 
             writer.write(value);
           }
@@ -435,7 +427,7 @@ public class FormHelper {
       }
 
       first = false;
-      URLEncoder.encode(name, "ISO-8859-1", writer);
+      URLEncoder.encodeComponent(name, "ISO-8859-1", writer);
       writer.write('=');
       writer.write(StringCache.valueOf(value[i]));
     }
@@ -450,11 +442,12 @@ public class FormHelper {
    * @param writer the writer to use
    * @param name the name of the value
    * @param value the value
+   * @param encodeValue true to encode the value; false otherwise
    *
    * @return true if data was written; false otherwise
    * @throws IOException
    */
-  public static boolean writeHTTPValue(boolean first, Writer writer, String name, String[] value) throws IOException {
+  public static boolean writeHTTPValue(boolean first, Writer writer, String name, String[] value,boolean encodeValue) throws IOException {
     final int len = (value == null)
                     ? 0
                     : value.length;
@@ -465,28 +458,32 @@ public class FormHelper {
       }
 
       first = false;
-      URLEncoder.encode(name, "ISO-8859-1", writer);
+      URLEncoder.encodeComponent(name, "ISO-8859-1", writer);
       writer.write('=');
-      writer.write(value[i]);
+      if(encodeValue) {
+        URLEncoder.encodeComponent(value[i], "ISO-8859-1", writer);
+      }
+      else {
+        writer.write(value[i]);
+      }
     }
 
     return !first;
   }
 
   /**
-   * Encodes a set of attributes using standard HTTP form encoding rules
+   * Encodes a set of attributes using standard HTTP form encoding rules.
    *
    * @param first true if this is the first set of output values for the connection; false otherwise
-   * @param context the context
-   * @param writer the writer
+   * @param writer the writer to use
    * @param values the map of values
-   * @param expand  true to expand the string values using the specified context; false otherwise
+   * @param encodeValue true to encode the value; false otherwise
    *
    * @return true if any data was output to the specified writer; false otherwise
    *
    * @throws IOException
    */
-  public static boolean writeHTTPValues(boolean first, iWidget context, Writer writer, Map values, boolean expand)
+  public static boolean writeHTTPValues(boolean first, Writer writer, Map values, boolean encodeValue)
           throws IOException {
     if (values != null) {
       Iterator<Map.Entry> it = values.entrySet().iterator();
@@ -503,7 +500,7 @@ public class FormHelper {
           first = false;
         }
 
-        URLEncoder.encode((String) e.getKey(), "US-ASCII", writer);
+        URLEncoder.encodeComponent((String) e.getKey(), "US-ASCII", writer);
         writer.write('=');
         o     = e.getValue();
         value = (o == null)
@@ -511,8 +508,8 @@ public class FormHelper {
                 : o.toString();
 
         if (value != null) {
-          if (expand && (context != null)) {
-            context.expandString(value, true, writer);
+          if(encodeValue) {
+            URLEncoder.encodeComponent(value, "US-ASCII", writer);
           } else {
             writer.write(value);
           }
@@ -526,15 +523,13 @@ public class FormHelper {
   /**
    * Writes a JSON field value
    *
-   * @param context the context
    * @param writer the writer
    * @param values the map of values
-   * @param expand  true to expand the string values using the specified context; false otherwise
    *
    * @return true if data was written; false otherwise
    * @throws IOException
    */
-  public static boolean writeJSONValues(iWidget context, JSONWriter writer, Map values, boolean expand)
+  public static boolean writeJSONValues(JSONWriter writer, Map values)
           throws IOException {
     boolean written = false;
 
@@ -551,10 +546,6 @@ public class FormHelper {
           value = (o == null)
                   ? null
                   : o.toString();
-
-          if ((value != null) && expand && (context != null)) {
-            value = context.expandString(value, false);
-          }
 
           if (value != null) {
             if (!written) {
@@ -606,10 +597,9 @@ public class FormHelper {
   }
 
   /**
-   *   Encodes a set of attributes using standard HTTP form encoding rules
+   *   Writes a set of HTTP values without doing any encoding of the keys or values
    *
    *   @param first true if this is the first set of output values for the connection; false otherwise
-   *   @param context the context
    *   @param writer the writer
    *   @param values the map of values
    *
@@ -617,7 +607,7 @@ public class FormHelper {
    *
    *   @throws IOException
    */
-  public static boolean writeRawHTTPValues(boolean first, iWidget context, Writer writer, Map values)
+  public static boolean writeRawHTTPValues(boolean first,Writer writer, Map values)
           throws IOException {
     if (values != null) {
       Iterator<Map.Entry> it = values.entrySet().iterator();

@@ -55,6 +55,7 @@ import com.appnativa.rare.ui.UISelectionModelGroup;
 import com.appnativa.rare.ui.UIStroke;
 import com.appnativa.rare.ui.aWidgetListener;
 import com.appnativa.rare.ui.iActionable;
+import com.appnativa.rare.ui.iEditableListHandler;
 import com.appnativa.rare.ui.iListHandler;
 import com.appnativa.rare.ui.iListView.EditingMode;
 import com.appnativa.rare.ui.iPlatformBorder;
@@ -145,26 +146,6 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   @Override
   protected void handleViewerConfigurationChanged(boolean reset) {
     super.handleViewerConfigurationChanged(reset);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    iActionListener    l   = null;
-    RenderableDataItem row = getSelectedItem();
-
-    l = (row == null)
-        ? null
-        : row.getActionListener();
-
-    if (l != null) {
-      if (l instanceof ActionLink) {
-        ((ActionLink) l).setPopupLocation(getPopupLocation(getSelectedIndex()));
-      }
-
-      l.actionPerformed(e);
-    } else {
-      super.actionPerformed(e);
-    }
   }
 
   @Override
@@ -527,10 +508,20 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
         if (addIndexToList) {
           List<RenderableDataItem> list = updateListWithFilteringIndex((FilterableList<RenderableDataItem>) tempList);
 
-          listComponent.setAll(list);
+          if(isEmpty()) {
+            listComponent.setAll(tempList);
+          }
+          else {
+            listComponent.addAll(tempList);
+          }
           list.clear();
         } else {
-          listComponent.setAll(tempList);
+          if(isEmpty()) {
+            listComponent.setAll(tempList);
+          }
+          else {
+            listComponent.addAll(tempList);
+          }
         }
 
         tempList.clear();
@@ -763,7 +754,14 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    * @param animate
    *          true to animate (if supported on the platform); false otherwise
    */
-  public void startEditing(boolean animate, UIAction... actions) {}
+  public void startEditing(boolean animate, UIAction... actions) {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).startEditing(animate, actions);
+    }
+    else {
+      throw new UnsupportedOperationException();
+    }
+  }
 
   /**
    * Stop the list or row editing
@@ -771,7 +769,11 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    * @param animate
    *          true to animate (if supported on the platform); false otherwise
    */
-  public void stopEditing(boolean animate) {}
+  public void stopEditing(boolean animate) {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).stopEditing(animate);
+    }
+  }
 
   @Override
   public boolean unfilter() {
@@ -848,7 +850,11 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    *
    * @param l the listener
    */
-  public void setRowEditModeListener(iExpansionListener l) {}
+  public void setRowEditModeListener(iExpansionListener l) {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).setRowEditModeListener(l);
+    }
+  }
 
   /**
    * Sets a listener to be called when the edit mode on the list is about to start or stop
@@ -857,7 +863,12 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    *
    * @param l the listener
    */
-  public void setEditModeListener(iExpansionListener l) {}
+  public void setEditModeListener(iExpansionListener l) {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).setEditModeListener(l);
+    }
+    
+  }
 
   @Override
   public void setFromHTTPFormValue(Object value) {
@@ -989,7 +1000,7 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
 
   /**
    * Sets a widget to use to edit row items. This widget will be displayed when
-   * the user swipes on a row. THe widget can be a button or a container
+   * the user swipes on a row. The widget can be a button or a container
    * containing buttons (e.g. a toolbar or form)
    *
    * @param widget
@@ -1004,6 +1015,9 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
     }
 
     rowEditingWidget = widget;
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).setRowEditingComponent(widget==null ? null : widget.getContainerComponent(), centerVertically);
+    }
 
     if (widget != null) {
       registerOrphanWidget(widget);
@@ -1116,15 +1130,117 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   }
 
   public int getEditModeMarkCount() {
-    return listModel.editModeGetMarkCount();
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).getEditModeMarkCount();
+    }
+    return 0;
   }
 
+  /**
+   * Clears  the selection marks for all list items
+   * when in edit mode 
+   */
+  public void clearEditModeMarks() {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).clearEditModeMarks();
+    }
+  }
+
+  /**
+   * Returns whether an item is marked
+   * when in edit mode 
+   * 
+   * @param index the index of the item
+   */
+  public boolean isEditModeItemMarked(int index) {
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).isEditModeItemMarked(index);
+    }
+    return false;
+  }
+
+  /**
+   * Toggles and items marked state
+   * when in edit mode 
+   * 
+   * @param index the index of the item
+   */
+  public void toggleEditModeItemMark(int index) {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).toggleEditModeItemMark(index);
+    }
+  }
+
+  /**
+   * Sets the marked state of an item
+   * when in edit mode 
+   * 
+   * @param index the index of the item
+   * @param mark true to mark the item ; false to un-mark the item
+   */
+  public void setEditModeItemMark(int index, boolean mark) {
+    if(listComponent instanceof iEditableListHandler) {
+     ((iEditableListHandler)listComponent).setEditModeItemMark(index, mark);
+    }
+  }
+
+  /**
+   * Sets the marked state of all items
+   * when in edit mode 
+   * 
+   * @param mark true to mark the items; false to un-mark the items
+   */
+  public void setEditModeAllItemMarks(boolean mark) {
+    if(listComponent instanceof iEditableListHandler) {
+      ((iEditableListHandler)listComponent).setEditModeAllItemMarks(mark);
+    }
+  }
+  /**
+   * Gets the toolbar that will be used for marking and deleting list items
+   * @return the toolbar that will be used for marking and deleting list items
+   */
+  public iToolBar getEditModeToolBar() {
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).getEditModeToolBar();
+    }
+    return null;
+  }
+
+  /**
+   * Sets the toolbar that will be used for marking and deleting list items
+   * @param tb the toolbar that will be used for marking and deleting list items
+   */
+  public void setEditModeToolBar(iToolBar tb) {
+    if(listComponent instanceof iEditableListHandler) {
+      iToolBar otb=((iEditableListHandler)listComponent).getEditModeToolBar();
+      if(tb!=otb) {
+        if(otb!=null) {
+          unregisterOrphanWidget(otb.getComponent().getWidget());
+        }
+        ((iEditableListHandler)listComponent).setEditModeToolBar(tb);
+      }
+    }
+  }
+  /**
+   * Gets the indices of the items that are marked when the list is in edit mode
+   * @return the indices of the items that are marked when the list is in edit mode
+   */
   public int[] getEditModeMarkedIndices() {
-    return listModel.editModeGetMarkedIndices();
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).getEditModeMarkedIndices();
+    }
+    return null;
   }
 
+  /**
+   * Gets the items that are marked when the list is in edit mode
+   * @return the items that are marked when the list is in edit mode
+   */
   public RenderableDataItem[] getEditModeMarkedItems() {
-    return listModel.editModeGetMarkedItems();
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).getEditModeMarkedItems();
+    }
+    return null;
   }
 
   /**
@@ -1133,6 +1249,9 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    * @return the current row being edited or -1 if no row is being edited
    */
   public int getEditingRow() {
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).getEditingRow();
+    }
     return -1;
   }
 
@@ -1234,6 +1353,9 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    *         row is currently being edited)
    */
   public int getLastEditedRow() {
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).getLastEditedRow();
+    }
     return -1;
   }
 
@@ -1385,6 +1507,11 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   }
 
   @Override
+  public int[] getCheckedIndexes() {
+    return listComponent.getCheckedIndexes();
+  }
+
+  @Override
   public RenderableDataItem getSelectedItem() {
     return listComponent.getSelectedItem();
   }
@@ -1476,9 +1603,11 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
    *
    * @return true if editing; false otherwise
    */
-  @Override
   public boolean isEditing() {
-    return listComponent.isEditing();
+    if(listComponent instanceof iEditableListHandler) {
+      return ((iEditableListHandler)listComponent).isEditing();
+    }
+    return false;
   }
 
   @Override
@@ -1809,7 +1938,8 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
     if (editable) {
       tb = getAppContext().getWindowManager().createToolBar(true);
       tb.setSretchButtonsToFillSpace(true);
-
+      tb.getComponent().setBackground(ColorUtils.getBackground());
+      
       BorderPanel bp;
 
       if (formComponent instanceof BorderPanel) {
@@ -1827,6 +1957,8 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
         bp.setBottomView(tb.getComponent());
       } else {
         bp = new BorderPanel(this);
+        bp.setBackground(ColorUtils.getListBackground());
+        formComponent.setOpaque(false);
         bp.setCenterView(formComponent);
         bp.setBottomView(tb.getComponent());
         formComponent = bp;
@@ -1917,6 +2049,27 @@ public abstract class aListViewer extends aPlatformViewer implements iActionable
   @Override
   protected void initializeListeners(aWidgetListener l) {
     super.initializeListeners(l);
+
+    iActionListener al = new iActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        iActionListener    l   = null;
+        RenderableDataItem row = getSelectedItem();
+
+        l = (row == null)
+            ? null
+            : row.getActionListener();
+
+        if (l != null) {
+          if (l instanceof ActionLink) {
+            ((ActionLink) l).setPopupLocation(getPopupLocation(getSelectedIndex()));
+          }
+
+          l.actionPerformed(e);
+        }
+      }
+    };
+    listComponent.addActionListener(al);
 
     if (l != null) {
       if (l.isChangeEventEnabled()) {

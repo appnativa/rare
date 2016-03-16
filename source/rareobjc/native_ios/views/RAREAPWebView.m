@@ -11,9 +11,8 @@
 #import "APView+Component.h"
 
 
-@implementation RAREAPWebView {
-  BOOL clearing_;
-}
+@implementation RAREAPWebView
+
 + (Class)layerClass
 {
   return [RARECAGradientLayer class];
@@ -43,7 +42,6 @@
   self.delegate = nil;
 }
 - (void)loadWithHREF:(NSString *)url {
-  clearing_=NO;
   NSURL* nsurl=[NSURL URLWithString:url];
   NSURLRequest *req= [[NSURLRequest alloc] initWithURL:nsurl];
   [self loadRequest:req];
@@ -60,7 +58,6 @@
 }
 
 - (void)loadWithContent:(NSString *)content contentType:(NSString *)type baseHREF:(NSString *) baseHref {
-  clearing_=NO;
   NSURL* nsurl=nil;
   if(baseHref) {
     nsurl=[NSURL URLWithString:baseHref];
@@ -82,13 +79,12 @@
   return YES;
 }
 -(void) clearContents {
-  clearing_=YES;
-  NSURL* nsurl=[NSURL URLWithString:@"about:blank"];
-  NSURLRequest *req= [[NSURLRequest alloc] initWithURL:nsurl];
-  [self loadRequest:req];
-}
+  @try {
+  [ self stringByEvaluatingJavaScriptFromString:@"document.body.innerHTML = \"\";"];
+  }
+  @catch(NSException* ignore){}
+ }
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-  if(clearing_) return;
   RAREWebView* view=(RAREWebView*)self.sparView;
   if(view->loadListener_) {
     [view->loadListener_ loadStartedWithRAREWebView:view];
@@ -96,7 +92,6 @@
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
-  if(clearing_) return;
   if(self.scalesPageToFit) {
     UIScrollView *scroll=[self scrollView];
     
@@ -115,6 +110,10 @@
     [view->loadListener_ loadFailedWithRAREWebView:view withNSString:error.localizedDescription];
   }
   
+}
+
+-(void)adjustForRotation {
+ [self.scrollView setZoomScale:0 animated:YES];
 }
 
 -(void)setHidden:(BOOL)hidden {

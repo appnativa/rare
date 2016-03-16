@@ -22,7 +22,6 @@ package com.appnativa.rare.platform.apple.ui.view;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.TitlePane;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
@@ -361,6 +360,25 @@ public abstract class aWindow extends ParentView {
     setSizeEx(size.width, size.height);
   }
 
+  public void repackAndCenter() {
+    UIDimension size = new UIDimension();
+    
+    rootPane.getPreferredSize(size);
+    UIDimension ss=UIScreen.getUsableSize();
+    ss.width-=10;
+    ss.height-=10;
+    if(size.width>ss.width) {
+      size.width=ss.width;
+    }
+    if(size.height>ss.height) {
+      size.height=ss.height;
+    }
+    UIDimension osize=getSize();
+    if(!size.equals(osize)) {
+      setSizeEx(size.width, size.height);
+      centerOnScreen();
+    }
+  }
   
   public native void removeViewFromGlass(View view)
   /*-[
@@ -621,16 +639,6 @@ public abstract class aWindow extends ParentView {
       Platform.getAppContext().getActiveWindows().addIfNotPresent(this);
     } else {
       Platform.getAppContext().getActiveWindows().remove(this);
-    }
-  }
-  
-  protected void resizeAndCenter() {
-    iPlatformComponent c = getComponent();
-    if(c instanceof Frame) {
-      Frame f=(Frame) c;
-      f.getWindowViewer().onConfigurationChanged(true);
-      f.pack();
-      f.center();
     }
   }
 

@@ -97,6 +97,9 @@ public class ScriptingEvent implements Cloneable, iScriptingContextSupport {
     }
   }
 
+  public void preventDefault() {
+    consume();
+  }
   public void dispose() {
     if (scriptingContext != null) {
       scriptingContext.dispose();

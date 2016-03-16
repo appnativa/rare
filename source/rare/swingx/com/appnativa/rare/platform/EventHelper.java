@@ -20,12 +20,6 @@
 
 package com.appnativa.rare.platform;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.swing.PlatformImpl;
-import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.iPlatformComponent;
-
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.InputEvent;
@@ -33,6 +27,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import javax.swing.SwingUtilities;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.swing.PlatformImpl;
+import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.table.TableView;
+import com.appnativa.rare.ui.table.iTableComponent;
 
 public final class EventHelper {
   public static int getClickCount(Object source, Object motionEvent) {
@@ -84,7 +86,7 @@ public final class EventHelper {
 
         return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_CLICK;
 
-      case MouseEvent.MOUSE_EXITED:
+      case MouseEvent.MOUSE_EXITED :
         return com.appnativa.rare.ui.event.MouseEvent.Type.MOUSE_ENTER;
 
       case MouseEvent.MOUSE_ENTERED :
@@ -111,11 +113,47 @@ public final class EventHelper {
   }
 
   public static UIPoint getMousePoint(Object source, Object motionEvent) {
-    return new UIPoint(((MouseEvent) motionEvent).getX(), ((MouseEvent) motionEvent).getY());
+    MouseEvent e = (MouseEvent) motionEvent;
+    int        y = e.getY();
+    int        x = e.getX();
+
+    if (e.getComponent() instanceof TableView) {
+      TableView tv=(TableView)e.getComponent();
+      x = resolveTableX(tv.getTableViewer().getTableComponent(),tv.getTableComponent(), x);
+    }
+
+    return new UIPoint(x, y);
+  }
+
+  private static int resolveTableX(iTableComponent mc, iTableComponent source,int x) {
+    iTableComponent tc = mc.getRowHeaderTable();
+
+    if (tc != null) {
+      if (tc == source) {
+        return x;
+      }
+
+      x += tc.getTableHeader().getWidth();
+    }
+
+    tc = mc.getMainTable();
+
+    if (tc != source) {
+      x += tc.getTableHeader().getWidth();
+    }
+
+    return x;
   }
 
   public static float getMouseX(Object source, Object motionEvent) {
-    return ((MouseEvent) motionEvent).getX();
+    MouseEvent e = (MouseEvent) motionEvent;
+
+    if (!(e.getComponent() instanceof TableView)) {
+      return e.getX();
+    }
+    TableView tv=(TableView)e.getComponent();
+
+    return resolveTableX(tv.getTableViewer().getTableComponent(),tv.getTableComponent(), e.getX());
   }
 
   public static float getMouseXInWindow(Object source, Object motionEvent) {
@@ -197,7 +235,7 @@ public final class EventHelper {
       case KeyEvent.KEY_RELEASED :
         return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_UP;
 
-      case KeyEvent.KEY_TYPED:
+      case KeyEvent.KEY_TYPED :
         return com.appnativa.rare.ui.event.KeyEvent.Type.KEY_TYPED;
 
       default :

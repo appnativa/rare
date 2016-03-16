@@ -1,5 +1,5 @@
 /**************************************************************************
- * Button.java - Wed Nov 18 17:50:58 PST 2015
+ * Button.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -199,6 +199,8 @@ public class Button extends Widget {
     if ( pressedPainter == null ) {
       pressedPainter = new GridCell(true);
       super.spot_setReference( "pressedPainter" , pressedPainter);
+      pressedPainter.spot_defineAttribute("foreground",null);
+      pressedPainter.spot_defineAttribute("font",null);
     }
     return pressedPainter;
   }
@@ -231,6 +233,13 @@ public class Button extends Widget {
     if ( selectionPainter == null ) {
       selectionPainter = new GridCell(true);
       super.spot_setReference( "selectionPainter" , selectionPainter);
+      selectionPainter.spot_defineAttribute("foreground",null);
+      selectionPainter.spot_defineAttribute("foreground",null);
+      selectionPainter.spot_defineAttribute("foreground",null);
+      selectionPainter.spot_defineAttribute("foreground",null);
+      selectionPainter.spot_defineAttribute("foreground",null);
+      selectionPainter.spot_defineAttribute("font",null);
+      selectionPainter.spot_defineAttribute("foreground",null);
     }
     return selectionPainter;
   }

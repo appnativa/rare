@@ -20,26 +20,18 @@
 
 package com.appnativa.rare.viewer;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-
-import android.content.Intent;
-
 import android.graphics.Bitmap;
-
-import android.net.Uri;
-
 import android.os.Build;
-
 import android.webkit.HttpAuthHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.exception.BrowserException;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
-import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.platform.android.ui.view.WebViewEx;
 import com.appnativa.rare.spot.Browser;
 import com.appnativa.rare.ui.Container;
@@ -54,12 +46,11 @@ import com.appnativa.rare.widget.aPlatformWidget;
  * @author Don DeCoteau
  */
 public class WebBrowser extends aWebBrowser {
-  boolean                         supportZoom     = true;
-  boolean                         useZoomControls = true;
-  protected WebViewEx             webView;
-  protected Client                webviewClient;
-  private iHttpAuthRequestHandler httpAuthRequestHandler;
-  private boolean                 loadInline;
+  boolean                           supportZoom     = true;
+  boolean                           useZoomControls = true;
+  protected WebViewEx               webView;
+  protected Client                  webviewClient;
+  protected iHttpAuthRequestHandler httpAuthRequestHandler;
 
   /**
    * Constructs a new instance
@@ -78,12 +69,22 @@ public class WebBrowser extends aWebBrowser {
     super(parent);
   }
 
+  @SuppressLint("NewApi")
   @Override
   public void onConfigurationChanged(boolean reset) {
     if (webView != null) {
       webView.onConfigurationChanged(reset);
       webView.setUseZoomControls(useZoomControls);
       webView.getSettings().setSupportZoom(supportZoom);
+      try {
+        int count=0;
+        while(count< 100 && webView.zoomOut()) {
+          count++; //prevent future bug if zoom out changes/has a bug
+        }
+      }
+      catch(Exception e) {
+        Platform.ignoreException(e);
+      }
     }
 
     super.onConfigurationChanged(reset);
@@ -147,17 +148,11 @@ public class WebBrowser extends aWebBrowser {
         webviewClient = new Client();
         webView.setWebViewClient(webviewClient);
       }
-
-      webviewClient.setLoadInline(loadInline);
     }
   }
 
   public void setHttpAuthRequestHandler(iHttpAuthRequestHandler httpAuthRequestHandler) {
     this.httpAuthRequestHandler = httpAuthRequestHandler;
-  }
-
-  public void setLoadInline(boolean loadInline) {
-    this.loadInline = loadInline;
   }
 
   @Override
@@ -190,10 +185,6 @@ public class WebBrowser extends aWebBrowser {
     return !webView.getSettings().getUseWideViewPort();
   }
 
-  public boolean isLoadInline() {
-    return loadInline;
-  }
-
   /**
    * Configures the browser
    *
@@ -211,6 +202,13 @@ public class WebBrowser extends aWebBrowser {
     }
 
     webView.getSettings().setDefaultFontSize(f.getSize());
+
+    try {
+      webView.getSettings().setDomStorageEnabled(true);
+      webView.getSettings().setDatabaseEnabled(true);
+    } catch(Exception e) {
+      Platform.ignoreException(e);
+    }
 
     if (webView.getSettings().getDefaultFixedFontSize() > f.getSize()) {
       webView.getSettings().setDefaultFixedFontSize(f.getSize());
@@ -272,6 +270,11 @@ public class WebBrowser extends aWebBrowser {
     }
 
     @Override
+    public Object getNativeBrowser() {
+      return webView;
+    }
+
+    @Override
     public String getLocation() {
       return webView.getUrl();
     }
@@ -284,8 +287,6 @@ public class WebBrowser extends aWebBrowser {
 
 
   protected static class Client extends WebViewClient {
-    private boolean loadInline;
-
     public Client() {}
 
     @Override
@@ -297,11 +298,10 @@ public class WebBrowser extends aWebBrowser {
     @Override
     public void onPageStarted(WebView view, String url, Bitmap favicon) {
       super.onPageStarted(view, url, favicon);
-
       WebBrowser w = (WebBrowser) aPlatformWidget.getWidgetForView(view);
 
-      if ((w != null) && w.isHandleWaitCursor()) {
-        Platform.getAppContext().getAsyncLoadStatusHandler().loadStarted(w, new ActionLink(url), null);
+      if (w != null && w.waitCursors==0) {
+        w.showWaitCursor();
       }
 
       if ((w != null) && (w.getWidgetListener() != null) && w.isEventEnabled(iConstants.EVENT_STARTED_LOADING)) {
@@ -354,35 +354,28 @@ public class WebBrowser extends aWebBrowser {
         }
       }
 
-      if (!loadInline) {
-        Intent i = new Intent(Intent.ACTION_VIEW);
-
-        i.setData(Uri.parse(url));
-        view.getContext().startActivity(i);
-      }
-
-      return !loadInline;
-    }
-
-    public void setLoadInline(boolean loadInline) {
-      this.loadInline = loadInline;
+      return false;
     }
 
     private void onPageFinished(WebView view, String url, boolean failed, String reason) {
       WebBrowser w = (WebBrowser) aPlatformWidget.getWidgetForView(view);
 
-      if ((w != null) && w.isHandleWaitCursor()) {
-        Platform.getAppContext().getAsyncLoadStatusHandler().loadCompleted(w, new ActionLink(url));
-      }
-
-      if ((w != null) && (w.getWidgetListener() != null) && w.isEventEnabled(iConstants.EVENT_FINISHED_LOADING)) {
-        DataEvent e = new DataEvent(view, url, reason);
-
+      if (w != null) {
         if (failed) {
-          e.markAsFailureEvent();
+          w.hideWaitCursorIfShowing();
+        } else {
+          w.hideWaitCursor();
         }
 
-        w.fireEvent(iConstants.EVENT_FINISHED_LOADING, e);
+        if ((w.getWidgetListener() != null) && w.isEventEnabled(iConstants.EVENT_FINISHED_LOADING)) {
+          DataEvent e = new DataEvent(view, url, reason);
+
+          if (failed) {
+            e.markAsFailureEvent();
+          }
+
+          w.fireEvent(iConstants.EVENT_FINISHED_LOADING, e);
+        }
       }
     }
   }

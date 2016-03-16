@@ -15,18 +15,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.canvas;
+
+import java.io.IOException;
 
 import com.appnativa.rare.platform.apple.ui.util.ImageUtils;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharScanner;
-
-import java.io.IOException;
 
 public class Canvas extends aCanvas {
   public Canvas(iWidget w, boolean backgroundCanvas) {

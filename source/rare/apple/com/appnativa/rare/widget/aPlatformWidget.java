@@ -20,6 +20,9 @@
 
 package com.appnativa.rare.widget;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.apple.ui.util.ImageUtils;
@@ -34,17 +37,14 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIPopupMenu;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.iActionable;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.listener.aMouseAdapter;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.spot.SPOTSet;
-
-import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * Base class for all widgets
@@ -269,10 +269,6 @@ public abstract class aPlatformWidget extends aWidget {
       }
     }
 
-    if (l.isMouseEventsEnabled()) {
-      getDataComponentEx().addMouseListener(l);
-    }
-
     if (l.isMouseMotionEventsEnabled() || (l.isEnabled(iConstants.EVENT_SCALE) &&!Platform.isTouchDevice())) {
       getDataComponentEx().addMouseMotionListener(l);
     }
@@ -289,8 +285,6 @@ public abstract class aPlatformWidget extends aWidget {
 
       if (eventEnabled) {
         ((iActionable) this).addActionListener(l);
-      } else {
-        ((iActionable) this).addActionListener(this);
       }
     }
 
@@ -482,4 +476,5 @@ public abstract class aPlatformWidget extends aWidget {
       return true;
     }
   }
+  
 }

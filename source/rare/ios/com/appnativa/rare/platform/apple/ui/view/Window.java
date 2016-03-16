@@ -175,4 +175,7 @@ public class Window extends aWindow {
     return overlayLayer_;
   ]-*/
   ;
+
+  public void setCancelable(boolean cancelable) {
+  }
 }

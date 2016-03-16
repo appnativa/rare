@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
@@ -31,9 +31,9 @@ import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIFont;
-import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIRectangle;
+import com.appnativa.rare.ui.iObservableImage;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
@@ -44,7 +44,6 @@ import com.appnativa.rare.ui.renderer.UILabelRenderer;
 import com.appnativa.rare.ui.renderer.WordWrapLabelRenderer;
 import com.appnativa.rare.ui.table.iTableComponent.GridViewType;
 import com.appnativa.util.iFilterableList;
-
 /*-[
  #import "RAREAPTableView.h"
  #import "RAREAPTableColumn.h"
@@ -74,21 +73,31 @@ public class TableHeader extends aTableHeader {
     addMouseMotionListener(l);
     setForeground(ColorUtils.getForeground());
   }
-  
+
   @Override
   public void moveColumn(int column, int targetColumn) {
-    int len=this.columns.length;
-    if(column<0 || column>=len || targetColumn<0 || targetColumn>=len) {
+    int len = this.columns.length;
+
+    if ((column < 0) || (column >= len) || (targetColumn < 0) || (targetColumn >= len)) {
       throw new IllegalArgumentException();
     }
-   tableView.moveColumn(column, targetColumn);
-   columnMoved(column, targetColumn);
+
+    tableView.moveColumn(column, targetColumn);
+    columnMoved(column, targetColumn);
   }
-  
+
   public boolean isColumnSelected(int col) {
     return (selectionModel == null)
            ? false
            : selectionModel.isSelected(col);
+  }
+
+  @Override
+  public void setHeaderCellPainter(PaintBucket headerPainter) {
+    super.setHeaderCellPainter(headerPainter);
+    headerView.setComponentPainter((headerPainter == null)
+                                   ? null
+                                   : headerPainter.getCachedComponentPainter());
   }
 
   @Override
@@ -175,8 +184,8 @@ public class TableHeader extends aTableHeader {
 
       iPlatformIcon icon = c.getHeaderIcon();
 
-      if (icon instanceof UIImageIcon) {
-        ((UIImageIcon) icon).isImageLoaded(this);
+      if (icon instanceof iObservableImage) {
+        ((iObservableImage) icon).isImageLoaded(this);
       }
 
       addViewColumn(i, c, cellInsets, font, fg);
@@ -238,6 +247,7 @@ public class TableHeader extends aTableHeader {
 
     public TableHeaderView(TableView table, Object proxy) {
       this(table, proxy, proxy);
+      usePainterBorder = false;
     }
 
     public TableHeaderView(TableView table, Object proxy, Object headerView) {
@@ -254,10 +264,8 @@ public class TableHeader extends aTableHeader {
                           ? null
                           : header.headerCellPainter.getBorder();
 
-      if ((header.showHeaderMargin) || (b != null)) {
-        drawSeparatorEx(g, b, (b == null)
-                              ? header.marginColor
-                              : null);
+      if (header.showHeaderMargin) {
+        drawSeparatorEx(g, b, header.marginColor);
 
         if (header.bottomMarginColor != null) {
           g.setStrokeWidth(1.5f);

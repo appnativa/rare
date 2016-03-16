@@ -1191,23 +1191,7 @@ public class JSONObject implements Map, Cloneable {
           } catch (Exception e) {
             /* Ignore the error */
           }
-        } else {
-          try {
-            return Long.valueOf(Long.parseLong(s, 8));
-          } catch (Exception e) {
-            /* Ignore the error */
-          }
-        }
       }
-      try {
-        return new SNumber(s);
-        //        if (s.indexOf('.') > -1 || s.indexOf('e') > -1 || s.indexOf('E') > -1) {
-        //          return Double.valueOf(s);
-        //        } else {
-        //          return new Long(s);
-        //        }
-      } catch (Exception f) {
-        /* Ignore the error */
       }
     }
     return s;

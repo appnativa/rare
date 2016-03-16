@@ -15,10 +15,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.widget.iWidget;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,11 +34,6 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.widget.iWidget;
 
 /**
  * A class representing a menu item
@@ -207,15 +207,6 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
     if (menuItem instanceof JCheckBoxMenuItem) {}
   }
 
-  @Override
-  public void setEnabled(boolean b) {
-    super.setEnabled(b);
-
-    if (menuItem != null) {
-      menuItem.setEnabled(b);
-    }
-  }
-
   /**
    * Sets the keyboard mnemonic for the item
    * @param c the mnemonic
@@ -276,9 +267,7 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
       menuItem = checkable
                  ? new JCheckBoxMenuItemEx()
                  : new JMenuItemEx();
-
       menuItem.addActionListener(this);
-
       menuItem.setText((theValue == null)
                        ? ""
                        : theValue.toString());
@@ -292,9 +281,9 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
         if (icon == null) {
           icon = Platform.getResourceAsIconEx("Rare.icon.empty16");
         }
+        setIcon(icon);
       }
 
-      menuItem.setIcon(icon);
     }
 
     return menuItem;
@@ -309,6 +298,14 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
     menuItem = item;
     item.removeActionListener(this);
     item.addActionListener(this);
+  }
+
+  @Override
+  protected void updateNativeItemForState(boolean enabled) {
+    if (menuItem != null) {
+      menuItem.setEnabled(enabled);
+      menuItem.setIcon(enabled ? getIcon() : getDisabledIcon());
+    }
   }
 
   @Override
@@ -339,7 +336,6 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
 
 
   public static class JMenuItemEx extends JMenuItem {
-
     public JMenuItemEx() {
       super();
     }
@@ -353,8 +349,9 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
       return super.getIcon();
     }
   }
-  public static class JMenuEx extends JMenu {
 
+
+  public static class JMenuEx extends JMenu {
     public JMenuEx() {
       super();
     }
@@ -372,5 +369,4 @@ public class UIMenuItem extends aUIMenuItem implements ActionListener {
       return super.getDisabledIcon();
     }
   }
-
 }

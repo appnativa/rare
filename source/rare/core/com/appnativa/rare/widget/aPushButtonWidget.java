@@ -20,8 +20,6 @@
 
 package com.appnativa.rare.widget;
 
-import java.util.Map;
-
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
@@ -46,11 +44,6 @@ import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.ViewerCreator;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.iActionComponent;
-import com.appnativa.rare.ui.iListHandler;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.border.UIBalloonBorder;
 import com.appnativa.rare.ui.border.UILineBorder;
@@ -61,6 +54,11 @@ import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.ExpansionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iPopupMenuListener;
+import com.appnativa.rare.ui.iActionComponent;
+import com.appnativa.rare.ui.iListHandler;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPopup;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
@@ -73,6 +71,8 @@ import com.appnativa.rare.viewer.iFormViewer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.SNumber;
+
+import java.util.Map;
 
 public abstract class aPushButtonWidget extends aGroupableButton {
 
@@ -137,46 +137,6 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     widgetType = WidgetType.PushButton;
   }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    switch(actionType) {
-      case PushButton.CActionType.submit_form :
-        this.getFormViewer().submitForm(null);
-
-        break;
-
-      case PushButton.CActionType.clear_form :
-        this.getFormViewer().reloadForm();
-
-        break;
-
-      case PushButton.CActionType.popup_widget :
-        showPopupWidget();
-
-        break;
-
-      case PushButton.CActionType.popup_menu :
-        showPopupMenu(0, getHeight());
-
-        break;
-
-      default :
-        if (size() > 0) {
-          togglePosition++;
-
-          if (togglePosition >= size()) {
-            togglePosition = 0;
-          }
-
-          setValue(get(togglePosition).toString());
-        }
-
-        super.actionPerformed(e);
-
-        break;
-    }
-  }
-
   /**
    * Invokes the action handler for the button in line. This is done when
    * showing popup, menu an popup widgets.
@@ -206,7 +166,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
 
     if (popupConfiguration != null) {
       popupWidget = aContainer.createWidget(getParent(), popupConfiguration);
-      
+
       if (popupConfiguration.focusable.spot_valueWasSet()) {
         popupContentFocusable = popupConfiguration.focusable.booleanValue();
       }
@@ -285,10 +245,12 @@ public abstract class aPushButtonWidget extends aGroupableButton {
 
   @Override
   public void hidePopupContainer() {
-    if(popupWidget==null) {
+    if (popupWidget == null) {
       super.hidePopupContainer();
+
       return;
     }
+
     if (popupComponent != null) {
       popupComponent.hidePopup();
     }
@@ -527,8 +489,6 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     autoClosePopup = (s != null) && s.equalsIgnoreCase("true");
 
     if ((actionType == PushButton.CActionType.popup_widget) || (cfg.popupWidget.getValue() != null)) {
-      removeActionListener(this);
-      addActionListener(this);
       origPopupAttributes = cfg.popupWidget.spot_getAttributesEx();
       popupConfiguration  = (Widget) cfg.popupWidget.getValue();
 
@@ -644,6 +604,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
       }
 
       PainterHolder p = new PainterHolder(null, sp, null, pp, dp);
+
       p.setForegroundColor(getForeground());
       getComponentPainter(true, true).setPainterHolder(p);
     } else {
@@ -722,6 +683,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
           }
 
           UIColor fg = getDataComponent().getForeground();
+
           p.setForegroundColor(fg);
           p.normalPainter.setForegroundColor(fg);
 
@@ -730,6 +692,7 @@ public abstract class aPushButtonWidget extends aGroupableButton {
             p.pressedPainter.setForegroundColor(ColorUtils.getPressedVersion(fg));
           }
         }
+
         getComponentPainter(true, true).setPainterHolder(p);
       }
     }
@@ -785,16 +748,18 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     if (popupComponent != null) {
       popupComponent.dispose();
       popupComponent = null;
-      if(popupWidget!=null) {
+
+      if (popupWidget != null) {
         getFormViewer().unregisterFormWidget(popupWidget);
       }
     }
   }
 
+  int lc = 0;
+
   @Override
   protected void initializeListeners(aWidgetListener l) {
     super.initializeListeners(l);
-
     switch(actionType) {
       case PushButton.CActionType.submit_form :
       case PushButton.CActionType.clear_form :
@@ -802,7 +767,48 @@ public abstract class aPushButtonWidget extends aGroupableButton {
       case PushButton.CActionType.popup_menu :
       case PushButton.CActionType.link :
       case PushButton.CActionType.list_toggle :
-        ((iActionComponent) dataComponent).addActionListener(this);
+        if (actionListener == null) {
+          actionListener = new iActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              switch(actionType) {
+                case PushButton.CActionType.submit_form :
+                  getFormViewer().submitForm(null);
+
+                  break;
+
+                case PushButton.CActionType.clear_form :
+                  getFormViewer().reloadForm();
+
+                  break;
+
+                case PushButton.CActionType.popup_widget :
+                  showPopupWidget();
+
+                  break;
+
+                case PushButton.CActionType.popup_menu :
+                  showPopupMenu(0, getHeight());
+
+                  break;
+
+                default :
+                  if (size() > 0) {
+                    togglePosition++;
+
+                    if (togglePosition >= size()) {
+                      togglePosition = 0;
+                    }
+
+                    setValue(get(togglePosition).toString());
+                  }
+
+                  break;
+              }
+            }
+          };
+          ((iActionComponent) dataComponent).addActionListener(actionListener);
+        }
 
         return;
 
@@ -911,11 +917,15 @@ public abstract class aPushButtonWidget extends aGroupableButton {
     } else {
       popupComponent.setContent(popupWidget.getContainerComponent());
     }
+
     getFormViewer().registerFormWidget(popupWidget);
-    iFormViewer fv=getFormViewer();
-    if(fv!=popupWidget.getFormViewer()) {
+
+    iFormViewer fv = getFormViewer();
+
+    if (fv != popupWidget.getFormViewer()) {
       getFormViewer().registerFormWidget(popupWidget);
     }
+
     popupAttributes = Utils.resolveOptions(this, origPopupAttributes, popupAttributes);
     popupComponent.setOptions(popupAttributes);
     popupComponent.addPopupMenuListener(new iPopupMenuListener() {
@@ -965,9 +975,11 @@ public abstract class aPushButtonWidget extends aGroupableButton {
       d.width  += (ScreenUtils.PLATFORM_PIXELS_2 * sharedBorderThickness);
       d.height += (ScreenUtils.PLATFORM_PIXELS_2 * sharedBorderThickness);
     }
-    float maxw= ScreenUtils.getUsableScreenSize().width-ScreenUtils.PLATFORM_PIXELS_8;
-    if(maxw<d.width) {
-      d.width=maxw;
+
+    float maxw = ScreenUtils.getUsableScreenSize().width - ScreenUtils.PLATFORM_PIXELS_8;
+
+    if (maxw < d.width) {
+      d.width = maxw;
     }
 
     getProposedPopupBounds(d, popupBounds);

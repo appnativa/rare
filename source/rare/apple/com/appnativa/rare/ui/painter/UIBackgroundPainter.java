@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
@@ -252,6 +252,11 @@ public class UIBackgroundPainter extends aUIBackgroundPainter implements Cloneab
   protected void clearCache() {
     super.clearCache();
     proxy = null;
+  }
+
+  @Override
+  public void updateModCount() {
+    clearCache();
   }
 
   protected native Object createProxy(UIColor[] gradientColors, float[] gradientDistribution)

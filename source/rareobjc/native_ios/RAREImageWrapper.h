@@ -22,10 +22,6 @@
 }
 @property (nonatomic, retain) NSString* resourceName;
 
-//
-// The Quartz color reference that corresponds to the receiver's color.
-//
-@property (nonatomic, readonly) CGImageRef CGImage;
 
 + (RAREImageWrapper *)createImageFromView:(UIView *)view;
 
@@ -34,9 +30,13 @@
 -(id)initWithSize: (CGSize)size;
 -(id)initWithImage: (UIImage*)img;
 -(void) blur;
--(RAREImageWrapper*) createReflectionVersionFromY: (int) y height: (int) height opacity: (int) opacity gap: (int) gap;
+-(RAREImageWrapper*) createCopyWithReflectionWithHeight: (int) height opacity: (float) opacity gap: (int) gap;
+-(RAREImageWrapper*) createReflectionWithHeight: (int) height opacity: (float) opacity gap: (int) gap;
+-(RAREImageWrapper*) addReflectionFromY: (int) y height: (int) height opacity: (float) opacity gap: (int) gap;
 -(NSString*) getFailureString;
 -(RAREImageWrapper*) copyImage;
+-(RAREImageWrapper*) rotateRight;
+-(RAREImageWrapper*) rotateLeft;
 -(RAREImageWrapper*) createDisabledVersion;
 -(CGFloat) getWidth;
 -(CGFloat) getHeight;
@@ -54,7 +54,6 @@
 - (CGSize)size;
 - (UIImage*) getImage;
 +(UIImage*)  getImageFromIcon: (id<RAREiPlatformIcon>) icon forView: (RAREView*) view;
-- (id)addReflectionVersionFromY:(int)y height:(int)height opacity:(int)opacity gap:(int)gap;
 -(id) createContext;
 +(UIImageOrientation) convertToImageOrientation: (int) rotation;
 

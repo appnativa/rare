@@ -27,6 +27,7 @@ import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iFunctionCallback;
+import com.appnativa.rare.scripting.Functions;
 import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.spot.PushButton;
 import com.appnativa.rare.spot.TextArea;
@@ -44,7 +45,6 @@ import com.appnativa.rare.widget.LabelWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.TextAreaWidget;
 import com.appnativa.rare.widget.TextFieldWidget;
-import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 
 /**
@@ -68,6 +68,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
   private static boolean hasErrorTitleChecked;
   private static boolean hasErrorTitleTemplate;
   private static boolean showApplicationIcon;
+  private static boolean rightAlignButtonsDefault;
 
   static {
     foregroundColor      = Platform.getUIDefaults().getColor("Rare.Alert.foregroundColor");
@@ -75,6 +76,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     titleBackgroundColor = Platform.getUIDefaults().getColor("Rare.Alert.title.backgroundColor");
     showApplicationIcon  = !"false".equals(Platform.getUIDefaults().get("Rare.Alert.showApplicationIcon"));
     lineColor            = Platform.getUIDefaults().getColor("Rare.Alert.lineColor");
+    rightAlignButtonsDefault  = Platform.getUIDefaults().getBoolean("Rare.Alert.rightAlignButtons",false);
 
     if (backgroundColor == null) {
       backgroundColor = ColorUtils.getBackground();
@@ -97,17 +99,17 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     }
   }
 
-  iFunctionCallback  callback;
-  PushButtonWidget   cancelButton;
-  boolean            isError;
-  PushButtonWidget   noButton;
-  LabelWidget        titleLabel;
-  WindowViewer       window;
-  PushButtonWidget   yesButton;
-  WidgetPaneViewer   paneViewer;
-  TextFieldWidget    promptWidget;
-  iPlatformComponent messageComponent;
-  boolean            rightAlignButtons;
+  protected iFunctionCallback  callback;
+  protected PushButtonWidget   cancelButton;
+  protected boolean            isError;
+  protected PushButtonWidget   noButton;
+  protected LabelWidget        titleLabel;
+  protected WindowViewer       window;
+  protected PushButtonWidget   yesButton;
+  protected WidgetPaneViewer   paneViewer;
+  protected TextFieldWidget    promptWidget;
+  protected iPlatformComponent messageComponent;
+  protected boolean            rightAlignButtons;
 
   /**
    * Creates a new panel
@@ -122,7 +124,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
    */
   public AlertPanel(iWidget context, String title, Object message, iPlatformIcon icon, boolean forError) {
     super(context, false, null, "FILL:[100dlu,d]:GROW");
-
+    rightAlignButtons=rightAlignButtonsDefault;
     WindowViewer w = (context == null)
                      ? null
                      : context.getWindow();
@@ -163,7 +165,13 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     l.setMargin(d, d, d, d);
 
     if (icon == null) {
-      icon = Platform.getResourceAsIcon("Rare.icon.rare");
+      if (w != null) {
+        icon = Platform.getWindowViewer().getIcon();
+      }
+
+      if (icon == null) {
+        icon = Platform.getResourceAsIcon("Rare.icon.rare");
+      }
     }
 
     if (icon != null) {
@@ -183,13 +191,10 @@ public class AlertPanel extends LinearPanel implements iActionListener {
         addComponent(messageComponent, "FILL:[30dlu,d]:GROW");
       } else {
         String s = message.toString();
-
-        s = w.expandString(s);
-
         TextAreaWidget ta = createTextArea(s, "Rare.Alert.message");
 
         ta.setParent(paneViewer);
-        adjustLabel(ta, false);
+        Utils.adjustTextWidgetPreferredWidth(ta);
         addComponent(ta.getContainerComponent(), "FILL:[30dlu,d]:GROW");
       }
     }
@@ -378,13 +383,17 @@ public class AlertPanel extends LinearPanel implements iActionListener {
       }
     });
     window = paneViewer.showAsDialog(options);
+    window.setCancelable(false);
     window.setComponentPainter(pb.getCachedComponentPainter());
 
     if (titleLabel != null) {
       window.addWindowDragger(titleLabel);
     }
 
-    window.setDefaultButton(yesButton);
+    if (yesButton != null) {
+      window.setDefaultButton(yesButton);
+    }
+
     window.showWindow();
   }
 
@@ -420,6 +429,8 @@ public class AlertPanel extends LinearPanel implements iActionListener {
       p = new LinearPanel(context, horizontal, "FILL:DEFAULT:GROW", "FILL:DEFAULT:GROW");
     }
 
+    count += addOtherButtonsBefore(p);
+
     if (cancelButton != null) {
       p.addComponent(cancelButton.getContainerComponent());
       count++;
@@ -435,23 +446,21 @@ public class AlertPanel extends LinearPanel implements iActionListener {
       count++;
     }
 
-    int[] a = null;
+    count += addOtherButtonsAfter(p);
 
-    if (rightAlignButtons) {
-      if (count == 2) {
-        a = new int[] { 2, 3 };
-      } else if (count == 3) {
-        a = new int[] { 2, 3, 4 };
-      }
-    } else {
-      if (count == 2) {
-        a = new int[] { 1, 2 };
-      } else if (count == 3) {
-        a = new int[] { 1, 2, 3 };
-      }
-    }
+    int[] a = (count > 1)
+              ? new int[count]
+              : null;
 
     if (a != null) {
+      for (int i = 0; i < count; i++) {
+        if (rightAlignButtons) {
+          a[i] = i + 2;
+        } else {
+          a[i] = i + 1;
+        }
+      }
+
       if (horizontal) {
         p.getFormLayout().setColumnGroups(new int[][] {
           a
@@ -464,6 +473,28 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     }
 
     return p;
+  }
+
+  /**
+   * Method for sub-classes to add other buttons
+   * to a panel before any of the standard buttons are added
+   *
+   * @param buttonPanel the button panel
+   * @return the number of other buttons added
+   */
+  protected int addOtherButtonsBefore(LinearPanel buttonPanel) {
+    return 0;
+  }
+
+  /**
+   * Method for sub-classes to add other buttons
+   * to a panel after the standard buttons are added
+   *
+   * @param buttonPanel the button panel
+   * @return the number of other buttons added
+   */
+  protected int addOtherButtonsAfter(LinearPanel buttonPanel) {
+    return 0;
   }
 
   /**
@@ -533,8 +564,16 @@ public class AlertPanel extends LinearPanel implements iActionListener {
       cfg.bgColor.setValue("transparent");
     }
 
+    int len = Functions.length(text, "\n");
+
+    if (len > 24) {
+      len = 24;
+    }
+
+    cfg.bounds.height.setValue((len+2)+"ln");
     cfg.editable.setValue(false);
     cfg.wordWrap.setValue(true);
+    cfg.focusPainted.setValue(false);
 
     TextAreaWidget ta = new TextAreaWidget(w);
 
@@ -551,7 +590,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     }
 
     ta.setText(text);
-
+    ta.setCaretPosition(0);
     return ta;
   }
 
@@ -650,10 +689,24 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     }
 
     AlertPanel     d = new AlertPanel(context, title, null, icon, true);
-    String         s = ei.toAlertPanelString();
+    final String   s = ei.toAlertPanelString();
     TextAreaWidget l = d.createTextArea(s, "Rare.Alert.message");
 
-    adjustLabel(l, true);
+    if (d.titleLabel != null) {
+      d.titleLabel.setEventHandler(iConstants.EVENT_CLICK, new Runnable() {
+        @Override
+        public void run() {
+          try {
+            Platform.getWindowViewer().copyToClipboard(s);
+            UINotifier.showMessage(Platform.getResourceAsString("bv.text.error_text_copied_to_clipboard"));
+          } catch(Exception e) {
+            Platform.ignoreException(e);
+          }
+        }
+      }, true);
+    }
+
+    Utils.adjustTextWidgetPreferredWidth(l);
     d.isError = true;
     d.addComponent(l.getContainerComponent(), "FILL:[30dlu,d]:GROW");
     d.yesButton = createButton(Platform.getAppContext().getResourceAsString("Rare.text.ok"), "Rare.Alert.button", d);
@@ -685,6 +738,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
   public static AlertPanel ok(iWidget context, String title, Object message, iPlatformIcon icon) {
     return ok(context, title, message, icon, null);
   }
+
   /**
    * Creates an alerting dialog box with an ok button
    *
@@ -697,14 +751,16 @@ public class AlertPanel extends LinearPanel implements iActionListener {
    * @param buttonTemplate the template for the buttons (can be null)
    *
    */
-  public static AlertPanel ok(iWidget context, String title, Object message, iPlatformIcon icon,String buttonTemplate) {
+  public static AlertPanel ok(iWidget context, String title, Object message, iPlatformIcon icon,
+                              String buttonTemplate) {
     if (icon == null) {
       icon = getIcon("Rare.icon.alertInfo");
     }
 
     AlertPanel d = new AlertPanel(context, title, message, icon, false);
 
-    d.yesButton = createButton(Platform.getAppContext().getResourceAsString("Rare.text.ok"), d.getButtonTemplate(buttonTemplate), d);
+    d.yesButton = createButton(Platform.getAppContext().getResourceAsString("Rare.text.ok"),
+                               d.getButtonTemplate(buttonTemplate), d);
     d.yesButton.setDefaultButton(true);
 
     return d;
@@ -759,8 +815,8 @@ public class AlertPanel extends LinearPanel implements iActionListener {
    *
    * @param buttonTemplate the template for the buttons (can be null)
    */
-  public static AlertPanel prompt(iWidget context, String title, String prompt, Object value, iPlatformIcon icon,String buttonTemplate) {
-  
+  public static AlertPanel prompt(iWidget context, String title, String prompt, Object value, iPlatformIcon icon,
+                                  String buttonTemplate) {
     if (icon == null) {
       icon = getIcon("Rare.icon.alertQuestion");
     }
@@ -799,8 +855,8 @@ public class AlertPanel extends LinearPanel implements iActionListener {
 
     d.addComponent(p);
     d.promptWidget = tf;
-    d.yesButton    = createButton(Platform.getAppContext().getResourceAsString("Rare.text.ok"), d.getButtonTemplate(buttonTemplate),
-                                  d);
+    d.yesButton    = createButton(Platform.getAppContext().getResourceAsString("Rare.text.ok"),
+                                  d.getButtonTemplate(buttonTemplate), d);
     d.cancelButton = createButton(Platform.getAppContext().getResourceAsString("Rare.text.cancel"),
                                   d.getButtonTemplate(buttonTemplate), d);
 
@@ -875,8 +931,8 @@ public class AlertPanel extends LinearPanel implements iActionListener {
   public static AlertPanel yesNo(iWidget context, String title, Object message, iPlatformIcon icon, String yes,
                                  String no, boolean forOkCancel) {
     return yesNo(context, title, message, icon, yes, no, forOkCancel, null);
-    
   }
+
   /**
    * Creates a yes/no (or ok/cancel) dialog box, allowing the user to choose one of
    * those options.
@@ -893,7 +949,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
    * @param buttonTemplate the template for the buttons (can be null)
    */
   public static AlertPanel yesNo(iWidget context, String title, Object message, iPlatformIcon icon, String yes,
-                                 String no, boolean forOkCancel,String buttonTemplate) {
+                                 String no, boolean forOkCancel, String buttonTemplate) {
     if (icon == null) {
       icon = getIcon("Rare.icon.alertQuestion");
     }
@@ -951,7 +1007,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
    * @param cancel the string for the cancel button
    */
   public static AlertPanel yesNoCancel(iWidget context, String title, Object message, iPlatformIcon icon, String yes,
-      String no, String cancel) {
+          String no, String cancel) {
     return yesNoCancel(context, title, message, icon, yes, no, cancel, null);
   }
 
@@ -971,7 +1027,7 @@ public class AlertPanel extends LinearPanel implements iActionListener {
    * @param buttonTemplate the template for the buttons (can be null)
    */
   public static AlertPanel yesNoCancel(iWidget context, String title, Object message, iPlatformIcon icon, String yes,
-          String no, String cancel,String buttonTemplate) {
+          String no, String cancel, String buttonTemplate) {
     if (icon == null) {
       icon = getIcon("Rare.icon.alertQuestion");
     }
@@ -1018,57 +1074,6 @@ public class AlertPanel extends LinearPanel implements iActionListener {
     return icon;
   }
 
-  private static void adjustLabel(aWidget l, boolean error) {
-    float sw = Platform.getWindowViewer().getWidth();
-
-    if (UIScreen.fromPlatformPixels(sw) < 400) {
-      sw = UIScreen.getWidth();
-    }
-
-    UIFont f = l.getFont();
-
-    if (f == null) {
-      f = FontUtils.getDefaultFont();
-    }
-
-    String s = l.getValueAsString();
-
-    if (s.length() != 0) {
-      int cw  = 0;
-      int mcw = 0;
-      int len = s.length();
-
-      for (int i = 0; i < len; i++) {
-        cw++;
-
-        if (s.charAt(i) == '\n') {
-          if (cw > mcw) {
-            mcw = cw;
-          }
-
-          cw = 0;
-        }
-      }
-
-      if (mcw == 0) {
-        mcw = cw;
-      }
-
-      mcw = (int) (mcw * .66);
-      cw  = FontUtils.getCharacterWidth(f);
-
-      int chars = (int) sw / cw;
-
-      chars = Math.min(mcw, chars - 2);
-      chars = Math.max(chars, 2);
-      s     = chars + "ch";
-
-      int ln = Math.max(len / chars, 3);
-
-      l.setPreferredSize(s, ln + "ln");
-    }
-  }
-
   public boolean isRightAlignButtons() {
     return rightAlignButtons;
   }
@@ -1078,7 +1083,8 @@ public class AlertPanel extends LinearPanel implements iActionListener {
   }
 
   protected String getButtonTemplate(String buttonTemplate) {
-    return buttonTemplate==null ? "Rare.Alert.button"  :buttonTemplate;
+    return (buttonTemplate == null)
+           ? "Rare.Alert.button"
+           : buttonTemplate;
   }
-
 }

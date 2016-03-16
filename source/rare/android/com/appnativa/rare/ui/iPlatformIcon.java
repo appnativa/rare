@@ -30,9 +30,11 @@ import android.view.View;
  * @author Don DeCoteau
  */
 public interface iPlatformIcon extends iIcon {
-  public iPlatformIcon getDisabledVersion();
+  iPlatformIcon getDisabledVersion();
 
   void paint(Canvas g, float x, float y, float width, float height);
 
-  public Drawable getDrawable(View view);
+  Drawable getDrawable(View view);
+  
+  Drawable createDrawable(View view);
 }

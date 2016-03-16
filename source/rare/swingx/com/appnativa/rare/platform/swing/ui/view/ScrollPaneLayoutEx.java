@@ -90,7 +90,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
     Dimension    sizea[]    = null;
     ScrollPaneEx scrollPane = (ScrollPaneEx) parent;
 
-    if ((rowFooter != null) || (columnFooter != null)) {
+    if (isColumnFooterVisble() || isRowFooterVisble()) {
       sizea = updateViewPortBorder(scrollPane);
     }
 
@@ -100,7 +100,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
       ((JViewportEx) rowHead).setScrollPaneRowHeaderBounds();
     }
 
-    if ((rowFooter != null) || (columnFooter != null)) {
+    if (sizea != null) {
       viewportBorder.setInsets(0, 0, 0, 0);
 
       Dimension  size;
@@ -113,7 +113,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
         hh = colHead.getHeight();
       }
 
-      if (rowFooter != null) {
+      if (isRowFooterVisble()) {
         size = sizea[0];
         c    = (JComponent) rowFooter.getView();
 
@@ -126,11 +126,13 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
 
         if (colHead != null) {
           colHead.setBounds(colHead.getX(), colHead.getY(), colHead.getWidth() - size.width, hh);
-          if(rowFooter.getView() instanceof ScrollPaneEx) {
-            r.height+=hh;
-            r.y-=hh;
+
+          if (rowFooter.getView() instanceof ScrollPaneEx) {
+            r.height += hh;
+            r.y      -= hh;
           }
         }
+
         rowFooter.setBounds(r.x + r.width, r.y, size.width, r.height);
       }
 
@@ -146,7 +148,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
         vsb.setBounds(vsb.getX(), 0, vsb.getWidth(), vsb.getHeight() + vsb.getY());
       }
 
-      if (columnFooter != null) {
+      if (isColumnFooterVisble()) {
         size = sizea[1];
         c    = (JComponent) columnFooter.getView();
         c.putClientProperty(iPlatformComponent.RARE_SWING_WIDTH_FIXED_VALUE, (vsize.width == 0)
@@ -181,12 +183,12 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
     int bottom = 0;
     int right  = 0;
 
-    if (rowFooter != null) {
+    if (isRowFooterVisble()) {
       rsize = rowFooter.getPreferredSize();
       right = Math.min(scrollPane.getWidth(), rsize.width);
     }
 
-    if (columnFooter != null) {
+    if (isColumnFooterVisble()) {
       csize  = columnFooter.getPreferredSize();
       bottom = Math.min(scrollPane.getWidth(), csize.height);
     }
@@ -197,7 +199,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
   }
 
   protected void layoutCorners(Container parent, boolean extendvsb, boolean extendhsb) {
-    if ((rowFooter == null) && (columnFooter == null)) {
+    if (!isColumnFooterVisble() &&!isRowFooterVisble()) {
       return;
     }
 
@@ -221,16 +223,20 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
     int sy;
     int h;
 
-    if (rowFooter != null) {
+    if (isRowFooterVisble()) {
       ex = bounds.width;
-      boolean spfooter=rowFooter.getView() instanceof ScrollPaneEx;
+
+      boolean spfooter = rowFooter.getView() instanceof ScrollPaneEx;
+
       if ((upperRight != null) && (colHead != null)) {
         sx = rowFooter.getX();
         sy = colHead.getY();
         h  = colHead.getHeight();
-        if(spfooter) {
-          h=0;
+
+        if (spfooter) {
+          h = 0;
         }
+
         if ((h > 0) && (ex - sx > 0)) {
           upperRight.setVisible(true);
           upperRight.setBounds(sx, sy, ex - sx, h);
@@ -239,11 +245,11 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
 
       if (lowerRight != null) {
         sx = rowFooter.getX();
-        sy=rowFooter.getY()+rowFooter.getHeight();
-        h  = bounds.height-sy;
-        if(spfooter) {
-          
-        }
+        sy = rowFooter.getY() + rowFooter.getHeight();
+        h  = bounds.height - sy;
+
+        if (spfooter) {}
+
         if ((h > 0) && (ex - sx > 0)) {
           lowerRight.setVisible(true);
           lowerRight.setBounds(sx, sy, ex - sx, bounds.height - sy);
@@ -257,7 +263,7 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
       }
     }
 
-    if ((columnFooter != null) && (rowHead != null) && (lowerLeft!=null)) {
+    if (isColumnFooterVisble() && (rowHead != null) && (lowerLeft != null)) {
       sx = bounds.x;
       ex = columnFooter.getX();
       sy = columnFooter.getY();
@@ -271,15 +277,15 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
   public Dimension preferredLayoutSize(Container parent) {
     Dimension d = super.preferredLayoutSize(parent);
 
-    if ((rowFooter != null) || (columnFooter != null)) {
+    if (isColumnFooterVisble() || isRowFooterVisble()) {
       UIDimension size = new UIDimension();
 
-      if (columnFooter != null) {
+      if (isColumnFooterVisble()) {
         size     = getSize(columnFooter, size, true);
         d.height += size.height;
       }
 
-      if (rowFooter != null) {
+      if (isRowFooterVisble()) {
         size    = getSize(rowFooter, size, true);
         d.width += size.width;
       }
@@ -292,21 +298,41 @@ public class ScrollPaneLayoutEx extends ScrollPaneLayout {
   public Dimension minimumLayoutSize(Container parent) {
     Dimension d = super.minimumLayoutSize(parent);
 
-    if ((rowFooter != null) || (columnFooter != null)) {
+    if (isRowFooterVisble() || isColumnFooterVisble()) {
       UIDimension size = new UIDimension();
 
-      if (columnFooter != null) {
+      if (isColumnFooterVisble()) {
         size     = getSize(columnFooter, size, true);
         d.height += size.height;
       }
 
-      if (rowFooter != null) {
+      if (isRowFooterVisble()) {
         size    = getSize(rowFooter, size, true);
         d.width += size.width;
       }
     }
 
     return d;
+  }
+
+  protected boolean isColumnFooterVisble() {
+    Component c = (columnFooter == null)
+                  ? null
+                  : columnFooter.getView();
+
+    return (c == null)
+           ? false
+           : c.isVisible();
+  }
+
+  protected boolean isRowFooterVisble() {
+    Component c = (rowFooter == null)
+                  ? null
+                  : rowFooter.getView();
+
+    return (c == null)
+           ? false
+           : c.isVisible();
   }
 
   private UIDimension getSize(Component c, UIDimension size, boolean preferred) {

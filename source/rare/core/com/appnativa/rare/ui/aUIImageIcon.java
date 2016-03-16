@@ -32,7 +32,7 @@ import com.appnativa.util.iCancelable;
 import java.net.URL;
 
 public abstract class aUIImageIcon extends aPlatformIcon
-        implements iBackgroundPainter, Runnable, iImageObserver, iCancelable, Cloneable {
+        implements iBackgroundPainter, Runnable, iImageObserver, iCancelable, Cloneable, iObservableImage {
   private static UIImage brokenImage;
   protected String       description = null;
 
@@ -212,7 +212,7 @@ public abstract class aUIImageIcon extends aPlatformIcon
 
   @Override
   public void imageLoaded(UIImage image) {
-    setImage(image);
+    imageWasLoaded();
   }
 
   @Override
@@ -357,7 +357,7 @@ public abstract class aUIImageIcon extends aPlatformIcon
     if (image != null) {
       iconHeight = image.getHeight();
       iconWidth  = image.getWidth();
-      loaded     = image.isLoaded(this);
+      loaded     = image.isImageLoaded(this);
     }
   }
 

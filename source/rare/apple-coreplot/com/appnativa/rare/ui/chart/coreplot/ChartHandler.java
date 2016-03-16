@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.chart.coreplot;
@@ -84,6 +84,7 @@ public class ChartHandler extends aChartHandler {
 
     if (panel == null) {
       panel = new ChartPanel(cd, chart);
+      chartPanel=panel;
     } else {
       panel.setChart(cd, chart);
     }
@@ -142,26 +143,8 @@ public class ChartHandler extends aChartHandler {
         }
       }
     }
-
-    List<ChartDataItem> markers = cd.getRangeMarkers();
-
-    len = (markers == null)
-          ? 0
-          : markers.size();
-
-    for (int i = 0; i < len; i++) {
-      createMarker(cd, chart, markers.get(i), true);
-    }
-
-    markers = cd.getDomainMarkers();
-    len     = (markers == null)
-              ? 0
-              : markers.size();
-
-    for (int i = 0; i < len; i++) {
-      createMarker(cd, chart, markers.get(i), false);
-    }
-
+    updateMarkers(chartPanel, cd, true);
+    updateMarkers(chartPanel, cd, false);
     return panel;
   }
 
@@ -186,15 +169,63 @@ public class ChartHandler extends aChartHandler {
   }
 
   @Override
+  public UIImage getChartImage(iPlatformComponent chartPanel, ChartDefinition cd) {
+    return null;
+  }
+
+  @Override
+  public iPlatformComponent getLegendComponent(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
+
+    return (ci == null)
+           ? null
+           : ci.legend;
+  }
+
+  @Override
+  public UIDimension getPlotAreaSize(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
+
+    return (ci == null)
+           ? new UIDimension()
+           : ci.chart.getPlotAreaSize();
+  }
+
+  @Override
+  public boolean isLegendSeperate() {
+    return true;
+  }
+
+  @Override
   public void itemChanged(iPlatformComponent chartPanel, ChartDefinition cd, ChartDataItem item) {
-    int index = cd.getSeries().indexOf(item);
+    switch(item.getItemType()) {
+      case SERIES :
+        dataChanged(chartPanel, cd);
 
-    if (index != -1) {
-      ChartView chart = getChartView(chartPanel);
+        break;
 
-      if (chart != null) {
-        chart.reloadSeries(index);
-      }
+      case DOMAIN_MARKER :
+        updateMarkers(chartPanel, cd, false);
+
+        break;
+
+      case RANGE_MARKER :
+        updateMarkers(chartPanel, cd, true);
+
+        break;
+
+      case POINT :
+        ChartView chart = getChartView(chartPanel);
+        int       index = cd.findSeriesIndex(item);
+
+        if (index != -1) {
+          chart.reloadSeries(index);
+        }
+
+        break;
+
+      default :
+        break;
     }
   }
 
@@ -239,8 +270,69 @@ public class ChartHandler extends aChartHandler {
     return null;
   }
 
+  public void reloadCharts(iPlatformComponent chartPanel, ChartDefinition cd) {
+    dataChanged(chartPanel, cd);
+  }
+
   @Override
-  public void unzoom(iPlatformComponent chartPanel) {}
+  public void setDomainLabel(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartView chart = getChartView(chartPanel);
+
+    if (chart != null) {
+      chart.updateAxis(false, true, false);
+    }
+  }
+
+  @Override
+  public void setDomainLabelsAngle(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartView chart = getChartView(chartPanel);
+
+    if (chart != null) {
+      chart.updateAxis(false, false, true);
+    }
+  }
+
+  @Override
+  public void setRangeLabel(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartView chart = getChartView(chartPanel);
+
+    if (chart != null) {
+      chart.updateAxis(true, true, false);
+    }
+  }
+
+  @Override
+  public void setShowDomainLabels(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartView chart = getChartView(chartPanel);
+
+    if (chart != null) {
+      chart.updateAxis(false, false, false);
+    }
+  }
+
+  @Override
+  public void setShowPlotValues(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartView chart = getChartView(chartPanel);
+    boolean   show  = cd.isShowPlotLabels();
+
+    ((ChartInfo) cd.getChartHandlerInfo()).setShowPointLabels(show);
+
+    if (chart != null) {
+      chart.setShowPlotValues(show);
+    }
+  }
+
+  @Override
+  public void setShowRangeLabels(iPlatformComponent chartPanel, ChartDefinition cd) {
+    ChartView chart = getChartView(chartPanel);
+
+    if (chart != null) {
+      chart.updateAxis(true, false, false);
+    }
+  }
+
+  @Override
+  public void unzoom(iPlatformComponent chartPanel, ChartDefinition cd) {}
 
   @Override
   public void updateRangeAxis(iPlatformComponent chartPanel, ChartDefinition cd) {
@@ -277,100 +369,6 @@ public class ChartHandler extends aChartHandler {
 
   @Override
   public void updatesPending(iPlatformComponent chartPanel, ChartDefinition cd) {}
-
-  @Override
-  public void setDomainLabel(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-
-    if (chart != null) {
-      chart.updateAxis(false, true, false);
-    }
-  }
-
-  @Override
-  public void setDomainLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-
-    if (chart != null) {
-      chart.updateAxis(false, false, true);
-    }
-  }
-
-  @Override
-  public void setRangeLabel(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-
-    if (chart != null) {
-      chart.updateAxis(true, true, false);
-    }
-  }
-
-  @Override
-  public void setRangeLabelAngel(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-
-    if (chart != null) {
-      chart.updateAxis(true, false, true);
-    }
-  }
-
-  @Override
-  public void setShowDomainLabels(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-
-    if (chart != null) {
-      chart.updateAxis(false, false, false);
-    }
-  }
-
-  @Override
-  public void setShowPlotValues(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-    boolean   show  = cd.isShowPlotLabels();
-
-    ((ChartInfo) cd.getChartHandlerInfo()).setShowPointLabels(show);
-
-    if (chart != null) {
-      chart.setShowPlotValues(show);
-    }
-  }
-
-  @Override
-  public void setShowRangeLabels(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartView chart = getChartView(chartPanel);
-
-    if (chart != null) {
-      chart.updateAxis(true, false, false);
-    }
-  }
-
-  @Override
-  public UIImage getChartImage(iPlatformComponent chartPanel, ChartDefinition cd) {
-    return null;
-  }
-
-  @Override
-  public UIDimension getPlotAreaSize(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-
-    return (ci == null)
-           ? new UIDimension()
-           : ci.chart.getPlotAreaSize();
-  }
-
-  @Override
-  public iPlatformComponent getLegendComponent(iPlatformComponent chartPanel, ChartDefinition cd) {
-    ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-
-    return (ci == null)
-           ? null
-           : ci.legend;
-  }
-
-  @Override
-  public boolean isLegendSeperate() {
-    return true;
-  }
 
   protected Component createLegendComponent(ChartPanel panel, ChartInfo ci, ChartDefinition cd) {
     if (ci.legend != null) {
@@ -464,6 +462,164 @@ public class ChartHandler extends aChartHandler {
     return (ChartView) ((ChartPanel) chartPanel).getCenterView().getView();
   }
 
+  private void updateMarkers(iPlatformComponent chartPanel, ChartDefinition cd, boolean range) {
+    List<ChartDataItem> markers = range
+                                  ? cd.getRangeMarkers()
+                                  : cd.getDomainMarkers();
+    ChartView           chart   = getChartView(chartPanel);
+    int                 len     = (markers == null)
+                                  ? 0
+                                  : markers.size();
+
+    chart.removeMarkers(range);
+    for (int i = 0; i < len; i++) {
+      createMarker(cd, chart, markers.get(i), range);
+    }
+  }
+
+
+  @WeakOuter
+  public class LabelsManager {
+    @Weak
+    ChartView   chart;
+    LabelData[] labelData;
+    boolean     isDate;
+    boolean     domain;
+    int         oldWidth;
+    int         oldHeight;
+    boolean     dynamic;
+    int         oldAngle;
+
+    public LabelsManager(ChartView chart, boolean domain) {
+      this.chart   = chart;
+      this.domain  = domain;
+      this.dynamic = true;
+    }
+
+    public LabelsManager(ChartView chart, LabelData[] labelData) {
+      this.chart     = chart;
+      this.labelData = labelData;
+      this.domain    = true;
+    }
+
+    public UIPoint getAxisSize(ChartDefinition cd) {
+      float         size      = 0;
+      LabelData[]   labels    = labelData;
+      int           len       = (labels == null)
+                                ? 0
+                                : labels.length;
+      UIDimension   d         = new UIDimension();
+      ChartAxis     ai        = domain
+                                ? cd.getDomainAxis()
+                                : cd.getRangeAxis();
+      int           textAngle = ai.getAngle();
+      UIFont        f         = getAxisLabelFont(ai);
+      UIFontMetrics fm        = UIFontMetrics.getMetrics(f);
+
+      if (len == 0) {
+        size = (int) Math.ceil(fm.getHeight());
+      }
+
+      for (int i = 0; i < len; i++) {
+        calculateTextSize(labels[i].label, fm, textAngle, d);
+        size = Math.max(size, domain
+                              ? d.height
+                              : d.width);
+      }
+
+      UIPoint p = new UIPoint(size, 0);
+
+      if (ai.getLabel().length() > 0) {
+        size += (int) Math.ceil(fm.getHeight());
+        size += ScreenUtils.PLATFORM_PIXELS_8;
+      }
+
+      p.y = size;
+
+      return p;
+    }
+
+    public LabelData[] getLabels(ChartDefinition cd, int width, int height) {
+      int angle = domain
+                  ? cd.getDomainAxis().getAngle()
+                  : cd.getRangeAxis().getAngle();
+
+      if ((oldWidth != width) || (oldHeight != height) || (labelData == null) || (angle != oldAngle)) {
+        updateTickMarks(cd, width, height);
+
+        if (dynamic) {
+          labelData = createNonCategoryLabels(cd, width);
+        } else {
+          if (angle != oldAngle) {
+            UIFontMetrics fm = UIFontMetrics.getMetrics(getAxisLabelFont(cd.getDomainAxis()));
+
+            remeasureLabels(labelData, fm, angle);
+          }
+        }
+
+        oldAngle = angle;
+      }
+
+      oldWidth  = width;
+      oldHeight = height;
+
+      return labelData;
+    }
+
+    protected LabelData[] createNonCategoryLabels(ChartDefinition cd, int width) {
+      LabelData[] labels     = labelData;
+      ChartInfo   ci         = (ChartInfo) cd.getChartHandlerInfo();
+      double      range[]    = domain
+                               ? ci.xAxisValues
+                               : ci.yAxisValues;
+      double      startValue = range[0];
+      double      endValue   = range[1];
+      double      increment  = range[2];
+
+      if (domain) {
+        labels = createLabelData(cd, domain, width, startValue, endValue, increment);
+      } else {
+        labels = createNumericLabelsData(cd, width, startValue, endValue, increment, domain, domain
+                ? 0
+                : tickSize);
+      }
+
+      return labels;
+    }
+
+    protected void updateTickMarks(ChartDefinition cd, int width, int height) {
+      if (((oldHeight == height) && (oldWidth == width))) {
+        return;
+      }
+
+      oldHeight = height;
+      oldWidth  = width;
+
+      ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
+
+      if ((domain && ci.xIncrementFixed) || (!domain && ci.yIncrementFixed)) {
+        return;
+      }
+
+      double range[] = domain
+                       ? ci.xAxisValues
+                       : ci.yAxisValues;
+
+      if (range != null) {
+        double increment = calculateIncrement(domain
+                ? width
+                : height, tickSize, range[0], range[1], range[2]);
+
+        chart.updateAxisIncrements(domain
+                                   ? increment
+                                   : 0, domain
+                                        ? 0
+                                        : increment);
+      }
+    }
+  }
+
+
   static class ChartInfo extends aChartInfo {
     @Weak()
     public ChartView     chart;
@@ -547,29 +703,6 @@ public class ChartHandler extends aChartHandler {
       super.setBounds(x, y, width, height);
     }
 
-    native void updateColumns(int columns, int rows)
-    /*-[
-      [(RARECPTLegendView*)view_->proxy_ updateColumns: columns andRows: rows];
-    ]-*/
-    ;
-
-    @Override
-    protected void getMinimumSizeEx(UIDimension size,float maxWidth) {
-      size.width  = legendMaxWidth;
-      size.height = legendHeight;
-    }
-
-    @Override
-    protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-      if (horizontal) {
-        size.height = legendHeight;
-        size.width  = legendWidths;
-      } else {
-        size.height = legendHeights;
-        size.width  = legendMaxWidth;
-      }
-    }
-
     public void update(ChartDefinition cd) {
       List<RenderableDataItem> rows = cd.getSeries();
       int                      len  = (rows == null)
@@ -625,148 +758,29 @@ public class ChartHandler extends aChartHandler {
 
       legendCount = len;
     }
-  }
 
-
-  @WeakOuter
-  public class LabelsManager {
-    @Weak
-    ChartView   chart;
-    LabelData[] labelData;
-    boolean     isDate;
-    boolean     domain;
-    int         oldWidth;
-    int         oldHeight;
-    boolean     dynamic;
-    int         oldAngle;
-
-    public LabelsManager(ChartView chart, LabelData[] labelData) {
-      this.chart     = chart;
-      this.labelData = labelData;
-      this.domain    = true;
+    @Override
+    protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+      size.width  = legendMaxWidth;
+      size.height = legendHeight;
     }
 
-    public LabelsManager(ChartView chart, boolean domain) {
-      this.chart   = chart;
-      this.domain  = domain;
-      this.dynamic = true;
-    }
-
-    public UIPoint getAxisSize(ChartDefinition cd) {
-      float         size      = 0;
-      LabelData[]   labels    = labelData;
-      int           len       = (labels == null)
-                                ? 0
-                                : labels.length;
-      UIDimension   d         = new UIDimension();
-      ChartAxis     ai        = domain
-                                ? cd.getDomainAxis()
-                                : cd.getRangeAxis();
-      int           textAngle = ai.getAngle();
-      UIFont        f         = getAxisLabelFont(ai);
-      UIFontMetrics fm        = UIFontMetrics.getMetrics(f);
-
-      if (len == 0) {
-        size = (int) Math.ceil(fm.getHeight());
-      }
-
-      for (int i = 0; i < len; i++) {
-        calculateTextSize(labels[i].label, fm, textAngle, d);
-        size = Math.max(size, domain
-                              ? d.height
-                              : d.width);
-      }
-
-      UIPoint p = new UIPoint(size, 0);
-
-      if (ai.getLabel().length() > 0) {
-        size += (int) Math.ceil(fm.getHeight());
-        size += ScreenUtils.PLATFORM_PIXELS_8;
-      }
-
-      p.y = size;
-
-      return p;
-    }
-
-    protected LabelData[] createNonCategoryLabels(ChartDefinition cd, int width) {
-      LabelData[] labels     = labelData;
-      ChartInfo   ci         = (ChartInfo) cd.getChartHandlerInfo();
-      double      range[]    = domain
-                               ? ci.xAxisValues
-                               : ci.yAxisValues;
-      double      startValue = range[0];
-      double      endValue   = range[1];
-      double      increment  = range[2];
-
-      if (domain) {
-        labels = createLabelData(cd, domain, width, startValue, endValue, increment);
+    @Override
+    protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
+      if (horizontal) {
+        size.height = legendHeight;
+        size.width  = legendWidths;
       } else {
-        labels = createNumericLabelsData(cd, width, startValue, endValue, increment, domain, domain
-                ? 0
-                : tickSize);
-      }
-
-      return labels;
-    }
-
-    public LabelData[] getLabels(ChartDefinition cd, int width, int height) {
-      int angle = domain
-                  ? cd.getDomainAxis().getAngle()
-                  : cd.getRangeAxis().getAngle();
-
-      if ((oldWidth != width) || (oldHeight != height) || (labelData == null) || (angle != oldAngle)) {
-        updateTickMarks(cd, width, height);
-
-        if (dynamic) {
-          labelData = createNonCategoryLabels(cd, width);
-        } else {
-          if (angle != oldAngle) {
-            UIFontMetrics fm = UIFontMetrics.getMetrics(getAxisLabelFont(cd.getDomainAxis()));
-
-            remeasureLabels(labelData, fm, angle);
-          }
-        }
-
-        oldAngle = angle;
-      }
-
-      oldWidth  = width;
-      oldHeight = height;
-
-      return labelData;
-    }
-
-    protected void updateTickMarks(ChartDefinition cd, int width, int height) {
-      if (((oldHeight == height) && (oldWidth == width))) {
-        return;
-      }
-
-      oldHeight = height;
-      oldWidth  = width;
-
-      ChartInfo ci = (ChartInfo) cd.getChartHandlerInfo();
-
-      if ((domain && ci.xIncrementFixed) || (!domain && ci.yIncrementFixed)) {
-        return;
-      }
-
-      double range[] = domain
-                       ? ci.xAxisValues
-                       : ci.yAxisValues;
-
-      if (range != null) {
-        double increment = calculateIncrement(domain
-                ? width
-                : height, tickSize, range[0], range[1], range[2]);
-
-        chart.updateAxisIncrements(domain
-                                   ? increment
-                                   : 0, domain
-                                        ? 0
-                                        : increment);
+        size.height = legendHeights;
+        size.width  = legendMaxWidth;
       }
     }
+
+    native void updateColumns(int columns, int rows)
+    /*-[
+      [(RARECPTLegendView*)view_->proxy_ updateColumns: columns andRows: rows];
+    ]-*/
+    ;
   }
 
 
@@ -796,11 +810,6 @@ public class ChartHandler extends aChartHandler {
     public ChartPanel(ChartDefinition cd, ChartView cv) {
       this();
       setChart(cd, cv);
-    }
-
-    @Override
-    public void setBounds(float x, float y, float width, float height) {
-      super.setBounds(x, y, width, height);
     }
 
     @Override
@@ -837,6 +846,10 @@ public class ChartHandler extends aChartHandler {
       legend = null;
       title  = null;
       chart  = null;
+    }
+
+    public ChartView getChart() {
+      return chart;
     }
 
     public void setChart(ChartDefinition cd, ChartView cv) {
@@ -896,10 +909,6 @@ public class ChartHandler extends aChartHandler {
             break;
         }
       }
-    }
-
-    public ChartView getChart() {
-      return chart;
     }
 
     protected void addMouseListener() {
@@ -1001,10 +1010,5 @@ public class ChartHandler extends aChartHandler {
              ? false
              : l.wantsLongPress();
     }
-  }
-
-
-  public void reloadCharts(iPlatformComponent chartPanel, ChartDefinition cd) {
-    dataChanged(chartPanel, cd);
   }
 }

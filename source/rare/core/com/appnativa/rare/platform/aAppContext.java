@@ -497,9 +497,9 @@ public abstract class aAppContext implements iPlatformAppContext {
     boolean dark = bg.isDarkColor();
 
     if (dark) {
-      uiDefaults.put("Rare.TitledBorder.titleColor", fg.light(-75));
+      uiDefaults.put("Rare.TitledBorder.titleColor", new UIColorShade(fg,-75));
     } else {
-      uiDefaults.put("Rare.TitledBorder.titleColor", fg.light(75));
+      uiDefaults.put("Rare.TitledBorder.titleColor", new UIColorShade(fg,75));
     }
 
     int n = bg.getRed() + bg.getGreen() + bg.getBlue();
@@ -690,6 +690,16 @@ public abstract class aAppContext implements iPlatformAppContext {
   @Override
   public DateContext getDefaultDateContext() {
     return RARE.defaultDateContext;
+  }
+
+  @Override
+  public void setDefaultDateTimeContext(DateContext ctx) {
+    RARE.defaultDateTimeContext=ctx;
+  }
+
+  @Override
+  public void setDefaultDateContext(DateContext ctx) {
+    RARE.defaultDateContext=ctx;
   }
 
   @Override
@@ -909,7 +919,12 @@ public abstract class aAppContext implements iPlatformAppContext {
 
   @Override
   public Reader getReader(URL url) throws IOException {
-    return RARE.openConnection(url).getReader();
+    iURLConnection conn = RARE.openConnection(url);
+    Reader r=conn.getReader();
+    if(conn instanceof JavaURLConnection) {
+      JavaURLConnection.stopTrackingConnection((JavaURLConnection) conn);
+    }
+    return r;
   }
 
   @Override
@@ -1308,7 +1323,6 @@ public void unlockOrientation() {
     if (bg == null) {
       bg = new UIColor(0xee, 0xee, 0xee);
     }
-
     setThemeColors(fg, bg, true);
 
     UIFont f = FontUtils.getDefaultFont();

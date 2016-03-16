@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -48,6 +48,16 @@ public abstract class aUIImage implements iPlatformImage {
 
   protected aUIImage() {}
 
+  /**
+   * Add a reflection to this image. The reflection will be copied to y+height+gap
+   * of the specified image and as such the specified image should be at least y+(height*2)+gap
+   * in height.
+   * 
+   * @param y the point at which to get the data for the reflection
+   * @param height the height of the reflection
+   * @param opacity  the reflection opacity
+   * @param gap the gap between the image an its reflection
+   */
   public abstract void addReflectionImage(int y, int height, float opacity, int gap);
 
   public abstract void blurImage();
@@ -60,6 +70,7 @@ public abstract class aUIImage implements iPlatformImage {
       img.observersList = null;
       img.imageObserver = null;
       img.ninePatch     = null;
+
       return img;
     } catch(CloneNotSupportedException e) {
       throw new InternalError();
@@ -109,8 +120,24 @@ public abstract class aUIImage implements iPlatformImage {
 
   public abstract aUIImage createDisabledImage();
 
-  public abstract aUIImage createReflectionImage(int y, int height, float opacity, int gap);
+  /**
+   * Creates a new image that is a reflection of this image
+   * 
+   * @param height the height of the reflection (use -1 to use the full height of the image)
+   * @param gap the gap to gap above the reflection
+   * @return the new image
+   */
+  public abstract aUIImage createReflection(int height, float opacity, int gap);
 
+  /**
+   * Creates a new image that is this image with a reflection added
+   * 
+   * @param height the height of the reflection (use -1 to use the full height of the image)
+   * @param opacity  the reflection opacity
+   * @param gap the gap between the image an its reflection
+   * @return the new image
+   */
+  public abstract aUIImage createCopyWithReflection(int height,float opacity, int gap);
   public void dispose() {
     if (observersList != null) {
       observersList.clear();
@@ -330,7 +357,7 @@ public abstract class aUIImage implements iPlatformImage {
   }
 
   @Override
-  public boolean isLoaded(iImageObserver is) {
+  public boolean isImageLoaded(iImageObserver is) {
     if (isLoadedEx(is != null)) {
       return true;
     }

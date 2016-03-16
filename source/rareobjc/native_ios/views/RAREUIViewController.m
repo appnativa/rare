@@ -80,10 +80,14 @@ static BOOL statusBarHidden=NO;
   if(![RAREPlatform isInitialized]) {
     return;
   }
+  if([window isKindOfClass:[RAREAPWindow class]]) {
+    [(RAREAPWindow*)window setRotating:NO ];
+  }
   RAREAppContext* app=(RAREAppContext *) [RAREPlatform getAppContext];
   app->landscapeMode_=UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation]);
   [((RAREAppContext*)[RAREPlatform getAppContext]) handleConfigurationChangedWithId:[NSNumber numberWithInt:fromInterfaceOrientation]];
 }
+
 -(void)didReceiveMemoryWarning {
   if(![RAREPlatform isInitialized]) {
     return;
@@ -153,6 +157,9 @@ static BOOL statusBarHidden=NO;
 }
 
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+  if([window isKindOfClass:[RAREAPWindow class]]) {
+    [(RAREAPWindow*)window setRotating:YES ];
+  }
   [self.view endEditing:YES];
   animatedDistance=0;
   [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
@@ -160,9 +167,9 @@ static BOOL statusBarHidden=NO;
     return;
   }
   [((RAREAppContext*)[RAREPlatform getAppContext]) handleConfigurationWillChangeWithId:[NSNumber numberWithInt:toInterfaceOrientation]];
-  if([self isViewLoaded]) {
-    [self invalidateRAREAPViews:self.view];
-  }
+//  if([self isViewLoaded]) {
+//    [self invalidateRAREAPViews:self.view];
+//  }
   
 }
 -(void) invalidateRAREAPViews:(UIView*) view {
@@ -231,6 +238,9 @@ static BOOL statusBarHidden=NO;
 
 //Code from Matt Gallagher @ http://www.cocoawithlove.com/2008/10/sliding-uitextfields-around-to-avoid.html
 -(void)scrollContentForResponder:(UIView *)view {
+    if(![view isKindOfClass:[UITextView class]] && ![view isKindOfClass:[UITextField class]]) {
+      return;
+    }
     CGRect textFieldRect = [self.view.window convertRect:view.bounds fromView:view];
     CGRect viewRect = [self.view.window convertRect:self.view.bounds fromView:self.view];
     CGFloat midline = textFieldRect.origin.y + 0.5 * textFieldRect.size.height;

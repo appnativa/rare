@@ -24,8 +24,8 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
-import android.widget.TextView;
 
+import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.platform.android.ui.view.LineView;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
 import com.appnativa.rare.spot.Bean;
@@ -115,7 +115,7 @@ public interface iPlatformComponentFactory extends iComponentFactory {
    *
    * @return the view
    */
-  TextView getLabel(iWidget context, Label cfg);
+  LabelView getLabel(iWidget context, Label cfg);
 
   /**
    * Gets a line component

@@ -192,7 +192,7 @@ static CGColorRef clearColor=NULL;
         break;
         
     }
-    [layer setNeedsDisplayInRect: layer.bounds];
+    [layer repaint];
   }
   else {
     bg=[painter getBackgroundColor];
@@ -324,9 +324,17 @@ static CGColorRef clearColor=NULL;
   return [AppleHelper getInvocationReturnValue:inv methodSignature:sig];
 }
 +(id) invokeSelector: (SEL) sel onTarget: (NSObject*) object withArg: (NSObject*) arg{
-  NSMethodSignature * sig = [[((NSObject*)object) class ] instanceMethodSignatureForSelector:sel];
+  BOOL cm=NO;
+  Class cls=[object class];
+  NSMethodSignature * sig = [cls instanceMethodSignatureForSelector:sel];
+  if(!sig) {
+    sig=[cls methodSignatureForSelector:sel];
+    cm=YES;
+  }
   NSInvocation * inv = [NSInvocation invocationWithMethodSignature:sig];
-  [inv setTarget:object];
+  if(!cm) {
+    [inv setTarget:object];
+  }
   [inv setSelector:sel];
   const char* anObjCType=[sig getArgumentTypeAtIndex:2];
   if (TYPE_EQUALS(anObjCType, @encode(BOOL)))

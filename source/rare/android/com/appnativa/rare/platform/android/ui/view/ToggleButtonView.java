@@ -34,16 +34,17 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.iComponentView;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.FontUtils;
 import com.appnativa.rare.ui.RenderableDataItem.IconPosition;
 import com.appnativa.rare.ui.RenderableDataItem.Orientation;
-import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.iObservableImage;
 import com.appnativa.rare.ui.iPaintedButton;
 import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 import com.appnativa.rare.ui.iPlatformIcon;
@@ -191,7 +192,7 @@ public class ToggleButtonView extends ToggleButton implements iPainterSupport, i
     iconPadLeft   = iconPadRight = iconPadTop = iconPadBottom = 0;
 
     if (icon != null) {
-      if ((icon instanceof UIImageIcon) &&!((UIImageIcon) icon).isImageLoaded(this)) {
+      if ((icon instanceof iObservableImage) &&!((iObservableImage) icon).isImageLoaded(this)) {
         return;
       }
 

@@ -188,6 +188,9 @@ public class ListRowContainer extends ViewGroupEx implements iListViewRow {
   }
 
   public void prepareForReuse(View parent, int position, boolean isSelected) {
+    if(editingComponent!=null && this.position==position) {
+      return;
+    }
     this.position = position;
 
     if (editingComponent != null) {

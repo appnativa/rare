@@ -338,16 +338,7 @@ public interface iViewer extends iWidget {
    */
   void setViewerActionLink(ActionLink link);
 
-  /**
-   * Get the base URL for the viewer. This is the source URL or context URL if
-   * there is no source URL. If the viewer does not have a source or context
-   * URL then the viewer chain is walked until a valid base URL is found
-   *
-   * @return the base URL
-   */
-  URL getBaseURL();
-
-  /**
+   /**
    * Gets the title to use when a viewer's target has been collapsed
    *
    * @return the title

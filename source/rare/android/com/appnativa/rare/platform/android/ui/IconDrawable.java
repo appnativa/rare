@@ -89,4 +89,9 @@ public class IconDrawable implements iPlatformIcon {
     drawable.setBounds((int) x, (int) y, (int) (x + width), (int) (y + height));
     drawable.draw(g);
   }
+
+  @Override
+  public Drawable createDrawable(View view) {
+    return drawable;
+  }
 }

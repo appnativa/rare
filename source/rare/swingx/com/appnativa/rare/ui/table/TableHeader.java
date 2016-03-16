@@ -15,10 +15,28 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.table;
+
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.aUIComponentPainter;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.ui.renderer.ListItemRenderer;
+import com.appnativa.rare.ui.renderer.UILabelRenderer;
+import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -33,24 +51,6 @@ import javax.swing.SwingConstants;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.Column;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.painter.PaintBucket;
-import com.appnativa.rare.ui.painter.aUIComponentPainter;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.ui.renderer.ListItemRenderer;
-import com.appnativa.rare.ui.renderer.UILabelRenderer;
-import com.appnativa.rare.ui.renderer.UITextAreaRenderer;
 
 public class TableHeader extends aTableHeader implements TableCellRenderer {
   public static final String USE_TEXTAREA_PROPERTY = "__RARE_TABLEHEADER_USE_TEXTAREA__";
@@ -85,9 +85,10 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   @Override
   public boolean handleMouseRelease(MouseEvent e) {
-    if(!isEnabled()) {
+    if (!isEnabled()) {
       return true;
     }
+
     if (!columnSizing) {
       return true;
     }
@@ -268,10 +269,10 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
 
   @Override
   protected void setColumnVisibleEx(int col, boolean visible) {
-     Column c = columns[col];
+    Column c = columns[col];
 
-      c.setVisible(visible);
-      updateColumnModel(col);
+    c.setVisible(visible);
+    updateColumnModel(col);
   }
 
   public void setTableComponent(iTableComponent tc) {
@@ -354,7 +355,8 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
     iPlatformRenderingComponent rc = col.getHeaderCellRenderer();
 
     if (rc == null) {
-      rc                                                            = renderingComponent;
+      rc = renderingComponent;
+
       ((ColumnLabelRenderer) rc.getComponent().getView()).dataIndex = tc.getModelIndex();
     }
 
@@ -445,7 +447,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
   }
 
   public class ColumnLabelRenderer extends LabelRenderer {
-    int dataIndex;
+    int     dataIndex;
 
     protected void drawSortIcon(Graphics g, iPlatformIcon icon) {
       int w = icon.getIconWidth();
@@ -481,7 +483,7 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
       }
 
       if (pb != null) {
-        aUIComponentPainter.paint(graphics, 0, 0, getWidth(), getHeight(), pb);
+        aUIComponentPainter.paint(graphics, 0, 0, getWidth(), getHeight(), pb, true);
       }
 
       if (sortColumn == dataIndex) {
@@ -560,10 +562,17 @@ public class TableHeader extends aTableHeader implements TableCellRenderer {
     public void paint(Graphics g) {
       if (top) {
         if (componentPainter == null) {
-          componentPainter = headerView.getComponentPainter();
+          componentPainter = (headerCellPainter == null)
+                             ? null
+                             : headerCellPainter.getCachedComponentPainter();
+
+          if (componentPainter == null) {
+            componentPainter = headerView.getComponentPainter();
+          }
 
           if (componentPainter != null) {
-            componentPainter = (iPlatformComponentPainter) ((aUIComponentPainter) componentPainter).clone();
+            componentPainter = (iPlatformComponentPainter) componentPainter.clone();
+            componentPainter.setBorder(null);
           }
         }
       }

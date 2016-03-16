@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -28,8 +28,10 @@ import java.util.Map;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
+import com.appnativa.rare.net.ActionLink.ReturnDataType;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.spot.Browser;
 import com.appnativa.rare.spot.Viewer;
@@ -38,6 +40,7 @@ import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.util.ObjectHolder;
 
 /**
  *
@@ -46,9 +49,11 @@ import com.appnativa.rare.ui.iPlatformComponent;
 public abstract class aWebBrowser extends aPlatformViewer {
   protected boolean  generateBrowserExceptions = true;
   protected boolean  handleWaitCursor          = true;
-  protected boolean  startedWaitcursor;
+  protected boolean  stackWaitCursors          = true;
+  protected int      waitCursors;
   protected iBrowser theBrowser;
-  private boolean    autoInsertMetaContent;
+  protected boolean  autoInsertMetaContent;
+  protected boolean  useRuntimeToLoadContent;
 
   /**
    * Constructs a new instance
@@ -71,6 +76,7 @@ public abstract class aWebBrowser extends aPlatformViewer {
   @Override
   public void clearContents() {
     if (theBrowser != null) {
+      hideWaitCursorIfShowing();
       theBrowser.clearContents();
     }
   }
@@ -98,9 +104,11 @@ public abstract class aWebBrowser extends aPlatformViewer {
   }
 
   public void hideWaitCursorIfShowing() {
-    if (handleWaitCursor && startedWaitcursor) {
-      startedWaitcursor = false;
-      WaitCursorHandler.stopWaitCursor(getDataComponent());
+    if (handleWaitCursor && (waitCursors > 0)) {
+      while(waitCursors > 0) {
+        waitCursors--;
+        WaitCursorHandler.stopWaitCursor(getDataComponent());
+      }
     }
   }
 
@@ -185,6 +193,41 @@ public abstract class aWebBrowser extends aPlatformViewer {
 
   public void setURL(final String url) {
     checkConfigure();
+
+    if (useRuntimeToLoadContent) {
+      final WindowViewer w = Platform.getWindowViewer();
+
+      try {
+        w.getContent(this, url, ReturnDataType.STRING, new iFunctionCallback() {
+          @Override
+          public void finished(boolean canceled, Object returnValue) {
+            if (isHandleWaitCursor()) {
+              w.hideWaitCursor();
+            }
+
+            if (returnValue instanceof Throwable) {
+              throw ApplicationException.runtimeException((Throwable) returnValue);
+            }
+
+            if (returnValue != null) {
+              ObjectHolder oh          = (ObjectHolder) returnValue;
+              String       contentType = (String) oh.type;
+              String       content     = (String) oh.value;
+              String baseHref=(url.startsWith("http:") || url.startsWith("https:"))  ? url : null;
+              
+              loadContent(content, contentType, baseHref);
+            }
+          }
+        });
+
+        if (isHandleWaitCursor()) {
+          w.showWaitCursor();
+        }
+      } catch(MalformedURLException e) {
+        e.printStackTrace();
+      }
+      return;
+    }
 
     if (Platform.isUIThread()) {
       setURLEx(url);
@@ -273,6 +316,14 @@ public abstract class aWebBrowser extends aPlatformViewer {
     } else if (o instanceof Boolean) {
       autoInsertMetaContent = ((Boolean) o).booleanValue();
     }
+
+    o = properties.get("useRuntimeToLoadContent");
+
+    if (o instanceof String) {
+      useRuntimeToLoadContent = "true".equals(o);
+    } else if (o instanceof Boolean) {
+      useRuntimeToLoadContent = ((Boolean) o).booleanValue();
+    }
   }
 
   /**
@@ -281,6 +332,12 @@ public abstract class aWebBrowser extends aPlatformViewer {
   public boolean isHandleWaitCursor() {
     return handleWaitCursor;
   }
+
+  @Override
+  public void startedLoadingEx() {}
+
+  @Override
+  protected void finishedLoadingEx() {}
 
   protected void checkConfigure() {
     if (theBrowser == null) {
@@ -377,10 +434,19 @@ public abstract class aWebBrowser extends aPlatformViewer {
     }
   }
 
-  protected void startWaitCursor() {
+  protected void showWaitCursor() {
     if (handleWaitCursor) {
-      startedWaitcursor = true;
-      WaitCursorHandler.startWaitCursor(null, null);
+      if (stackWaitCursors || (waitCursors == 0)) {
+        waitCursors++;
+        WaitCursorHandler.startWaitCursor(getDataComponent(), null);
+      }
+    }
+  }
+
+  protected void hideWaitCursor() {
+    if (handleWaitCursor && (waitCursors > 0)) {
+      waitCursors--;
+      WaitCursorHandler.stopWaitCursor(getDataComponent());
     }
   }
 
@@ -390,6 +456,10 @@ public abstract class aWebBrowser extends aPlatformViewer {
     }
 
     theBrowser.load(url);
+  }
+
+  public Object getNativeBrowserView() {
+    return theBrowser.getNativeBrowser();
   }
 
   public boolean isAutoInsertMetaContent() {
@@ -414,6 +484,8 @@ public abstract class aWebBrowser extends aPlatformViewer {
     void stopLoading();
 
     iPlatformComponent getComponent();
+
+    Object getNativeBrowser();
 
     String getLocation();
   }

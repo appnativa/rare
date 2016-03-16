@@ -24,8 +24,8 @@ import com.appnativa.rare.platform.swing.ui.view.FormsView;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.widget.iWidget;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 
 public class LinearPanel extends aLinearPanel {
   public LinearPanel(boolean horizontal) {

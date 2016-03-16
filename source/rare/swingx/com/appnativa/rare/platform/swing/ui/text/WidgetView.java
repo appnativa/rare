@@ -81,7 +81,7 @@ import com.appnativa.rare.widget.RadioButtonWidget;
 import com.appnativa.rare.widget.TextAreaWidget;
 import com.appnativa.rare.widget.TextFieldWidget;
 import com.appnativa.rare.widget.iWidget;
-import com.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 /**
  * FormView that supports Rare widgets

@@ -46,9 +46,9 @@ import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.google.j2objc.annotations.Weak;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormLayout.LayoutInfo;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormLayout.LayoutInfo;
 
 public abstract class aFormsLayoutRenderer implements iPlatformRenderingComponent {
   protected final String                             LAYOUT_MAP_KEY      = "aFormsLayoutRenderer.layoutMap";

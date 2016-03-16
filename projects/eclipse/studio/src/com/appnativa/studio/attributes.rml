@@ -48,35 +48,19 @@ Set {
     value: "Line{ horizontal: false}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.linechart"
-    value: "Chart{chartType: line}"
-  } [ converterClass="Configuration" ]
-  {
-    name: "Studio.icon.toolbox.barchart"
+    name: "Studio.icon.toolbox.chart"
     value: "Chart{chartType: bar}"
-  } [ converterClass="Configuration" ]
-  {
-    name: "Studio.icon.toolbox.stackedbarchart"
-    value: "Chart{chartType: stacked_bar}"
-  } [ converterClass="Configuration" ]
-  {
-    name: "Studio.icon.toolbox.piechart"
-    value: "Chart{chartType: pie}"
-  } [ converterClass="Configuration" ]
-  {
-    name: "Studio.icon.toolbox.areachart"
-    value: "Chart{chartType: area}"
   } [ converterClass="Configuration" ]
   {
     name: "Studio.icon.toolbox.imagepane"
     value: "ImagePane{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.date_chooser"
+    name: "Studio.icon.toolbox.datechooser"
     value: "DateChooser{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.color_chooser"
+    name: "Studio.icon.toolbox.colorchooser"
     value: "ColorChooser{}"
   } [ converterClass="Configuration" ]
   {
@@ -112,23 +96,23 @@ Set {
     value: "DocumentPane{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.number_spinner"
+    name: "Studio.icon.toolbox.numberspinner"
     value: "NumberSpinner{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.list_spinner"
+    name: "Studio.icon.toolbox.spinner"
     value: "Spinner{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.date_spinner"
+    name: "Studio.icon.toolbox.datespinner"
     value: "DateSpinner{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.date_time_spinner"
+    name: "Studio.icon.toolbox.datetimespinner"
     value: "DateTimeSpinner{}"
   } [ converterClass="Configuration" ]
   {
-    name: "Studio.icon.toolbox.time_spinner"
+    name: "Studio.icon.toolbox.timespinner"
     value: "TimeSpinner{}"
   } [ converterClass="Configuration" ]
   {
@@ -158,10 +142,6 @@ Set {
   {
     name: "Studio.icon.toolbox.treetable"
     value: "TreeTable{}"
-  } [ converterClass="Configuration" ]
-  {
-    name: "Studio.icon.toolbox.propertytable"
-    value: "PropertyTable{}"
   } [ converterClass="Configuration" ]
   {
     name: "Studio.icon.toolbox.hslider"

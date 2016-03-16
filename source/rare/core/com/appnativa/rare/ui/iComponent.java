@@ -51,6 +51,8 @@ public interface iComponent extends iPainterSupport {
 
   boolean setAlpha(float alpha);
 
+  float getAlpha();
+  
   boolean adjustMinimumHeightForWidth();
 
   void bringToFront();

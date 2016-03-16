@@ -249,6 +249,12 @@ public abstract class aPlatformWidget extends aWidget {
     return false;
   }
 
+  @Override
+  protected void configureGenericDnD(iPlatformComponent comp, Widget cfg) {
+    if(!designMode) {
+      super.configureGenericDnD(comp, cfg);
+    }
+  }
   /**
    * Configures the popup menu for a widget
    *
@@ -291,8 +297,6 @@ public abstract class aPlatformWidget extends aWidget {
 
       if (eventEnabled) {
         ((iActionable) this).addActionListener(l);
-      } else {
-        ((iActionable) this).addActionListener(this);
       }
     }
 

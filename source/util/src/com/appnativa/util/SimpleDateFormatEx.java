@@ -51,8 +51,15 @@ public class SimpleDateFormatEx extends SimpleDateFormat {
     checkPattern(pattern);
   }
 
+  @Override
+  public void applyPattern(String pattern) {
+    super.applyPattern(pattern);
+    checkPattern(pattern);
+  }
+
   private void checkPattern(String pattern) {
     if (checkForISOPattern) {
+      isISOPattern=false;
       if (pattern.startsWith("yyyy-MM-dd'T'HH:mm:ss") || pattern.startsWith("yyyy-MM-dd'T'HH:mm:ss")) {
         if (pattern.endsWith("Z") || pattern.endsWith("z")) {
           isISOPattern = true;

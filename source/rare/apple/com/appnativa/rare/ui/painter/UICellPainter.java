@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
@@ -53,7 +53,8 @@ public class UICellPainter extends aUICellPainter {
 
   @Override
   public boolean isSingleColorPainter() {
-    // TODO Auto-generated method stub
     return false;
   }
+
+  public void updateModCount() {}
 }

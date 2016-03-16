@@ -107,7 +107,17 @@ public class aPlatformHelper {
   public static String format(String format, Object... args) {
     return String.format(format, args);
   }
-
+  
+  public static void setMaxBackgroundThreadCount(int max) {
+    if(max>0) {
+      executorService.setMaximumPoolSize(max);
+      int core=Math.round(max/2f);
+      if(core>2) {
+        executorService.setCorePoolSize(core);
+      }
+    }
+  }
+  
   public static void initializeThreadingService(int max, int imageMax) {
     ThreadFactory factory = new ThreadFactory() {
       @Override
@@ -121,7 +131,9 @@ public class aPlatformHelper {
     FailoverThreadPoolExecutor handler = new FailoverThreadPoolExecutor(1);
 
     executorService = new ThreadPoolExecutorEx(max, factory, handler);
-
+    if(max>=2) {
+      executorService.setCorePoolSize(2);
+    }
     if (imageMax > 0) {
       imageExecutorService = new ThreadPoolExecutor((imageMax > 5)
               ? 5

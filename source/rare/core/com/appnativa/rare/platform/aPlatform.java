@@ -453,7 +453,7 @@ public abstract class aPlatform implements iPlatform {
         }
 
         try {
-          link.sendFormDataEx(context, data, multipart);
+          link.sendFormDataEx(context, data, multipart,true);
           ret = new ObjectHolder(link, link.getContentType(), getLinkContent(w, link, type));
         } catch(Exception e) {
           canceled = true;

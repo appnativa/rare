@@ -20,10 +20,6 @@
 
 package com.appnativa.rare.ui;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.EventObject;
-
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.apple.ui.view.CustomButtonView;
 import com.appnativa.rare.platform.apple.ui.view.TextFieldView;
@@ -36,6 +32,11 @@ import com.appnativa.rare.ui.event.ChangeEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.painter.PainterHolder;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import java.util.EventObject;
 
 /**
  *
@@ -55,12 +56,16 @@ public class ActionComponent extends Component
   protected boolean       minHeightSet;
   protected boolean       adjustButtonSize;
   protected boolean       adjustTextFieldSize;
-
+  protected boolean scrollview;
   public ActionComponent(View view) {
     super(view);
 
     if (!(view instanceof TextFieldView)) {
       useBorderInSizeCalculation = false;
+      scrollview=view.isScrollView();
+    }
+    else {
+      scrollview=true;
     }
 
     setAutoAdjustSize(true);
@@ -346,8 +351,8 @@ public class ActionComponent extends Component
 
   @Override
   public void setDisabledIcon(iPlatformIcon icon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     disabledIcon = icon;
@@ -390,8 +395,8 @@ public class ActionComponent extends Component
         ((UISpriteIcon) this.icon).setOwner(null);
       }
 
-      if (icon instanceof UIImageIcon) {
-        ((UIImageIcon) icon).isImageLoaded(this);
+      if (icon instanceof iObservableImage) {
+        ((iObservableImage) icon).isImageLoaded(this);
       } else if (icon instanceof UISpriteIcon) {
         ((UISpriteIcon) icon).setOwner(this);
       }
@@ -485,8 +490,12 @@ public class ActionComponent extends Component
     }
   }
 
-  public void setPainterHolder(PainterHolder painterHolder) {
-    getComponentPainter(true).setPainterHolder(painterHolder);
+  public void setPainterHolder(PainterHolder ph) {
+    if (ph.foregroundColor != null) {
+      setForeground(ph.foregroundColor);
+    }
+
+    getComponentPainter(true).setPainterHolder(ph);
   }
 
   /**
@@ -495,8 +504,8 @@ public class ActionComponent extends Component
    */
   @Override
   public void setPressedIcon(iPlatformIcon icon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     if (view instanceof CustomButtonView) {
@@ -523,8 +532,8 @@ public class ActionComponent extends Component
    */
   @Override
   public void setSelectedIcon(iPlatformIcon icon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     if (view instanceof CustomButtonView) {
@@ -570,7 +579,7 @@ public class ActionComponent extends Component
 
     boolean addBackIconWidth = false;
 
-    if (view.isScrollView()) {
+    if (scrollview) {
       size.width       = FontUtils.getCharacterWidth(getFont()) * 3;
       addBackIconWidth = true;
     } else {

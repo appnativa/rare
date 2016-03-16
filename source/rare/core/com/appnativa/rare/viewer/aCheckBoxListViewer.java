@@ -200,7 +200,7 @@ public abstract class aCheckBoxListViewer extends ListBoxViewer {
    *         null if there are no checked rows
    */
   public Object[] getCheckedData() {
-    return DataItemCollection.getValues(listComponent, getCheckedRows(), -1, true);
+    return DataItemCollection.getValues(listComponent, getCheckedIndexes(), -1, true);
   }
 
   /**
@@ -274,8 +274,8 @@ public abstract class aCheckBoxListViewer extends ListBoxViewer {
    *
    * @return the indices for all the rows that have check marks or null if there are none
    */
-  public int[] getCheckedRows() {
-    return getSelectedIndexes();
+  public int[] getCheckedIndexes() {
+    return listComponent.getCheckedIndexes();
   }
 
   @Override
@@ -286,7 +286,7 @@ public abstract class aCheckBoxListViewer extends ListBoxViewer {
 
     switch(submitValueType) {
       case ListBox.CSubmitValue.checked_index :
-        return getCheckedRows();
+        return getCheckedIndexes();
 
       case ListBox.CSubmitValue.checked_linked_data :
         return getCheckedData();
@@ -348,7 +348,7 @@ public abstract class aCheckBoxListViewer extends ListBoxViewer {
 
     CheckBoxList cbl = (CheckBoxList) cfg;
 
-    if (cbl.checkboxTrailing.spot_valueWasSet() && Platform.isTouchDevice()) {
+    if (cbl.checkboxTrailing.spot_valueWasSet()) {
       setCheckboxTrailing(cbl.checkboxTrailing.booleanValue());
     } else {
       setCheckboxTrailing(Platform.isTouchDevice()
@@ -371,11 +371,11 @@ public abstract class aCheckBoxListViewer extends ListBoxViewer {
     if (fg.isDarkColor()) {
       checked       = Platform.getResourceAsIcon("Rare.icon.checkboxchecked");
       unchecked     = Platform.getResourceAsIcon("Rare.icon.checkbox");
-      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkboxindeterminate");
+      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkbox.indeterminate.dark");
     } else {
       checked       = Platform.getResourceAsIcon("Rare.icon.checkboxchecked.light");
       unchecked     = Platform.getResourceAsIcon("Rare.icon.checkbox.light");
-      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkboxindeterminate.light");
+      indeterminate = Platform.getResourceAsIcon("Rare.icon.checkbox.indeterminate.light");
     }
 
     setIcons(checked, unchecked, indeterminate);

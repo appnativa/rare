@@ -20,6 +20,7 @@
 
 package com.appnativa.rare.widget;
 
+import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.iActionComponent;
@@ -43,6 +44,10 @@ public class LabelWidget extends aLabelWidget {
 
   @Override
   protected iActionComponent createActionComponent(Label cfg) {
-    return new ActionComponent(getAppContext().getComponentCreator().getLabel(getViewer(), cfg));
-  }
+    LabelView label=getAppContext().getComponentCreator().getLabel(this, cfg);
+    if(cfg.supportHyperLinks.booleanValue()) {
+      label.setHyperlinkListener(createHyperlinkListener());
+    }
+    return new ActionComponent(label);
+ }
 }

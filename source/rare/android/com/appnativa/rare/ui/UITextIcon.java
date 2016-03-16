@@ -103,4 +103,9 @@ public class UITextIcon extends aUITextIcon {
       return getIconWidth();
     }
   }
+
+  @Override
+  public Drawable createDrawable(View view) {
+    return new TextDrawable();
+  }
 }

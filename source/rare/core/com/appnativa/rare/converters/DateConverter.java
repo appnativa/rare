@@ -40,7 +40,7 @@ public class DateConverter extends DateTimeConverter {
   }
 
   @Override
-  protected DateContext getDateContext(iWidget widget, Object context) {
+  protected DateContext getDateContext(Object context) {
     if (context instanceof DateContext) {
       return (DateContext) context;
     }
@@ -49,7 +49,7 @@ public class DateConverter extends DateTimeConverter {
   }
 
   @Override
-  protected DateFormat getDateFormat(iWidget widget, Object context, boolean display) {
+  protected DateFormat getDateFormat(Object context, boolean display) {
     DateFormat df = null;
 
     if (context instanceof DateContext) {

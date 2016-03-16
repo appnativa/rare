@@ -25,7 +25,6 @@
 }
 static RAREDisplayLinkManager* linkManager;
 @synthesize layoutManager;
-@synthesize syncWithDisplayRefresh;
 
 + (Class)layerClass
 {
@@ -44,7 +43,6 @@ static RAREDisplayLinkManager* linkManager;
   }
   return self;
 }
-
 -(void)sparDispose {
   self.layoutManager=nil;
   [super sparDispose];
@@ -95,6 +93,7 @@ static RAREDisplayLinkManager* linkManager;
   useFlipTransform=flip;
   [self setPaintHandlerEnabled:YES];
 }
+
 
 - (void)drawRect:(CGRect)dirtyRect
 {
@@ -170,6 +169,19 @@ static RAREDisplayLinkManager* linkManager;
   [linkManager addView:self];
 }
 
+-(void) setSyncWithDisplayRefresh:(BOOL) enable {
+  syncWithDisplayRefresh=enable;
+  if(enable) {
+    if(self.window) {
+      [self startDisplayLink];
+    }
+  }
+  else {
+    if(!self.window) {
+      [self stopDisplayLink];
+    }
+  }
+}
 - (void)stopDisplayLink
 {
   if(linkManager) {
@@ -244,7 +256,7 @@ static RAREDisplayLinkManager* linkManager;
   if(view && view->viewListener_ && self.window!=newWindow) {
     [view visibilityChangedWithBoolean:newWindow!=nil];
   }
-  if(self.syncWithDisplayRefresh && self.window!=newWindow) {
+  if(syncWithDisplayRefresh && self.window!=newWindow) {
     if(newWindow) {
       [self startDisplayLink];
     }

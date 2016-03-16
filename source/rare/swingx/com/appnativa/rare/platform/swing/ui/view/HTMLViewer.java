@@ -26,6 +26,7 @@ import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.WaitCursorHandler;
 import com.appnativa.rare.ui.event.DataEvent;
+import com.appnativa.rare.viewer.WebBrowser;
 import com.appnativa.rare.widget.aWidget;
 
 import javafx.beans.value.ChangeListener;
@@ -48,7 +49,7 @@ import javax.swing.SwingUtilities;
 public class HTMLViewer extends JFXPanel {
   LoadListener    loadListener;
   WebView         webView;
-  private boolean handleWaitCursor;
+  private boolean handleWaitCursor = true;
   private boolean scaleToFit;
 
   public HTMLViewer() {
@@ -58,6 +59,10 @@ public class HTMLViewer extends JFXPanel {
         initFX();
       }
     });
+  }
+
+  public WebView getWebView() {
+    return webView;
   }
 
   public void setWindowProperty(final String name, final Object value) {
@@ -128,10 +133,6 @@ public class HTMLViewer extends JFXPanel {
       public void run() {
         checkIfListenerAdded();
         webView.getEngine().load(url);
-
-        if (handleWaitCursor) {
-          WaitCursorHandler.startWaitCursor(Component.fromView(HTMLViewer.this), null);
-        }
       }
     });
   }
@@ -142,10 +143,6 @@ public class HTMLViewer extends JFXPanel {
       public void run() {
         checkIfListenerAdded();
         webView.getEngine().loadContent(content, contentType);
-
-        if (handleWaitCursor) {
-          WaitCursorHandler.startWaitCursor(Component.fromView(HTMLViewer.this), null);
-        }
       }
     });
   }
@@ -204,6 +201,13 @@ public class HTMLViewer extends JFXPanel {
       if (w != null) {
         loadListener = new LoadListener();
         w.stateProperty().addListener(loadListener);
+        webView.getEngine().locationProperty().addListener(new LocationListener());
+        w.exceptionProperty().addListener(new ChangeListener<Throwable>() {
+          @Override
+          public void changed(ObservableValue<? extends Throwable> ov, Throwable t, Throwable t1) {
+            Platform.ignoreException(t1);
+          }
+      });
       }
     }
   }
@@ -256,6 +260,27 @@ public class HTMLViewer extends JFXPanel {
     }
   }
 
+  protected class LocationListener implements ChangeListener<String> {
+
+    @Override
+    public void changed(ObservableValue<? extends String> location, String oldValue, final String  newValue) {
+      final Component comp   = (Component) Component.fromView(HTMLViewer.this);
+      final aWidget   w      = (aWidget) Platform.findWidgetForComponent(comp);
+      if (w.isEventEnabled(iConstants.EVENT_CHANGE)) {
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            if (!w.isDisposed()) {
+              w.fireEvent(iConstants.EVENT_CHANGE, new DataEvent(webView, newValue, null));
+            }
+          }
+        });
+      }
+
+      
+    }
+    
+  }
   protected class LoadListener implements ChangeListener<Worker.State> {
     protected boolean firstLoad = true;
 
@@ -263,13 +288,12 @@ public class HTMLViewer extends JFXPanel {
     public void changed(ObservableValue<? extends State> observable, State oldValue, State newValue) {
       boolean         failed = false;
       final Component comp   = (Component) Component.fromView(HTMLViewer.this);
-      final aWidget   w      = (aWidget) Platform.findWidgetForComponent(comp);
+      final WebBrowser   w      = (WebBrowser) Platform.findWidgetForComponent(comp);
 
       if (firstLoad) {
         firstLoad = false;
         resizeWebView();
       }
-
       switch(newValue) {
         case FAILED :
           failed = true;
@@ -278,12 +302,16 @@ public class HTMLViewer extends JFXPanel {
         case SUCCEEDED : {
           final boolean ffailed = failed;
 
+          if (handleWaitCursor) {
+            WaitCursorHandler.stopWaitCursor(comp);
+          }
+
           scaleToFit();
           SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
               if (w.isEventEnabled(iConstants.EVENT_FINISHED_LOADING)) {
-                DataEvent e = new DataEvent(webView, null);
+                DataEvent e = new DataEvent(webView, getURL(), null);
 
                 if (ffailed) {
                   e.markAsFailureEvent();
@@ -291,26 +319,36 @@ public class HTMLViewer extends JFXPanel {
 
                 w.fireEvent(iConstants.EVENT_FINISHED_LOADING, e);
               }
-
-              if (isHandleWaitCursor()) {
-                WaitCursorHandler.stopWaitCursor(comp);
-              }
             }
           });
         }
 
         break;
 
-        case RUNNING :
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              if (w.isEventEnabled(iConstants.EVENT_STARTED_LOADING)) {
-                w.fireEvent(iConstants.EVENT_STARTED_LOADING, new DataEvent(webView, null));
-              }
-            }
-          });
+        case SCHEDULED :
+          if (handleWaitCursor) {
+            WaitCursorHandler.startWaitCursor(comp, null);
+          }
+          if (w.isEventEnabled(iConstants.EVENT_STARTED_LOADING)) {
+            SwingUtilities.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                if (!w.isDisposed()) {
+                  DataEvent e = new DataEvent(webView, getURL(), null);
 
+                  w.getWidgetListener().evaluate(iConstants.EVENT_STARTED_LOADING, e, false);
+
+                  if (e.isConsumed()) {
+                    stopLoading();
+                  }
+                }
+              }
+            });
+          }
+
+          break;
+
+        case RUNNING :
           break;
 
         default :

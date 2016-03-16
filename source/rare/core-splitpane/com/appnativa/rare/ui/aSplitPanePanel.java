@@ -125,7 +125,23 @@ public abstract class aSplitPanePanel extends XPContainer {
 
   public abstract void addChangeListener(iChangeListener l);
 
-  public void checkOrientation(Object newConfig) {}
+  public void checkOrientation(Object newConfig) {
+    if ((newConfig != null) && autoOrient ) {
+      UIDimension size = UIScreen.getSizeForConfiguration(newConfig);
+      boolean     t2b  = (size.width > size.height)
+                         ? false
+                         : true;
+
+      if (t2b != isTopToBottom()) {
+        float props[] = originalSplitPorpotions;
+
+        if (props != null) {
+          setProportionsEx(originalSplitPorpotions);
+        }
+        setLeftToRightSplitEx(!leftToRight,false);
+      }
+    }
+  }
 
   public abstract Divider createDivider();
 
@@ -303,7 +319,7 @@ public abstract class aSplitPanePanel extends XPContainer {
       initiallyEven = true;
     }
 
-    setLeftToRightSplitEx(!leftToRight);
+    setLeftToRightSplitEx(!leftToRight,true);
   }
 
   public void setAutoAdjustProportions(boolean autoAdjustProportions) {
@@ -351,7 +367,7 @@ public abstract class aSplitPanePanel extends XPContainer {
 
   public void setLeftToRightSplit(boolean leftToRight) {
     autoOrient = false;
-    setLeftToRightSplitEx(leftToRight);
+    setLeftToRightSplitEx(leftToRight,true);
   }
 
   public void setOneTouchExpandable(boolean oneTouch) {}
@@ -822,7 +838,7 @@ public abstract class aSplitPanePanel extends XPContainer {
                       : afterv.getHeight();
   }
 
-  protected void setLeftToRightSplitEx(boolean leftToRight) {
+  protected void setLeftToRightSplitEx(boolean leftToRight,boolean revalidate) {
     if (this.leftToRight != leftToRight) {
       this.leftToRight = leftToRight;
 
@@ -843,8 +859,9 @@ public abstract class aSplitPanePanel extends XPContainer {
           ((Divider) node).setType(leftToRight);
         }
       }
-
-      revalidate();
+      if(revalidate) {
+        revalidate();
+      }
     }
   }
 

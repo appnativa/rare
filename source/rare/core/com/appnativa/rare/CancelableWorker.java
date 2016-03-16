@@ -20,6 +20,7 @@
 
 package com.appnativa.rare;
 
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.util.iCancelable;
 
 /**
@@ -30,7 +31,8 @@ public class CancelableWorker implements iCancelable, Runnable {
   volatile boolean canceled;
   volatile boolean done;
   iWorkerTask      task;
-  private Object   result = null;
+  Object   result = null;
+  Throwable exception;
 
   public CancelableWorker(iWorkerTask task) {
     this.task = task;
@@ -46,9 +48,11 @@ public class CancelableWorker implements iCancelable, Runnable {
 
   @Override
   public void run() {
-    if (!canceled &&!done) {
+    if (!canceled && !done) {
       try {
         result = task.compute();
+      }catch(Throwable e) {
+        exception=e;
       } finally {
         done = true;
       }
@@ -56,6 +60,9 @@ public class CancelableWorker implements iCancelable, Runnable {
 
     if (!canceled && done && (task != null)) {
       if (Platform.isUIThread()) {
+        if(exception!=null) {
+          throw ApplicationException.runtimeException(exception);
+        }
         task.finish(result);
         task   = null;
         result = null;

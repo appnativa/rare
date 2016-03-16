@@ -26,20 +26,18 @@ import java.util.Map;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.apple.ui.DataItemListModel;
-import com.appnativa.rare.platform.apple.ui.ListBoxListHandler;
+import com.appnativa.rare.platform.apple.ui.EditableListBoxListHandler;
 import com.appnativa.rare.platform.apple.ui.util.AppleHelper;
 import com.appnativa.rare.platform.apple.ui.view.ListView;
 import com.appnativa.rare.spot.ListBox;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.ListComponent;
 import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.iListView.EditingMode;
 import com.appnativa.rare.ui.iToolBar;
-import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
-import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.FilterableList;
 
 /**
@@ -91,20 +89,6 @@ public class ListBoxViewer extends aListViewer {
     listModel = null;
   }
 
-  @Override
-  public int getEditingRow() {
-    ListView v = (ListView) getDataView();
-
-    return v.getEditingRow();
-  }
-
-  @Override
-  public int getLastEditedRow() {
-    ListView v = (ListView) getDataView();
-
-    return v.getLastEditedRow();
-  }
-
   /**
    * Notifies the list that the contents of the specified row has changed
    *
@@ -145,28 +129,7 @@ public class ListBoxViewer extends aListViewer {
     ((ListView) getDataView()).setAutoSizeRows(autoSize);
   }
 
-  @Override
-  public void setEditModeListener(iExpansionListener l) {
-    ListView v = (ListView) getDataView();
-    v.setEditModeListener(l);
-  }
-  
-  @Override
-  public void setRowEditModeListener(iExpansionListener l) {
-    ListView v = (ListView) getDataView();
-    v.setRowEditModeListener(l);
-  }
-
-  @Override
-  public void setRowEditingWidget(iWidget widget, boolean centerVertically) {
-    super.setRowEditingWidget(widget, centerVertically);
-
-    ListView v = (ListView) getDataView();
-
-    v.setRowEditingComponent(widget.getContainerComponent(), centerVertically);
-  }
-
-  @Override
+   @Override
   public void setSelectionMode(SelectionMode selectionMode) {
     super.setSelectionMode(selectionMode);
 
@@ -182,16 +145,6 @@ public class ListBoxViewer extends aListViewer {
   @Override
   public void setShowLastDivider(boolean show) {
     ((ListView) getDataView()).setShowLastDivider(show);
-  }
-
-  @Override
-  public void startEditing(boolean animate, UIAction... actions) {
-    ((ListView) getDataView()).startEditing(actions, animate);
-  }
-
-  @Override
-  public void stopEditing(boolean animate) {
-    ((ListView) getDataView()).stopEditing(animate);
   }
 
   @Override
@@ -217,13 +170,14 @@ public class ListBoxViewer extends aListViewer {
     ListItemRenderer lr = new ListItemRenderer();
 
     list.setItemRenderer(lr);
-    listComponent = new ListBoxListHandler(list, listModel);
+    listComponent = new EditableListBoxListHandler(list, listModel);
     list.setListModel(listModel);
 
     iToolBar tb = createEditingToolbarIfNecessary(cfg);
 
     if (tb != null) {
-      list.setEditingToolbar(tb);
+      tb.getComponent().setBackground(ColorUtils.getBackground());
+      list.setEditModeToolBar(tb);
     }
   }
 

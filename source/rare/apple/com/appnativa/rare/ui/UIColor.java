@@ -203,15 +203,6 @@ public class UIColor implements iPlatformPaint, Cloneable {
     return ColorUtils.adjustLuminance(getColor(), lum);
   }
 
-  @Override
-  public void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation) {
-    UIColor c = g.getColor();
-
-    g.setColor(this);
-    g.fillRect(x, y, width, height);
-    g.setColor(c);
-  }
-
   public String toCSSString() {
     StringBuilder sb = new StringBuilder();
 
@@ -347,5 +338,10 @@ public class UIColor implements iPlatformPaint, Cloneable {
 
   protected iBackgroundPainter getPainter() {
     return new UISimpleBackgroundPainter(this);
+  }
+
+  @Override
+  public void fill(iPlatformGraphics g, float x, float y, float width, float height, int orientation) {
+    //Never called because isPainter returns false
   }
 }

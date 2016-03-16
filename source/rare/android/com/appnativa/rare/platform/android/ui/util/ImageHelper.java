@@ -21,7 +21,6 @@
 package com.appnativa.rare.platform.android.ui.util;
 
 import android.content.Context;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -54,9 +53,7 @@ import com.appnativa.util.iCancelable;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.net.URL;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -389,8 +386,8 @@ public class ImageHelper {
     if (url == null) {
       return null;
     }
-
-    if (url.getProtocol().equals("file")) {
+    String protocol=url.getProtocol();
+    if (protocol.equals("file") || protocol.equals("data")) {
       defer = false;
     }
 
@@ -413,11 +410,15 @@ public class ImageHelper {
 
       UIImage img = createImage(JavaURLConnection.toExternalForm(url), mime, stream, density);
 
-      if ((constraints > 0) && (size > 0)) {
+      if (img!=null && (constraints > 0) && (size > 0)) {
         img = constrain(img, size, size, constraints, bg, st);
       }
 
-      return img;
+      return img==null ? UIImageIcon.getBrokenImage() : img;
+    }
+    catch(IOException e) {
+      Platform.ignoreException(e);
+      return UIImageIcon.getBrokenImage();
     } finally {
       conn.dispose();
     }
@@ -620,14 +621,16 @@ public class ImageHelper {
 
       opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
+      Bitmap bmp=null;
       try {
-        return new UIImage(BitmapFactory.decodeStream(new FlushedInputStream(stream), null, opts));
+        bmp=BitmapFactory.decodeStream(new FlushedInputStream(stream), null, opts);
       } catch(OutOfMemoryError err) {
         Platform.ignoreException("createImage", err);
         System.gc();
 
-        return new UIImage(BitmapFactory.decodeStream(new FlushedInputStream(stream), null, opts));
+        bmp=BitmapFactory.decodeStream(new FlushedInputStream(stream), null, opts);
       }
+      return bmp==null ? null : new UIImage(bmp);
     } finally {
       try {
         stream.close();
@@ -671,6 +674,7 @@ public class ImageHelper {
       }
     }
 
+    
     public UIImage call() throws Exception {
       UIImage img = null;
 
@@ -709,6 +713,10 @@ public class ImageHelper {
       }
 
       return img;
+    }
+    @Override
+    public void load() throws Exception {
+      call();
     }
 
     public void cancel(boolean canInterrupt) {

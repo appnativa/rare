@@ -19,8 +19,8 @@ package com.appnativa.spot;
 import com.appnativa.util.CharArray;
 import com.appnativa.util.CharScanner;
 import com.appnativa.util.FileResolver;
-import com.appnativa.util.iFileResolver;
 import com.appnativa.util.iStructuredNode;
+import com.appnativa.util.iURLResolver;
 
 import com.google.j2objc.annotations.Weak;
 
@@ -226,8 +226,8 @@ public class SDFNode implements Cloneable, iStructuredNode {
   }
 
   public static SDFNode parse(Reader r) throws IOException {
-    SDFNode       node        = new SDFNode(null);
-    iFileResolver urlResolver = new FileResolver(new File("/"));
+    SDFNode      node        = new SDFNode(null);
+    iURLResolver urlResolver = new FileResolver(new File("/"));
 
     node.setNodeType(NODETYPE_ROOT);
 
@@ -245,7 +245,7 @@ public class SDFNode implements Cloneable, iStructuredNode {
     p.parse(pc);
   }
 
-  public static SDFNode parse(Reader r, iFileResolver urlResolver, String fileName, boolean keepComments)
+  public static SDFNode parse(Reader r, iURLResolver urlResolver, String fileName, boolean keepComments)
           throws IOException {
     SDFNode node = new SDFNode(null);
 
@@ -289,7 +289,7 @@ public class SDFNode implements Cloneable, iStructuredNode {
     }
   }
 
-  public static SDFNode parseForReformat(Reader r, iFileResolver urlResolver, String fileName) throws IOException {
+  public static SDFNode parseForReformat(Reader r, iURLResolver urlResolver, String fileName) throws IOException {
     SDFNode node = new SDFNode(null);
 
     node.setNodeType(NODETYPE_ROOT);
@@ -1027,7 +1027,7 @@ public class SDFNode implements Cloneable, iStructuredNode {
      * @param urlResolver
      *          {@inheritDoc}
      */
-    public FormattingCallback(SDFNode root, iFileResolver urlResolver) {
+    public FormattingCallback(SDFNode root, iURLResolver urlResolver) {
       super(root, urlResolver);
       this.setIgnoreMissingReferences(true);
     }
@@ -1154,11 +1154,11 @@ public class SDFNode implements Cloneable, iStructuredNode {
     protected HashMap referenceMap;
 
     /**  */
-    protected iFileResolver urlResolver;
-    private boolean         ignoreMissingReferences;
-    private SDFNode         rootNode;
+    protected iURLResolver urlResolver;
+    private boolean        ignoreMissingReferences;
+    private SDFNode        rootNode;
 
-    public ParserCallback(SDFNode root, iFileResolver urlResolver) {
+    public ParserCallback(SDFNode root, iURLResolver urlResolver) {
       this.urlResolver = urlResolver;
       currentNode      = root;
       rootNode         = root;

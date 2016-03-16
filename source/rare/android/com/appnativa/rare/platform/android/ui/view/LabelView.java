@@ -20,27 +20,27 @@
 
 package com.appnativa.rare.platform.android.ui.view;
 
-import android.content.Context;
+import org.xml.sax.XMLReader;
 
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-
 import android.text.Editable;
 import android.text.Html;
 import android.text.Html.ImageGetter;
 import android.text.Html.TagHandler;
 import android.text.Layout;
 import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.text.style.StrikethroughSpan;
 import android.text.style.URLSpan;
-
 import android.util.AttributeSet;
-
 import android.view.Gravity;
 import android.view.View;
-
 import android.widget.CheckedTextView;
 import android.widget.TextView;
 
@@ -57,12 +57,12 @@ import com.appnativa.rare.ui.RenderableDataItem.Orientation;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.iObservableImage;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.listener.iHyperlinkListener;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
-
-import org.xml.sax.XMLReader;
 
 /**
  *
@@ -70,17 +70,18 @@ import org.xml.sax.XMLReader;
  */
 public class LabelView extends CheckedTextView implements iPainterSupport, iComponentView, iImageObserver {
   private static HTMLTagHandler tagHandler;
-  iPlatformComponentPainter componentPainter;
-  protected AndroidGraphics graphics;
-  private int               iconGap      = 4;
-  private Orientation       orientation  = Orientation.HORIZONTAL;
-  private IconPosition      iconPosition = IconPosition.LEADING;
-  private iPlatformIcon     icon;
-  private int               iconPadBottom;
-  private int               iconPadLeft;
-  private int               iconPadRight;
-  private int               iconPadTop;
-  private boolean           blockRequestLayout;
+  iPlatformComponentPainter     componentPainter;
+  protected AndroidGraphics     graphics;
+  private int                   iconGap      = 4;
+  private Orientation           orientation  = Orientation.HORIZONTAL;
+  private IconPosition          iconPosition = IconPosition.LEADING;
+  private iPlatformIcon         icon;
+  private int                   iconPadBottom;
+  private int                   iconPadLeft;
+  private int                   iconPadRight;
+  private int                   iconPadTop;
+  private boolean               blockRequestLayout;
+  private iHyperlinkListener    linkListener;
 
   public LabelView(Context context) {
     this(context, null);
@@ -104,10 +105,12 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
         if (imageGetter == null) {
           imageGetter = Platform.getAppContext().getWindowViewer();
         }
-        if(tagHandler==null) {
-          tagHandler=new HTMLTagHandler();
+
+        if (tagHandler == null) {
+          tagHandler = new HTMLTagHandler();
         }
-        text = Html.fromHtml(s,imageGetter,tagHandler);
+
+        text = Html.fromHtml(s, imageGetter, tagHandler);
       }
     }
 
@@ -427,7 +430,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     iconPadLeft = iconPadRight = iconPadTop = iconPadBottom = 0;
 
     if (icon != null) {
-      if ((icon instanceof UIImageIcon) &&!((UIImageIcon) icon).isImageLoaded(this)) {
+      if ((icon instanceof iObservableImage) &&!((iObservableImage) icon).isImageLoaded(this)) {
         return;
       }
 
@@ -517,7 +520,38 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
   @Override
   public void setText(CharSequence text, BufferType type) {
     text = checkText(text, (ImageGetter) Platform.findWidgetForComponent(Component.fromView(this)));
+
+    if (linkListener != null) {
+      SpannableStringBuilder sb   = new SpannableStringBuilder(text);
+      URLSpan[]              urls = sb.getSpans(0, text.length(), URLSpan.class);
+
+      if ((urls != null) && (urls.length > 0)) {
+        for (URLSpan span : urls) {
+          listenForClick(sb, span);
+        }
+
+        text = sb;
+      }
+    }
+
     super.setText(text, type);
+  }
+
+  protected void listenForClick(SpannableStringBuilder sb, URLSpan span) {
+    int           start = sb.getSpanStart(span);
+    int           end   = sb.getSpanEnd(span);
+    int           flags = sb.getSpanFlags(span);
+    final String  href  = span.getURL();
+    ClickableSpan cspan = new ClickableSpan() {
+      public void onClick(View view) {
+        if (linkListener != null) {
+          linkListener.linkClicked(LabelView.this, null, href, null);
+        }
+      }
+    };
+
+    sb.setSpan(cspan, start, end, flags);
+    sb.removeSpan(span);
   }
 
   @Override
@@ -756,6 +790,17 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     this.blockRequestLayout = blockRequestLayout;
   }
 
+  public iHyperlinkListener getHyperlinkListener() {
+    return linkListener;
+  }
+
+  public void setHyperlinkListener(iHyperlinkListener linkListener) {
+    this.linkListener = linkListener;
+    if(linkListener!=null) {
+      setMovementMethod(LinkMovementMethod.getInstance());
+    }
+  }
+
   private static class URLSpanNoUnderline extends URLSpan {
     public URLSpanNoUnderline(String url) {
       super(url);
@@ -773,7 +818,7 @@ public class LabelView extends CheckedTextView implements iPainterSupport, iComp
     @Override
     public void handleTag(boolean opening, String tag, Editable output, XMLReader xmlReader) {
       if (tag.equalsIgnoreCase("strike") || tag.equals("s")) {
-       handleStrike(opening, output);
+        handleStrike(opening, output);
       }
     }
 

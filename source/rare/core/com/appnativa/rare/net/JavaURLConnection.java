@@ -67,7 +67,7 @@ public class JavaURLConnection implements iURLConnection {
   static {
     String agent = null;
 
-    if (Platform.getAppContext().isWebStart()) {    // will work properly when not launched via web start
+    if (Platform.getAppContext()!=null && Platform.getAppContext().isWebStart()) {    // will work properly when not launched via web start
       try {
         agent = System.getProperty("http.agent", null);
       } catch(Exception e) {
@@ -423,10 +423,6 @@ public class JavaURLConnection implements iURLConnection {
   public static String toExternalForm(URL url) {
     if (url == null) {
       return "";
-    }
-
-    if (InlineURLConnection.isInlineURL(url)) {
-      return InlineURLConnection.toExternalForm(url);
     }
 
     String s = url.toExternalForm();
@@ -871,6 +867,18 @@ public class JavaURLConnection implements iURLConnection {
     }
   }
 
+  public static void stopTrackingConnection(JavaURLConnection conn) {
+    if (trackOpenConnections) {
+      openLock.lock();
+
+      try {
+        openConnections.remove(conn);
+      } finally {
+        openLock.unlock();
+      }
+    }
+  }
+  
   private static void connectionOpened(JavaURLConnection conn) {
     if (trackOpenConnections) {
       openLock.lock();

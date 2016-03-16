@@ -162,7 +162,7 @@ public class CookieManager extends CookieHandler {
           cache.remove(len);
         } else if (cookie.matches(uri)) {
           if (cookies.length() > 0) {
-            cookies.append(", ");
+            cookies.append("; ");
           }
 
           cookie.toString(cookies);

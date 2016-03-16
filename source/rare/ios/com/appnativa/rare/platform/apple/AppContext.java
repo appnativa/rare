@@ -37,10 +37,18 @@ public class AppContext extends aAppContextImpl {
   public Window getPlatformMainWindow() {
     return mainWindow;
   }
-
+  @Override
+  public void dispose() {
+    super.dispose();
+    exitZero();
+  }
   protected void didReceiveMemoryWarning() {
     if (lowMemoryWarningHandler != null) {
       lowMemoryWarningHandler.run();
     }
   }
+  native void exitZero() 
+  /*-[
+    exit(0);
+  ]-*/;
 }

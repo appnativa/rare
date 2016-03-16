@@ -20,6 +20,8 @@
 
 package com.appnativa.rare.platform.apple.ui.util;
 
+import java.net.URL;
+
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.Transform;
 import com.appnativa.rare.ui.UIImage;
@@ -29,18 +31,19 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
-
-import java.net.URL;
+import com.appnativa.util.ByteArray;
 
 /*-[
- #import "RAREImageWrapper.h"
- #import "java/io/FileNotFoundException.h"
+#import "RAREImageWrapper.h"
+#import "java/io/FileNotFoundException.h"
+#import "com/appnativa/rare/net/InlineURLConnection.h"
  ]-*/
+
 public class ImageUtils {
   public native static Object addReflection(Object proxy, int y, int height, float opacity, int gap)
   /*-[
     RAREImageWrapper* image=(RAREImageWrapper*)proxy;
-    return [image addReflectionVersionFromY:y height:height opacity:opacity gap: gap];
+    return [image addReflectionFromY:y height:height opacity:opacity gap: gap];
   ]-*/
   ;
 
@@ -49,6 +52,21 @@ public class ImageUtils {
     RAREImageWrapper* image=(RAREImageWrapper*)proxy;
     [image blur];
     return self;
+  ]-*/
+  ;
+
+
+  public native static Object rotateLeft(Object proxy)
+  /*-[
+    RAREImageWrapper* image=(RAREImageWrapper*)proxy;
+    return [image rotateLeft];
+  ]-*/
+  ;
+
+  public native static Object rotateRight(Object proxy)
+    /*-[
+    RAREImageWrapper* image=(RAREImageWrapper*)proxy;
+    return [image rotateRight];
   ]-*/
   ;
 
@@ -185,6 +203,23 @@ public class ImageUtils {
   ]-*/
   ;
 
+  public native static Object createImageProxy(ByteArray ba, float dscale)
+  /*-[
+    char* buffer=ba->A_->buffer_;
+    NSData* data=[NSData dataWithBytesNoCopy:buffer length:ba->_length_];
+    RAREImageWrapper* img=[[RAREImageWrapper alloc] initWithNSData:(NSData*)data scale: dscale];
+    if(![img getImage]) {
+      NSString* s=[img getFailureString];
+      if(!s) {
+        s=@"";
+      }
+      img=nil;
+      @throw [[JavaIoFileNotFoundException alloc] initWithNSString:s];
+    }
+    return img;
+  ]-*/
+  ;
+  
   public native static Object createImageProxy(Object data, float dscale)
   /*-[
     RAREImageWrapper* img=[[RAREImageWrapper alloc] initWithNSData:(NSData*)data scale: dscale];
@@ -199,27 +234,47 @@ public class ImageUtils {
     return img;
   ]-*/
   ;
-
+  
   public native static Object createImageProxy(URL url, int timeout, float dscale)
   /*-[
-    NSURL* u=(NSURL*)url->proxy_;
-    RAREImageWrapper* img=[[RAREImageWrapper alloc]initWithContentsOfURL:u scale: dscale];
-    if(![img getImage]) {
-      NSString* s=[img getFailureString];
-      if(!s) {
-        s=@"";
+    if ([RAREInlineURLConnection isInlineURLWithJavaNetURL:url]) {
+      NSURL* u=[[NSURL alloc] initWithString: [url description]];
+      RAREImageWrapper* img=[[RAREImageWrapper alloc]initWithContentsOfURL:u scale: dscale];
+      if(![img getImage]) {
+//        NSString* s=[img getFailureString];
+//        if(!s) {
+//          s=@"";
+//        }
+        img=nil;
+//        @throw [[JavaIoFileNotFoundException alloc] initWithNSString:s];
       }
-      img=nil;
-      @throw [[JavaIoFileNotFoundException alloc] initWithNSString:s];
+      return img;
     }
-    return img;
+    else {
+      NSURL* u=(NSURL*)url->proxy_;
+      RAREImageWrapper* img=[[RAREImageWrapper alloc]initWithContentsOfURL:u scale: dscale];
+      if(![img getImage]) {
+//        NSString* s=[img getFailureString];
+//        if(!s) {
+//          s=@"";
+//        }
+        img=nil;
+      }
+      return img;
+    }
+   ]-*/;
+  
+  public native static Object createReflection(Object proxy, int height, float opacity, int gap)
+  /*-[
+    RAREImageWrapper* image=(RAREImageWrapper*)proxy;
+    return [image createReflectionWithHeight:height opacity:opacity gap: gap];
   ]-*/
   ;
 
-  public native static Object createReflection(Object proxy, int y, int height, float opacity, int gap)
+  public native static Object createCopyWithReflection(Object proxy, int height, float opacity, int gap)
   /*-[
     RAREImageWrapper* image=(RAREImageWrapper*)proxy;
-    return [image createReflectionVersionFromY:y height:height opacity:opacity gap: gap];
+    return [image createCopyWithReflectionWithHeight:height opacity:opacity gap: gap];
   ]-*/
   ;
 

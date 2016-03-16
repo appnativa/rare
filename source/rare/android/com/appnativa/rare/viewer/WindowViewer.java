@@ -15,22 +15,27 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
 
-import java.io.IOException;
-import java.net.URL;
+import android.content.ClipData;
+import android.content.ClipData.Item;
+import android.content.ClipboardManager;
+import android.content.Context;
 
 import android.view.View;
 
+import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.android.ui.util.AndroidHelper.DragHandler;
 import com.appnativa.rare.platform.android.ui.util.ImageHelper;
 import com.appnativa.rare.platform.android.ui.util.ImageUtils;
 import com.appnativa.rare.scripting.iScriptHandler;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
@@ -44,16 +49,21 @@ import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
 
+import java.io.IOException;
+
+import java.net.URL;
+
 /**
  *
  * @author Don DeCoteau
  */
 public class WindowViewer extends aWindowViewer implements iWindow {
   protected DragHandler dragHandler;
+  boolean               exiting;
 
   public WindowViewer(iPlatformAppContext ctx, String name, iWindow win, WindowViewer parent, iScriptHandler sh) {
     super(ctx, name, win, parent, sh);
-    theWindow = win;
+    theWindow     = win;
     formComponent = dataComponent = win.getComponent();
     widgetType    = WidgetType.Window;
     theWindow     = win;
@@ -96,6 +106,43 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     }
 
     return new UIImagePainter(image);
+  }
+
+  @Override
+  public void close() {
+    if (!exiting && (Platform.getWindowViewer() == this) && !Platform.isShuttingDown()) {
+      exiting = true;
+      Platform.getAppContext().exit();
+      return;
+    }
+
+    super.close();
+  }
+
+  @Override
+  public void copyToClipboard(String value) {
+    ClipboardManager clipboard = (ClipboardManager) getAndroidContext().getSystemService(Context.CLIPBOARD_SERVICE);
+    ClipData         clip      = ClipData.newPlainText(getTitle(), value);
+
+    clipboard.setPrimaryClip(clip);
+  }
+
+  @Override
+  public String getClipboardContents() {
+    ClipboardManager clipboard = (ClipboardManager) getAndroidContext().getSystemService(Context.CLIPBOARD_SERVICE);
+    ClipData         clip      = clipboard.getPrimaryClip();
+    String           value     = null;
+
+    if ((clip != null) && (clip.getItemCount() > 0)) {
+      Item         item = clip.getItemAt(0);
+      CharSequence cs   = item.getText();
+
+      value = (cs == null)
+              ? null
+              : cs.toString();
+    }
+
+    return value;
   }
 
   /**
@@ -159,6 +206,18 @@ public class WindowViewer extends aWindowViewer implements iWindow {
   @Override
   public void toFront() {}
 
+  @Override
+  protected void updateEx() {
+    super.updateEx();
+
+    if (ColorUtils.KEEP_COLOR_KEYS) {
+      ((Frame) theWindow).updateColors();
+    }
+  }
+ @Override
+public void setCancelable(boolean cancelable) {
+   ((Frame) theWindow).setCancelable(cancelable);
+}
   @Override
   public void setDefaultButton(PushButtonWidget widget) {}
 

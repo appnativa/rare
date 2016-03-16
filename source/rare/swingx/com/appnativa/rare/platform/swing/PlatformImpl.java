@@ -585,7 +585,7 @@ public class PlatformImpl extends aPlatform {
       sb.append("mailto:");
 
       if (address != null) {
-        address = URLEncoder.encode(address);
+        address = URLEncoder.encodeComponent(address);
       }
     }
 
@@ -594,14 +594,14 @@ public class PlatformImpl extends aPlatform {
     }
 
     if (subject != null) {
-      sb.append("?subject=").append(URLEncoder.encode(subject));
+      sb.append("?subject=").append(URLEncoder.encodeComponent(subject));
     }
 
     if (body != null) {
       if (subject == null) {
-        sb.append("?body=").append(URLEncoder.encode(body));
+        sb.append("?body=").append(URLEncoder.encodeComponent(body));
       } else {
-        sb.append("&body=").append(URLEncoder.encode(body));
+        sb.append("&body=").append(URLEncoder.encodeComponent(body));
       }
     }
 

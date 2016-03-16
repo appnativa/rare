@@ -21,27 +21,20 @@
 package com.appnativa.rare.platform.android.ui.view;
 
 import android.annotation.SuppressLint;
-
 import android.content.Context;
-
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-
 import android.os.Handler;
-
 import android.text.Html.ImageGetter;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
-
 import android.util.AttributeSet;
-
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.Button;
 
 import com.appnativa.rare.Platform;
@@ -60,6 +53,7 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.iObservableImage;
 import com.appnativa.rare.ui.iPaintedButton;
 import com.appnativa.rare.ui.iPaintedButton.ButtonState;
 import com.appnativa.rare.ui.iPlatformIcon;
@@ -323,7 +317,7 @@ public class ButtonViewEx extends Button implements iPainterSupport, iComponentV
     iconPadLeft   = iconPadRight = iconPadTop = iconPadBottom = 0;
 
     if (icon != null) {
-      if ((icon instanceof UIImageIcon) &&!((UIImageIcon) icon).isImageLoaded(this)) {
+      if ((icon instanceof iObservableImage) &&!((iObservableImage) icon).isImageLoaded(this)) {
         return;
       }
 

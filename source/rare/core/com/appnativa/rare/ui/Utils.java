@@ -89,8 +89,8 @@ import com.appnativa.util.ISO88591Helper;
 import com.appnativa.util.SNumber;
 import com.appnativa.util.UTF8Helper;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -144,7 +144,61 @@ public class Utils {
   public static void clearCache() {
     minButtonSize    = null;
     minTextFieldSize = null;
-    minComboHeight    = -1;
+    minComboHeight   = -1;
+  }
+
+  /**
+   * Adjust the width of the specified widget based on the  size of it's text content
+   * and the size of the main window.
+   *
+   * @param widget the widget
+   */
+  public static void adjustTextWidgetPreferredWidth(aWidget widget) {
+    float sw = Platform.getWindowViewer().getWidth();
+
+    if (UIScreen.fromPlatformPixels(sw) < 400) {
+      sw = UIScreen.getWidth();
+    }
+
+    UIFont f = widget.getFont();
+
+    if (f == null) {
+      f = FontUtils.getDefaultFont();
+    }
+
+    String s = widget.getValueAsString();
+
+    if (s.length() != 0) {
+      int cw  = 0;
+      int mcw = 0;
+      int len = s.length();
+
+      for (int i = 0; i < len; i++) {
+        cw++;
+
+        if (s.charAt(i) == '\n') {
+          if (cw > mcw) {
+            mcw = cw;
+          }
+
+          cw = 0;
+        }
+      }
+
+      if (mcw == 0) {
+        mcw = cw;
+      }
+
+      mcw = (int) (mcw * .66);
+      cw  = FontUtils.getCharacterWidth(f);
+
+      int chars = (int) sw / cw;
+
+      chars = Math.min(mcw, chars - 2);
+      chars = Math.max(chars, 2);
+      s     = chars + "ch";
+      widget.setPreferredSize(s, null);
+    }
   }
 
   public static void adjustComboBoxSize(UIDimension size) {
@@ -152,8 +206,8 @@ public class Utils {
       Integer h = Platform.getUIDefaults().getInteger("Rare.ComboBox.minimumHeight");
 
       minComboHeight = (h == null)
-                      ? 0
-                      : h.intValue();
+                       ? 0
+                       : h.intValue();
 
       if (minComboHeight < 0) {
         minComboHeight = 0;
@@ -2357,19 +2411,20 @@ public class Utils {
             c = ColorUtils.getColor(propvalue);
           }
 
-          if ((ColorUtils.KEEP_COLOR_KEYS == Boolean.TRUE) || type.contains("shade")) {
+          if ((ColorUtils.KEEP_COLOR_KEYS) || type.contains("shade")) {
             if (!(c instanceof UIColorShade)) {
               c = new UIColorShade(c, name);
             } else {
-              UIColorShade cs = (UIColorShade) c.clone();
+              UIColorShade cs = (UIColorShade) c;
 
-              cs.setColorKey(name);
+              if (cs.getColorKey() == null) {
+                cs.setColorKey(name);
+              } else {
+                cs = new UIColorShade(c, name);
+              }
+
               c = cs;
             }
-          } else {
-            c = (c instanceof UIColorShade)
-                ? (UIColorShade) c
-                : new UIColorShade(c, name);
           }
 
           value = c;
@@ -2654,14 +2709,11 @@ public class Utils {
     cp.setBackgroundPainter(bp, false);
   }
 
-  public static void setIconAndAlignment(iPlatformRenderingComponent rc, RenderableDataItem item,
-          RenderableDataItem row, Column col, boolean enabled, boolean center, boolean top, boolean seticon,
-          boolean alternateState, iPlatformIcon delayedIcon) {
+  public static iPlatformIcon getIcon(RenderableDataItem item, Column col, boolean enabled, boolean alternateState,
+          iPlatformIcon delayedIcon) {
     if (item == null) {
-      if ((col == null) && (row == null)) {
-        rc.setIcon(null);
-
-        return;
+      if (col == null) {
+        return null;
       }
 
       item = defaultItem;
@@ -2704,27 +2756,48 @@ public class Utils {
     }
 
     if (!enabled) {
-      if (seticon) {
-        dicon = item.getDisabledIcon();
+      dicon = item.getDisabledIcon();
 
-        if ((dicon == null) && (col != null)) {
-          dicon = col.getDisabledIcon();
-        }
-
-        if ((dicon == null) && (icon != null)) {
-          dicon = icon.getDisabledVersion();
-        }
-
-        icon = dicon;
+      if ((dicon == null) && (col != null)) {
+        dicon = col.getDisabledIcon();
       }
+
+      if ((dicon == null) && (icon != null)) {
+        dicon = icon.getDisabledVersion();
+      }
+
+      icon = dicon;
+    }
+
+    if ((delayedIcon != null) && (icon instanceof iObservableImage)
+        &&!((iObservableImage) icon).isImageLoaded(null)) {
+      icon = delayedIcon;
+    }
+
+    return icon;
+  }
+
+  public static void setIconAndAlignment(iPlatformRenderingComponent rc, RenderableDataItem item,
+          RenderableDataItem row, Column col, boolean enabled, boolean center, boolean top, boolean seticon,
+          iPlatformIcon icon) {
+    if (item == null) {
+      if ((col == null) && (row == null)) {
+        rc.setIcon(null);
+
+        return;
+      }
+
+      item = defaultItem;
+    }
+
+    boolean column = item instanceof Column;
+    Column  c      = null;
+
+    if (column) {
+      c = (Column) item;
     }
 
     if (seticon) {
-      if ((delayedIcon != null) && (icon != null) && (icon instanceof aUIImageIcon)
-          &&!((aUIImageIcon) icon).isImageLoaded(null)) {
-        icon = delayedIcon;
-      }
-
       rc.setIcon(icon);
 
       float f = 0;

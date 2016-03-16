@@ -20,6 +20,30 @@
 
 package com.appnativa.rare.scripting;
 
+import com.appnativa.rare.ErrorInformation;
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iDebugHandler;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.spot.Application;
+import com.appnativa.rare.ui.UIBorderHelper;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIColorHelper;
+import com.appnativa.rare.ui.UIImageHelper;
+import com.appnativa.rare.ui.UIScreen;
+import com.appnativa.rare.ui.event.EventBase;
+import com.appnativa.rare.ui.iEventHandler;
+import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.viewer.iFormViewer;
+import com.appnativa.rare.viewer.iViewer;
+import com.appnativa.rare.widget.aWidget;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.CharScanner;
+import com.appnativa.util.iCancelable;
+
+import com.google.j2objc.annotations.Weak;
+
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -41,29 +65,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import javax.script.SimpleScriptContext;
-
-import com.appnativa.rare.ErrorInformation;
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iDebugHandler;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.spot.Application;
-import com.appnativa.rare.ui.UIBorderHelper;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorHelper;
-import com.appnativa.rare.ui.UIImageHelper;
-import com.appnativa.rare.ui.UIScreen;
-import com.appnativa.rare.ui.iEventHandler;
-import com.appnativa.rare.ui.event.EventBase;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.iFormViewer;
-import com.appnativa.rare.viewer.iViewer;
-import com.appnativa.rare.widget.aWidget;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.CharScanner;
-import com.appnativa.util.iCancelable;
-import com.google.j2objc.annotations.Weak;
 
 /**
  *
@@ -102,6 +103,9 @@ public abstract class aScriptManager implements iScriptHandler {
   protected Object              selfObject;
   protected WindowViewer        theWindow;
   protected boolean             tracingEnabled;
+  public iWidget                scriptWidget;
+  public iFormViewer            scriptForm;
+  public WindowViewer           scriptWindow;
 
   public aScriptManager() {}
 
@@ -187,8 +191,14 @@ public abstract class aScriptManager implements iScriptHandler {
       oc.scriptName    = scriptName;
       oc.scriptEngine  = engine;
       theWindow.setScriptingContext(oc);
-      setWindow(scriptContext, theWindow);
+      scriptContext.setAttribute("window", theWindow, ScriptContext.ENGINE_SCOPE);
       scriptContext.setAttribute("_top", theWindow, ScriptContext.GLOBAL_SCOPE);
+      scriptContext.setAttribute(DynamicBindings.WINDOW, theWindow, ScriptContext.ENGINE_SCOPE);
+      scriptContext.setAttribute(DynamicBindings.FORM, theWindow, ScriptContext.ENGINE_SCOPE);
+      scriptContext.setAttribute(DynamicBindings.WIDGET, theWindow, ScriptContext.ENGINE_SCOPE);
+      scriptWidget=theWindow;
+      scriptForm=theWindow;
+      scriptWindow=theWindow;
       this.scriptName = scriptName;
       selfObject      = theWindow;
       initializeEngine(engine, scriptContext);
@@ -330,17 +340,20 @@ public abstract class aScriptManager implements iScriptHandler {
     Object        engine = scriptEngine;
 
     if (javaobj instanceof iWidget) {
-      iWidget       w  = (iWidget) javaobj;
-      iFormViewer   fv = w.getFormViewer();
-      WidgetContext fc = null;
+      iWidget w = (iWidget) javaobj;
+      aWidget c = (aWidget) w.getParent();
 
-      if ((fv != null) && (fv != w) && (fv.getViewer() != w)) {
-        fc = fv.getScriptingContext();
-      }
+      while((c != null) && (c != theWindow)) {
+        WidgetContext fc = c.getScriptingContextEx();
 
-      if ((fc != null) && (fc.scriptEngine != null)) {
-        engine           = fc.scriptEngine;
-        oc.scriptContext = fc.scriptContext;
+        if ((fc != null) && (fc.scriptContext != null)) {
+          engine           = fc.scriptEngine;
+          oc.scriptContext = fc.scriptContext;
+
+          break;
+        }
+
+        c = (aWidget) c.getParent();
       }
     }
 
@@ -380,7 +393,7 @@ public abstract class aScriptManager implements iScriptHandler {
       }
     } else if (selfObject == theWindow) {
       if (scriptContext != null) {
-        setWindow(scriptContext, null);
+        scriptContext.setAttribute(DynamicBindings.WINDOW, null, ScriptContext.ENGINE_SCOPE);
         scriptContext.setBindings(nullBindings, ScriptContext.ENGINE_SCOPE);
         scriptContext.setBindings(nullBindings, ScriptContext.GLOBAL_SCOPE);
       }
@@ -492,13 +505,6 @@ public abstract class aScriptManager implements iScriptHandler {
     }
   }
 
-  public void restoreSaveWindow(ScriptContext sc, WidgetContext wc) {
-    if (wc.savedWindow != null) {
-      sc.setAttribute("window", wc.savedWindow, ScriptContext.ENGINE_SCOPE);
-      sc.setAttribute("rwindow", wc.savedWindow, ScriptContext.ENGINE_SCOPE);
-    }
-  }
-
   @Override
   public void runTask(iScriptRunnable r) {
     if (Platform.isUIThread()) {
@@ -515,7 +521,7 @@ public abstract class aScriptManager implements iScriptHandler {
 
   @Override
   public void setGlobalVariable(String name, Object value) {
-    if (!"self".equals(name) &&!"window".equals(name)) {
+    if (!"self".equals(name) &&!DynamicBindings.WINDOW.equals(name)) {
       globalBindings.put(name, value);
     }
   }
@@ -535,10 +541,22 @@ public abstract class aScriptManager implements iScriptHandler {
     }
 
     ScriptContext ctx;
-    ScriptEngine  engine = getEngine(type, true, null);
+    ScriptEngine  engine = getEngine(type, shared, null);
 
     if (!shared) {
       ctx = createScriptContext(engine);
+      ctx.setBindings(scriptContext.getBindings(ScriptContext.GLOBAL_SCOPE), ScriptContext.GLOBAL_SCOPE);
+
+      if (viewer.getAppContext().isDynamicNameLookupEnabled()) {
+        setupDynamicBindings(engine, ctx);
+      } else {
+        ctx.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
+      }
+      initializeEngine(engine, ctx);
+      initializeEngineEx(engine, ctx);
+      ctx.setAttribute(DynamicBindings.WINDOW, theWindow, ScriptContext.ENGINE_SCOPE);
+      ctx.setAttribute(DynamicBindings.FORM, theWindow, ScriptContext.ENGINE_SCOPE);
+      ctx.setAttribute(DynamicBindings.WIDGET, theWindow, ScriptContext.ENGINE_SCOPE);
     } else {
       ctx = scriptContext;
     }
@@ -546,22 +564,11 @@ public abstract class aScriptManager implements iScriptHandler {
     WidgetContext oc = newWidgetContext();
 
     viewer.setScriptingContext(oc);
-
-    if (!shared) {
-      if (viewer.getAppContext().isDynamicNameLookupEnabled()) {
-        setupDynamicBindings(engine, ctx);
-      } else {
-        ctx.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-      }
-
-      ctx.setBindings(scriptContext.getBindings(ScriptContext.GLOBAL_SCOPE), ScriptContext.GLOBAL_SCOPE);
-      ctx.getBindings(ScriptContext.ENGINE_SCOPE).putAll(scriptContext.getBindings(ScriptContext.ENGINE_SCOPE));
-    }
-
     oc.scriptEngine  = engine;
     oc.scriptObject  = viewer;
     oc.scriptName    = name;
     oc.scriptContext = ctx;
+    oc.releaseEngine = !shared;
 
     if ((_debugger != null) && (source != null)) {
       configureDebuggingInfo(engine, ctx, name, source);
@@ -587,7 +594,7 @@ public abstract class aScriptManager implements iScriptHandler {
 
   @Override
   public void setScriptingVariable(WidgetContext context, String name, Object scriptobj) {
-    if (!"self".equals(name) &&!"window".equals(name)) {
+    if (!"self".equals(name) &&!DynamicBindings.WINDOW.equals(name)) {
       getScriptContext(context).setAttribute(name, scriptobj, ScriptContext.ENGINE_SCOPE);
     }
   }
@@ -601,7 +608,7 @@ public abstract class aScriptManager implements iScriptHandler {
     WindowViewer w = null;
 
     if (scriptContext != null) {
-      w = (WindowViewer) scriptContext.getAttribute("window", ScriptContext.ENGINE_SCOPE);
+      w = (WindowViewer) scriptContext.getAttribute(DynamicBindings.WINDOW, ScriptContext.ENGINE_SCOPE);
 
       if (w.isDisposed()) {
         w = null;
@@ -612,7 +619,11 @@ public abstract class aScriptManager implements iScriptHandler {
            ? theWindow
            : w;
   }
-
+  
+  protected boolean canReuseEnginesForNonSharedScripts() {
+    return true;
+  }
+  
   public ScriptEngine getEngine(String type, boolean reuse, ScriptContext context) {
     synchronized(loadedEngines) {
       String       language  = type;
@@ -644,7 +655,10 @@ public abstract class aScriptManager implements iScriptHandler {
         language = lang;
       }
 
-      if (reuse) {
+      if (reuse || canReuseEnginesForNonSharedScripts()) {
+        if(lang==null) {
+          lang=language;
+        }
         if (lang != null) {
           engine = loadedEngines.get(lang);
 
@@ -688,11 +702,13 @@ public abstract class aScriptManager implements iScriptHandler {
         throw new ApplicationException("Unsupported scripting language:" + type);
       }
 
-      language = engine.getFactory().getLanguageName();
-      loadedEngines.put(language, engine);
+      if (reuse) {
+        language = engine.getFactory().getLanguageName();
+        loadedEngines.put(language, engine);
 
-      if (className != null) {
-        loadedEngines.put(className, engine);
+        if (className != null) {
+          loadedEngines.put(className, engine);
+        }
       }
 
       initializeEngine(engine, context);
@@ -730,11 +746,11 @@ public abstract class aScriptManager implements iScriptHandler {
 
   @Override
   public iFormViewer getFormViewer() {
-    if (scriptContext != null) {
-      return (iFormViewer) scriptContext.getAttribute("form", ScriptContext.ENGINE_SCOPE);
-    }
+    return scriptForm;
+  }
 
-    return null;
+  public WindowViewer getWindow() {
+    return scriptWindow;
   }
 
   @Override
@@ -802,11 +818,7 @@ public abstract class aScriptManager implements iScriptHandler {
 
   @Override
   public iWidget getWidget() {
-    if (scriptContext != null) {
-      return (iWidget) scriptContext.getAttribute("widget", ScriptContext.ENGINE_SCOPE);
-    }
-
-    return null;
+    return scriptWidget;
   }
 
   @Override
@@ -908,6 +920,8 @@ public abstract class aScriptManager implements iScriptHandler {
       code = new RunnableScript(se, sc, (Runnable) code);
     } else if (code instanceof EventHandlerInterface) {
       code = new EventHandlerInterfaceScript(se, sc, (EventHandlerInterface) code);
+    } else if (code instanceof iEventHandler) {
+      code = new EventHandlerInterfaceScript(se, sc, new EventHandlerInterface((iEventHandler) code));
     } else if (isNativeScriptFunctionObject(code)) {
       code = new JSFunctionScript(se, sc, code);
     } else if (code instanceof MultiScript) {
@@ -1018,26 +1032,17 @@ public abstract class aScriptManager implements iScriptHandler {
     return new WidgetContext();
   }
 
-  protected void saveCurrentWindow(ScriptContext sc, WidgetContext wc) {
-    wc.savedWindow = sc.getAttribute("window", ScriptContext.ENGINE_SCOPE);
-  }
-
   protected abstract void saveSourceForDebugging(String scriptName, String source);
 
   protected abstract void setupDebugger();
 
   protected void setupDynamicBindings(ScriptEngine e, ScriptContext sc) {
-    sc.setBindings(new DynamicBindings(e.getBindings(ScriptContext.ENGINE_SCOPE)), ScriptContext.ENGINE_SCOPE);
+    sc.setBindings(new DynamicBindings(sc.getBindings(ScriptContext.ENGINE_SCOPE), this), ScriptContext.ENGINE_SCOPE);
   }
 
   protected abstract void setupScriptingShell(ScriptEngine engine);
 
   protected abstract String spiClassNameForJavascripEngineFactory();
-
-  protected void setWindow(ScriptContext sc, Object window) {
-    scriptContext.setAttribute("window", window, ScriptContext.ENGINE_SCOPE);
-    scriptContext.setAttribute("rwindow", window, ScriptContext.ENGINE_SCOPE);
-  }
 
   protected abstract ErrorInformation getNativeScriptErrorInformation(Object error);
 
@@ -1442,31 +1447,31 @@ public abstract class aScriptManager implements iScriptHandler {
           (ScriptContext) Platform.getAppContext().getMainWindowViewer().getScriptingContext().scriptContext;
       }
 
-      Object          savedWidget         = null;
-      Object          savedForm           = null;
-      Object          savedName           = null;
-      Object          form                = (w == null)
-              ? null
-              : w.getFormViewer();
       final boolean   backgroundExecution = !Platform.isUIThread();
       aScriptManager  sm                  = (aScriptManager) scriptHandler;
       aCompiledScript cs                  = (aCompiledScript) theScript;
-      boolean         save                = ((cs == null) || cs.usesBindings) &&!backgroundExecution;
+      iWidget         savedWidget         = sm.scriptWidget;
+      iFormViewer     savedForm           = sm.scriptForm;
+      WindowViewer    savedWindow         = sm.scriptWindow;
+      Object          savedName           = null;
+      iFormViewer     form                = (w == null)
+              ? null
+              : w.getFormViewer();
 
       try {
-        if (save) {
-          savedWidget = scriptContext.getAttribute(DynamicBindings.WIDGET, ScriptContext.ENGINE_SCOPE);
-          savedForm   = scriptContext.getAttribute(DynamicBindings.FORM, ScriptContext.ENGINE_SCOPE);
+        if (!backgroundExecution) {
+          sm.scriptWidget        = w;
+          sm.scriptForm          = form;
+          sm.scriptWindow        = win;
           scriptContext.setAttribute(DynamicBindings.WIDGET, w, ScriptContext.ENGINE_SCOPE);
           scriptContext.setAttribute(DynamicBindings.FORM, form, ScriptContext.ENGINE_SCOPE);
-          sm.saveCurrentWindow(scriptContext, runContext);
-          sm.setWindow(scriptContext, win);
-        }
+          scriptContext.setAttribute(DynamicBindings.WINDOW, win, ScriptContext.ENGINE_SCOPE);
 
-        if (save && (runContext.scriptName != null)) {
-          savedName = scriptContext.getAttribute(ScriptEngine.FILENAME, ScriptContext.ENGINE_SCOPE);
-          scriptContext.setAttribute(ScriptEngine.FILENAME, runContext.scriptName, ScriptContext.ENGINE_SCOPE);
-          sm.executingScriptName = runContext.scriptName;
+          if (runContext.scriptName != null) {
+            savedName = scriptContext.getAttribute(ScriptEngine.FILENAME, ScriptContext.ENGINE_SCOPE);
+            scriptContext.setAttribute(ScriptEngine.FILENAME, runContext.scriptName, ScriptContext.ENGINE_SCOPE);
+            sm.executingScriptName = runContext.scriptName;
+          }
         }
 
         if (cs != null) {
@@ -1495,12 +1500,15 @@ public abstract class aScriptManager implements iScriptHandler {
           return e.eval(theSource, scriptContext);
         }
       } finally {
-        if (save) {
-          sm.restoreSaveWindow(scriptContext, runContext);
-          scriptContext.setAttribute("widget", savedWidget, ScriptContext.ENGINE_SCOPE);
-          scriptContext.setAttribute("form", savedForm, ScriptContext.ENGINE_SCOPE);
+        if (!backgroundExecution) {
+          sm.scriptWidget = savedWidget;
+          sm.scriptWindow = savedWindow;
+          sm.scriptForm   = savedForm;
+          scriptContext.setAttribute(DynamicBindings.WINDOW, savedWindow, ScriptContext.ENGINE_SCOPE);
+          scriptContext.setAttribute(DynamicBindings.WIDGET, savedWidget, ScriptContext.ENGINE_SCOPE);
+          scriptContext.setAttribute(DynamicBindings.FORM, savedForm, ScriptContext.ENGINE_SCOPE);
 
-          if (runContext.scriptName != null) {
+          if ((runContext.scriptName != null)) {
             sm.executingScriptName = (String) savedName;
             scriptContext.setAttribute(ScriptEngine.FILENAME, savedName, ScriptContext.ENGINE_SCOPE);
           }
@@ -1681,4 +1689,15 @@ public abstract class aScriptManager implements iScriptHandler {
       return engine;
     }
   }
+
+
+  public static void releaseEngine(Object scriptEngine) {
+    if (!Platform.isShuttingDown()) {
+      ScriptEngine engine = (ScriptEngine) scriptEngine;
+
+      ((aScriptManager) Platform.getWindowViewer().getScriptHandler()).releaseEngineEx(engine);
+    }
+  }
+
+  public abstract boolean releaseEngineEx(ScriptEngine e);
 }

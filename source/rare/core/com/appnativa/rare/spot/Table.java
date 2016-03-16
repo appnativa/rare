@@ -1,5 +1,5 @@
 /**************************************************************************
- * Table.java - Wed Nov 18 17:50:58 PST 2015
+ * Table.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -374,7 +374,6 @@ public class Table extends Viewer {
     if ( headerCell == null ) {
       headerCell = new GridCell(true);
       super.spot_setReference( "headerCell" , headerCell);
-      headerCell.spot_defineAttribute("marginColor",null);
     }
     return headerCell;
   }

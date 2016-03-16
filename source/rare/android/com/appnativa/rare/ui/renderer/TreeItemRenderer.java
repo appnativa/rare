@@ -42,7 +42,7 @@ public class TreeItemRenderer extends ListItemRenderer {
     this.treeViewer = treeViewer;
   }
 
-  public void setIconAndAlignment(iPlatformRenderingComponent rc, RenderableDataItem item, RenderableDataItem row,
+  protected void setIconAndAlignment(iPlatformRenderingComponent rc, CharSequence text,RenderableDataItem item, RenderableDataItem row,
                                   Column col, boolean enabled, boolean center, boolean top, boolean seticon,
                                   boolean oexpanded) {
     iPlatformIcon icon  = null;
@@ -83,7 +83,7 @@ public class TreeItemRenderer extends ListItemRenderer {
       }
     }
 
-    super.setIconAndAlignment(rc, item, row, col, enabled, center, top, false, expanded);
+    super.setIconAndAlignment(rc,text, item, row, col, enabled, center, top, false, expanded);
 
     if (seticon) {
       rc.setIcon(enabled

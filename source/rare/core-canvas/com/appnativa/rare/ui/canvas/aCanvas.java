@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.canvas;
@@ -122,6 +122,14 @@ public abstract class aCanvas implements iCanvas {
     }
 
     return null;
+  }
+
+  public void updateSize() {
+    iPlatformComponent c = getCanvasComponent();
+
+    if (c != null) {
+      setSize(c.getWidth(), c.getHeight(), false);
+    }
   }
 
   @Override

@@ -31,15 +31,17 @@ import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
 public abstract class aPlatformIcon implements iPlatformIcon {
   protected Drawable        drawable;
   protected AndroidGraphics graphics;
-
+  
   public aPlatformIcon() {}
 
+  @Override
   public void paint(Canvas g, float x, float y, float width, float height) {
     graphics = AndroidGraphics.fromGraphics(g, null, graphics);
     paint(graphics, x, y, width, height);
     graphics.clear();
   }
 
+  @Override
   public Drawable getDrawable(View view) {
     if (drawable == null) {
       drawable = new DrawableIcon(this);
@@ -47,4 +49,10 @@ public abstract class aPlatformIcon implements iPlatformIcon {
 
     return drawable;
   }
+  
+  @Override
+  public Drawable createDrawable(View view) {
+      return  new DrawableIcon(this);
+  }
+  
 }

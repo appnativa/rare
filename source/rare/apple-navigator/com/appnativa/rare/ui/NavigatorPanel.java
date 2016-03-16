@@ -221,6 +221,16 @@ public class NavigatorPanel extends aNavigatorPanel implements iAppleLayoutManag
       super.disposeEx();
       panel = null;
     }
+    @Override
+    public void updateChildrenForColorChange() {
+      super.updateChildrenForColorChange();
+      if(panel.selectedPainter!=null) {
+        panel.selectedPainter.updateModCount();
+      }
+      if(panel.pressedPainter!=null) {
+        panel.pressedPainter.updateModCount();
+      }
+    }
   }
 
 

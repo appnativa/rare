@@ -24,6 +24,7 @@ import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.android.ui.view.SliderView;
 
 public class SliderComponent extends aSliderComponent {
+
   public SliderComponent() {
     this(new SliderView(Platform.getAppContext().getActivity()));
   }
@@ -33,4 +34,14 @@ public class SliderComponent extends aSliderComponent {
     slider = (iSlider) view;
     ((SliderView) slider).setChangeListener(this);
   }
+  @Override
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
+    super.getMinimumSizeEx(size, maxWidth);
+    if(!isHorizontal()) {
+      float w=size.width;
+      size.width=size.height;
+      size.height=w;
+    }
+  }
+
 }

@@ -689,9 +689,25 @@ public interface iAppContext extends iExecutionHandler {
    * Gets the default date/time context. This value context is used to convert a
    * string representing a date/time to a date object and vice-a-versa
    *
-   * @return the default time context
+   * @return the default date/time context
    */
   DateContext getDefaultDateTimeContext();
+
+  /**
+   * sets the default date context. This value context is used to convert a
+   * string representing a date to a date object and vice-a-versa
+   *
+   * @param ctx the default date context
+   */
+  void setDefaultDateContext(DateContext ctx);
+
+  /**
+   * Gets the default date/time context. This value context is used to convert a
+   * string representing a date/time to a date object and vice-a-versa
+   *
+   * @param ctx the default date/time context
+   */
+  void setDefaultDateTimeContext(DateContext ctx);
 
   /**
    * Gets the default exception handler for the environment
@@ -782,7 +798,8 @@ public interface iAppContext extends iExecutionHandler {
   PaintBucket getPressedPainter();
 
   /**
-   * @return the multipartMimeHandler
+   * Get the interface for the object that handles multi-part mime data
+   * @return the interface for the object that handles multi-part mime data
    */
   iMultipartMimeHandler getMultipartMimeHandler();
 

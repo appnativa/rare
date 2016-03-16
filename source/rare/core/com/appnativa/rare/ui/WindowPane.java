@@ -26,8 +26,8 @@ import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 
 public class WindowPane extends FormsPanel {
   CellConstraints  ccTitlebar  = new CellConstraints(1, 1, 1, 1, CellConstraints.FILL, CellConstraints.FILL);

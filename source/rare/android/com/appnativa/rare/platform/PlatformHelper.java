@@ -36,9 +36,11 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
 
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.media.ToneGenerator;
 
 import android.net.Uri;
 
@@ -208,7 +210,7 @@ public class PlatformHelper extends aPlatformHelper {
 
       cm.removeAllCookie();
     } catch(Exception e) {
-      e.printStackTrace();
+      Platform.ignoreException(e);
     }
   }
 
@@ -1438,9 +1440,13 @@ public class PlatformHelper extends aPlatformHelper {
   }
 
   public static void beep() {
-    View view = Platform.getWindowViewer().getDataComponent().getView();
+    try {
+      final ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 50);
 
-    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+      tg.startTone(ToneGenerator.TONE_PROP_BEEP);
+    } catch(Exception e) {
+      Platform.ignoreException(null, e);;
+    }
   }
 
   public static boolean lockOrientation(Boolean landscape) {

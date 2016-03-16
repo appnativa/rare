@@ -26,8 +26,8 @@ import com.appnativa.rare.platform.apple.ui.view.WebView;
 import com.appnativa.rare.platform.apple.ui.view.WebView.iLoadListener;
 import com.appnativa.rare.spot.Browser;
 import com.appnativa.rare.ui.Container;
-import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.event.DataEvent;
 
 /**
  * Native Web Browser viewer
@@ -88,11 +88,17 @@ public class WebBrowser extends aWebBrowser {
     webView.setScaleToFit(scaleToFit);
   }
 
+   @Override
+  protected void handleViewerConfigurationChanged(boolean reset) {
+     webView.handleViewerConfigurationChanged();
+     super.handleViewerConfigurationChanged(reset);
+  }
+   
   @Override
   protected iBrowser createWebView(Browser cfg) {
     webView = new WebView();
     dataComponent = formComponent = new Container(webView);
-
+    stackWaitCursors=false;
     return new AppleBrowser();
   }
 
@@ -121,13 +127,11 @@ public class WebBrowser extends aWebBrowser {
     @Override
     public void load(String url) {
       webView.load(url);
-      startWaitCursor();
     }
 
     @Override
     public void loadContent(String content, String contentType, String baseHref) {
       webView.loadContent(content, contentType, baseHref);
-      startWaitCursor();
     }
 
     @Override
@@ -139,8 +143,9 @@ public class WebBrowser extends aWebBrowser {
     public void loadFinished(WebView view) {
       loadFinished(view, false, null);
     }
-
+    
     public void loadFinished(WebView view, boolean failed, String reason) {
+      hideWaitCursor();
       if (webView != null) {
         if (isEventEnabled(iConstants.EVENT_FINISHED_LOADING)) {
           DataEvent e = new DataEvent(webView, webView.getURL(), reason);
@@ -153,18 +158,18 @@ public class WebBrowser extends aWebBrowser {
         }
       }
 
-      hideWaitCursorIfShowing();
     }
 
     @Override
     public void loadStarted(WebView view) {
-      if (webView != null) {
+      if (webView != null && loadingUrl!=null) {
         if (isEventEnabled(iConstants.EVENT_STARTED_LOADING)) {
-          DataEvent e = new DataEvent(webView, webView.getURL(), null);
+          DataEvent e = new DataEvent(webView, loadingUrl, null);
 
           fireEvent(iConstants.EVENT_STARTED_LOADING, e);
         }
       }
+      loadingUrl=null;
     }
 
     @Override
@@ -179,7 +184,8 @@ public class WebBrowser extends aWebBrowser {
             return false;
           }
         }
-
+        loadingUrl=url;
+        showWaitCursor();
         return true;
       } else {
         return false;
@@ -208,6 +214,11 @@ public class WebBrowser extends aWebBrowser {
     @Override
     public String getLocation() {
       return webView.getURL();
+    }
+
+    @Override
+    public Object getNativeBrowser() {
+      return webView;
     }
   }
 }

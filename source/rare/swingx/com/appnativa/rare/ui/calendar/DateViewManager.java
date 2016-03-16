@@ -35,8 +35,8 @@ import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.widget.SpinnerWidget;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.CellConstraints.Alignment;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints.Alignment;
 
 public class DateViewManager extends aDateViewManager implements iChangeListener {
   DatePicker       datePicker;

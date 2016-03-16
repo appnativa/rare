@@ -262,7 +262,15 @@ public class PopupWindowEx extends PopupWindow implements OnTouchListener, OnDis
 
   @Override
   public void showAsDropDown(View anchor, int xoff, int yoff) {
-    setVisible(true, anchor, 0, xoff, yoff, true);
+    if(anchor.getWindowToken()==null) {
+      setVisible(true, Platform.getWindowViewer().getContainerView(), 0, xoff, yoff, true);
+    }
+    else {
+      int[] loc=new int[2];
+      anchor.getLocationOnScreen(loc);
+      loc[1]+=anchor.getHeight();
+      setVisible(true, Platform.getWindowViewer().getContainerView(), 0, loc[0]+xoff, loc[1]+yoff, false);
+    }
   }
 
   @Override

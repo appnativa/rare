@@ -31,7 +31,6 @@ public interface iListView {
   }
 
   void addSelectionIndex(int index);
-
   void clearContextMenuIndex();
 
   void scrollRowToVisible(int row);
@@ -43,8 +42,6 @@ public interface iListView {
   void setAutoHilight(boolean autoHilight);
 
   void setDividerLine(UIColor color, UIStroke stroke);
-
-  void setEditingMode(EditingMode mode);
 
   void setMinimumVisibleRowCount(int rows);
 
@@ -80,9 +77,9 @@ public interface iListView {
 
   int getSelectedIndex();
 
+  int getSelectedIndexCount();
+  
   boolean isAutoHilight();
-
-  boolean isEditing();
 
   boolean isRowSizeFixed();
 

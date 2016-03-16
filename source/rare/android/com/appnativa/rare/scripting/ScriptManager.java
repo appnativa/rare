@@ -65,7 +65,7 @@ public class ScriptManager extends aJavaScriptManager {
 
   public iScriptHandler getRootHandler(iPlatformAppContext app, iWindow frame, String type, String name, String source,
           boolean share) {
-    ScriptEngine engine = getEngine(type, false, null);
+    ScriptEngine engine = getEngine(type, true, null);
 
     if (name == null) {
       if (source == null) {

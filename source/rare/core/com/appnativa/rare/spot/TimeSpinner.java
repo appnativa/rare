@@ -1,5 +1,5 @@
 /**************************************************************************
- * TimeSpinner.java - Wed Nov 18 17:50:58 PST 2015
+ * TimeSpinner.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *

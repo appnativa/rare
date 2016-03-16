@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.reconciler.DirtyRegion;
@@ -98,13 +99,7 @@ import com.appnativa.studio.views.PropertiesView;
 import com.appnativa.studio.views.ToolboxView.Tool;
 
 /**
- * An example showing how to create a multi-page editor. This example has 3
- * pages:
- * <ul>
- * <li>page 0 contains a nested text editor.
- * <li>page 1 allows you to change the font used in page 2
- * <li>page 2 shows the words in page 0 in sorted order
- * </ul>
+ * The multi-page editor for the studio.
  */
 public class MultiPageEditor extends MultiPageEditorPart
         implements IResourceChangeListener, ISelectionProvider, iSelectionListener, IReconcilingStrategy,
@@ -164,8 +159,10 @@ public class MultiPageEditor extends MultiPageEditorPart
    * <code>IWorkbenchPart</code> method disposes all nested editors. Subclasses
    * may extend.
    */
+  @Override
   public void dispose() {
     try {
+      
       ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
       getSite().getWorkbenchWindow().getPartService().removePartListener(this);
       super.dispose();
@@ -175,6 +172,7 @@ public class MultiPageEditor extends MultiPageEditorPart
   /**
    * Saves the multi-page editor's document.
    */
+  @Override
   public void doSave(IProgressMonitor monitor) {
     getEditor(0).doSave(monitor);
   }
@@ -184,6 +182,7 @@ public class MultiPageEditor extends MultiPageEditorPart
    * text for page 0's tab, and updates this multi-page editor's input to
    * correspond to the nested editor's.
    */
+  @Override
   public void doSaveAs() {
     IEditorPart editor = getEditor(0);
 
@@ -248,6 +247,7 @@ public class MultiPageEditor extends MultiPageEditorPart
   /**
    * Closes all project files on project close.
    */
+  @Override
   public void resourceChanged(final IResourceChangeEvent event) {
     IResource r = event.getResource();
     if (editor==null || editor.getProject() != r) {
@@ -259,6 +259,7 @@ public class MultiPageEditor extends MultiPageEditorPart
     case IResourceChangeEvent.PRE_DELETE:
       final IEditorInput input = editor.getEditorInput();
       Display.getDefault().asyncExec(new Runnable() {
+        @Override
         public void run() {
           IWorkbenchPage[] pages = getSite().getWorkbenchWindow().getPages();
 
@@ -403,6 +404,7 @@ public class MultiPageEditor extends MultiPageEditorPart
   /*
    * (non-Javadoc) Method declared on IEditorPart.
    */
+  @Override
   public boolean isSaveAsAllowed() {
     return true;
   }
@@ -516,6 +518,7 @@ public class MultiPageEditor extends MultiPageEditorPart
       }
     });
     tltmFocus.setImage(ResourceManager.getPluginImage("com.appnativa.studio", "icons/toolbars/design_focus.png"));
+    tltmGrid.setToolTipText(string("Studio.text.design.lock_focus"));
     new ToolItem(toolBar, SWT.SEPARATOR);
     tltmAleft = new ToolItem(toolBar, SWT.NONE);
     tltmAleft.addSelectionListener(new SelectionAdapter() {
@@ -884,6 +887,7 @@ public class MultiPageEditor extends MultiPageEditorPart
   /**
    * Creates the pages of the multi-page editor.
    */
+  @Override
   protected void createPages() {
     undoContext = new ObjectUndoContext(this);
     undoAction  = new UndoActionHandler(getSite(), undoContext);
@@ -906,6 +910,7 @@ public class MultiPageEditor extends MultiPageEditorPart
   /**
    * Calculates the contents of page 2 when the it is activated.
    */
+  @Override
   protected void pageChange(int newPageIndex) {
     super.pageChange(newPageIndex);
 
@@ -1089,7 +1094,7 @@ public class MultiPageEditor extends MultiPageEditorPart
     }
   }
 
-  private void hideDesignAfterError() {
+  public void hideDesignAfterError(final boolean showMessage) {
     if (designSage != null) {
       final iPlatformAppContext app = designSage.getAppContext();
 
@@ -1108,6 +1113,11 @@ public class MultiPageEditor extends MultiPageEditorPart
           }
 
           setActivePage(0);
+          if(showMessage) {
+            String title= Studio.getResourceAsString("Studio.title");
+            String msg= Studio.getResourceAsString("Studio.text.design_error");
+            MessageDialog.openError(Display.getDefault().getActiveShell(),title,msg);
+          }
         }
       });
     }
@@ -1149,8 +1159,7 @@ public class MultiPageEditor extends MultiPageEditorPart
               }
             });
           } catch(Exception e) {
-            Studio.showError(e);
-            hideDesignAfterError();
+            Studio.showError(e,true);
           }
         }
       };
@@ -1180,7 +1189,7 @@ public class MultiPageEditor extends MultiPageEditorPart
               }
             }
 
-            hideDesignAfterError();
+            hideDesignAfterError(false);
           }
         }
       });

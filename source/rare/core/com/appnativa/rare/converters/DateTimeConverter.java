@@ -15,20 +15,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.converters;
 
+import java.text.DateFormat;
+import java.text.ParsePosition;
+import java.util.Calendar;
+import java.util.Date;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.Helper;
-
-import java.text.DateFormat;
-import java.text.ParsePosition;
-
-import java.util.Calendar;
-import java.util.Date;
 
 /**
  * A date/time converter
@@ -38,7 +37,8 @@ import java.util.Date;
 public class DateTimeConverter extends aConverter {
 
   /** Creates a new instance of ColorConverter */
-  public DateTimeConverter() {}
+  public DateTimeConverter() {
+  }
 
   @Override
   public Object createContext(iWidget widget, String value) {
@@ -51,6 +51,12 @@ public class DateTimeConverter extends aConverter {
   }
 
   public Object objectFromString(iWidget widget, String value, Object context, boolean ignoreExceptions) {
+    DateContext dc = getDateContext(context);
+
+    if (dc.isCustomConverter()) {
+      return dc.dateFromString(value);
+    }
+
     int len = value.length();
 
     if (len > 1) {
@@ -69,16 +75,15 @@ public class DateTimeConverter extends aConverter {
       return null;
     }
 
-    DateContext   dc      = getDateContext(widget, context);
-    DateFormat[]  formats = getItemFormats(widget, dc);
-    Date          date    = null;
-    ParsePosition p       = new ParsePosition(0);
+    DateFormat[] formats = getItemFormats(widget, dc);
+    Date date = null;
+    ParsePosition p = new ParsePosition(0);
 
     if (formats == null) {
-      DateFormat df = getDateFormat(widget, dc, false);
+      DateFormat df = getDateFormat(dc, false);
 
       try {
-        synchronized(df) {
+        synchronized (df) {
           p.setIndex(0);
           date = df.parse(value, p);
 
@@ -86,11 +91,12 @@ public class DateTimeConverter extends aConverter {
             return date;
           }
         }
-      } catch(RuntimeException e) {}
+      } catch (RuntimeException e) {
+      }
     } else {
       for (DateFormat df : formats) {
         try {
-          synchronized(df) {
+          synchronized (df) {
             p.setIndex(0);
             date = df.parse(value, p);
 
@@ -98,7 +104,8 @@ public class DateTimeConverter extends aConverter {
               return date;
             }
           }
-        } catch(RuntimeException e) {}
+        } catch (RuntimeException e) {
+        }
       }
     }
 
@@ -131,11 +138,11 @@ public class DateTimeConverter extends aConverter {
       return "";
     }
 
-    DateFormat df = getDateFormat(widget, context, true);
-
-    synchronized(df) {
-      return df.format(date);
+    DateContext dc = getDateContext(context);
+    if (dc.isCustomConverter()) {
+      return dc.dateToString(date);
     }
+    return getDateFormat(dc, true).format(date);
   }
 
   @Override
@@ -148,7 +155,7 @@ public class DateTimeConverter extends aConverter {
     return Date.class;
   }
 
-  protected DateContext getDateContext(iWidget widget, Object context) {
+  protected DateContext getDateContext(Object context) {
     if (context instanceof DateContext) {
       return (DateContext) context;
     }
@@ -156,7 +163,7 @@ public class DateTimeConverter extends aConverter {
     return Platform.getAppContext().getDefaultDateTimeContext();
   }
 
-  protected DateFormat getDateFormat(iWidget widget, Object context, boolean display) {
+  protected DateFormat getDateFormat(Object context, boolean display) {
     DateFormat df = null;
 
     if (context instanceof DateContext) {
@@ -168,14 +175,10 @@ public class DateTimeConverter extends aConverter {
     }
 
     if (df == null) {
-      if (widget == null) {
-        widget = Platform.getContextRootViewer();
-      }
-
       if (display) {
-        df = widget.getAppContext().getDefaultDateTimeContext().getDisplayFormat();
+        df = Platform.getAppContext().getDefaultDateTimeContext().getDisplayFormat();
       } else {
-        df = widget.getAppContext().getDefaultDateTimeContext().getItemFormat();
+        df = Platform.getAppContext().getDefaultDateTimeContext().getItemFormat();
       }
     }
 
@@ -183,13 +186,9 @@ public class DateTimeConverter extends aConverter {
   }
 
   protected DateFormat[] getItemFormats(iWidget widget, DateContext context) {
-    DateFormat[] formats = (context == null)
-                           ? null
-                           : context.getItemFormats();
+    DateFormat[] formats = (context == null) ? null : context.getItemFormats();
 
-    return (formats == null)
-           ? Platform.getAppContext().getDefaultDateTimeContext().getItemFormats()
-           : formats;
+    return (formats == null) ? Platform.getAppContext().getDefaultDateTimeContext().getItemFormats() : formats;
   }
 
   static class BadValueDate extends Date {
@@ -197,6 +196,7 @@ public class DateTimeConverter extends aConverter {
 
     public BadValueDate(String value) {
       super(0);
+
       stringValue = value;
     }
 

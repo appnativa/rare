@@ -151,8 +151,7 @@
   }
   [super touchesBegan:touches withEvent:event];
   
-  [view stateChanged];
-  [self setNeedsDisplay];
+ [self setNeedsDisplay];
   if (self.callNeedsDisplayOnSuper) {
     [self.superview setNeedsDisplay];
   }

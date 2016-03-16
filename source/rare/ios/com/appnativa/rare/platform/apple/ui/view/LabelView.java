@@ -37,10 +37,12 @@ import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.listener.iHyperlinkListener;
 import com.appnativa.rare.ui.text.HTMLCharSequence;
 
 public class LabelView extends View implements iApplePainterSupport {
   protected boolean apProxy = true;
+  private iHyperlinkListener linkListener;
 
   public LabelView() {
     this(createProxy());
@@ -55,6 +57,13 @@ public class LabelView extends View implements iApplePainterSupport {
     }
   }
 
+  public iHyperlinkListener getHyperlinkListener() {
+    return linkListener;
+  }
+
+  public void setHyperlinkListener(iHyperlinkListener listener) {
+    this.linkListener = listener;
+  }
   @Override
   public void borderChanged(iPlatformBorder newBorder) {
     super.borderChanged(newBorder);

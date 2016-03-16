@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
@@ -25,8 +25,13 @@ import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.aWidgetListener;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ItemChangeEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.listener.iHyperlinkListener;
 import com.appnativa.rare.viewer.iContainer;
 
 public abstract class aLabelWidget extends aPlatformWidget {
@@ -231,6 +236,39 @@ public abstract class aLabelWidget extends aPlatformWidget {
 
   public boolean isWordWrap() {
     return ((iActionComponent) dataComponent).isWordWrap();
+  }
+
+  protected iHyperlinkListener createHyperlinkListener() {
+    return new iHyperlinkListener() {
+      @Override
+      public void linkExited(Object source, Object item, String href, MouseEvent e) {
+        aWidgetListener l = getWidgetListener();
+
+        if ((l != null) && l.isChangeEventEnabled()) {
+          ItemChangeEvent ce = new ItemChangeEvent(getDataComponent(), href, null);
+
+          l.itemChanged(ce);
+        }
+      }
+      @Override
+      public void linkEntered(Object source, Object item, String href, MouseEvent e) {
+        aWidgetListener l = getWidgetListener();
+
+        if ((l != null) && l.isChangeEventEnabled()) {
+          ItemChangeEvent ce = new ItemChangeEvent(getDataComponent(), null, href);
+
+          l.itemChanged(ce);
+        }
+      }
+      @Override
+      public void linkClicked(Object source, Object item, String href, MouseEvent e) {
+        aWidgetListener l = getWidgetListener();
+
+        if ((l != null) && l.isActionEventEnabled()) {
+          l.actionPerformed(new ActionEvent(getDataComponent(), href));
+        }
+      }
+    };
   }
 
   protected abstract iActionComponent createActionComponent(Label cfg);

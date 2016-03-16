@@ -706,31 +706,11 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
 
   
   public UIImage getRenderedImage() {
-    int      width  = getWidth();
-    int      height = getHeight();
-    UIInsets in     = getInsetsEx();
+    int      w  = getWidth();
+    int      h = getHeight();
     float    x      = 0;
     float    y      = 0;
 
-    if (in != null) {
-      width  -= (in.left + in.right);
-      height -= (in.top + in.bottom);
-      x      = -in.left;
-      y      = -in.top;
-    }
-
-    int w = UIScreen.snapToSize(destBounds.width);
-    int h = UIScreen.snapToSize(destBounds.height);
-
-    if (rotation != 0) {
-      int n = w;
-
-      w = h;
-      h = n;
-    }
-
-    w = Math.min(w, width);
-    h = Math.min(h, height);
 
     UIImage           img = new UIImage(w, h);
     iPlatformGraphics g   = img.createGraphics();
@@ -747,7 +727,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
   protected void setupRenderedImageGraphics(iPlatformGraphics g, int width, int height) {}
 
   public UIImage getSubImage(iPlatformShape shape) {
-    if (!theImage.isLoaded(this)) {
+    if (!theImage.isImageLoaded(this)) {
       return null;
     }
 
@@ -1207,7 +1187,7 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
   }
 
   protected void init(int iw, int ih, boolean reset) {
-    boolean loaded = (theImage != null) && theImage.isLoaded(this);
+    boolean loaded = (theImage != null) && theImage.isImageLoaded(this);
 
     if (reset) {
       initValues();
@@ -1312,10 +1292,10 @@ public abstract class aImagePanel extends XPContainer implements iPainterSupport
       }
 
       if (rotation != 0) {
-        return (destBounds.width <= h) && (destBounds.height <= w);
+        return ((int)destBounds.width <= h) && ((int)destBounds.height <= w);
       }
 
-      return (destBounds.width <= w) && (destBounds.height <= h);
+      return ((int)destBounds.width <= w) && ((int)destBounds.height <= h);
     }
 
     return false;

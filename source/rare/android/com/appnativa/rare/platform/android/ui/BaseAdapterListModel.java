@@ -691,4 +691,5 @@ public class BaseAdapterListModel extends BaseAdapter implements iPlatformListDa
   public void setRowEditingSupported(boolean supported) {
     model.setRowEditingSupported(supported);
   }
+
 }

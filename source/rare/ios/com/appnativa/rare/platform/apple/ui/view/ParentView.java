@@ -55,6 +55,24 @@ public class ParentView extends View implements PropertyChangeListener {
   ]-*/
   ;
 
+  @Override
+  public void updateForColorChange() {
+    super.updateForColorChange();
+    updateChildrenForColorChange();
+  }
+
+  public native void updateChildrenForColorChange()
+  /*-[
+    [((UIView*)proxy_).subviews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+      UIView* v=(UIView*) obj;
+      RAREView* rv=v.sparView;
+      if(rv) {
+        [rv updateForColorChange];
+      }
+    }];
+  ]-*/
+  ;
+
   public native void setLayoutManager(iAppleLayoutManager lm)
   /*-[
     [((RAREAPView*)proxy_) setLayoutManager: lm];

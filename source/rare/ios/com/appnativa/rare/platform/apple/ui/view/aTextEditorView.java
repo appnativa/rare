@@ -211,11 +211,6 @@ public abstract class aTextEditorView extends View implements iPlatformTextEdito
   public void underlineText() {}
 
   @Override
-  public boolean usesForegroundColor() {
-    return true;
-  }
-  
-  @Override
   public void setActionListener(iActionListener actionListener) {
     this.actionListener = actionListener;
   }

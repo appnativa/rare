@@ -21,8 +21,6 @@
 package com.appnativa.rare.viewer;
 
 import com.appnativa.rare.ui.chart.coreplot.ChartHandler;
-import com.appnativa.rare.viewer.aChartViewer;
-import com.appnativa.rare.viewer.iFormViewer;
 
 /**
  * A viewer that provides for the management and display of charts

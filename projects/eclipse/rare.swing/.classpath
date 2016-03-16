@@ -28,7 +28,6 @@
 	<classpathentry kind="lib" path="../../../libs/plugin.jar"/>
 	<classpathentry kind="lib" path="../../../libs/jlayer.jar"/>
 	<classpathentry kind="lib" path="../../../libs/js.jar"/>
-	<classpathentry kind="lib" path="../../../libs/jfxrt.jar"/>
 	<classpathentry kind="lib" path="../../../libs/AppleJavaExtensions.jar"/>
 	<classpathentry kind="lib" path="../../../libs/swingx-all-1.6.4.jar" sourcepath="/Code/Dev/swingx/source">
 		<attributes>

@@ -25,7 +25,8 @@ import java.net.CookieHandler;
 import java.util.List;
 
 public class NetHelper extends aNetHelper {
-  private NetHelper() {}
+  private NetHelper() {
+  }
 
   public static List getCookieList() {
     CookieHandler handler = CookieHandler.getDefault();
@@ -40,20 +41,17 @@ public class NetHelper extends aNetHelper {
   public static String getCookies() {
     List<Cookie>  list  = getCookieList();
     StringBuilder sb    = new StringBuilder();
-    boolean       comma = false;
 
     for (Cookie c : list) {
-      if (comma) {
-        sb.append(", ");
-      } else {
-        comma = true;
-      }
-
       if (!c.hasExpired()) {
         sb.append(c.toString());
+        sb.append("; ");
       }
     }
-
+    int n=sb.length();
+    if(n>0 && sb.charAt(n-1)==';') {
+       sb.setLength(n-1);
+    }
     return sb.toString();
   }
 }

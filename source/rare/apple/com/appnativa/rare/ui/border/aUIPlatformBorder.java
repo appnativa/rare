@@ -53,5 +53,8 @@ public abstract class aUIPlatformBorder extends aUIBorder implements iPlatformBo
   public float getPathOffset() {
     return getPathWidth() / 2;
   }
-
+  
+  public void updateModCount() {
+    modCount++;
+  }
 }

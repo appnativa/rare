@@ -264,11 +264,6 @@ public class CustomButtonView extends View {
   ;
 
   @Override
-  public boolean usesForegroundColor() {
-    return true;
-  }
-
-  @Override
   public native iPlatformIcon getDisabledIcon()
   /*-[
     return ((RAREUIControl*)proxy_).disabledIcon;

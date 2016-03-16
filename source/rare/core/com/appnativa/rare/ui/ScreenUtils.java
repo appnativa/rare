@@ -25,8 +25,8 @@ import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.ui.UIScreen.ScreenSize;
 import com.appnativa.util.SNumber;
 
-import com.jgoodies.forms.layout.ConstantSize;
-import com.jgoodies.forms.layout.Sizes;
+import com.appnativa.jgoodies.forms.layout.ConstantSize;
+import com.appnativa.jgoodies.forms.layout.Sizes;
 
 public class ScreenUtils {
   public static int      PLATFORM_PIXELS_1  = 1;
@@ -979,7 +979,7 @@ public class ScreenUtils {
     return PlatformHelper.isLandscapeOrientation(configuration);
   }
 
-  private static void calculateScreenSize() {
+  static void calculateScreenSize() {
     if (sizeValuesSet) {
       calculateScreenSize(xsmallSize, smallSize, mediumSize);
     } else {

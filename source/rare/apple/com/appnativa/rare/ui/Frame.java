@@ -20,8 +20,6 @@
 
 package com.appnativa.rare.ui;
 
-import java.util.Map;
-
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iAppContext;
 import com.appnativa.rare.iPlatformAppContext;
@@ -29,9 +27,9 @@ import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.apple.ui.view.ButtonView;
 import com.appnativa.rare.platform.apple.ui.view.Window;
 import com.appnativa.rare.ui.aWindowManager.WindowType;
-import com.appnativa.rare.ui.iWindowManager.iFrame;
 import com.appnativa.rare.ui.event.WindowEvent;
 import com.appnativa.rare.ui.event.iWindowListener;
+import com.appnativa.rare.ui.iWindowManager.iFrame;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iContainer;
@@ -39,30 +37,32 @@ import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.SNumber;
 
+import java.util.Map;
+
 /**
  * Main window frame
  *
  * @author Don DeCoteau
  */
 public class Frame extends Container implements iFrame {
-  boolean                    closed = false;
-  boolean                    located;
-  boolean                    sized;
-  protected int              menuOffset  = 0;
-  boolean                    undecorated = false;
-  boolean                    transparent = false;
-  protected iTarget          target;
-  protected iWidget          titleWidget;
-  protected Window           window;
-  protected WindowViewer     windowViewer;
-  private boolean            autoDispose;
-  private String             defaultButton;
-  private boolean            mainWindow;
-  private UIPoint            partialLocation;
-  private UIDimension        partialSize;
-  OverlayContainer           overlayContainer;
-  protected WindowType       windowType;
-  private boolean runtimeDecorations;
+  boolean                closed = false;
+  boolean                located;
+  boolean                sized;
+  protected int          menuOffset  = 0;
+  boolean                undecorated = false;
+  boolean                transparent = false;
+  protected iTarget      target;
+  protected iWidget      titleWidget;
+  protected Window       window;
+  protected WindowViewer windowViewer;
+  private boolean        autoDispose;
+  private String         defaultButton;
+  private boolean        mainWindow;
+  private UIPoint        partialLocation;
+  private UIDimension    partialSize;
+  OverlayContainer       overlayContainer;
+  protected WindowType   windowType;
+  private boolean        runtimeDecorations;
 
   public Frame(iPlatformAppContext app, Window win, String targetName, WindowType type) {
     super(win);
@@ -70,7 +70,7 @@ public class Frame extends Container implements iFrame {
     this.window     = win;
 
     if (targetName == null) {
-      targetName = "_new_window_" + Integer.toHexString((int)hashCode());    //int cast for java->objc
+      targetName = "_new_window_" + Integer.toHexString((int) hashCode());    //int cast for java->objc
     }
 
     target = new WindowTarget(Platform.getAppContext(), targetName, this);
@@ -157,7 +157,6 @@ public class Frame extends Container implements iFrame {
           target.dispose(true);
         }
 
-
         if (titleWidget != null) {
           titleWidget.dispose();
         }
@@ -182,13 +181,17 @@ public class Frame extends Container implements iFrame {
 
   public void finishWindowSetup(Map options) {
     if (!undecorated && (titleWidget == null)) {
-      boolean show=Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
-      String s=options!=null ? (String)options.get("showCloseButton") : null;
-      if(s!=null) {
-        show=SNumber.booleanValue(s);
+      boolean show = Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
+      String  s    = (options != null)
+                     ? (String) options.get("showCloseButton")
+                     : null;
+
+      if (s != null) {
+        show = SNumber.booleanValue(s);
       }
-      window.createDialogTitleBar(windowViewer,show);
-      runtimeDecorations=true;
+
+      window.createDialogTitleBar(windowViewer, show);
+      runtimeDecorations = true;
     }
 
     String s = (String) options.get("keystrokes");
@@ -231,7 +234,9 @@ public class Frame extends Container implements iFrame {
 
   @Override
   public iPlatformMenuBar getMenuBar() {
-    return window.getMenuBar();
+    return (window == null)
+           ? null
+           : window.getMenuBar();
   }
 
   /**
@@ -256,7 +261,9 @@ public class Frame extends Container implements iFrame {
 
   @Override
   public iStatusBar getStatusBar() {
-    return window.getStatusBar();
+    return (window == null)
+           ? null
+           : window.getStatusBar();
   }
 
   @Override
@@ -286,7 +293,9 @@ public class Frame extends Container implements iFrame {
 
   @Override
   public iToolBarHolder getToolBarHolder() {
-    return window.getiToolBarHolder();
+    return (window == null)
+           ? null
+           : window.getiToolBarHolder();
   }
 
   @Override
@@ -341,12 +350,12 @@ public class Frame extends Container implements iFrame {
     return transparent;
   }
 
-  public boolean isUsesRuntimeDecorations() {
-    return runtimeDecorations;
-  }
-
   public boolean isUndecorated() {
     return undecorated;
+  }
+
+  public boolean isUsesRuntimeDecorations() {
+    return runtimeDecorations;
   }
 
   @Override
@@ -405,6 +414,12 @@ public class Frame extends Container implements iFrame {
     }
   }
 
+  public void repackAndCenter() {
+    if (!mainWindow) {
+      window.repackAndCenter();
+    }
+  }
+
   @Override
   public void revalidate() {
     window.revalidate();
@@ -412,6 +427,15 @@ public class Frame extends Container implements iFrame {
 
   public void setAutoDispose(boolean autoDispose) {
     this.autoDispose = autoDispose;
+  }
+
+  @Override
+  public void setBorder(iPlatformBorder border) {
+    window.setBorder(border);
+  }
+
+  public void setCancelable(boolean cancelable) {
+    window.setCancelable(cancelable);
   }
 
   @Override
@@ -491,7 +515,6 @@ public class Frame extends Container implements iFrame {
     window.setToolBarHolder(tbh);
   }
 
-
   @Override
   public void setVisible(boolean visible) {
     if (visible) {
@@ -515,6 +538,10 @@ public class Frame extends Container implements iFrame {
     }
 
     window.setVisible(visible);
+  }
+
+  public void setWindowViewer(WindowViewer windowViewer) {
+    this.windowViewer = windowViewer;
   }
 
   @Override
@@ -543,9 +570,6 @@ public class Frame extends Container implements iFrame {
   @Override
   public void update() {
     window.revalidate();
-  }
-  public void setWindowViewer(WindowViewer windowViewer) {
-    this.windowViewer = windowViewer;
   }
 
   OverlayContainer getOverlayContainer() {

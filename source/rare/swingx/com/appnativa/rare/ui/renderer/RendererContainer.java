@@ -52,4 +52,4 @@ public class RendererContainer extends aRendererContainer {
   public void setComponentPainter(iPlatformComponentPainter cp) {
     setComponentPainterEx(cp);
   }
-}
+ }

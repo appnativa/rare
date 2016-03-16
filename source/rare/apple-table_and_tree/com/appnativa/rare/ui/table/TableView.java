@@ -69,6 +69,15 @@ public class TableView extends ListView {
   }
 
   @Override
+  public int getEditingRow() {
+    return -1;
+  }
+  
+  public int getEditingColumn() {
+    return -1;
+  }
+  
+  @Override
   public void columnSelected(int row, int column) {
     header.setSelectedIndex(column);
     super.itemSelected(row);

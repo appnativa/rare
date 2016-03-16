@@ -20,13 +20,16 @@
 
 package com.appnativa.rare.platform.android.ui.view;
 
+import java.util.Arrays;
+
 import android.content.Context;
-
 import android.graphics.Canvas;
-
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormLayout.LayoutInfo;
 import com.appnativa.rare.platform.android.ui.util.AndroidGraphics;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIDimension;
@@ -36,12 +39,6 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.painter.UICellPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
-
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormLayout.LayoutInfo;
-
-import java.util.Arrays;
 
 public class FormsView extends ViewGroupEx {
   protected iPlatformPainter[] painters;
@@ -71,7 +68,7 @@ public class FormsView extends ViewGroupEx {
     this.layout = layout;
   }
 
-  public ViewGroup.LayoutParams createLayoutParams(com.jgoodies.forms.layout.CellConstraints cc) {
+  public ViewGroup.LayoutParams createLayoutParams(CellConstraints cc) {
     return new CellConstraintsEx(cc);
   }
 
@@ -338,14 +335,14 @@ public class FormsView extends ViewGroupEx {
   }
 
   protected class CellConstraintsEx extends ViewGroup.LayoutParams implements Cloneable {
-    protected com.jgoodies.forms.layout.CellConstraints cc;
+    protected CellConstraints cc;
 
     public CellConstraintsEx() {
       super(WRAP_CONTENT, WRAP_CONTENT);
-      cc = new com.jgoodies.forms.layout.CellConstraints();
+      cc = new CellConstraints();
     }
 
-    public CellConstraintsEx(com.jgoodies.forms.layout.CellConstraints cc) {
+    public CellConstraintsEx(CellConstraints cc) {
       super(WRAP_CONTENT, WRAP_CONTENT);
       this.cc = cc;
     }
@@ -355,7 +352,7 @@ public class FormsView extends ViewGroupEx {
       try {
         CellConstraintsEx c = (CellConstraintsEx) super.clone();
 
-        c.cc = (com.jgoodies.forms.layout.CellConstraints) cc.clone();
+        c.cc = (CellConstraints) cc.clone();
 
         return c;
       } catch(CloneNotSupportedException e) {

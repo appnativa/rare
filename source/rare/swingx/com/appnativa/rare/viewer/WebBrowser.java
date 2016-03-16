@@ -23,7 +23,7 @@ package com.appnativa.rare.viewer;
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.platform.swing.ui.view.HTMLViewer;
 import com.appnativa.rare.spot.Browser;
-import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.Container;
 import com.appnativa.rare.ui.iPlatformComponent;
 
 /**
@@ -81,6 +81,11 @@ public class WebBrowser extends aWebBrowser {
   }
 
   @Override
+  public void setHandleWaitCursor(boolean handleWaitCursor) {
+    htmlViewer.setHandleWaitCursor(handleWaitCursor);
+  }
+  
+  @Override
   protected iBrowser createWebView(Browser cfg) {
     htmlViewer = new HTMLViewer();
 
@@ -128,7 +133,7 @@ public class WebBrowser extends aWebBrowser {
 
     @Override
     public iPlatformComponent getComponent() {
-      return new Component(htmlViewer);
+      return new Container(htmlViewer);
     }
 
     @Override
@@ -141,6 +146,11 @@ public class WebBrowser extends aWebBrowser {
       if (htmlViewer != null) {
         htmlViewer.clearContents();
       }
+    }
+
+    @Override
+    public Object getNativeBrowser() {
+      return htmlViewer.getWebView();
     }
   }
 }

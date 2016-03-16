@@ -20,11 +20,10 @@
 
 package com.appnativa.rare.ui;
 
-import java.util.List;
-import java.util.Map;
-
 import android.app.Activity;
+
 import android.content.res.Configuration;
+
 import android.view.ViewGroup;
 import android.view.Window;
 
@@ -45,6 +44,9 @@ import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.SNumber;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -82,8 +84,20 @@ public class WindowManager extends aWindowManager {
     fireEvent(iConstants.EVENT_CREATED, event, true);
     configureStandardStuff(cfg);
 
+    String  s  = cfg.decorated.spot_getAttribute("color");
+    UIColor bg = (s == null)
+                 ? ColorUtils.getBackground()
+                 : ColorUtils.getColor(s);
+
+    ((Frame)mainFrame).setBackground(bg);
     if ("false".equalsIgnoreCase(cfg.spot_getAttribute("opaque"))) {
       ((Window) mainFrame.getUIWindow()).setBackgroundDrawable(null);
+    }
+
+    iWidget tw = createTitleWidget(cfg);
+
+    if (tw != null) {
+      ((Frame) mainFrame).setTitleWidget(tw);
     }
 
     fireEvent(iConstants.EVENT_CONFIGURE, event, true);
@@ -91,10 +105,14 @@ public class WindowManager extends aWindowManager {
 
   @Override
   public iPopup createPopup(iWidget context) {
-    WindowViewer w=context==null ? Platform.getWindowViewer() : context.getWindow();
-    if(w==null) {
-      w=Platform.getWindowViewer();
+    WindowViewer w = (context == null)
+                     ? Platform.getWindowViewer()
+                     : context.getWindow();
+
+    if (w == null) {
+      w = Platform.getWindowViewer();
     }
+
     PopupWindowEx p = new PopupWindowEx(w.getAndroidContext());
 
     return p;
@@ -102,7 +120,8 @@ public class WindowManager extends aWindowManager {
 
   @Override
   public void onConfigurationChanged(boolean reset) {
-    Activity  ra   = AppContext.getRootActivity();
+    Activity ra = AppContext.getRootActivity();
+
     ((Frame) mainFrame).reset(ra.getWindow());
 
     if ((getWorkspaceViewer() != null)) {
@@ -183,10 +202,11 @@ public class WindowManager extends aWindowManager {
       d = new DialogEx(((aPlatformWidget) context).getAndroidContext(), undecoratedStyle);
       d.requestWindowFeature(Window.FEATURE_NO_TITLE);
     }
+
     Frame frame = new Frame(d, null, type);
 
     frame.transparent = transparent;
-    frame.undecorated=!decorated;
+    frame.undecorated = !decorated;
 
     return frame;
   }

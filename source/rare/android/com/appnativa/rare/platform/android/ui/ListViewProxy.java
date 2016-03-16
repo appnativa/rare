@@ -38,18 +38,22 @@ public class ListViewProxy implements iListView {
     this.handler = handler;
   }
 
+  @Override
   public void addSelectionIndex(int index) {
     handler.addSelectionIndex(index);
   }
 
+  @Override
   public void clearContextMenuIndex() {
     handler.clearContextMenuIndex();
   }
 
+  @Override
   public UIColor getAlternatingRowColor() {
     return handler.getAlternatingRowColor();
   }
 
+  @Override
   public int getFirstVisibleIndex() {
     return handler.getFirstVisibleIndex();
   }
@@ -69,18 +73,22 @@ public class ListViewProxy implements iListView {
     return (aListItemRenderer) handler.getItemRenderer();
   }
 
+  @Override
   public int getLastVisibleIndex() {
     return handler.getLastVisibleIndex();
   }
 
+  @Override
   public iPlatformComponent getListComponent() {
     return handler.getListComponent();
   }
 
+  @Override
   public int getContextMenuIndex() {
     return handler.getContextMenuIndex();
   }
 
+  @Override
   public int getSelectedIndex() {
     return handler.getSelectedIndex();
   }
@@ -90,10 +98,7 @@ public class ListViewProxy implements iListView {
     return false;
   }
 
-  public boolean isEditing() {
-    return handler.isEditing();
-  }
-
+  @Override
   public boolean isKeepSelectionVisible() {
     return handler.isKeepSelectionVisible();
   }
@@ -108,10 +113,12 @@ public class ListViewProxy implements iListView {
     return false;
   }
 
+  @Override
   public boolean isSingleClickAction() {
     return handler.isSingleClickAction();
   }
 
+  @Override
   public void makeSelectionVisible() {
     handler.makeSelectionVisible();
   }
@@ -121,10 +128,12 @@ public class ListViewProxy implements iListView {
     handler.scrollRowToBottom(row);
   }
 
+  @Override
   public void scrollRowToTop(int row) {
     handler.scrollRowToTop(row);
   }
 
+  @Override
   public void scrollRowToVisible(int row) {
     handler.scrollRowToVisible(row);
   }
@@ -132,29 +141,32 @@ public class ListViewProxy implements iListView {
   @Override
   public void setActionListener(iActionListener l) {}
 
+  @Override
   public void setAlternatingRowColor(UIColor color) {
     handler.setAlternatingRowColor(color);
   }
 
+  @Override
   public void setAutoHilight(boolean autoHilight) {
     handler.setAutoHilight(autoHilight);
   }
 
+  @Override
   public void setDividerLine(UIColor c, UIStroke stroke) {
     handler.setDividerLine(c, stroke);
   }
-
+  
   @Override
-  public void setEditingMode(EditingMode mode) {}
-
   public void setKeepSelectionVisible(boolean keepSelectionVisible) {
     handler.setKeepSelectionVisible(keepSelectionVisible);
   }
 
+  @Override
   public void setMinimumVisibleRowCount(int rows) {
     handler.setMinimumVisibleRowCount(rows);
   }
 
+  @Override
   public void setRowHeight(int height) {
     handler.setRowHeight(height);
   }
@@ -165,18 +177,22 @@ public class ListViewProxy implements iListView {
   @Override
   public void setSelectionChangeListener(iItemChangeListener l) {}
 
+  @Override
   public void setSelectionMode(SelectionMode selectionMode) {
     handler.setSelectionMode(selectionMode);
   }
 
+  @Override
   public void setShowDivider(boolean show) {
     handler.setShowDivider(show);
   }
 
+  @Override
   public void setSingleClickAction(boolean singleClickAction) {
     handler.setSingleClickAction(singleClickAction);
   }
 
+  @Override
   public void setVisibleRowCount(int rows) {
     handler.setVisibleRowCount(rows);
   }
@@ -191,5 +207,10 @@ public class ListViewProxy implements iListView {
     if (handler instanceof ListBoxListHandler) {
       ((ListBoxListHandler) handler).setShowLastDivider(show);
     }
+  }
+
+  @Override
+  public int getSelectedIndexCount() {
+    return handler.getSelectedIndexCount();
   }
 }

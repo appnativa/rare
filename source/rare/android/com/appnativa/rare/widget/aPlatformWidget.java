@@ -303,8 +303,6 @@ public abstract class aPlatformWidget extends aWidget implements android.text.Ht
 
       if (eventEnabled) {
         ((iActionable) this).addActionListener(l);
-      } else {
-        ((iActionable) this).addActionListener(this);
       }
     }
 

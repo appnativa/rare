@@ -30,7 +30,6 @@ import com.appnativa.rare.spot.MainWindow;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.UITarget;
 import com.appnativa.rare.ui.WindowManager;
-import com.appnativa.rare.ui.aWindowManager.WindowType;
 import com.appnativa.rare.ui.iWindowManager.iFrame;
 import com.appnativa.rare.util.DataParser;
 import com.appnativa.rare.viewer.iTarget;
@@ -142,7 +141,7 @@ public class MainEmbedded extends Main {
   }
 
   @Override
-  protected void handleFatalEexception(Throwable e) {
+  protected void handleFatalException(Throwable e) {
     if (!(e instanceof AbortOperationException)) {
       e.printStackTrace();
     }
@@ -155,10 +154,6 @@ public class MainEmbedded extends Main {
         }
       }
     });
-  }
-
-  protected void handleFatalException(Throwable e) {
-    e.printStackTrace();
   }
 
   protected void setupAppContextAndPlatform() {

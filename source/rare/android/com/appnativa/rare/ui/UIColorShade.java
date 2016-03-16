@@ -15,14 +15,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+
 import android.graphics.drawable.Drawable;
+
 import android.widget.TextView;
 
 import com.appnativa.rare.Platform;
@@ -52,6 +54,9 @@ public class UIColorShade extends UIColor implements Cloneable {
   private int                resID;
   private Shade              shade;
   private UIColor            sourceColor;
+  private int                cachedColor;
+  private boolean            colorCached;
+  private int                cachedRGB;
 
   public UIColorShade(ColorStateList list) {
     super(list.getDefaultColor());
@@ -129,6 +134,7 @@ public class UIColorShade extends UIColor implements Cloneable {
     this.alpha             = cs.alpha;
     this.resID             = cs.resID;
     this.colorStateList    = cs.colorStateList;
+    colorCached            = false;
   }
 
   public Object clone() {
@@ -179,6 +185,7 @@ public class UIColorShade extends UIColor implements Cloneable {
     this.lumAdjustment     = 0;
     this.alpha             = 255;
     this.drawable          = null;
+    colorCached            = false;
   }
 
   public iBackgroundPainter getBackgroundPainter() {
@@ -190,9 +197,8 @@ public class UIColorShade extends UIColor implements Cloneable {
       return super.getColor();
     }
 
-    int c;
-
     if (shade == Shade.UIMANAGER) {
+      int     c;
       UIColor cc = (colorKey == null)
                    ? null
                    : Platform.getUIDefaults().getColor(colorKey);
@@ -219,11 +225,16 @@ public class UIColorShade extends UIColor implements Cloneable {
       return color;
     }
 
-    c = sourceColor.getColor();
+    int c = sourceColor.getColor();
 
-    // if (cachedSourceColor == c) {
-    // return cachedColor;
-    // }
+    if (colorCached && (c == cachedColor)) {
+      return cachedRGB;
+    }
+
+    colorCached = true;
+    cachedColor = c;
+    c           = sourceColor.getColor();
+
     switch(shade) {
       case DARKER :
         c = ColorUtils.darker(c);
@@ -267,6 +278,8 @@ public class UIColorShade extends UIColor implements Cloneable {
       default :
         break;
     }
+
+    cachedRGB = c;
 
     return c;
   }
@@ -324,7 +337,8 @@ public class UIColorShade extends UIColor implements Cloneable {
   }
 
   public boolean isDynamic() {
-    return (shade != Shade.UIMANAGER) || ((sourceColor != null) && sourceColor.isDynamic());
+    return ((shade != Shade.UIMANAGER) || ColorUtils.KEEP_COLOR_KEYS)
+           || ((sourceColor != null) && sourceColor.isDynamic());
   }
 
   public boolean isSimpleColor() {
@@ -389,6 +403,7 @@ public class UIColorShade extends UIColor implements Cloneable {
   }
 
   public void setShade(Shade shade) {
-    this.shade = shade;
+    this.shade  = shade;
+    colorCached = false;
   }
 }

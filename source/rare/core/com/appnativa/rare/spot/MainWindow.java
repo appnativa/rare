@@ -1,5 +1,5 @@
 /**************************************************************************
- * MainWindow.java - Wed Nov 18 17:50:58 PST 2015
+ * MainWindow.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -101,7 +101,7 @@ public class MainWindow extends Viewer {
    */
   protected void spot_setElements()  {
     this.elementsSizeHint  +=9;
-    this.attributeSizeHint +=7;
+    this.attributeSizeHint +=8;
     super.spot_setElements();
     spot_defineAttribute("onOpened",null);
     spot_defineAttribute("onWillClose",null);
@@ -110,6 +110,7 @@ public class MainWindow extends Viewer {
     spot_defineAttribute("onHasExpanded",null);
     spot_defineAttribute("onError",null);
     spot_defineAttribute("style",null);
+    spot_defineAttribute("opaque",null);
     spot_addElement( "menuBar", menuBar );
     spot_addElement( "showTitleBar", showTitleBar );
     showTitleBar.spot_defineAttribute("os",null);
@@ -118,6 +119,7 @@ public class MainWindow extends Viewer {
     spot_addElement( "statusBar", statusBar );
     spot_addElement( "decorated", decorated );
     decorated.spot_defineAttribute("os",null);
+    decorated.spot_defineAttribute("color",null);
     spot_addElement( "titlePane", titlePane );
     titlePane.spot_defineAttribute("url",null);
     titlePane.spot_defineAttribute("os",null);

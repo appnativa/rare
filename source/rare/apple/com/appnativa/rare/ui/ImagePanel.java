@@ -146,7 +146,7 @@ public class ImagePanel extends aImagePanel {
 
     super.imageNoYetLoaded();
   }
-
+  
   @Override
   public void setAutoScale(boolean auto) {
     super.setAutoScale(auto);
@@ -185,6 +185,7 @@ public class ImagePanel extends aImagePanel {
 
     if (v != null) {
       v.setBorder(imageBorder);
+      v.setImage(null);
       v.setImage(theImage);
     }
   }

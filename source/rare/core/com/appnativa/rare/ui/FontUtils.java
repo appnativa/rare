@@ -205,6 +205,9 @@ public class FontUtils {
    *  @return the width of the 'w' character
    */
   public static int getCharacterWidth(UIFont f) {
+    if(f==null) {
+      f=defaultFont;
+    }
     if (f == defaultFont) {
       if (defaultCharWidth == 0) {
         defaultCharWidth = PlatformHelper.getCharacterWidth(f);

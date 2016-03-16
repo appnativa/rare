@@ -286,7 +286,7 @@ public class CheckListManager implements iDataModelListener {
     return getCheckedRows(list, null);
   }
 
-  public int[] getCheckedRowsIndices(List<RenderableDataItem> list) {
+  public int[] getCheckedIndexes(List<RenderableDataItem> list) {
     int     len   = list.size();
     IntList rlist = null;
 

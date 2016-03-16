@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
@@ -33,9 +33,9 @@ import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
 public class JSCocoaBindings extends AbstractMap<String, Object> implements Bindings {
-  BindingsIterator       iterator;
-  Object                 proxy;
-  static GlobalVariables globalVars = new GlobalVariables();
+  BindingsIterator iterator;
+  Object           proxy;
+  GlobalVariables  engineVars = new GlobalVariables();
 
   public JSCocoaBindings(Object engineProxy) {
     proxy    = engineProxy;
@@ -45,12 +45,12 @@ public class JSCocoaBindings extends AbstractMap<String, Object> implements Bind
   @Override
   public void clear() {
     super.clear();
-    globalVars.clear();
+    engineVars.clear();
   }
 
   @Override
   public boolean containsKey(Object key) {
-    GlobalVariables gv = globalVars;
+    GlobalVariables gv = engineVars;
 
     if (key == DynamicBindings.WIDGET) {
       return gv.widget != null;
@@ -94,7 +94,7 @@ public class JSCocoaBindings extends AbstractMap<String, Object> implements Bind
 
   @Override
   public Object put(String key, Object value) {
-    GlobalVariables gv = globalVars;
+    GlobalVariables gv = engineVars;
     Object          ov;
 
     if (key == DynamicBindings.WIDGET) {
@@ -154,7 +154,7 @@ public class JSCocoaBindings extends AbstractMap<String, Object> implements Bind
 
   @Override
   public Object remove(Object key) {
-    GlobalVariables gv = globalVars;
+    GlobalVariables gv = engineVars;
     Object          ov;
 
     if (key == DynamicBindings.WIDGET) {
@@ -218,7 +218,7 @@ public class JSCocoaBindings extends AbstractMap<String, Object> implements Bind
 
   @Override
   public Object get(Object key) {
-    GlobalVariables gv = globalVars;
+    GlobalVariables gv = engineVars;
 
     if (key == DynamicBindings.WIDGET) {
       return gv.widget;

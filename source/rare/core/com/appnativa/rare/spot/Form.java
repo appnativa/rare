@@ -1,5 +1,5 @@
 /**************************************************************************
- * Form.java - Wed Nov 18 17:50:58 PST 2015
+ * Form.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -28,6 +28,10 @@ import com.appnativa.spot.*;
  */  
 public class Form extends GroupBox {
   //GENERATED_MEMBERS{
+
+//GENERATED_COMMENT{}
+  /** Behavior: link to activate for when sibmit is called on the form */ 
+  protected Link actionLink = null;
 
   /** Behavior: whether the pane should act as a form viewer (if false widgets will be registered with the next higher up form viewer) */
   public SPOTBoolean actAsFormViewer = new SPOTBoolean(null, true, false );
@@ -77,16 +81,49 @@ public class Form extends GroupBox {
    *
    */
   protected void spot_setElements()  {
-    this.elementsSizeHint  +=4;
+    this.elementsSizeHint  +=5;
     this.attributeSizeHint +=2;
     super.spot_setElements();
     spot_defineAttribute("onSubmit",null);
     spot_defineAttribute("onReset",null);
+    spot_addElement( "actionLink", actionLink );
     spot_addElement( "actAsFormViewer", actAsFormViewer );
     spot_addElement( "submitAttributes", submitAttributes );
     submitAttributes.spot_defineAttribute("mimeType",null);
     spot_addElement( "retainInitialFieldValues", retainInitialFieldValues );
     spot_addElement( "defaultButtonName", defaultButtonName );
+  }
+
+  /**
+   * Gets the actionLink element
+   * 
+   * @return the actionLink element or null if a reference was never created
+   */
+  public Link getActionLink() { return actionLink; }
+
+  /**
+   * Gets the reference to the actionLink element
+   * A reference is created if necessary
+   * 
+   * @return the reference to the actionLink element
+   */
+  public Link getActionLinkReference() {
+    if ( actionLink == null ) {
+      actionLink = new Link(true);
+      super.spot_setReference( "actionLink" , actionLink);
+    }
+    return actionLink;
+  }
+
+  /**
+   * Sets the reference to the actionLink element
+   * @param reference the reference ( can be null)
+   * 
+   * @throws ClassCastException if the parameter is not valid
+   */
+  public void setActionLink(iSPOTElement reference) throws ClassCastException {
+    actionLink = (Link)reference;
+    spot_setReference( "actionLink" ,reference);
   }
 
   //}GENERATED_METHODS

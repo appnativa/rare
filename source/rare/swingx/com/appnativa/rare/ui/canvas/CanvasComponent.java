@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.canvas;
@@ -24,16 +24,19 @@ import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.viewer.CanvasViewer;
 import com.appnativa.rare.widget.iWidget;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
 
 public class CanvasComponent extends Component implements iCanvasComponent {
-  iContext context;
+  iContext        context;
+  private boolean settingCanvasSize;
 
   public CanvasComponent(iWidget w) {
     super(new CanvasView());
+    setWidget(w);
   }
 
   @Override
@@ -45,6 +48,16 @@ public class CanvasComponent extends Component implements iCanvasComponent {
   @Override
   public iContext getContext() {
     return context;
+  }
+
+  @Override
+  public void setBounds(float x, float y, float width, float height) {
+    if (!settingCanvasSize) {
+      settingCanvasSize=true;
+      super.setBounds(x, y, width, height);
+      ((CanvasViewer) widget).setSize((int) width, (int) height, false);
+      settingCanvasSize=false;
+    }
   }
 
   @Override

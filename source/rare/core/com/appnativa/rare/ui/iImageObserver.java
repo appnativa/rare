@@ -21,7 +21,9 @@
 package com.appnativa.rare.ui;
 
 /**
- *
+ * Interface for being notified when a delay image
+ * has completed loading
+ * 
  * @author Don DeCoteau
  */
 public interface iImageObserver {

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.view;
@@ -34,6 +34,8 @@ import javax.swing.JRootPane;
 import javax.swing.KeyStroke;
 
 public class JDialogEx extends JDialog {
+  protected boolean cancelable = true;
+
   public JDialogEx() {}
 
   public JDialogEx(Frame owner) {
@@ -96,18 +98,23 @@ public class JDialogEx extends JDialog {
     super(owner, title, modalityType, gc);
   }
 
+  public void setCancelable(boolean cancelable) {
+    this.cancelable = cancelable;
+  }
+
   @Override
   protected JRootPane createRootPane() {
-    JRootPane pane=new JRootPaneEx();
+    JRootPane pane   = new JRootPaneEx();
     KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+
     pane.registerKeyboardAction(new ActionListener() {
-      
       @Override
       public void actionPerformed(ActionEvent e) {
-        dispatchEvent(new java.awt.event.WindowEvent(JDialogEx.this, java.awt.event.WindowEvent.WINDOW_CLOSING));
-
+        if (cancelable) {
+          dispatchEvent(new java.awt.event.WindowEvent(JDialogEx.this, java.awt.event.WindowEvent.WINDOW_CLOSING));
+        }
       }
-    }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);    
+    }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
     return pane;
   }

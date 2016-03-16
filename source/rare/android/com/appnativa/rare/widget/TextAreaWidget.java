@@ -20,9 +20,8 @@
 
 package com.appnativa.rare.widget;
 
-import android.text.InputType;
-
-import android.view.Gravity;
+import java.io.IOException;
+import java.io.Writer;
 
 import android.widget.EditText;
 
@@ -33,9 +32,6 @@ import com.appnativa.rare.spot.TextField;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iViewer;
-
-import java.io.IOException;
-import java.io.Writer;
 
 /**
  * This class represents the configuration for a widget that allows one or
@@ -104,11 +100,5 @@ public class TextAreaWidget extends TextFieldWidget {
     dataComponent = formComponent = new EditorComponent(e);
 
     return e;
-  }
-
-  protected void setInputType(EditText et, TextField cfg) {
-    et.setGravity(Gravity.TOP);
-    et.setSingleLine(false);
-    et.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
   }
 }

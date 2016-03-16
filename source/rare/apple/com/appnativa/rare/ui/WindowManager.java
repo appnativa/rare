@@ -31,7 +31,6 @@ import com.appnativa.rare.spot.MainWindow;
 import com.appnativa.rare.spot.Rectangle;
 import com.appnativa.rare.ui.event.DataEvent;
 import com.appnativa.rare.viewer.iTarget;
-import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.iWidget;
 
 import java.util.List;
@@ -71,12 +70,27 @@ public class WindowManager extends aWindowManager {
     fireEvent(iConstants.EVENT_CREATED, event, true);
     configureStandardStuff(cfg);
 
-    if (!cfg.decorated.booleanValue() || Platform.isTouchDevice()) {
-      iWidget w = createTitleWidget(cfg);
+    boolean decorated = true;
 
-      if (w != null) {
-        frame.setTitleWidget(w);
-      }
+    if (Platform.getAppContext().okForOS(cfg.decorated)) {
+      decorated = cfg.decorated.booleanValue();
+    }
+
+    ((Window) frame.window).setDecorated(decorated);
+
+    String  s  = cfg.decorated.spot_getAttribute("color");
+    UIColor bg = (s == null)
+                 ? ColorUtils.getBackground()
+                 : ColorUtils.getColor(s);
+
+    if (bg.getAlpha() != 0) {
+      ((Window) frame.window).setBackgroundColorEx(bg);
+    }
+
+    iWidget tw = createTitleWidget(cfg);
+
+    if (tw != null) {
+      frame.setTitleWidget(tw);
     }
 
     Rectangle r = cfg.bounds;
@@ -87,14 +101,10 @@ public class WindowManager extends aWindowManager {
 
     if (!Platform.isIOS()) {
       ScreenUtils.centerOnScreenAndSize(mainFrame, x, y, w, h);
-    } else {
+    } else if (tw != null) {
       if (cfg.showTitleBar.spot_hasValue() && cfg.showTitleBar.booleanValue()
           && Platform.getAppContext().okForOS(cfg.showTitleBar) && (menuBar == null)) {
-        if (frame.getTitleWidget() == null) {
-          BeanWidget b = new BeanWidget(getRootViewer(), new TitlePane(getViewer()));
-
-          frame.setTitleWidget(b);
-        }
+        ((Window) frame.window).setDecorated(true);
       }
     }
 

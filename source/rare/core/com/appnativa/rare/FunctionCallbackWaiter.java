@@ -20,10 +20,11 @@
 
 package com.appnativa.rare;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.ObjectHolder;
-
-import java.util.HashMap;
 
 /**
  * A class for waiting for multiple callbacks to be completed.
@@ -33,7 +34,11 @@ import java.util.HashMap;
  * The resultValue upon completion will be an {@link ObjectHolder}
  * whose source will be the waiter and value will be a hashmap whose
  * with a the callback id associated with a {@link CallbackResult}.
- *
+ * <p>
+ * Optionally, if this class is used on a background thread
+ * you can block until all the callbacks have been called by invoking
+ * the {@link #blockUntilComplete()} method
+ *</p>
  * Here is an example usage:
  * <pre class="brush:java">
  *   final WindowViewer win = Platform.getWindowViewer();
@@ -106,13 +111,38 @@ public class FunctionCallbackWaiter {
     checkForCompletion();
   }
 
+  /**
+   * Starts waiting and blocks until all the callbacks have completed
+   *
+   *@return a map with the results of all the callback results
+   * @throws InterruptedException 
+   */
+  public Map<Object, CallbackResult> blockUntilComplete() throws InterruptedException {
+    this.completionCallback = null;
+    while(true) {
+      synchronized (resultsMap) {
+        if(resultsMap.size() == callbackCount) {
+          break;
+        }
+        resultsMap.wait();
+      }
+    }
+    return resultsMap;
+  }
+
   protected void callbackFinished(Object id, boolean canceled, Object returnValue) {
     resultsMap.put(id, new CallbackResult(canceled, returnValue));
     checkForCompletion();
   }
 
   protected void checkForCompletion() {
-    if ((completionCallback != null) && (resultsMap.size() == callbackCount)) {
+    if (resultsMap.size() == callbackCount) {
+      if(completionCallback==null) {
+        synchronized (resultsMap) {
+         resultsMap.notify();
+         return;
+        }
+      }
       final ObjectHolder      h  = new ObjectHolder(this, null, resultsMap);
       final iFunctionCallback cb = completionCallback;
 

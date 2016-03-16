@@ -133,64 +133,13 @@ def get_rare_source_path(dir,sdk,osx)
   path << ":#{dir}/../rare/osx" if osx
   return path
 end
-  
-#def get_rare_changes(dir,all)
-#  check_timestamp(".timestamp_rare",all)
-#  FileUtils.remove_dir("#{dir}/source/rare",true) if all
-#  FileUtils.remove_dir("#{dir}/source/jgoodies",true) if all
-#  FileUtils.remove_dir("#{dir}/include/com/appnativa/rare",true) if all
-#  FileUtils.remove_dir("#{dir}/include/com/jgoodies",true) if all
-#  FileUtils.remove_dir("#{dir}/include/org",true) if all
-#  FileUtils.remove_dir("#{dir}/include/android",true) if all
-#  count=0
-#  f=File.new('files.txt',"w")
-#  list=`find ../rare/core -newer .timestamp_rare`.split(/\n/)
-#  list.each do |item| 
-#    next unless item.ends_with?(".java")
-#    item.replace_char!('\\', '/')
-#    item.strip!
-#    f.write("#{dir}/#{item}\n")
-#    count+=1
-#  end
-#  list=`find ../rare/apple -newer .timestamp_rare`.split(/\n/)
-#  list.each do |item| 
-#    next unless item.ends_with?(".java")
-#    item.replace_char!('\\', '/')
-#    item.strip!
-#    f.write("#{dir}/#{item}\n")
-#    count+=1
-#  end
-#  f.close() 
-#  `touch  .timestamp_rare`  
-#  if count==0
-#    puts "no 'rare' files need transpiling"
-#    return
-#  end
-#  puts "#{count} 'rare' file(s) need transpiling"
-#  sdk="#{dir}/../../sdk"
-#  cmd="#{sdk}/j2objc/j2objc -use-arc --prefixes raw/pkg.properties --mapping appnativa.mappings"
-#  cmd << " -d output"
-#  cmd << " -sourcepath \"#{get_rare_source_path(dir,sdk,false)}\""
-#  cmd << " `cat -n -u files.txt`"
-#  system(cmd)
-#  copy_files(dir,Dir.glob(File.join("output/com/appnativa/rare/**","*.m")),"/rare/",true)
-#  copy_files(dir,Dir.glob(File.join("output/com/appnativa/rare/**","*.h")),"/rare/",false)
-#  copy_files(dir,Dir.glob("output/com/jgoodies/**/*.m"),"/jgoodies/",true)
-#  copy_files(dir,Dir.glob("output/com/jgoodies/**/*.h"),"/jgoodies/",false)
-#  copy_files(dir,Dir.glob("output/org/**/*.m"),"/org/",true)
-#  copy_files(dir,Dir.glob("output/org/**/*.h"),"/org/",false)
-#  copy_files(dir,Dir.glob("output/android/**/*.m"),"/android/",true)
-#  copy_files(dir,Dir.glob("output/android/**/*.h"),"/android/",false)
-#  FileUtils.remove_dir("output",true)
-#  FileUtils.rm_f("files.txt")
-#end
-  
+
 def get_rare_changes(dir,all)
   check_timestamp(".timestamp_rare",all)
   FileUtils.remove_dir("#{dir}/source/rare",true) if all
   FileUtils.remove_dir("#{dir}/source/jgoodies",true) if all
   FileUtils.remove_dir("#{dir}/include/com/appnativa/rare",true) if all
-  FileUtils.remove_dir("#{dir}/include/com/jgoodies",true) if all
+  FileUtils.remove_dir("#{dir}/include/com/appnativa/jgoodies",true) if all
   FileUtils.remove_dir("#{dir}/include/org",true) if all
   FileUtils.remove_dir("#{dir}/include/android",true) if all
   count=0
@@ -228,8 +177,8 @@ def get_rare_changes(dir,all)
   copy_files(dir,Dir.glob(File.join("output/com/appnativa/rare/**","*.h")),"/rare/",false)
   copy_files(dir,Dir.glob("output/android/**/*.m"),"/android/",true)
   copy_files(dir,Dir.glob("output/android/**/*.h"),"/android/",false)
-  copy_files(dir,Dir.glob("output/com/jgoodies/**/*.m"),"/jgoodies/",true)
-  copy_files(dir,Dir.glob("output/com/jgoodies/**/*.h"),"/jgoodies/",false)
+  copy_files(dir,Dir.glob("output/com/appnativa/jgoodies/**/*.m"),"/jgoodies/",true)
+  copy_files(dir,Dir.glob("output/com/appnativa/jgoodies/**/*.h"),"/jgoodies/",false)
   FileUtils.remove_dir("output",true)
   FileUtils.rm_f("files.txt")
 end

@@ -21,17 +21,18 @@
 package com.appnativa.rare.ui.canvas;
 
 import android.content.Context;
-
 import android.graphics.Canvas;
 
 import com.appnativa.rare.platform.android.ui.view.ViewEx;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.viewer.CanvasViewer;
 import com.appnativa.rare.widget.iWidget;
 
 public class CanvasComponent extends Component implements iCanvasComponent {
   iContext context;
+  private boolean settingCanvasSize;
 
   public CanvasComponent(iWidget w) {
     super(new CanvasView(w.getAppContext().getActivity()));
@@ -44,6 +45,16 @@ public class CanvasComponent extends Component implements iCanvasComponent {
 
   public iContext getContext() {
     return context;
+  }
+
+  @Override
+  public void setBounds(float x, float y, float width, float height) {
+    if (!settingCanvasSize) {
+      settingCanvasSize=true;
+      super.setBounds(x, y, width, height);
+      ((CanvasViewer) widget).setSize((int) width, (int) height, false);
+      settingCanvasSize=false;
+    }
   }
 
   @Override

@@ -30,9 +30,9 @@ import com.appnativa.rare.ui.RenderableDataItem.VerticalAlign;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.border.UIBevelBorder;
 import com.appnativa.rare.ui.border.UICompoundBorder;
-import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIBackgroundPainter;
 import com.appnativa.rare.ui.painter.iPainter;
@@ -49,7 +49,7 @@ public class BoxStackedTabPainter extends BoxTabPainter {
   public void getMinimumSize(UIDimension size) {
     super.getPreferredSize(size);
   }
-
+ 
   @Override
   public void updateTabSizes() {
     super.updateTabSizes();
@@ -86,7 +86,7 @@ public class BoxStackedTabPainter extends BoxTabPainter {
     PaintBucket pb = new PaintBucket();
     UIColor     bg = ColorUtils.getBackground();
 
-    pb.setBackgroundPainter(new UIBackgroundPainter(bg.light(-30), bg));
+    pb.setBackgroundPainter(new UIBackgroundPainter(bg,bg.light(-30)));
 
     UIBevelBorder    bb;
     UICompoundBorder b = new UICompoundBorder(BorderUtils.TWO_POINT_EMPTY_BORDER,
@@ -94,8 +94,6 @@ public class BoxStackedTabPainter extends BoxTabPainter {
     UIColor[] ca = BorderUtils.getBevelColors(bg, false);
 
     bb.setColors(ca[0], ca[1]);
-//    UICompoundBorder b = new UICompoundBorder(BorderUtils.TWO_POINT_EMPTY_BORDER, new UILineBorder(
-//        UILineBorder.getDefaultLineColor(), ScreenUtils.PLATFORM_PIXELS_1, ScreenUtils.PLATFORM_PIXELS_6));
     pb.setBorder(b);
 
     return pb;

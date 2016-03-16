@@ -61,7 +61,6 @@ public class SliderWidget extends aSliderWidget {
   @Override
   protected aSliderComponent createSliderAndComponents(Slider cfg) {
     SliderView slider = getAppContext().getComponentCreator().getSlider(getViewer(), cfg);
-
     dataComponent = formComponent = new SliderComponent(slider);
 
     return (aSliderComponent) dataComponent;

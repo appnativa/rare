@@ -515,8 +515,8 @@ public class ActionComponent extends Component
 
   @Override
   public void setDisabledIcon(iPlatformIcon icon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     disabledIcon = icon;
@@ -532,7 +532,7 @@ public class ActionComponent extends Component
       if (!enabled && (icon != null) && (disabledIcon == null)) {
         setDisabledIcon(icon.getDisabledVersion());
       }
-
+      
       super.setEnabled(enabled);
       updateStateIcons();
       view.refreshDrawableState();
@@ -558,8 +558,8 @@ public class ActionComponent extends Component
 
       this.icon = icon;
 
-      if (icon instanceof UIImageIcon) {
-        ((UIImageIcon) icon).isImageLoaded(this);
+      if (icon instanceof iObservableImage) {
+        ((iObservableImage) icon).isImageLoaded(this);
       } else if (icon instanceof UISpriteIcon) {
         ((UISpriteIcon) icon).setOwner(this);
       }
@@ -666,8 +666,11 @@ public class ActionComponent extends Component
     }
   }
 
-  public void setPainterHolder(PainterHolder painterHolder) {
-    getComponentPainter(true).setPainterHolder(painterHolder);
+  public void setPainterHolder(PainterHolder ph) {
+    getComponentPainter(true).setPainterHolder(ph);
+    if(ph.foregroundColor!=null) {
+      setForeground(ph.foregroundColor);
+    }
   }
 
   /**
@@ -676,8 +679,8 @@ public class ActionComponent extends Component
    */
   @Override
   public void setPressedIcon(iPlatformIcon pressedIcon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     this.pressedIcon = pressedIcon;
@@ -707,8 +710,8 @@ public class ActionComponent extends Component
    */
   @Override
   public void setSelectedIcon(iPlatformIcon selectedIcon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     this.selectedIcon = selectedIcon;

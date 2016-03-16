@@ -43,7 +43,7 @@ import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iRenderingComponent;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.util.SNumber;
-import com.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 import java.util.Locale;
 import java.util.Map;

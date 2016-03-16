@@ -15,14 +15,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
 import android.content.Context;
+
 import android.graphics.Canvas;
 import android.graphics.Paint;
+
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -58,6 +60,15 @@ public class SplitPanePanel extends aSplitPanePanel {
     getEventListenerList().add(iChangeListener.class, l);
   }
 
+  @Override
+  public void checkOrientation(Object newConfig) {
+    super.checkOrientation(newConfig);
+
+    if ((newConfig == null) && autoOrient) {
+      revalidate();
+    }
+  }
+
   public Divider createDivider() {
     return new Divider(new DividerView(splitPaneView.getContext()));
   }
@@ -72,6 +83,7 @@ public class SplitPanePanel extends aSplitPanePanel {
   protected boolean canChangeOrientationInCurrentState() {
     return !PlatformHelper.isKeyboardVisible();
   }
+
   int getWindowX(MotionEvent e) {
     return UIScreen.snapToPosition(e.getRawX());
   }

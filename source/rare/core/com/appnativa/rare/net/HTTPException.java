@@ -33,12 +33,12 @@ import java.net.HttpURLConnection;
  * @author Don DeCoteau
  */
 public class HTTPException extends RuntimeException {
-  String            statusBody    = null;
-  int               statusCode    = -1;
-  boolean           cleanedUp     = false;
-  String            statusMessage = null;
-  HttpURLConnection httpConn;
-  String            url;
+  protected String            statusBody    = null;
+  protected int               statusCode    = -1;
+  protected boolean           cleanedUp     = false;
+  protected String            statusMessage = null;
+  protected HttpURLConnection httpConn;
+  protected String            url;
 
   /**
    * Creates a new instance of HTTPException
@@ -87,6 +87,14 @@ public class HTTPException extends RuntimeException {
     return url + "\r\n" + getStatusCode() + " " + getStatus() + "\r\n" + getMessageBody();
   }
 
+  /**
+   * Gets the http reference associated with the exception
+   * @return the href the caused the exception
+   */
+  public String getHREF() {
+    return url;
+  }
+  
   /**
    * Get the HTTP message body for the exception
    *
@@ -138,16 +146,17 @@ public class HTTPException extends RuntimeException {
     if (statusMessage == null) {
       try {
         statusMessage = httpConn.getResponseMessage();
-      } catch(IOException ex) {
-        statusMessage = "";
+      } catch(IOException ignore) {
       }
 
       try {
         if (super.getMessage() != null) {
           statusMessage = super.getMessage() + "\r\n" + statusMessage;
         }
-      } catch(Exception ex) {
-        statusMessage = "";
+      } catch(Exception ignore) {
+      }
+      if(statusMessage==null) {
+        statusMessage="";
       }
     }
 

@@ -20,19 +20,18 @@
 
 package com.appnativa.rare.platform;
 
+import java.util.ArrayList;
+
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.ui.ActionComponent;
 import com.appnativa.rare.ui.FocusedAction;
 import com.appnativa.rare.ui.UIAction;
-import com.appnativa.rare.ui.UIClipboard;
 import com.appnativa.rare.ui.aFocusedAction;
+import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.dnd.iTransferSupport;
 import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
-
-import java.util.ArrayList;
 
 public class ActionHelper {
   private static final String                    CUT_CLIENT_PROPERTY        = iConstants.CUT_ACTION_NAME;
@@ -235,7 +234,7 @@ public class ActionHelper {
       boolean enable = false;
 
       if (component instanceof iTransferSupport) {
-        enable = ((iTransferSupport) component).canImport(UIClipboard.getAvailableFlavors());
+        //enable = ((iTransferSupport) component).canImport(UIClipboard.getAvailableFlavors());
       }
 
       return enable;

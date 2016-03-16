@@ -25,7 +25,7 @@ public class DesignPaneContainer extends Container implements iTransferSupport{
     return pane.canPaste();
   }
   public boolean canSelectAll() {
-    return pane.canSelectAll();
+    return pane.canSelectAll(false);
   }
   public void performCopy() {
     pane.copy();

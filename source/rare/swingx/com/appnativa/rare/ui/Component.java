@@ -15,10 +15,39 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.platform.EventHelper;
+import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
+import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
+import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
+import com.appnativa.rare.platform.swing.ui.view.ListView;
+import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
+import com.appnativa.rare.platform.swing.ui.view.iView;
+import com.appnativa.rare.ui.RenderableDataItem.Orientation;
+import com.appnativa.rare.ui.effects.aAnimator;
+import com.appnativa.rare.ui.event.KeyEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
+import com.appnativa.rare.ui.listener.iFocusListener;
+import com.appnativa.rare.ui.listener.iKeyListener;
+import com.appnativa.rare.ui.listener.iMouseListener;
+import com.appnativa.rare.ui.listener.iMouseMotionListener;
+import com.appnativa.rare.ui.listener.iViewListener;
+import com.appnativa.rare.ui.painter.PainterHolder;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
+import com.appnativa.rare.ui.painter.iComponentPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -34,41 +63,13 @@ import java.awt.event.HierarchyListener;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import javax.swing.plaf.UIResource;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.EventHelper;
-import com.appnativa.rare.platform.swing.ui.ScaleGestureDetector;
-import com.appnativa.rare.platform.swing.ui.UIProxyBorder;
-import com.appnativa.rare.platform.swing.ui.util.ImageUtils;
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
-import com.appnativa.rare.platform.swing.ui.view.ListView;
-import com.appnativa.rare.platform.swing.ui.view.UtilityPanel;
-import com.appnativa.rare.platform.swing.ui.view.iView;
-import com.appnativa.rare.ui.RenderableDataItem.Orientation;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
-import com.appnativa.rare.ui.effects.aAnimator;
-import com.appnativa.rare.ui.event.KeyEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.listener.iFocusListener;
-import com.appnativa.rare.ui.listener.iKeyListener;
-import com.appnativa.rare.ui.listener.iMouseListener;
-import com.appnativa.rare.ui.listener.iMouseMotionListener;
-import com.appnativa.rare.ui.listener.iViewListener;
-import com.appnativa.rare.ui.painter.PainterHolder;
-import com.appnativa.rare.ui.painter.UIComponentPainter;
-import com.appnativa.rare.ui.painter.iComponentPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 
 /**
  *
@@ -91,11 +92,12 @@ public class Component extends aComponent
   public Component(JComponent component) {
     super();
     this.view                  = component;
-    useBorderInSizeCalculation=false;
+    useBorderInSizeCalculation = false;
 
     if (component instanceof ListView) {
       component.putClientProperty(RARE_COMPONENT_PROXY_PROPERTY, this);
     }
+
     if (component != null) {
       component.putClientProperty(RARE_COMPONENT_PROXY_PROPERTY, this);
     }
@@ -184,6 +186,25 @@ public class Component extends aComponent
     return true;
   }
 
+  public float getAlpha() {
+    if (view instanceof JPanelEx) {
+      AlphaComposite c = (AlphaComposite) ((JPanelEx) view).getComposite();
+
+      return (c == null)
+             ? 1
+             : c.getAlpha();
+    } else {
+      UIComponentPainter cp = (UIComponentPainter) getComponentPainter(false);
+      iComposite         c  = (cp == null)
+                              ? null
+                              : cp.getComposite();
+
+      return (c == null)
+             ? 1
+             : c.getAlpha();
+    }
+  }
+
   @Override
   public iPlatformComponent copy() {
     try {
@@ -222,12 +243,12 @@ public class Component extends aComponent
 
   @Override
   public void focusGained(FocusEvent e) {
-    focusChanged(view, true, e.getOppositeComponent(),e.isTemporary());
+    focusChanged(view, true, e.getOppositeComponent(), e.isTemporary());
   }
 
   @Override
   public void focusLost(FocusEvent e) {
-    focusChanged(view, false, e.getOppositeComponent(),e.isTemporary());
+    focusChanged(view, false, e.getOppositeComponent(), e.isTemporary());
   }
 
   public static iPlatformComponent fromView(JComponent c) {
@@ -308,11 +329,15 @@ public class Component extends aComponent
       return;
     }
 
-    KeyEvent ke        = new KeyEvent(this, e);
+    KeyEvent ke        = null;
     Object[] listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iKeyListener.class) {
+        if (ke == null) {
+          ke = new KeyEvent(this, e);
+        }
+
         ((iKeyListener) listeners[i + 1]).keyPressed(ke);
 
         if (ke.isConsumed()) {
@@ -328,11 +353,15 @@ public class Component extends aComponent
       return;
     }
 
-    KeyEvent ke        = new KeyEvent(this, e);
+    KeyEvent ke        = null;
     Object[] listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iKeyListener.class) {
+        if (ke == null) {
+          ke = new KeyEvent(this, e);
+        }
+
         ((iKeyListener) listeners[i + 1]).keyReleased(ke);
 
         if (ke.isConsumed()) {
@@ -348,11 +377,15 @@ public class Component extends aComponent
       return;
     }
 
-    KeyEvent ke        = new KeyEvent(this, e);
+    KeyEvent ke        = null;
     Object[] listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iKeyListener.class) {
+        if (ke == null) {
+          ke = new KeyEvent(this, e);
+        }
+
         ((iKeyListener) listeners[i + 1]).keyTyped(ke);
 
         if (ke.isConsumed()) {
@@ -371,11 +404,15 @@ public class Component extends aComponent
       return;
     }
 
-    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    MouseEvent me        = null;
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseMotionListener.class) {
+        if (me == null) {
+          me = EventHelper.createMouseEvent(this, e);
+        }
+
         ((iMouseMotionListener) listeners[i + 1]).mouseDragged(me);
 
         if (me.isConsumed()) {
@@ -391,11 +428,15 @@ public class Component extends aComponent
       return;
     }
 
-    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    MouseEvent me        = null;
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
+        if (me == null) {
+          me = EventHelper.createMouseEvent(this, e);
+        }
+
         ((iMouseListener) listeners[i + 1]).mouseEntered(me);
 
         if (me.isConsumed()) {
@@ -411,11 +452,15 @@ public class Component extends aComponent
       return;
     }
 
-    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    MouseEvent me        = null;
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
+        if (me == null) {
+          me = EventHelper.createMouseEvent(this, e);
+        }
+
         ((iMouseListener) listeners[i + 1]).mouseExited(me);
 
         if (me.isConsumed()) {
@@ -431,11 +476,15 @@ public class Component extends aComponent
       return;
     }
 
-    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    MouseEvent me        = null;
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseMotionListener.class) {
+        if (me == null) {
+          me = EventHelper.createMouseEvent(this, e);
+        }
+
         ((iMouseMotionListener) listeners[i + 1]).mouseMoved(me);
 
         if (me.isConsumed()) {
@@ -451,11 +500,15 @@ public class Component extends aComponent
       return;
     }
 
-    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    MouseEvent me        = null;
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
+        if (me == null) {
+          me = EventHelper.createMouseEvent(this, e);
+        }
+
         ((iMouseListener) listeners[i + 1]).mousePressed(me);
 
         if (me.isConsumed()) {
@@ -471,11 +524,15 @@ public class Component extends aComponent
       return;
     }
 
-    MouseEvent me        = EventHelper.createMouseEvent(this, e);
+    MouseEvent me        = null;
     Object[]   listeners = listenerList.getListenerList();
 
     for (int i = listeners.length - 2; i >= 0; i -= 2) {
       if (listeners[i] == iMouseListener.class) {
+        if (me == null) {
+          me = EventHelper.createMouseEvent(this, e);
+        }
+
         ((iMouseListener) listeners[i + 1]).mouseReleased(me);
 
         if (me.isConsumed()) {
@@ -693,7 +750,7 @@ public class Component extends aComponent
   public void setEnabled(boolean enabled) {
     if (enabled != view.isEnabled()) {
       view.setEnabled(enabled);
-      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled,enabled);
+      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled, enabled);
     }
   }
 
@@ -864,26 +921,26 @@ public class Component extends aComponent
     if (loc == null) {
       loc = new UIPoint();
     }
-    if(!view.isShowing()) {
-      loc.set(Short.MAX_VALUE,Short.MAX_VALUE);
-    }
-    else {
+
+    if (!view.isShowing()) {
+      loc.set(Short.MAX_VALUE, Short.MAX_VALUE);
+    } else {
       iParentComponent pc = getParent();
       Orientation      o  = (pc == null)
                             ? Orientation.HORIZONTAL
                             : pc.getOrientation();
-  
+
       if ((o != Orientation.VERTICAL_DOWN) && (o != Orientation.VERTICAL_UP)) {
         Point p = view.getLocationOnScreen();
-  
+
         loc.x = p.x;
         loc.y = p.y;
-  
+
         return loc;
       }
-  
+
       Point p = pc.getView().getLocationOnScreen();
-  
+
       getOrientedLocation(loc);
       loc.x += p.x;
       loc.y += p.y;
@@ -1073,9 +1130,9 @@ public class Component extends aComponent
   }
 
   @Override
-  protected void getMinimumSizeEx(UIDimension size,float  maxWidth) {
+  protected void getMinimumSizeEx(UIDimension size, float maxWidth) {
     if (view instanceof iView) {
-      ((iView) view).getMinimumSize(size, (int)maxWidth);
+      ((iView) view).getMinimumSize(size, (int) maxWidth);
     } else {
       SwingHelper.setUIDimension(size, view.getMinimumSize());
     }
@@ -1087,7 +1144,6 @@ public class Component extends aComponent
 
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
-
     if (view instanceof iView) {
       ((iView) view).getPreferredSize(size, (int) maxWidth);
     } else {

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare;
@@ -24,6 +24,7 @@ import com.appnativa.rare.converters.iDataConverter;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.ActionLink.ReturnDataType;
 import com.appnativa.rare.net.JavaURLConnection;
+import com.appnativa.rare.net.iMultipartMimeHandler;
 import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.scripting.Functions;
@@ -38,12 +39,16 @@ import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.iCancelable;
+import com.appnativa.util.iURLResolver;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+
+import java.net.MalformedURLException;
 import java.net.URL;
+
 import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
@@ -127,9 +132,10 @@ public class Platform {
    */
   public static Object createObject(String className) {
     try {
-      Class cls=loadClass(className);
+      Class cls = loadClass(className);
+
       return cls.newInstance();
-    } catch (Exception e) {
+    } catch(Exception e) {
       return null;
     }
   }
@@ -168,7 +174,11 @@ public class Platform {
    *          the message to write
    */
   public static void debugLog(String msg) {
-    platform.debugLog(msg);
+    if (platform == null) {
+      System.err.println(msg);
+    } else {
+      platform.debugLog(msg);
+    }
   }
 
   /**
@@ -284,9 +294,34 @@ public class Platform {
   /**
    * Calls the default error handler ignoreException method. The defaults
    * behavior is to log the error to the error console when in debug mode
+   *
+   * @param msg a message to associate with the error (can be null);
+   * @param throwable the error
    */
   public static void ignoreException(String msg, Throwable throwable) {
-    platform.ignoreException(msg, throwable);
+    if (platform == null) {
+      if (msg != null) {
+        System.err.println(msg);
+      }
+
+      throwable.printStackTrace();
+    } else {
+      platform.ignoreException(msg, throwable);
+    }
+  }
+
+  /**
+   * Calls the default error handler ignoreException method. The defaults
+   * behavior is to log the error to the error console when in debug mode
+   *
+   * @param throwable the error
+   */
+  public static void ignoreException(Throwable throwable) {
+    if (platform == null) {
+      throwable.printStackTrace();
+    } else {
+      platform.ignoreException(null, throwable);
+    }
   }
 
   /**
@@ -340,18 +375,28 @@ public class Platform {
    * @throws ClassNotFoundException
    */
   public static Class loadClass(String className) throws ClassNotFoundException {
-      String defaultPackage = Platform.getUIDefaults().getString("Rare.class.defaultPackage");
+    String defaultPackage = Platform.getUIDefaults().getString("Rare.class.defaultPackage");
 
-      if (defaultPackage != null && !className.startsWith(defaultPackage)) {
-        String name=defaultPackage + "." + className;
+    if ((defaultPackage != null)) {
+      int    n    = className.indexOf('.');
+      String name = null;
+
+      if (n == 0) {
+        name = defaultPackage + className;
+      } else if (n == -1) {
+        name = defaultPackage + "." + className;
+      }
+
+      if (name != null) {
         try {
-          Class cls=platform.loadClass(name);
-          if(cls!=null) {
+          Class cls = platform.loadClass(name);
+
+          if (cls != null) {
             return cls;
           }
-        }catch(Exception ignore){}
+        } catch(Exception ignore) {}
       }
-    
+    }
 
     return platform.loadClass(className);
   }
@@ -456,13 +501,9 @@ public class Platform {
    *
    * @throws IOException
    */
-  public static iURLConnection openConnection(iWidget context, URL url, String mimeType) throws IOException {
+  public static iURLConnection openConnection(URL url, String mimeType) throws IOException {
     if ((url != null) && Platform.isUIThread() && url.getProtocol().startsWith("http")) {
       Platform.debugLog("Network IO via UI Thread:" + url.toString());
-    }
-
-    if (context != null) {
-      return context.getAppContext().openConnection(url, mimeType);
     }
 
     return platform.getAppContext().openConnection(url, mimeType);
@@ -623,7 +664,13 @@ public class Platform {
   }
 
   public static iViewer getContextRootViewer() {
-    return platform.getAppContext().getRootViewer();
+    iPlatformAppContext ctx = (platform == null)
+                              ? null
+                              : platform.getAppContext();
+
+    return (ctx == null)
+           ? null
+           : ctx.getRootViewer();
   }
 
   public static List getCookieList() {
@@ -1055,22 +1102,22 @@ public class Platform {
 
   /**
    * Checks to see if the device has a physical keyboard
-   * 
+   *
    * @return true if it does; false otherwise
    */
-  public static boolean hasPhysicalKeyboard(){
+  public static boolean hasPhysicalKeyboard() {
     return platform.hasPhysicalKeyboard();
   }
-  
+
   /**
    * Checks to see if the device has a physical pointing device
-   * 
+   *
    * @return true if it does; false otherwise
    */
-  public static boolean hasPointingDevice(){
+  public static boolean hasPointingDevice() {
     return platform.hasPointingDevice();
   }
-  
+
   /**
    * Checks to see if the current thread is the UI thread
    *
@@ -1116,5 +1163,57 @@ public class Platform {
    */
   public static void setUseFullScreen(boolean use) {
     platform.setUseFullScreen(use);
+  }
+
+  /**
+   * Get the interface for the object that handles multi-part mime data
+   * @return the interface for the object that handles multi-part mime data
+   */
+  public static iMultipartMimeHandler getMultipartMimeHandler() {
+    return (platform == null)
+           ? null
+           : platform.getAppContext().getMultipartMimeHandler();
+  }
+
+  /**
+   * Creates a URL
+   *
+   * @param context
+   *          the context URL
+   * @param url
+   *          the string representing the URL
+   *
+   * @return A context specific URL
+   *
+   * @throws MalformedURLException
+   */
+  public static URL createURL(URL context, String url) throws MalformedURLException {
+    return (platform == null)
+           ? new URL(context, url)
+           : platform.getAppContext().createURL(context, url);
+  }
+
+  /**
+   * Gets the default URL resolver for the application
+   *
+   * @return the default URL resolver for the application
+   */
+  public static iURLResolver getDefaultURLResolver() {
+    iPlatformAppContext ctx = (platform == null)
+                              ? null
+                              : platform.getAppContext();
+
+    return (ctx == null)
+           ? null
+           : (iURLResolver) ctx.getDefaultURLResolver();
+  }
+
+  /**
+   * Sets the maximum number of background threads that can be used for background
+   * tasks (spawned tasks). The system default is 2
+   * @param max the maximum number of threads
+   */
+  public static void setMaxBackgroundThreadCount(int max) {
+    PlatformHelper.setMaxBackgroundThreadCount(max);
   }
 }

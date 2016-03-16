@@ -107,4 +107,16 @@ public class UICompoundBorder extends aUICompoundBorder {
 
     return borders[len].getPath(p, x, y, width, height, forClip);
   }
+
+  public void updateModCount() {
+    super.updateModCount();
+
+    int len = borders.length;
+
+    while(len-- > 0) {
+      if (borders[len] != null) {
+        borders[len].updateModCount();
+      }
+    }
+  }
 }

@@ -2,7 +2,7 @@
 <feature
       id="com.appnativa.studio.designer"
       label="RML Designer"
-      version="1.5.1"
+      version="1.7.0"
       provider-name="appNativa Inc.">
 
    <description>
@@ -34,13 +34,13 @@ limitations under the License.
          id="com.appnativa.studio"
          download-size="0"
          install-size="0"
-         version="1.5.1"
+         version="1.7.0"
          unpack="false"/>
 
    <plugin
          id="com.appnativa.rare"
          download-size="0"
          install-size="0"
-         version="1.5.1"/>
+         version="1.7.0"/>
 
 </feature>

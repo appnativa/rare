@@ -23,48 +23,6 @@
  */
 package com.appnativa.rare.ui.table;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.PlatformHelper;
-import com.appnativa.rare.platform.swing.plaf.BasicTableExUI;
-import com.appnativa.rare.platform.swing.ui.EmptyListSelectionModel;
-import com.appnativa.rare.platform.swing.ui.SelectiveListSelectionModel;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
-import com.appnativa.rare.ui.CheckListManager;
-import com.appnativa.rare.ui.Column;
-import com.appnativa.rare.ui.Component;
-import com.appnativa.rare.ui.FontUtils;
-import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.ScreenUtils;
-import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIInsets;
-import com.appnativa.rare.ui.UIStroke;
-import com.appnativa.rare.ui.aListHandler;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.ChangeEvent;
-import com.appnativa.rare.ui.event.ItemChangeEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iChangeListener;
-import com.appnativa.rare.ui.event.iDataModelListener;
-import com.appnativa.rare.ui.event.iItemChangeListener;
-import com.appnativa.rare.ui.iListHandler.SelectionMode;
-import com.appnativa.rare.ui.iListHandler.SelectionType;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformListView;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.iRenderingComponent;
-import com.appnativa.rare.ui.iScrollerSupport;
-import com.appnativa.rare.ui.iTableModel;
-import com.appnativa.rare.ui.renderer.ListItemRenderer;
-import com.appnativa.rare.ui.renderer.UILabelRenderer;
-import com.appnativa.rare.ui.renderer.aListItemRenderer;
-import com.appnativa.rare.ui.table.iTableComponent.GridViewType;
-import com.appnativa.rare.ui.table.iTableComponent.TableType;
-import com.appnativa.rare.viewer.TableViewer;
-import com.appnativa.util.IntList;
-
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -95,6 +53,48 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.swing.plaf.BasicTableExUI;
+import com.appnativa.rare.platform.swing.ui.EmptyListSelectionModel;
+import com.appnativa.rare.platform.swing.ui.SelectiveListSelectionModel;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.LabelRenderer;
+import com.appnativa.rare.ui.CheckListManager;
+import com.appnativa.rare.ui.Column;
+import com.appnativa.rare.ui.Component;
+import com.appnativa.rare.ui.FontUtils;
+import com.appnativa.rare.ui.RenderableDataItem;
+import com.appnativa.rare.ui.ScreenUtils;
+import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIInsets;
+import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.aListHandler;
+import com.appnativa.rare.ui.iListHandler.SelectionMode;
+import com.appnativa.rare.ui.iListHandler.SelectionType;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformListView;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.iRenderingComponent;
+import com.appnativa.rare.ui.iScrollerSupport;
+import com.appnativa.rare.ui.iTableModel;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ChangeEvent;
+import com.appnativa.rare.ui.event.ItemChangeEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iChangeListener;
+import com.appnativa.rare.ui.event.iDataModelListener;
+import com.appnativa.rare.ui.event.iItemChangeListener;
+import com.appnativa.rare.ui.renderer.ListItemRenderer;
+import com.appnativa.rare.ui.renderer.UILabelRenderer;
+import com.appnativa.rare.ui.renderer.aListItemRenderer;
+import com.appnativa.rare.ui.table.iTableComponent.GridViewType;
+import com.appnativa.rare.ui.table.iTableComponent.TableType;
+import com.appnativa.rare.viewer.TableViewer;
+import com.appnativa.util.IntList;
 
 public class TableView extends JTable
         implements iPlatformListView, MouseListener, MouseMotionListener, iDataModelListener, FocusListener,
@@ -475,6 +475,10 @@ public class TableView extends JTable
   public void structureChanged(Object source) {
     tableChanged(new TableModelEvent(getModel(), TableModelEvent.HEADER_ROW));
   }
+  
+  public iTableComponent getTableComponent() {
+    return header.getTableComponent();
+  }
 
   public boolean updateColumnSizes(int width, int height) {
     if ((Math.abs(oldWidth - width) > 5)
@@ -620,22 +624,6 @@ public class TableView extends JTable
     if (stroke != null) {
       ((TableComponent) header.getTableComponent()).getTablePainter().setLineStroke(SwingHelper.getStroke(stroke));
     }
-  }
-
-  @Override
-  public void setEditingMode(EditingMode mode) {
-    // if (mode == null) {
-    // mode = EditingMode.NONE;
-    // }
-    //
-    // editingMode = mode;
-    //
-    // aListViewer lv = (aListViewer) Component.fromView(this).getWidget();
-    //
-    // draggingAllowed = (mode == EditingMode.REORDERING) || (mode ==
-    // EditingMode.REORDERING_AND_SELECTION);
-    // setMouseOverideListener(new
-    // EditableGestureListener(lv.canDelete()));
   }
 
   public void setHeaderVisible(boolean visible) {
@@ -1505,7 +1493,10 @@ public class TableView extends JTable
   public Insets getAutoscrollInsets() {
     return SwingHelper.defaultGetAutoscrollInsets(this);
   }
-
+  
+  public TableViewer getTableViewer() {
+    return (TableViewer) table.getWidget();
+  }
   public Dimension getHeaderMinimumSize() {
     UIDimension d = getHeader().getMinimumSize();
 
@@ -1808,6 +1799,13 @@ public class TableView extends JTable
 
   @Override
   public void setShowLastDivider(boolean show) {
-    // TODO Auto-generated method stub
+  }
+
+  public int[] getSelectedIndices() {
+    return this.getSelectedRows();
+  }
+  
+  public int getSelectedIndexCount() {
+    return this.getSelectedRowCount();
   }
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
@@ -30,26 +30,33 @@ import com.google.j2objc.annotations.Weak;
  */
 public class WidgetContext {
   @Weak
-  public Object languageObject;
+  public Object  languageObject;
   @Weak
-  public Object savedWindow;
+  public Object  scriptContext;
   @Weak
-  public Object scriptContext;
+  public Object  scriptEngine;
+  public String  scriptName;
   @Weak
-  public Object scriptEngine;
-  public String scriptName;
-  @Weak
-  public Object scriptObject;
+  public Object  scriptObject;
+  public boolean needsJSRetention;
+  boolean        releaseEngine;
 
   public WidgetContext() {}
 
   public void dispose() {
+    if (releaseEngine && (scriptEngine != null)) {
+      aScriptManager.releaseEngine(scriptEngine);
+    }
+
     scriptObject   = null;
     scriptContext  = null;
     scriptName     = null;
     scriptEngine   = null;
     languageObject = null;
-    savedWindow    = null;
+  }
+
+  public boolean hasLanguageObject() {
+    return languageObject != null;
   }
 
   public iWidget getWidget() {
@@ -58,5 +65,13 @@ public class WidgetContext {
     }
 
     return null;
+  }
+
+  public Object getLanguageObject() {
+    return languageObject;
+  }
+
+  public void setLanguageObject(Object languageObject) {
+    this.languageObject = languageObject;
   }
 }

@@ -15,22 +15,25 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
 
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Displayed;
 import com.appnativa.rare.ui.RenderType;
+import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.iComposite;
+import com.appnativa.rare.ui.iPlatformPaint;
 
 /**
  * A class that handles painting images
  *
  * @author Don DeCoteau
  */
-public class UIImagePainter extends aUIImagePainter {
+public class UIImagePainter extends aUIImagePainter implements iPlatformPaint{
   public UIImagePainter() {
     super();
   }
@@ -61,5 +64,20 @@ public class UIImagePainter extends aUIImagePainter {
       default :
         return (displayed == Displayed.ALWAYS) && (composite.getCompositeType() == iComposite.CompositeType.SRC_OVER);
     }
+  }
+
+  @Override
+  public UIColor getPlatformPaintColor() {
+    return ColorUtils.TRANSPARENT_COLOR;
+  }
+
+  @Override
+  public boolean isPainter() {
+    return true;
+  }
+
+  @Override
+  public iPlatformPaint getPaint(float width, float height) {
+    return this;
   }
 }

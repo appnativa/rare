@@ -20,10 +20,10 @@
 
 package com.appnativa.rare.ui;
 
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 import com.appnativa.rare.platform.apple.ui.view.BorderLayoutView;
 import com.appnativa.rare.ui.layout.BorderLayout;
 import com.appnativa.rare.widget.iWidget;
-import com.jgoodies.forms.layout.CellConstraints;
 
 public class BorderPanel extends aBorderPanel {
   public BorderPanel(iWidget context) {

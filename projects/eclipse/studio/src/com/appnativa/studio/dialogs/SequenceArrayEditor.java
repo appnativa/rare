@@ -298,7 +298,7 @@ public class SequenceArrayEditor extends Dialog implements PropertyChangeListene
 
       itemSelected(false);
     } catch (Throwable err) {
-      Studio.showError(err);
+      Studio.showError(err,false);
     }
   }
 

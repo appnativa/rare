@@ -610,15 +610,6 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
   ]-*/
   ;
 
-  public int getEditingColumn() {
-    return -1;
-  }
-
-  @Override
-  public int getEditingRow() {
-    return editingRow;
-  }
-
   @Override
   public native int getFirstVisibleIndex()
   /*-[
@@ -709,7 +700,6 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     return false;
   }
 
-  @Override
   public native boolean isEditing()
   /*-[
     return ((RAREAPListView*)proxy_).editing;
@@ -854,7 +844,11 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     return [(RAREAPListView*)proxy_ getPressedColumn];
   ]-*/
   ;
-
+  @Override
+  protected void someDataChanged() {
+    super.someDataChanged();
+    refreshItems();
+  }
   protected void itemDeselected(int index) {
     if (listSynchronizer != null) {
       listSynchronizer.setSelectedIndex(this, index, false, false);
@@ -979,6 +973,15 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
 
     rows.add(rc);
   }
+  
+  protected PaintBucket getSelectionPainter() {
+    if (!isEditing()) {
+      return itemRenderer.getSelectionPaintForExternalPainter(false);
+    }
+
+    return null;
+  }
+
 
   @Override
   protected native void setMultipleSelection(boolean multiple)
@@ -1816,7 +1819,7 @@ public abstract class aPlatformTableBasedView extends aTableBasedView implements
     public iPlatformComponent getComponent(iPlatformComponent list, Object value, RenderableDataItem item, int row,
             boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
       if (handleAll) {
-        Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, false, null);
+        Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, null);
         setBorder(item.getBorder());
 
         UIFont f = item.getFont();

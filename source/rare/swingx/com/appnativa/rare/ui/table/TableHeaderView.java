@@ -97,12 +97,12 @@ public class TableHeaderView extends JTableHeader implements iPainterSupport {
     }
 
     if (marginColor != null) {
+      TableView table = (TableView) getTable();
       TableColumnModel cm    = getColumnModel();
       int              len   = cm.getColumnCount();
       boolean          first = true;
 
       g.setColor(marginColor);
-
       for (int i = 0; i < len; i++) {
         Rectangle r = getHeaderRect(i);
 
@@ -115,7 +115,6 @@ public class TableHeaderView extends JTableHeader implements iPainterSupport {
         }
       }
 
-      TableView table = (TableView) getTable();
 
       if (table.header.paintRightMargin) {
         g.drawLine(w - 1, 0, w - 1, h - 2);

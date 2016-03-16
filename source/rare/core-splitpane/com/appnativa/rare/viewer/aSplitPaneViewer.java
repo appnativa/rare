@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.viewer;
@@ -135,6 +135,12 @@ public abstract class aSplitPaneViewer extends aPlatformRegionViewer {
       getSplitPanePanel().checkOrientation(null);
       super.onConfigurationChanged(reset);
     }
+  }
+
+  @Override
+  public void onConfigurationWillChange(Object newConfig) {
+    getSplitPanePanel().checkOrientation(newConfig);
+    super.onConfigurationWillChange(newConfig);
   }
 
   public void setContinuousLayout(boolean continuous) {

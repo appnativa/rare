@@ -23,7 +23,7 @@ package com.appnativa.rare.ui;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 
-import com.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 import java.util.ArrayList;
 

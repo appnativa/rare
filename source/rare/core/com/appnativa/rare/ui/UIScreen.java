@@ -170,6 +170,28 @@ public final class UIScreen {
   public static int snapToPosition(float value) {
     return Math.round(value);
   }
+  
+  /**
+   * Gets whether or not the component can have its update/repaint
+   * sycned with a screen refresh.
+   * 
+   * @param comp the component
+   * @return true if it can; false otherwise
+   */
+  public boolean supportsUpdateRepaintWithScreenRefresh(iPlatformComponent comp) {
+    return PlatformHelper.supportsSyncUpdateWithScreenRefresh(comp);
+  }
+  /**
+   * Sync's the components update/repaint with the screen refresh cycle (if supported).
+   * This means that the component's repaint method will be called when even 
+   * the screen refreshes.
+   * 
+   * @param comp the component
+   * @param sync to to enable the synchronization; false to disable
+   */
+  public void syncUpdateWithScreenRefresh(iPlatformComponent comp, boolean sync) {
+    PlatformHelper.syncUpdateWithScreenRefresh(comp,sync);
+  }
 
   /**
    * Snaps the value to an integer pixel representing the width or height of an
@@ -348,6 +370,13 @@ public final class UIScreen {
   }
 
   /**
+   * Recalculates the relative screen size.
+   */
+  public static void recalculateRelativeScreenSize() {
+    ScreenUtils.calculateScreenSize();
+  }
+
+/**
    * Sets the relative screen size to small. This forces the runtime to report
    * the screen as as small screen. If multi-screen supports has been enabled
    * then the runtime will render accordingly.

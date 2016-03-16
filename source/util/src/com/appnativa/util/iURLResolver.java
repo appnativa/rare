@@ -17,17 +17,16 @@
 package com.appnativa.util;
 
 import java.io.IOException;
-
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * This interface represents an entity that can resolve URLs
  *
  * @author Don DeCoteau
  */
-public interface iURLResolver extends iFileResolver {
+public interface iURLResolver  {
 
   /**
    * Gets the resolver's base URL
@@ -35,16 +34,6 @@ public interface iURLResolver extends iFileResolver {
    * @return the resolver's base URL
    */
   URL getBaseURL();
-
-  /**
-   * Converts the specified file to a URL and returns a connection
-   *
-   * @param file the file representing the URL
-   * @return the connection that the URL corresponds to
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  URLConnection getConnection(String file) throws IOException;
 
   /**
    * Converts the specified file to a URL
@@ -56,10 +45,14 @@ public interface iURLResolver extends iFileResolver {
    */
   URL getURL(String file) throws MalformedURLException;
 
+
   /**
-   * Gets the environment specific application context
+   * Returns a reader that can read from the specified file
    *
-   * @return the environment specific application context
+   * @param file the file representing the URL
+   * @return a reader that access the file's data
+   *
+   * @throws IOException if an I/O error occurs
    */
-  Object getApplicationContext();
+  Reader getReader(String file) throws IOException;
 }

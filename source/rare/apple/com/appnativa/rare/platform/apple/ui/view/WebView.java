@@ -340,4 +340,9 @@ public class WebView extends ParentView implements iPlatformTextEditor {
   @Override
   public void setChangeEventsEnabled(boolean enabled) {
   }
+
+  public native void handleViewerConfigurationChanged()
+   /*-[
+     [((RAREAPWebView*)proxy_) adjustForRotation];
+   ]-*/;
 }

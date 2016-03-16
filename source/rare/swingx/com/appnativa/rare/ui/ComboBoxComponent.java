@@ -20,21 +20,18 @@
 
 package com.appnativa.rare.ui;
 
+import java.awt.Graphics;
+
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.ui.PopupListBoxHandler;
 import com.appnativa.rare.platform.swing.ui.text.TextEditorComponent;
 import com.appnativa.rare.platform.swing.ui.view.ButtonView;
 import com.appnativa.rare.platform.swing.ui.view.JPanelEx;
 import com.appnativa.rare.platform.swing.ui.view.TextFieldView;
-import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.painter.PainterHolder;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
-import com.appnativa.rare.widget.aComboBoxWidget;
-import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
-
-import java.awt.Graphics;
 
 public class ComboBoxComponent extends aComboBoxComponent {
   protected int   visibleCharacters;
@@ -46,24 +43,6 @@ public class ComboBoxComponent extends aComboBoxComponent {
 
   public ComboBoxComponent(iWidget context) {
     super(new ComboBoxView());
-  }
-
-  @Override
-  public void configurationCompleted(aWidget w, Widget cfg) {
-    super.configurationCompleted(w, cfg);
-    w.getDataComponent().getView().repaint();
-
-    if (w instanceof aComboBoxWidget) {
-      aComboBoxWidget cw = (aComboBoxWidget) w;
-
-      if (listHandler instanceof ComboBoxListHandler) {
-        ((ComboBoxListHandler) listHandler).getItemRenderer().setItemDescription(cw.getItemDescription());
-      }
-
-      if ((popupPainter != null) && popupPainter.isBackgroundPaintEnabled()) {
-        listHandler.getContainerComponent().setOpaque(false);
-      }
-    }
   }
 
   @Override

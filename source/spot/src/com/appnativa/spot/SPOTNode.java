@@ -230,6 +230,9 @@ public class SPOTNode implements iSPOTConstants {
 
   /** elements range */
   public String        theRange;
+
+  /** linked data*/
+  public Object linkedData;
   int                  writeXpos = 0;
   List                 choiceList;
   List                 commentList;
@@ -894,20 +897,19 @@ public class SPOTNode implements iSPOTConstants {
   }
 
   /**
-   * Tests whether this element has children
-   *
-   * @return true or false
-   */
-  public boolean hasChildren() {
-    return ((theAttributes != null) && (theAttributes.size() > 0));
-  }
-
-  /**
    * Returns whether this node represents a boolean type
    * @return true if it is a boolean type; false otherwise
    */
   public boolean isBooleanType() {
     return elementType == typeBoolean;
+  }
+
+  /**
+   * Returns whether this node represents a nemeric type
+   * @return true if it is a boolean type; false otherwise
+   */
+  public boolean isNumericType() {
+    return elementType == typeInteger || elementType==typeReal;
   }
 
   /**
@@ -933,6 +935,17 @@ public class SPOTNode implements iSPOTConstants {
    */
   public boolean isSetType() {
     return elementType == typeSet;
+  }
+
+  /**
+   * Returns the element type as a integer (call this mentod instead of using the public variable)
+   * @return  the element type as a integer
+   */
+  public int getElementTypeAsInt() {
+    if(elementTypeAsInt==0) {
+      elementTypeAsInt=typeToInt(elementType);
+    }
+    return elementTypeAsInt;
   }
 
   /**

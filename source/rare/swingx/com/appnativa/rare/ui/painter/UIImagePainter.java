@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
@@ -59,7 +59,7 @@ public class UIImagePainter extends aUIImagePainter {
     paint = null;
   }
 
-  public Paint getPaintEx(float x, float y, float width, float height) {
+  public Paint getPaintEx(float width, float height) {
     if (canBecomePaint() && (theImage != null) && theImage.isLoaded()) {
       if ((paint == null) || (paintModCount != modCount)) {
         paintModCount = modCount;
@@ -80,6 +80,6 @@ public class UIImagePainter extends aUIImagePainter {
 
   @Override
   public Paint getPaint() {
-    return null;
+    return getPaintEx(50, 50);
   }
 }

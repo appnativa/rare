@@ -215,7 +215,7 @@ public class UILabelRenderer extends ActionComponent implements Cloneable, iPlat
   public iPlatformComponent getComponent(iPlatformComponent list, CharSequence value, RenderableDataItem item, int row,
           boolean isSelected, boolean hasFocus, Column col, RenderableDataItem rowItem, boolean handleAll) {
     if (handleAll) {
-      Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, false, null);
+      Utils.setIconAndAlignment(this, item, null, null, isSelected, false, false, true, null);
       setBorder(item.getBorder());
 
       UIFont f = item.getFont();

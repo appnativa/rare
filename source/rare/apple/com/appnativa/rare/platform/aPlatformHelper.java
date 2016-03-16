@@ -536,6 +536,13 @@ public class aPlatformHelper {
   ]-*/
   ;
 
+  public static native void setMaxBackgroundThreadCount(int max)
+  /*-[
+    if(max>0) {
+      [((NSOperationQueue*)RAREaPlatformHelper_tasksQueue_) setMaxConcurrentOperationCount: max];
+    }
+  ]-*/
+  ;
   public static void layout(iPlatformComponent c, float x, float y, float w, float h) {
     c.getView().setBounds(x, y, w, h);
   }

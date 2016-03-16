@@ -15,27 +15,27 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
 
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.lang.reflect.Constructor;
-import java.net.URL;
-import java.util.Map;
-
 import android.content.Context;
+
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
+
 import android.util.Log;
+
 import android.view.Gravity;
 import android.view.View;
+
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
@@ -45,8 +45,10 @@ import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.android.AppContext;
 import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
+import com.appnativa.rare.platform.android.ui.util.ImageUtils;
 import com.appnativa.rare.platform.android.ui.view.ButtonViewEx;
 import com.appnativa.rare.platform.android.ui.view.CheckBoxView;
+import com.appnativa.rare.platform.android.ui.view.DrawableWrapper;
 import com.appnativa.rare.platform.android.ui.view.EditTextEx;
 import com.appnativa.rare.platform.android.ui.view.LabelView;
 import com.appnativa.rare.platform.android.ui.view.LineView;
@@ -62,6 +64,7 @@ import com.appnativa.rare.platform.android.ui.view.ViewEx;
 import com.appnativa.rare.spot.Bean;
 import com.appnativa.rare.spot.CollapsibleInfo;
 import com.appnativa.rare.spot.DocumentPane;
+import com.appnativa.rare.spot.GridCell;
 import com.appnativa.rare.spot.Label;
 import com.appnativa.rare.spot.Line;
 import com.appnativa.rare.spot.ListBox;
@@ -76,6 +79,10 @@ import com.appnativa.rare.spot.TextField;
 import com.appnativa.rare.spot.Tree;
 import com.appnativa.rare.spot.TreeTable;
 import com.appnativa.rare.spot.Widget;
+import com.appnativa.rare.ui.painter.PaintBucket;
+import com.appnativa.rare.ui.painter.iGradientPainter;
+import com.appnativa.rare.ui.painter.iGradientPainter.Direction;
+import com.appnativa.rare.ui.painter.iPlatformPainter;
 import com.appnativa.rare.ui.table.TableView;
 import com.appnativa.rare.ui.table.TreeTableView;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
@@ -86,6 +93,15 @@ import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.iSPOTElement;
 import com.appnativa.util.SNumber;
+
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+
+import java.lang.reflect.Constructor;
+
+import java.net.URL;
+
+import java.util.Map;
 
 /**
  *
@@ -187,7 +203,8 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
         h.setHyperlink(true);
 
-        if (cfg.buttonStyle.intValue() == PushButton.CButtonStyle.hyperlink_always_underline || !PlatformHelper.hasPointingDevice()) {
+        if ((cfg.buttonStyle.intValue() == PushButton.CButtonStyle.hyperlink_always_underline)
+            ||!PlatformHelper.hasPointingDevice()) {
           h.setUnderlined(true);
         }
 
@@ -341,7 +358,7 @@ public class ComponentFactory implements iPlatformComponentFactory {
     return e;
   }
 
-  public TextView getLabel(iWidget context, Label cfg) {
+  public LabelView getLabel(iWidget context, Label cfg) {
     return new LabelView(AppContext.getAndroidContext());
   }
 
@@ -403,7 +420,89 @@ public class ComponentFactory implements iPlatformComponentFactory {
   }
 
   public SeekBar getSlider(iWidget context, Slider cfg) {
-    return new SliderView(AppContext.getAndroidContext());
+    final SliderView sv = new SliderView(AppContext.getAndroidContext());
+    GridCell         gc = cfg.getTrackPainter();
+
+    if (gc != null) {
+      PaintBucket pb = ColorUtils.configure(context, gc, null);
+
+      if (!cfg.horizontal.booleanValue()) {
+        iGradientPainter gp = pb.getGradientPainter();
+
+        if (gp != null) {
+          switch(gp.getGradientDirection()) {
+            case VERTICAL_TOP :
+              gp.setGradientDirection(Direction.HORIZONTAL_LEFT);
+
+              break;
+
+            case VERTICAL_BOTTOM :
+              gp.setGradientDirection(Direction.HORIZONTAL_RIGHT);
+
+              break;
+
+            case HORIZONTAL_LEFT :
+              gp.setGradientDirection(Direction.VERTICAL_TOP);
+
+              break;
+
+            case HORIZONTAL_RIGHT :
+              gp.setGradientDirection(Direction.VERTICAL_BOTTOM);
+
+              break;
+
+            default :
+              break;
+          }
+        }
+      }
+
+      iPlatformPainter p = pb.getPainter();
+      Drawable         d = (p == null)
+                           ? null
+                           : p.getDrawable(sv);
+      int              w = gc.getWidthPixels(null);
+
+      if (w > 0) {
+        DrawableWrapper dw = new DrawableWrapper(d);
+
+        if (cfg.horizontal.booleanValue()) {
+          dw.setIntrinsicHeightEx(w);
+        } else {
+          dw.setIntrinsicWidthEx(w);
+        }
+
+        d = dw;
+      }
+
+      sv.setProgressDrawable(d);
+    }
+
+    iPlatformIcon icon = context.getIcon(cfg.thumbIcon);
+
+    if (icon != null) {
+      if (!cfg.horizontal.booleanValue() && (icon instanceof UIImageIcon)) {
+        UIImageIcon ic = (UIImageIcon) icon;
+        Object      o  = ic.getLinkedData();
+
+        if (o instanceof RotatedIconHolder) {
+          icon = ((RotatedIconHolder) o).icon;
+        } else {
+          Bitmap      bm    = ic.getImage().getBitmap();
+          UIImageIcon ricon = new UIImageIcon(new UIImage(ImageUtils.rotateRight(bm)));
+
+          if (o == null) {
+            ic.setLinkedData(new RotatedIconHolder(ricon));
+          }
+
+          icon = ricon;
+        }
+      }
+
+      sv.setThumb(icon.createDrawable(sv));
+    }
+
+    return sv;
   }
 
   @Override
@@ -457,7 +556,6 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
   protected static void configureEditText(EditText et, iSPOTElement keyboardType, iSPOTElement inputValidator,
           boolean multiline, boolean longMessage) {
-    
     String s  = keyboardType.spot_getAttribute("autoCapatilize");
     int    i  = et.getInputType();
     int    ii = i;
@@ -481,6 +579,9 @@ public class ComponentFactory implements iPlatformComponentFactory {
         i ^= InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
       }
     }
+    else {
+      i|=InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+    }
 
     s = keyboardType.spot_getAttribute("autoComplete");
 
@@ -490,6 +591,9 @@ public class ComponentFactory implements iPlatformComponentFactory {
       } else if ((i & InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
         i ^= InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
       }
+    }
+    else {
+      
     }
 
     if ((inputValidator != null) && inputValidator.spot_hasValue()) {
@@ -525,6 +629,15 @@ public class ComponentFactory implements iPlatformComponentFactory {
 
     if (ii != i) {
       et.setInputType(i);
+    }
+  }
+
+  static class RotatedIconHolder {
+    UIImageIcon icon;
+
+    public RotatedIconHolder(UIImageIcon icon) {
+      super();
+      this.icon = icon;
     }
   }
 }

@@ -257,6 +257,10 @@ public class TabDocument implements iTabDocument, ViewerCreator.iCallback {
       if (!httpLink.isDeferred(context)) {
         v = context.getAppContext().getWindowViewer().createViewer(httpLink);
         viewerCreated(context, httpLink, v);
+        if(!reloadOnActivation) {
+          httpLink.setViewerConfiguration(null);
+          httpLink=null;
+        }
       } else {
         loadStarted(context);
         wasReset        = false;
@@ -352,9 +356,6 @@ public class TabDocument implements iTabDocument, ViewerCreator.iCallback {
         v.getContainerComponent().removeFromParent();
         v.dispose();
 
-        if (!httpLink.isInlineURL()) {
-          httpLink.setViewerConfiguration(null);
-        }
       } else {
         httpLink.cancel(true);
       }

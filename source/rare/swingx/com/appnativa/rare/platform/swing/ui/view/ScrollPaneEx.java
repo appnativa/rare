@@ -20,6 +20,18 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
+import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.BorderUtils;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIDimension;
+import com.appnativa.rare.ui.UIPoint;
+import com.appnativa.rare.ui.iScrollerSupport;
+import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPainterSupport;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -34,25 +46,12 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 
-import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.BorderUtils;
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIDimension;
-import com.appnativa.rare.ui.UIPoint;
-import com.appnativa.rare.ui.iScrollerSupport;
-import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPainterSupport;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-
 /**
  *
  * @author Don DeCoteau
  */
 public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView, iScrollerSupport {
   protected SwingGraphics             graphics;
-  protected int                       preferredSizemaxWidth;
   protected boolean                   adjustPrefSizeForHiddenHoriz = true;
   protected boolean                   adjustPrefSizeForHiddenVert  = true;
   protected JViewportEx               columnFooter;
@@ -63,7 +62,7 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
   protected JViewportEx               rowFooter;
   protected boolean                   shapedBorder;
   private UIScrollingEdgePainter      scrollingEdgePainter = null;    //UIScrollingEdgePainter.getInstance();
-
+  protected int minSize=32;
   /**
    * Creates a new instance of ScrollPaneEx
    */
@@ -203,19 +202,45 @@ public class ScrollPaneEx extends JScrollPane implements iPainterSupport, iView,
         }
       }
     }
+    return d;
+  }
+
+  @Override
+  public Dimension getMinimumSize() {
+    Dimension          d  = super.getMinimumSize();
+    java.awt.Component v  = getViewport().getView();
+    Dimension          vd = null;
+
+    if (v != null) {
+      if (isAdjustPrefSizeForHiddenHoriz() && (getHorizontalScrollBarPolicy() == HORIZONTAL_SCROLLBAR_NEVER)) {
+        vd = v.getMinimumSize();
+
+        if (d.width < vd.width) {
+          d.width = vd.width;
+        }
+      }
+
+      if (isAdjustPrefSizeForHiddenVert() && (getVerticalScrollBarPolicy() == VERTICAL_SCROLLBAR_NEVER)) {
+        if (vd == null) {
+          vd = v.getMinimumSize();
+        }
+
+        if (d.height < vd.height) {
+          d.height = vd.height;
+        }
+      }
+    }
 
     return d;
   }
 
   @Override
   public void getPreferredSize(UIDimension size, int maxWidth) {
-    preferredSizemaxWidth = maxWidth;
 
     Dimension d = getPreferredSize();
 
     size.width            = d.width;
     size.height           = d.height;
-    preferredSizemaxWidth = 0;
   }
 
   public JViewport getRowFooter() {

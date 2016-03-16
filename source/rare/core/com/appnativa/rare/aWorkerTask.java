@@ -71,9 +71,8 @@ public abstract class aWorkerTask implements iWorkerTask {
       window           = Platform.getWindowViewer(contextWidget);
       contextWidgetSet = true;
     }
-
-    if (window == null) {
-      window = Platform.getWindowViewer();
+    else {
+      window=Platform.getWindowViewer();
     }
   }
 
@@ -88,24 +87,36 @@ public abstract class aWorkerTask implements iWorkerTask {
   }
 
   public void hideProgressPopup() {
+    if (window == null) {
+      window = Platform.getWindowViewer();
+    }
     if (window != null) {
       window.hideProgressPopup();
     }
   }
 
   public void hideWaitCursor() {
+    if (window == null) {
+      window = Platform.getWindowViewer();
+    }
     if (window != null) {
       window.hideWaitCursor();
     }
   }
 
   public void showProgressPopup(CharSequence message) {
+    if (window == null) {
+      window = Platform.getWindowViewer();
+    }
     if (window != null) {
       window.showProgressPopup(message);
     }
   }
 
   public void showWaitCursor() {
+    if (window == null) {
+      window = Platform.getWindowViewer();
+    }
     if (window != null) {
       window.showWaitCursor();
     }

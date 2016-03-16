@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.android.ui.util;
@@ -29,12 +29,11 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Shader.TileMode;
-
 import android.util.Log;
-
 import android.view.View;
 
 import com.appnativa.rare.ui.UIImage;
@@ -526,77 +525,124 @@ public class ImageUtils {
     return new UIImage(b);
   }
 
-  public static Bitmap createReflection(Bitmap originalImage, int y, int rheight, float opacity, int gap) {
-    int    width  = originalImage.getWidth();
-    int    height = originalImage.getHeight();
-    Matrix matrix = new Matrix();
+  /**
+   * Creates a new image that is this image with a reflection added
+   *
+   * @param height the height of the reflection (use -1 to use the full height of the image)
+   * @param opacity  the reflection opacity
+   * @param gap the gap between the image an its reflection
+   *
+   * @return the passed in image with the reflection added to the bottom
+   */
+  public static Bitmap createCopyWithReflection(Bitmap image, int height, float opacity, int gap) {
+    int iwidth  = image.getWidth();
+    int iheight = image.getHeight();
 
-    matrix.preScale(1, -1);
+    if (height == -1) {
+      height = iheight;
+    }
 
-    // Create a Bitmap with the flip matix applied to it.
-    // We only want the bottom half of the image
-    Bitmap reflectionImage = Bitmap.createBitmap(originalImage, 0, rheight, width, rheight, matrix, false);
-    // Create a new bitmap with same width but taller to fit reflection
-    Bitmap bitmapWithReflection = Bitmap.createBitmap(width, (height + rheight), Config.ARGB_8888);
-    // Create a new Canvas with the bitmap that's big enough for
-    // the image plus gap plus reflection
-    Canvas canvas = new Canvas(bitmapWithReflection);
+    Bitmap buffer = Bitmap.createBitmap(iwidth, iheight, image.getConfig());
+    Canvas g2     = new Canvas(buffer);
 
-    // Draw in the original image
-    canvas.drawBitmap(originalImage, 0, 0, null);
+    g2.drawBitmap(image, 0, 0, null);
+    image = createSubReflection(image, iheight - height, height, opacity, gap);
+    g2.drawBitmap(image, 0, iheight, null);
 
-    // Draw in the gap
-    Paint deafaultPaint = new Paint();
-
-    canvas.drawRect(0, height, width, height + gap, deafaultPaint);
-    // Draw in the reflection
-    canvas.drawBitmap(reflectionImage, 0, height + gap, null);
-
-    // Create a shader that is a linear gradient that covers the reflection
-    Paint          paint  = new Paint();
-    LinearGradient shader = new LinearGradient(0, originalImage.getHeight(), 0, bitmapWithReflection.getHeight() + gap,
-                              0x70ffffff, 0x00ffffff, TileMode.CLAMP);
-
-    // Set the paint to use this shader (linear gradient)
-    paint.setShader(shader);
-    // Set the Transfer mode to be porter duff and destination in
-    paint.setXfermode(new PorterDuffXfermode(Mode.DST_IN));
-    // Draw a rectangle using the paint with our linear gradient
-    canvas.drawRect(0, height, width, bitmapWithReflection.getHeight(), paint);
-
-    return bitmapWithReflection;
+    return buffer;
   }
 
-  public static void addReflection(Bitmap originalImage, int y, int rheight, float opacity, int gap) {
-    int    width  = originalImage.getWidth();
-    int    height = originalImage.getHeight();
+  public static Bitmap createReflection(Bitmap image, float opacity, int gap) {
+    return createSubReflection(image,0,image.getHeight(),opacity,gap);
+  }
+
+  public static Bitmap createSubReflection(Bitmap image, int y, int height,float opacity, int gap) {
+    if (gap < 1) {
+      return createSubReflection(image,y,height, opacity, null);
+    }
+
+    Paint  paint = new Paint();
+    Bitmap b=createSubReflection(image,y,height, opacity, null);
+
+    paint.setStyle(Style.FILL);
+    paint.setColor(Color.BLACK);
+    paint.setAlpha(1);
+    paint.setShader(null);
+
+    int    width  = b.getWidth();
+    Bitmap bitmap = Bitmap.createBitmap(width, b.getHeight(), b.getConfig());
+    Canvas g      = new Canvas(bitmap);
+
+    g.drawRect(0, 0, gap, width, paint);
+    g.drawBitmap(b, 0, gap, null);
+    b.recycle();
+
+    return bitmap;
+  }
+  static Bitmap createReflection(Bitmap image, float opacity, Paint paint) {
+    int    width  = image.getWidth();
+    int    height = image.getHeight();
     Matrix matrix = new Matrix();
 
     matrix.preScale(1, -1);
 
-    // Create a Bitmap with the flip matix applied to it.
-    // We only want the bottom half of the image
-    Bitmap reflectionImage = Bitmap.createBitmap(originalImage, 0, rheight, width, rheight, matrix, false);
-    // Create a new Canvas with the bitmap that's big enough for
-    // the image plus gap plus reflection
-    Canvas canvas = new Canvas(originalImage);
-    // Draw in the gap
-    Paint deafaultPaint = new Paint();
+    Bitmap reflection = Bitmap.createBitmap(image, 0, 0, width, height, matrix, false);
+    Canvas canvas     = new Canvas(reflection);
 
-    canvas.drawRect(0, height, width, height + gap - rheight, deafaultPaint);
-    // Draw in the reflection
-    canvas.drawBitmap(reflectionImage, 0, height + gap - rheight, null);
+    if (paint == null) {
+      paint = new Paint();
+    }
 
-    // Create a shader that is a linear gradient that covers the reflection
-    Paint          paint  = new Paint();
-    LinearGradient shader = new LinearGradient(0, height - rheight, 0, height, 0x70ffffff, 0x00ffffff, TileMode.CLAMP);
+    LinearGradient shader = new LinearGradient(0, height, 0, height, 0x70ffffff, 0x00ffffff, TileMode.CLAMP);
 
-    // Set the paint to use this shader (linear gradient)
+    paint.setAlpha((int) (opacity * 255) % 256);
     paint.setShader(shader);
-    // Set the Transfer mode to be porter duff and destination in
     paint.setXfermode(new PorterDuffXfermode(Mode.DST_IN));
-    // Draw a rectangle using the paint with our linear gradient
-    canvas.drawRect(0, height - rheight, width, height, paint);
+    canvas.drawRect(0, 0, width, height, paint);
+
+    return reflection;
+  }
+
+  public static Bitmap createSubReflection(Bitmap image, int y, int height, float opacity,Paint paint) {
+    int    width  = image.getWidth();
+    Matrix matrix = new Matrix();
+
+    matrix.preScale(1, -1);
+
+    Bitmap reflection = Bitmap.createBitmap(image, 0, y, width, height, matrix, false);
+    Canvas canvas     = new Canvas(reflection);
+
+    if (paint == null) {
+      paint = new Paint();
+    }
+
+    LinearGradient shader = new LinearGradient(0, height, 0, height, 0x70ffffff, 0x00ffffff, TileMode.CLAMP);
+
+    paint.setAlpha((int) (opacity * 255) % 256);
+    paint.setShader(shader);
+    paint.setXfermode(new PorterDuffXfermode(Mode.DST_IN));
+    canvas.drawRect(0, 0, width, height, paint);
+
+    return reflection;
+  }
+
+  /**
+   * Creates the reflection for the image. The reflection will be copied to y+height
+   * of the specified image and as such the specified image should be at least y+(height*2)+gap
+   * in height.
+   *
+   * @param image the image to create the reflection for.
+   * @param y the point at which to get the data for the reflection
+   * @param height the height of the reflection
+   * @param opacity  the reflection opacity
+   * @param gap the gap between the image and the reflection
+   * @return the passed in image with the reflection added to the bottom
+   */
+  public static void addReflection(Bitmap image, int y, int height, float opacity, int gap) {
+    Canvas canvas = new Canvas(image);
+    Bitmap b = createSubReflection(image, y, height, opacity, 0);
+    canvas.drawBitmap(b, 0, y + height + gap, null);
+    b.recycle();;
   }
 
   /**
@@ -795,8 +841,6 @@ public class ImageUtils {
 
     return mask;
   }
-
-  public static void addReflection(Bitmap bmp, int height, float opacity, int gap) {}
 
   public static Bitmap createImageIfNecessary(Bitmap bitmap, int width, int height, Config cfg) {
     if ((bitmap == null) || (bitmap.getWidth() != width) || (bitmap.getHeight() != height)) {

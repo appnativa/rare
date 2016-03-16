@@ -20,14 +20,19 @@
 
 package com.appnativa.rare.ui.canvas;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIColor;
-import com.appnativa.rare.ui.UIColorHelper;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIFontMetrics;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIRectangle;
-import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.iPlatformShape;
@@ -35,13 +40,6 @@ import com.appnativa.rare.ui.painter.aUIPainter;
 import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 public abstract class aCanvasRenderingContext2D extends aUIPainter implements iContext {
   iPlatformGraphics     graphics;
@@ -167,10 +165,14 @@ public abstract class aCanvasRenderingContext2D extends aUIPainter implements iC
 
   @Override
   public void createReflection(int y, int height, float opacity, int gap) {
-    theImage = theImage.createReflectionImage(y, height, opacity, gap);
+    if (theCanvas.getHeight() < y + height + gap + height) {
+      return;
+    }
+
+     theImage.addReflectionImage(y, height, opacity, gap);
 
     if (!repaintCalled) {
-      getCanvas().repaint();
+      theCanvas.repaint();
       repaintCalled = true;
     }
   }
@@ -212,14 +214,7 @@ public abstract class aCanvasRenderingContext2D extends aUIPainter implements iC
   @Override
   public void drawImage(iImageElement img, float sx, float sy, float swidth, float sheight, float dx, float dy,
                         float dwidth, float dheight) {
-    iPlatformGraphics g   = getGraphics(false);
-    int               x   = UIScreen.snapToPosition(sx);
-    int               y   = UIScreen.snapToPosition(sx);
-    int               w   = UIScreen.snapToSize(swidth);
-    int               h   = UIScreen.snapToSize(sheight);
-    UIImage           sub = img.getImage(x, y, w, h);
-
-    g.drawImage(sub, (dx + 0), (dy + 0), (dwidth + 0), (dheight + 0));
+    drawImage(img.getImage(), sx, sy, swidth, sheight, dx, dy, dwidth, dheight);
   }
 
   @Override
@@ -383,12 +378,14 @@ public abstract class aCanvasRenderingContext2D extends aUIPainter implements iC
   @Override
   public void render(iPlatformGraphics g) {
     repaintCalled = false;
-    g.setRenderingOptions(true, false);
-    g.drawImage(theImage, 0, 0);
-
-    if (!optimizeForCompositing && (compositeImage != null) &&!(graphics instanceof aCompositingGraphics)) {
-      compositeImage.dispose();
-      compositeImage = null;
+    if(theImage!=null) {
+      g.setRenderingOptions(true, false);
+      g.drawImage(theImage, 0, 0);
+  
+      if (!optimizeForCompositing && (compositeImage != null) &&!(graphics instanceof aCompositingGraphics)) {
+        compositeImage.dispose();
+        compositeImage = null;
+      }
     }
   }
 
@@ -525,7 +522,7 @@ public abstract class aCanvasRenderingContext2D extends aUIPainter implements iC
 
   @Override
   public void setFillStyle(String color) {
-    setFillStyle(UIColorHelper.getColor(color));
+    setFillStyle(ColorUtils.getColor(color));
   }
 
   @Override
@@ -599,7 +596,7 @@ public abstract class aCanvasRenderingContext2D extends aUIPainter implements iC
 
   @Override
   public void setStrokeStyle(String color) {
-    setStrokeStyle(UIColorHelper.getColor(color));
+    setStrokeStyle(ColorUtils.getColor(color));
   }
 
   @Override

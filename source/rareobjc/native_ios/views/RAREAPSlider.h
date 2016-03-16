@@ -7,9 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+@class RAREUIImage;
+@protocol RAREiPlatformPainter;
 
 @interface RAREAPSlider : UISlider   {
-    BOOL horizontal_;
+   BOOL horizontal_;
+  int trackPainterWidth;
+  id<RAREiPlatformPainter> trackPainter;
 }
 
 - (void)setMaxValue:(float)maximum;
@@ -21,4 +25,7 @@
 - (void)setHorizontal:(BOOL)horizontal;
 
 - (BOOL)isHorizontal;
+- (void)setThumbImage: (RAREUIImage*) image;
+- (void)setTrackPainter:(id<RAREiPlatformPainter>) painter;
+- (void)setTrackPainterWidth:(int) width;
 @end

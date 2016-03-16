@@ -20,6 +20,11 @@
 
 package com.appnativa.rare.platform.apple.ui.view;
 
+import java.util.Arrays;
+
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormLayout.LayoutInfo;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.apple.ui.iAppleLayoutManager;
 import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
@@ -34,15 +39,9 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.painter.UICellPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
-
 /*-[
  #import "RAREAPView.h"
  ]-*/
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.FormLayout.LayoutInfo;
-
-import java.util.Arrays;
 
 public class FormsView extends ParentView implements iAppleLayoutManager, iLayoutManager {
   FormLayout.LayoutInfo        layoutInfo;

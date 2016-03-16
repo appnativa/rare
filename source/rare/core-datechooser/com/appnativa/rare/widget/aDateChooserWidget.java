@@ -123,7 +123,9 @@ public abstract class aDateChooserWidget extends aPlatformWidget implements iAct
     dataComponent = formComponent = comp;
 
     if (!Platform.isTouchDevice()) {
-      setFocusPainted(true);
+      if(!cfg.focusPainted.spot_valueWasSet() || cfg.focusPainted.booleanValue()) {
+        setFocusPainted(true);
+      }
     }
 
     configure(cfg, true, false, true, true);

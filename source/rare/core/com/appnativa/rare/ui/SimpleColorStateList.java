@@ -81,7 +81,7 @@ public class SimpleColorStateList {
 
         continue;
       }
-
+      list.clear();
       list = sc.getTokens(',', true, list);
 
       for (String s : list) {

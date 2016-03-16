@@ -21,10 +21,12 @@
 package com.appnativa.rare.ui;
 
 import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
+import com.appnativa.rare.widget.iWidget;
 
 public class ScrollPanePanel extends XPContainer implements iScrollerSupport {
   private iScrollerSupport scrollSupport;
-
+  private iWidget scollPaneWidget;
+  
   public ScrollPanePanel(Object view) {
     super(view);
 
@@ -114,5 +116,16 @@ public class ScrollPanePanel extends XPContainer implements iScrollerSupport {
   @Override
   public void setContentOffset(float x, float y) {
     scrollSupport.setContentOffset(x, y);
+  }
+  @Override
+  public void dispose() {
+    if(scollPaneWidget!=null) {
+      iWidget w=scollPaneWidget;
+      scollPaneWidget=null;
+      w.dispose();
+    }
+    else {
+      super.dispose();
+    }
   }
 }

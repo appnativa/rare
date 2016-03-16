@@ -117,10 +117,6 @@ public class ViewEx extends View implements iPainterSupport, iComponentView {
     return super.getSuggestedMinimumWidth();
   }
 
-  public final View getView() {
-    return this;
-  }
-
   public boolean isBlockRequestLayout() {
     return blockRequestLayout;
   }

@@ -675,7 +675,9 @@ public abstract class aTextFieldWidget extends aPlatformWidget implements iActio
     }
 
     if (!Platform.isTouchDevice()) {
-      setFocusPainted(true);
+      if(!cfg.focusPainted.spot_valueWasSet() || cfg.focusPainted.booleanValue()) {
+        setFocusPainted(true);
+      }
     }
 
     if (!cfg.editable.booleanValue()) {

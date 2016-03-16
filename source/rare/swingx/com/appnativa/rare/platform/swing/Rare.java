@@ -448,7 +448,7 @@ public class Rare extends aRare implements AWTEventListener {
   }
 
   protected void abort(final Throwable e) {
-    handleFatalEexception(e);
+    handleFatalException(e);
     shuttingDown = true;
     appContext.dispose();
   }
@@ -609,7 +609,7 @@ public class Rare extends aRare implements AWTEventListener {
     });
   }
 
-  protected void handleFatalEexception(final Throwable e) {
+  protected void handleFatalException(final Throwable e) {
     if (e == null) {
       return;
     }

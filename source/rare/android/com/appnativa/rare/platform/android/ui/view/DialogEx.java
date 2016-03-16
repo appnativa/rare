@@ -27,6 +27,8 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.PlatformHelper;
+import com.appnativa.rare.platform.android.MainActivity;
 import com.appnativa.rare.ui.Frame;
 import com.appnativa.util.IdentityArrayList;
 
@@ -50,7 +52,7 @@ public class DialogEx extends Dialog {
     setCancelable(true);
     setCanceledOnTouchOutside(false);
   }
-  
+
   @Override
   public boolean dispatchTouchEvent(MotionEvent ev) {
     IdentityArrayList aw = Platform.getAppContext().getActiveWindows();
@@ -71,7 +73,9 @@ public class DialogEx extends Dialog {
 
   @Override
   public void dismiss() {
+    
     if (frame != null) {
+      PlatformHelper.hideVirtualKeyboard(frame);
       frame.close();
 
       return;
@@ -82,6 +86,10 @@ public class DialogEx extends Dialog {
 
   public void dispose() {
     Platform.getAppContext().getActiveWindows().remove(this);
+    if (frame != null) {
+      PlatformHelper.hideVirtualKeyboard(frame);
+      return;
+    }
     frame = null;
 
     if (isShowing()) {
@@ -91,7 +99,19 @@ public class DialogEx extends Dialog {
 
   @Override
   public void show() {
+    // Set the dialog to not focusable.
+    getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+
+    MainActivity ma = (MainActivity) (Platform.getAppContext().getActivity());
+
+    if (ma.isUseFullScreen()) {
+      ma.setUseFullScreen(getWindow(), true);
+    }
+
+    // Show the dialog with NavBar hidden.
     super.show();
+    // Set the dialog to focusable again.
+    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
 
     if (isShowing()) {
       Platform.getAppContext().getActiveWindows().addIfNotPresent(this);
@@ -113,7 +133,7 @@ public class DialogEx extends Dialog {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN|WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
     if (frame != null) {
       frame.reset(getWindow());

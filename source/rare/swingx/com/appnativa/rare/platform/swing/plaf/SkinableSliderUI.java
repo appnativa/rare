@@ -20,9 +20,6 @@
 
 package com.appnativa.rare.platform.swing.plaf;
 
-import com.appnativa.rare.ui.painter.iPainter;
-import com.appnativa.rare.ui.painter.iPlatformPainter;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -32,8 +29,12 @@ import java.awt.Rectangle;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicSliderUI;
+
+import com.appnativa.rare.ui.painter.iPainter;
+import com.appnativa.rare.ui.painter.iPlatformPainter;
 
 /**
  * A skinable slider UI
@@ -50,6 +51,7 @@ public class SkinableSliderUI extends BasicSliderUI {
   private Color            tickColor;
   private int              tickOffset;
   private iPlatformPainter trackPainter;
+  private int trackPainterWidth;
 
   public static enum PaintArea { VALUE, REMAINING, ALL }
 
@@ -137,8 +139,18 @@ public class SkinableSliderUI extends BasicSliderUI {
     if (trackPainter == null) {
       super.paintTrack(g);
     } else {
-      trackPainter.paint(slider, (Graphics2D) g, trackRect.x, trackRect.y, trackRect.width, trackRect.height, true,
-                         slider.getOrientation());
+      int w=trackRect.width;
+      int h=trackRect.height;
+      int o=slider.getOrientation()==SwingConstants.HORIZONTAL ? iPainter.HORIZONTAL :iPainter.VERTICAL;
+      if(trackPainterWidth!=0) {
+        if(o==iPainter.HORIZONTAL) {
+          h=Math.min(trackPainterWidth,h);
+        }
+        else {
+          w=Math.min(trackPainterWidth,w);
+        }
+      }
+      trackPainter.paint(slider, (Graphics2D) g, trackRect.x, trackRect.y, w, h, true,o);
     }
   }
 
@@ -382,5 +394,13 @@ public class SkinableSliderUI extends BasicSliderUI {
 
   public void setThumbOffset(int thumbOffset) {
     this.thumbOffset = thumbOffset;
+  }
+
+  public int getTrackPainterWidth() {
+    return trackPainterWidth;
+  }
+
+  public void setTrackPainterWidth(int trackPainterWidth) {
+    this.trackPainterWidth = trackPainterWidth;
   }
 }

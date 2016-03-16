@@ -23,7 +23,7 @@ package com.appnativa.rare.platform.swing.ui.view;
 import com.appnativa.rare.platform.swing.plaf.RareButtonUI;
 import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.util.CharArray;
-import com.appnativa.util.xml.XMLUtils;
+import com.appnativa.util.XMLUtils;
 
 import java.awt.Container;
 import java.awt.event.ActionEvent;

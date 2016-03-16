@@ -72,7 +72,7 @@ import com.appnativa.util.json.JSONWriter;
  *
  * @author Don DeCoteau
  */
-public interface iWidget extends iScriptingContextSupport {
+public interface iWidget extends iScriptingContextSupport,iURLResolver {
 
   /**
    * Widget types
@@ -1572,4 +1572,14 @@ public interface iWidget extends iScriptingContextSupport {
    * @return whether the widget is enabled
    */
   boolean isVisible();
+
+  /**
+   * Get the base URL for the widget. This is the source URL or context URL if
+   * there is no source URL. If the widget does not have a source or context
+   * URL then the widget chain is walked until a valid base URL is found
+   *
+   * @return the base URL
+   */
+  URL getBaseURL();
+
 }

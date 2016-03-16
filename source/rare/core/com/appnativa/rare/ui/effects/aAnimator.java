@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.effects;
@@ -495,25 +495,65 @@ public abstract class aAnimator implements iPlatformAnimator, Cloneable {
     }
   }
 
-  protected void notifyListeners(iPlatformAnimator animator, boolean ended) {
+  protected void notifyListeners(final iPlatformAnimator animator, final boolean ended) {
     if (listenerList != null) {
-      Object[] listeners = listenerList.getListenerList();
+      if (Platform.isUIThread()) {
+        notifyListenersEx(animator, ended);
+      } else {
+        Runnable r = new Runnable() {
+          @Override
+          public void run() {
+            notifyListenersEx(animator, ended);
+          }
+        };
 
-      for (int i = listeners.length - 2; i >= 0; i -= 2) {
-        if (listeners[i] == iAnimatorListener.class) {
-          if (ended) {
-            ((iAnimatorListener) listeners[i + 1]).animationEnded(animator);
-          } else {
-            ((iAnimatorListener) listeners[i + 1]).animationStarted(animator);
+        Platform.invokeLater(r);
+      }
+    }
+  }
+
+  protected void notifyListenersEx(final iPlatformAnimator animator, final boolean ended) {
+    if (listenerList != null) {
+      Object[] listeners = (listenerList == null)
+                           ? null
+                           : listenerList.getListenerList();
+
+      if (listeners != null) {
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+          if (listeners[i] == iAnimatorListener.class) {
+            if (ended) {
+              ((iAnimatorListener) listeners[i + 1]).animationEnded(animator);
+            } else {
+              ((iAnimatorListener) listeners[i + 1]).animationStarted(animator);
+            }
           }
         }
       }
     }
   }
 
-  protected void notifyValueListeners(iPlatformAnimator animator, float value) {
+  protected void notifyValueListeners(final iPlatformAnimator animator, final float value) {
     if (listenerList != null) {
-      Object[] listeners = listenerList.getListenerList();
+      if (Platform.isUIThread()) {
+        notifyValueListenersEx(animator, value);
+      } else {
+        Runnable r = new Runnable() {
+          @Override
+          public void run() {
+            notifyValueListenersEx(animator, value);
+          }
+        };
+
+        Platform.invokeLater(r);
+      }
+    }
+  }
+
+  protected void notifyValueListenersEx(final iPlatformAnimator animator, final float value) {
+    if (listenerList != null) {
+      Object[] listeners = (listenerList == null)
+                           ? null
+                           : listenerList.getListenerList();
 
       for (int i = listeners.length - 2; i >= 0; i -= 2) {
         if (listeners[i] == iAnimatorValueListener.class) {

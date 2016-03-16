@@ -15,13 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.ui.Displayed;
@@ -30,6 +27,7 @@ import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.Utils;
+import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.iImageObserver;
 import com.appnativa.rare.ui.iPaintedButton;
 import com.appnativa.rare.ui.iPaintedButton.ButtonState;
@@ -38,11 +36,14 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformGraphics;
 import com.appnativa.rare.ui.iPlatformPaint;
 import com.appnativa.rare.ui.iPlatformShape;
-import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.util.PropertyChangeSupportEx;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
+
 import com.google.j2objc.annotations.Weak;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /**
  *
@@ -52,7 +53,7 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
         implements iPlatformComponentPainter, Cloneable, iImageObserver {
   public static boolean             paintFocusDefault = !Platform.isTouchDevice();
   public static PaintBucket         focusPaint;
-  protected static boolean          isApple    = Platform.isIOS() || Platform.isMac();
+  protected static boolean          isApple = Platform.isIOS() || Platform.isMac();
   int                               borderModCount;
   protected iBackgroundPainter      backgroundPainter;
   protected iPlatformPainter        bgOverlayPainter;
@@ -147,6 +148,9 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
   }
 
   @Override
+  public void updateColors(iPlatformComponent comp) {}
+
+  @Override
   public Object clone() {
     aUIComponentPainter cp = (aUIComponentPainter) super.clone();
 
@@ -208,7 +212,14 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
   }
 
   public static void paint(iPlatformGraphics g, float x, float y, float width, float height, PaintBucket pb) {
-    iPlatformBorder    b       = pb.border;
+    paint(g, x, y, width, height, pb, true);
+  }
+
+  public static void paint(iPlatformGraphics g, float x, float y, float width, float height, PaintBucket pb,
+                           boolean paintBorder) {
+    iPlatformBorder    b       = paintBorder
+                                 ? pb.border
+                                 : null;
     UIColor            oc      = g.getColor();
     iPlatformPaint     op      = g.getPaint();
     iBackgroundPainter bp      = pb.backgroundPainter;
@@ -510,19 +521,24 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
         b.paint(g, x, y, width, height, end);
       }
 
-      if (!paintAll && paintFocusDefault && (pc != null && pc.isFocusPainted())) {
-        if(b==null || !b.isFocusAware()) {
+      if (!paintAll && paintFocusDefault && ((pc != null) && pc.isFocusPainted())) {
+        if ((b == null) ||!b.isFocusAware()) {
           PaintBucket pb = pc.getFocusPaint(focusPaint);
-          b=pb==null ? null : pb.getBorder();
-          if (b!=null) {
+
+          b = (pb == null)
+              ? null
+              : pb.getBorder();
+
+          if (b != null) {
             UIInsets in = pc.getFocusInsets(insets);
-  
+
             if (in != null) {
               ox      += in.left;
               oy      += in.top;
               owidth  -= (in.left + in.right);
               oheight -= (in.top + in.bottom);
             }
+
             b.paint(g, ox, oy, owidth, oheight, b.isPaintLast());
           }
         }
@@ -814,11 +830,13 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
            : b;
   }
 
-
   @Override
   public UIColor getForegroundColor() {
-    return painterHolder==null ? null : painterHolder.foregroundColor;
+    return (painterHolder == null)
+           ? null
+           : painterHolder.foregroundColor;
   }
+
   @Override
   public iPlatformPainter getOverlayPainter() {
     return overlayPainter;
@@ -1040,7 +1058,7 @@ public abstract class aUIComponentPainter extends aUIPlatformPainter
     if (p instanceof UIImagePainter) {
       UIImagePainter ip = (UIImagePainter) p;
 
-      if ((ip.getImage() != null) && ip.getImage().isLoaded(this)) {
+      if ((ip.getImage() != null) && ip.getImage().isImageLoaded(this)) {
         return true;
       }
 

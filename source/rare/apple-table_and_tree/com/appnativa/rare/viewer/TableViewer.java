@@ -162,7 +162,6 @@ public class TableViewer extends aTableViewer {
         if (cfg.rowHeaderFooterSelectionPainted.booleanValue()) {
           adjustMultiTableRenderer(lr, TableType.MAIN);
         }
-
         TableView tv;
 
         tableModel = new MultiDataItemTableModel(tableModel);
@@ -239,6 +238,7 @@ public class TableViewer extends aTableViewer {
     }
 
     formComponent = tableHandler.getPlatformComponent();
+    registerWithWidget(formComponent);
     formComponent = AppleHelper.configureScrollPane(this, formComponent, list, cfg.getScrollPane());
   }
 

@@ -177,6 +177,24 @@
   else {
     [axisSet.xAxis addBackgroundLimitBand:marker];
   }
+
+}
+-(void) removeMarkers: (BOOL) range {
+  CPTGraph *graph = self.hostedGraph;
+  CPTXYAxisSet *axisSet = (CPTXYAxisSet *) graph.axisSet;
+  NSArray* a=nil;
+  CPTXYAxis* x;
+  if(range) {
+    x=axisSet.yAxis;
+  }
+  else {
+    x=axisSet.xAxis;
+  }
+  a=[x.backgroundLimitBands copy];
+  for (CPTLimitBand* m in a) {
+    [x removeBackgroundLimitBand:m];
+  }
+  
 }
 -(CGPoint) rowAndColumnAtX: (float) x andY: (float)y {
   int i=0;

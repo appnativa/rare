@@ -501,6 +501,9 @@ public class DataParser {
 
       try {
         boolean runonce = "true".equalsIgnoreCase(cfg.scriptURL.spot_getAttribute("runOnce"));
+        if("false".equalsIgnoreCase(cfg.scriptURL.spot_getAttribute("shared"))) {
+          runonce=false;
+        }
         String  type    = link.getContentType();
         String  code    = app.loadScriptCode(link, runonce);
 

@@ -1,5 +1,5 @@
 /**************************************************************************
- * ItemDescription.java - Wed Nov 18 17:50:58 PST 2015
+ * ItemDescription.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -360,7 +360,6 @@ public class ItemDescription extends SPOTSequence {
     if ( selectionGridCell == null ) {
       selectionGridCell = new GridCell(true);
       super.spot_setReference( "selectionGridCell" , selectionGridCell);
-      selectionGridCell.spot_defineAttribute("foreground",null);
     }
     return selectionGridCell;
   }
@@ -457,7 +456,6 @@ public class ItemDescription extends SPOTSequence {
     if ( headerCell == null ) {
       headerCell = new GridCell(true);
       super.spot_setReference( "headerCell" , headerCell);
-      headerCell.spot_defineAttribute("marginColor",null);
     }
     return headerCell;
   }
@@ -490,7 +488,6 @@ public class ItemDescription extends SPOTSequence {
     if ( headerRolloverCell == null ) {
       headerRolloverCell = new GridCell(true);
       super.spot_setReference( "headerRolloverCell" , headerRolloverCell);
-      headerRolloverCell.spot_defineAttribute("foreground",null);
     }
     return headerRolloverCell;
   }
@@ -523,7 +520,6 @@ public class ItemDescription extends SPOTSequence {
     if ( headerSelectionCell == null ) {
       headerSelectionCell = new GridCell(true);
       super.spot_setReference( "headerSelectionCell" , headerSelectionCell);
-      headerSelectionCell.spot_defineAttribute("foreground",null);
     }
     return headerSelectionCell;
   }

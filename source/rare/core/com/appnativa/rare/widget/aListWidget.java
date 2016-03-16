@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.widget;
@@ -29,6 +29,7 @@ import com.appnativa.rare.ui.UIPoint;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UISelectionModelGroup;
 import com.appnativa.rare.ui.UIStroke;
+import com.appnativa.rare.ui.aWidgetListener;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iItemChangeListener;
@@ -79,26 +80,6 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
 
   public aListWidget(iContainer parent) {
     super(parent);
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    iActionListener    l   = null;
-    RenderableDataItem row = getSelectedItem();
-
-    l = (row == null)
-        ? null
-        : row.getActionListener();
-
-    if (l != null) {
-      if (l instanceof ActionLink) {
-        ((ActionLink) l).setPopupLocation(getPopupLocation(getSelectedIndex()));
-      }
-
-      l.actionPerformed(e);
-    } else {
-      super.actionPerformed(e);
-    }
   }
 
   @Override
@@ -314,6 +295,7 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
   public void upArrow() {
     if (getRowCount() > 0) {
       int row = getSelectedIndex();
+
       UISelectionModelGroup.selectPreviousRow(listComponent, row);
     }
   }
@@ -321,6 +303,7 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
   public void downArrow() {
     if (getRowCount() > 0) {
       int row = getSelectedIndex();
+
       UISelectionModelGroup.selectNextRow(listComponent, row);
     }
   }
@@ -359,9 +342,9 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
 
   @Override
   public void repaintRow(int row) {
-   listComponent.repaintRow(row);
+    listComponent.repaintRow(row);
   }
-  
+
   @Override
   public boolean remove(Object item) {
     return listComponent.remove(item);
@@ -540,10 +523,12 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
     } else if (value instanceof RenderableDataItem) {
       setSelectedItem((RenderableDataItem) value);
     } else {
-      int n=indexOfValueEquals(value);
-      if(n==-1) {
-        n=indexOfLinkedDataEquals(value);
+      int n = indexOfValueEquals(value);
+
+      if (n == -1) {
+        n = indexOfLinkedDataEquals(value);
       }
+
       setSelectedIndex(n);
     }
   }
@@ -652,8 +637,11 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
 
   @Override
   public RenderableDataItem getContextMenuItem() {
-    int n= listComponent.getContextMenuIndex();
-    return n==-1 ? null : listComponent.get(n);
+    int n = listComponent.getContextMenuIndex();
+
+    return (n == -1)
+           ? null
+           : listComponent.get(n);
   }
 
   @Override
@@ -718,6 +706,11 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
   @Override
   public int[] getSelectedIndexes() {
     return listComponent.getSelectedIndexes();
+  }
+
+  @Override
+  public int[] getCheckedIndexes() {
+    return listComponent.getCheckedIndexes();
   }
 
   @Override
@@ -872,6 +865,34 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
     listComponent = comp;
   }
 
+  @Override
+  protected void initializeListeners(aWidgetListener listener) {
+    super.initializeListeners(listener);
+
+    if (actionListener == null) {
+      actionListener = new iActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          iActionListener    l   = null;
+          RenderableDataItem row = getSelectedItem();
+
+          l = (row == null)
+              ? null
+              : row.getActionListener();
+
+          if (l != null) {
+            if (l instanceof ActionLink) {
+              ((ActionLink) l).setPopupLocation(getPopupLocation(getSelectedIndex()));
+            }
+
+            l.actionPerformed(e);
+          }
+        }
+      };
+      listComponent.addActionListener(actionListener);
+    }
+  }
+
   /**
    * Returns the temporary list. If it does not exist then it is created
    *
@@ -887,7 +908,7 @@ public abstract class aListWidget extends aPlatformWidget implements iActionable
 
   @Override
   protected String getWidgetAttribute(String name) {
-    String s = ListHelper.getWidgetAttribute(this,listComponent, name);
+    String s = ListHelper.getWidgetAttribute(this, listComponent, name);
 
     return (s == ListHelper.CALL_SUPER_METHOD)
            ? super.getWidgetAttribute(name)

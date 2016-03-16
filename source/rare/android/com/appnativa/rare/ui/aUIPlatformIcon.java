@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -43,6 +43,10 @@ public abstract class aUIPlatformIcon implements iPlatformIcon {
   }
 
   public Drawable getDrawable(View view) {
+    return new DrawableIcon(this);
+  }
+
+  public Drawable createDrawable(View view) {
     return new DrawableIcon(this);
   }
 }

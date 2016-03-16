@@ -15,13 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.view;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.apple.ui.iApplePainterSupport;
@@ -40,13 +37,6 @@ import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.Utils;
-import com.appnativa.rare.ui.iGestureListener;
-import com.appnativa.rare.ui.iPaintedButton;
-import com.appnativa.rare.ui.iPaintedButton.ButtonState;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.border.SharedLineBorder;
 import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.border.UIEmptyBorder;
@@ -57,6 +47,13 @@ import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iChangeListener;
+import com.appnativa.rare.ui.iGestureListener;
+import com.appnativa.rare.ui.iPaintedButton;
+import com.appnativa.rare.ui.iPaintedButton.ButtonState;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformPath;
 import com.appnativa.rare.ui.listener.iFocusListener;
 import com.appnativa.rare.ui.listener.iKeyListener;
 import com.appnativa.rare.ui.listener.iMouseListener;
@@ -71,6 +68,9 @@ import com.appnativa.rare.ui.painter.iComponentPainter;
 import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.ui.painter.iPlatformPainter;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 /*-[
  #import "AppleHelper.h"
@@ -118,6 +118,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   protected boolean                   usePainterBackgroundColor;
   protected iViewListener             viewListener;
   private boolean                     useMainLayerForPainter = true;
+  private Runnable                    visibilityRunner;
 
   public aView(Object nsview) {
     setProxy(nsview);
@@ -205,6 +206,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
       backgroundPainter   = null;
       changeEvent         = null;
       overlayLayer        = null;
+      visibilityRunner    = null;
     }
   }
 
@@ -238,8 +240,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     return !transparent;
   }
 
-  public void makeOrphan() {
-  }
+  public void makeOrphan() {}
 
   public native void makeTransparent()
   /*-[
@@ -417,7 +418,9 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
 
   public void setBackgroundPainter(iBackgroundPainter bp) {
     if ((bp != backgroundPainter) || ((bp != null) && (bp.getModCount() != modCountBackgroundPainter))) {
-      setBackgroundPainterEx(null);
+      if(backgroundPainter!=null) {
+        setBackgroundPainterEx(null);
+      }
 
       if (bp == null) {
         setBackgroundColorEx(null);
@@ -464,17 +467,17 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
 
   public void setBorder(iPlatformBorder b) {
     if ((b != border) || ((b != null) && (b.getModCount() != modCountBorder))) {
-      modCountBorder = 0;
       borderChanged(b);
       handleBorder(b);
     }
 
-    border = b;
+    modCountBorder = -1; //set to minus one so that layingoutLayers will know it is a new border
+    border         = b;
   }
 
   public void setBorderEx(iPlatformBorder b) {
     border         = b;
-    modCountBorder = 0;
+    modCountBorder = -1; //set to minus one so that layingoutLayers will know it is a new border
   }
 
   public abstract void setBounds(float x, float y, float w, float h);
@@ -488,6 +491,13 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   public abstract void setClipMask(Object nativepath);
 
   public abstract void setComponent(Component component);
+
+  public void updateForColorChange() {
+    if (componentPainter != null) {
+      componentPainter.updateModCount();
+      updateComponentPainter();
+    }
+  }
 
   public void setComponentPainter(iPlatformComponentPainter cp) {
     if (cp == componentPainter) {
@@ -504,7 +514,12 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
       componentPainter.dispose();
     }
 
-    this.componentPainter = cp;
+    componentPainter = cp;
+    updateComponentPainter();
+  }
+
+  protected void updateComponentPainter() {
+    iPlatformComponentPainter cp = componentPainter;
 
     if (isUsePainterBorder()) {
       setBorder((cp == null)
@@ -656,13 +671,11 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   public void setUseMainLayerForPainter(boolean useMainLayerForPainter) {
     this.useMainLayerForPainter = useMainLayerForPainter;
   }
+
   public void updateForStateChange(iPlatformBorder border) {
     handleBorder(border);
   }
-  
-  public boolean usesForegroundColor() {
-   return false;
-  }
+
   public void setUsePainterBackgroundColor(boolean usePainterBackgroundColor) {
     this.usePainterBackgroundColor = usePainterBackgroundColor;
   }
@@ -703,7 +716,9 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (c != null) {
       return c;
     }
-    View p=getParent();
+
+    View p = getParent();
+
     if (p == null) {
       return ColorUtils.getBackground();
     }
@@ -757,7 +772,9 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (font != null) {
       return font;
     }
-    View p=getParent();
+
+    View p = getParent();
+
     if (p == null) {
       return FontUtils.getDefaultFont();
     }
@@ -783,7 +800,8 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (fg != null) {
       return fg;
     }
-    View p=getParent();
+
+    View p = getParent();
 
     if (p == null) {
       return ColorUtils.getForeground();
@@ -824,8 +842,9 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
 
     return d.height;
   }
+
   public abstract View getParent();
-  
+
   public abstract void getPreferredSize(UIDimension size, float maxWidth);
 
   public iPlatformIcon getPressedIcon() {
@@ -843,6 +862,10 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   public iPlatformIcon getSelectedIcon() {
     return null;
   }
+
+  public abstract float getHeight();
+
+  public abstract float getWidth();
 
   public UIDimension getSize() {
     UIDimension size = new UIDimension();
@@ -915,10 +938,10 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
       } else {
         setForegroundColorEx(ColorUtils.getDisabledForeground());
       }
-    } else if (foregroundColor!=null) {
-        setForegroundColorEx(foregroundColor.getColor(enabled
-                                          ? ButtonState.DEFAULT
-                                          : ButtonState.DISABLED));
+    } else if (foregroundColor != null) {
+      setForegroundColorEx(foregroundColor.getColor(enabled
+              ? ButtonState.DEFAULT
+              : ButtonState.DISABLED));
     }
   }
 
@@ -1042,8 +1065,6 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
                     ? null
                     : clip.getPath());
       }
-
-      border = b;
     }
 
     oldWidth  = width;
@@ -1051,6 +1072,27 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
   }
 
   protected void visibilityChanged(boolean shown) {
+    if (viewListener != null) {
+      if (shown && (getHeight() == 0)) {
+        if (visibilityRunner == null) {
+          visibilityRunner = new Runnable() {
+            @Override
+            public void run() {
+              visibilityChangedEx(true);
+            }
+          };
+        }
+
+        Platform.invokeLater(visibilityRunner, 10);
+
+        return;
+      }
+
+      visibilityChangedEx(shown);
+    }
+  }
+
+  protected void visibilityChangedEx(boolean shown) {
     if (viewListener != null) {
       if (changeEvent == null) {
         changeEvent = new ChangeEvent(this);
@@ -1180,7 +1222,7 @@ public abstract class aView implements iApplePainterSupport, PropertyChangeListe
     if (p instanceof UIImagePainter) {
       UIImagePainter ip = (UIImagePainter) p;
 
-      if ((ip.getImage() != null) && ip.getImage().isLoaded(null)) {
+      if ((ip.getImage() != null) && ip.getImage().isImageLoaded(null)) {
         return true;
       }
 

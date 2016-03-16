@@ -175,4 +175,11 @@ public class ChartView extends View {
     return [((RARECPTHostView*)proxy_) getPlotAreaSize];
   ]-*/
   ;
+
+  public native void removeMarkers(boolean range)
+    /*-[
+    RARECPTHostView* hv=(RARECPTHostView*)proxy_;
+    [hv removeMarkers: range];
+  ]-*/
+  ;
 }

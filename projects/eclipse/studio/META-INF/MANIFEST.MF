@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: appNativa Studio
 Bundle-SymbolicName: com.appnativa.studio;singleton:=true
-Bundle-Version: 1.5.1
+Bundle-Version: 1.7.0
 Bundle-Activator: com.appnativa.studio.Activator
 Bundle-Vendor: appNativa Inc.
 Require-Bundle: org.eclipse.ui,
@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.editors,
  org.eclipse.ui.ide,
  org.eclipse.ui.console;bundle-version="3.5.100",
- com.appnativa.rare;bundle-version="1.5.1",
+ com.appnativa.rare;bundle-version="1.7.0",
  org.eclipse.jdt.core,
  org.eclipse.jdt.launching,
  org.eclipse.core.filesystem

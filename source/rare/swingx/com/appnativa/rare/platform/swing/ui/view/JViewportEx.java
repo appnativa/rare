@@ -381,18 +381,13 @@ public class JViewportEx extends JViewport implements iPainterSupport, ChangeLis
     @Override
     public Dimension preferredLayoutSize(Container parent) {
       Component view = ((JViewport) parent).getView();
-      int       max  = 0;
-
-      if (parent.getParent() instanceof ScrollPaneEx) {
-        max = ((ScrollPaneEx) parent.getParent()).preferredSizemaxWidth;
-      }
 
       if (view == null) {
         return new Dimension(0, 0);
       } else if (view instanceof iView) {
         UIDimension size = new UIDimension();
 
-        ((iView) view).getPreferredSize(size, max);
+        ((iView) view).getPreferredSize(size, 0);
 
         return new Dimension(size.intWidth(), size.intHeight());
       } else if (view instanceof Scrollable) {

@@ -43,6 +43,7 @@ import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIMenuItem;
 import com.appnativa.rare.ui.UIRectangle;
 import com.appnativa.rare.ui.UISound;
+import com.appnativa.rare.ui.UISoundHelper;
 import com.appnativa.rare.ui.WindowDeviceConfiguration;
 import com.appnativa.rare.ui.iActionComponent;
 import com.appnativa.rare.ui.iParentComponent;
@@ -74,6 +75,7 @@ public class PlatformHelper extends aPlatformHelper {
   static UIColor            background;
   static UIColor            foreground;
   static UIFont             systemFont;
+  static boolean            beepError;
 
   private PlatformHelper() {}
 
@@ -139,6 +141,7 @@ public class PlatformHelper extends aPlatformHelper {
     ScreenUtils.initilize(density, 1, 72, 72, 72, 1);
     packageHelper = new PackageHelper();
     SPOTHelper.setPackageHelper(packageHelper);
+    UISoundHelper.setDefaultVolume(15);
   }
 
   public native static void loadFont(String name, URL location, String type)
@@ -418,17 +421,14 @@ public class PlatformHelper extends aPlatformHelper {
     UIScreen* screen=[UIScreen mainScreen];
     CGSize size;
     if([configuration isKindOfClass:[NSNumber class]]) {
-      if([screen respondsToSelector:@selector(nativeBounds)]) {
-        size=screen.nativeBounds.size;
-      }
-      else {
-        size=[screen bounds].size;
-      }
+      size=[screen bounds].size;
       int o=[((NSNumber*)configuration) intValue];
       if(o == UIDeviceOrientationLandscapeLeft || o==UIDeviceOrientationLandscapeRight) {
-        CGFloat w=size.width;
-        size.width=size.height;
-        size.height=w;
+        if(size.height>size.width) {
+          CGFloat w=size.width;
+          size.width=size.height;
+          size.height=w;
+        }
       }
     }
     else {
@@ -689,7 +689,16 @@ public class PlatformHelper extends aPlatformHelper {
     return p;
    ]-*/
  ;
-  public native static void beep()    
+  public static void beep() {
+    if(beepError) {
+      beepEx();
+    }
+    else {
+      beepError=!UISoundHelper.errorSound();
+    }
+  }
+;
+  public native static void beepEx()    
   /*-[
   #if TARGET_OS_IPHONE
     AudioServicesPlaySystemSound (kSystemSoundID_Vibrate);

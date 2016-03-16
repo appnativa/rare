@@ -66,7 +66,9 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.osgi.framework.BundleContext;
 
+import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
+import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
@@ -360,16 +362,26 @@ public class Studio {
     }
   }
 
-  public static void showError(final Throwable err) {
+  public static void showError(final Throwable e,final boolean switchToSource) {
+    ErrorInformation ei=new ErrorInformation(e);
+    
+    final String s=ei.toAlertPanelString();
     Runnable r = new Runnable() {
       @Override
       public void run() {
-        MessageDialog.openError(Display.getDefault().getActiveShell(), getResourceAsString("Studio.title"), err.toString());
+        MessageDialog.openError(Display.getDefault().getActiveShell(), getResourceAsString("Studio.title"), s);
+        if(switchToSource) {
+          IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+          IEditorPart ep = page == null ? null : page.getActiveEditor();
+
+          if (ep instanceof MultiPageEditor) {
+           ((MultiPageEditor) ep).hideDesignAfterError(false);
+          }
+          
+        }
       }
     };
-    if(err instanceof NullPointerException) {
-      err.printStackTrace();
-    }
+    e.printStackTrace();
     runInSWTThread(r);
   }
 
@@ -714,6 +726,7 @@ public class Studio {
             e.printStackTrace();
           }
           main.startApplication(null);
+          ActionHelper.setDisableBindings(true);
           DataParser.DISABLE_ALL_INLINING_OF_URLS=true;
           ColorUtils.KEEP_COLOR_KEYS=Boolean.TRUE;
         }
@@ -938,7 +951,7 @@ public class Studio {
       runInSWTThread(new Runnable() {
         @Override
         public void run() {
-          Studio.showError(e);
+          Studio.showError(e,true);
         }
       });
     }

@@ -24,7 +24,6 @@
 #import "com/appnativa/rare/Platform.h"
 #import "com/appnativa/rare/ui/Frame.h"
 #import "com/appnativa/rare/scripting/ScriptManager.h"
-#import "com/appnativa/rare/scripting/WidgetContext.h"
 #import "com/appnativa/rare/scripting/aScriptManager.h"
 #import "com/appnativa/rare/scripting/iScriptHandler.h"
 #import "com/appnativa/rare/spot/Application.h"
@@ -35,7 +34,11 @@
 #import "com/appnativa/rare/platform/iInterfaceProxy.h"
 #import "IOSProtocolClass.h"
 #import "RAREJSArray.h"
+#import "com/appnativa/rare/ui/canvas/Image.h"
+#import "com/appnativa/rare/scripting/JavaScriptEngineFactory.h"
+
 static BOOL jsUnprotectOnMainThreadOnly_ = NO;
+static JSContextGroupRef jscMainGroup=NULL;
 void classListMethods(Class c, NSString *prefix, NSMutableArray *list, BOOL equals) {
   Class oc = c;
   const char *pre = [prefix UTF8String];
@@ -98,15 +101,21 @@ NSArray *protocolMethods(Protocol *p) {
 
 @implementation RAREJSEngine {
   JSContextGroupRef jscGroup;
-  
 }
 
 @synthesize engine = engine_;
 - (id)init {
   self = [super init];
   if (self) {
-    jscGroup=JSContextGroupCreate();
-    jscGroup=JSContextGroupRetain(jscGroup);
+    if(!jscMainGroup) {
+      jscGroup=JSContextGroupCreate();
+      jscGroup=JSContextGroupRetain(jscGroup);
+      jscMainGroup=jscGroup;
+      mainEngine_=YES;
+    }
+    else {
+      jscGroup=jscMainGroup;
+    }
     NSNumber *value = [NSNumber numberWithBool:YES];
     numberKeys = [NSDictionary dictionaryWithObjectsAndKeys:
         value, @"IntArray", value, @"FloatArray", value, @"DoubleArray", value, @"IntegerArray", value, @"NumberArray",
@@ -117,26 +126,40 @@ NSArray *protocolMethods(Protocol *p) {
         value, @"__globalJSFunctionRepository__", value, @"dumpCallStack", value, @"String", value, @"RegExp",
         value, @"Array", value, @"Date", value, @"Number", value, @"Boolean", value, @"Math", nil];
   }
+  JSCocoaController* jsc=[[JSCocoaController alloc] initWithGlobalContext:nil useGroup:jscGroup];
+  [jsc setUseSplitCall:NO];
+  [jsc setUseAutoCall:NO];
+  [jsc setDelegate:self];
+  jsc.callSelectorsMissingTrailingSemicolon = NO;
+  controller_=jsc;
+  context_=[jsc ctx];
   return self;
 }
  -(void)dealloc {
-   if(jscGroup) {
-     JSContextGroupRelease(jscGroup);
-   }
  }
 -(JSCocoaController*) getController
 {
-  NSMutableDictionary* td=[[NSThread currentThread] threadDictionary];
-  JSCocoaController* jsc=[td objectForKey:@"_rare_jsc_"];
-  if(!jsc) {
-    jsc=[[JSCocoaController alloc] initWithGlobalContext:nil useGroup:jscGroup];
-    [jsc setUseSplitCall:NO];
-    [jsc setUseAutoCall:NO];
-    [jsc setDelegate:self];
-    jsc.callSelectorsMissingTrailingSemicolon = NO;
-    [td setObject:jsc forKey:@"_rare_jsc_"];
+  return controller_;
+}
+-(void) dispose {
+  if([JSCocoaController sharedController]!=controller_) {
+    controller_=nil;
+    jscGroup=nil;
   }
-  return jsc;
+}
+
+
++(JSCocoaController*) getControllerForContext:(JSContextRef) ctx{
+  id<JavaUtilList> engines=[RAREJavaScriptEngineFactory loadedEngines];
+  @synchronized (engines) {
+    for (RAREJavaScriptEngine * __strong e in engines) {
+      RAREJSEngine* jse=(RAREJSEngine*)e->proxy_;
+      if (jse->context_==ctx) {
+        return jse->controller_;
+      }
+    }
+  }
+  return nil;
 }
 +(JSCocoaController*) getControllerInstance {
   if([NSOperationQueue currentQueue]==[NSOperationQueue mainQueue]) {
@@ -338,6 +361,9 @@ NSArray *protocolMethods(Protocol *p) {
     cls = [object class];
   }
   BOOL equals = YES;
+  if ([methodName indexOfString:@"drawImage"]!=-1) {
+     equals = YES;
+  }
   if (argumentCount > 0) {
     equals = NO;
     methodName = [NSString stringWithFormat:@"%@With", methodName];
@@ -407,6 +433,7 @@ NSArray *protocolMethods(Protocol *p) {
   if (!value || !lastMethod || ![lastMethod isEqualToString:signature]) {
     return value;
   }
+
   NSMutableArray *b = controller->arrayB;
   do {
     if (b.count <= index) {
@@ -548,6 +575,19 @@ NSArray *protocolMethods(Protocol *p) {
   if (o == [RAREJavaScriptEngine Undefined]) {
     unichar c = [propertyName characterAtIndex:0];
     if (![[NSCharacterSet lowercaseLetterCharacterSet] characterIsMember:c]) {
+      SEL sel=NSSelectorFromString(propertyName);
+      Class cls=[(NSObject*)object class];
+      if ([cls respondsToSelector:sel]) {
+        NSMethodSignature *sig = [cls methodSignatureForSelector:sel];
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        [inv setTarget:cls];
+        [inv setSelector:sel];
+        [inv invoke];
+        o = [AppleHelper getInvocationReturnValue:inv methodSignature:sig];
+      }
+      if(o) {
+        return [controller RAREtoJS:o];
+      }
       return JSValueMakeNull(ctx);
     }
     o = [self getProperty:propertyName ofObject:object prefix:@"get"];
@@ -682,6 +722,19 @@ NSArray *protocolMethods(Protocol *p) {
   NSString *filename = url ? ((NSObject *) url).description : @"";
   JavaxScriptScriptException *e = [[JavaxScriptScriptException alloc] initWithNSString:error withNSString:filename withInt:(int) lineNumber withInt:0];
   @throw e;
+}
+
+@end
+@implementation RAREWidgetContext (ObjectiveC)
+-(JSObjectRef) getJSObject {
+  if(languageObject_) {
+    return (__bridge JSObjectRef)(languageObject_);
+  }
+  return NULL;
+}
+-(void) setJSObject: (JSObjectRef) value {
+  NSObject *o=value ? (__bridge NSObject *)(value) : nil;
+  languageObject_=o;
 }
 
 @end

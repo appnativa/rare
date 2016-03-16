@@ -12,7 +12,6 @@
 #import "JSCocoaLib.h"
 #import "RAREJSFunction.h"
 #import "RAREJSEngine.h"
-#import "com/appnativa/rare/scripting/WidgetContext.h"
 #import "com/appnativa/rare/scripting/iScriptingContextSupport.h"
 #import "com/appnativa/rare/widget/aWidget.h"
 #pragma mark JS objects forward definitions
@@ -228,7 +227,9 @@ const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0,
 		//
 		JSClassDefinition jsCocoaHashObjectDefinition	= kJSClassDefinitionEmpty;
 		hashObjectClass									= JSClassCreate(&jsCocoaHashObjectDefinition);
-    JSCocoaSingleton=self;
+    if(!JSCocoaSingleton) {
+      JSCocoaSingleton=self;
+    }
 	}
 	
 	//
@@ -278,7 +279,7 @@ const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0,
 	[BurksPool setJSFunctionHash:jsFunctionHash];
 #endif
 	// Create a reference to ourselves, and make it read only, don't enum, don't delete
-	[self setObjectNoRetain:self withName:@"__jsc__" attributes:kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum|kJSPropertyAttributeDontDelete];
+	//DD:[self setObjectNoRetain:self withName:@"__jsc__" attributes:kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum|kJSPropertyAttributeDontDelete];
 
 	// Load class kit
 	if (!_ctx)
@@ -307,7 +308,9 @@ const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0,
 	ownsContext		= NO;
 
 	[JSCocoa updateCustomCallPaths];
-  JSCocoaSingleton=self;
+  if(!JSCocoaSingleton) {
+    JSCocoaSingleton=self;
+  }
 	return	self;
 }
 
@@ -338,7 +341,7 @@ const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0,
 	if (ownsContext) {
 		[self unlinkAllReferences];
 		JSGarbageCollect(ctx);
-		[self setObjectNoRetain:self withName:@"__jsc__" attributes:kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum|kJSPropertyAttributeDontDelete];
+		//DD:[self setObjectNoRetain:self withName:@"__jsc__" attributes:kJSPropertyAttributeReadOnly|kJSPropertyAttributeDontEnum|kJSPropertyAttributeDontDelete];
 	}
     
 	controllerCount--;
@@ -388,7 +391,7 @@ const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0,
 		jsClasses = nil;
 	}
 
-	[self removeObjectWithName:@"__jsc__"];
+	//DD:[self removeObjectWithName:@"__jsc__"];
 	if (ownsContext)
 		JSGlobalContextRelease(ctx);	
 
@@ -431,10 +434,11 @@ static id JSCocoaSingleton = NULL;
 {
 	return	!!JSCocoaSingleton;
 }
-// Retrieves the __jsc__ variable from a context and unbox it
 + (id)controllerFromContext:(JSContextRef)ctx
 {
-  return  [self sharedController];
+  JSContextRef gctx=JSContextGetGlobalContext(ctx);
+  id c=[RAREJSEngine getControllerForContext:gctx];
+  return  c!=nil ? c :[self sharedController];
 //	JSStringRef jsName = JSStringCreateWithUTF8CString("__jsc__");
 //	JSValueRef jsValue = JSObjectGetProperty(ctx, JSContextGetGlobalObject(ctx), jsName, NULL);
 //	JSStringRelease(jsName);
@@ -1984,8 +1988,9 @@ static id JSCocoaSingleton = NULL;
     RAREWidgetContext* wc=nil;
     if([o conformsToProtocol:@protocol(RAREiScriptingContextSupport)]){
       wc=[(id<RAREiScriptingContextSupport>)o getScriptingContext];
-      if(wc->languageObject_) {
-        return (JSObjectRef)wc->languageObject_;
+      JSObjectRef lo=[wc getJSObject];
+      if(lo) {
+        return lo;
       }
     }
     
@@ -1996,7 +2001,6 @@ static id JSCocoaSingleton = NULL;
     private.type = @"@";
     if(wc) {
       [private setObjectNoRetain:o];
-      wc->languageObject_=(void*)jsObject;
       JSValueProtect(ctx, jsObject);
       [JSCocoaController upJSValueProtectCount];
     }
@@ -2019,8 +2023,9 @@ static id JSCocoaSingleton = NULL;
     RAREWidgetContext* wc=nil;
     if([o conformsToProtocol:@protocol(RAREiScriptingContextSupport)]){
       wc=[(id<RAREiScriptingContextSupport>)o getScriptingContext];
-      if(wc->languageObject_) {
-        return (JSObjectRef)wc->languageObject_;
+      JSObjectRef lo=[wc getJSObject];
+      if(lo) {
+        return lo;
       }
     }
     
@@ -2029,9 +2034,14 @@ static id JSCocoaSingleton = NULL;
     JSObjectRef jsObject = [self newPrivateObject];
     JSCocoaPrivateObject* private = JSObjectGetPrivate(jsObject);
     private.type = @"@";
-    [private setObjectNoRetain:o];
+    if(wc && wc->needsJSRetention_) {
+      [private setObject:o];
+    }
+    else {
+      [private setObjectNoRetain:o];
+    }
     if(wc) {
-      wc->languageObject_=(void*)jsObject;
+     // [wc setJSObject:jsObject];
       JSValueProtect(ctx, jsObject);
       [JSCocoaController upJSValueProtectCount];
     }
@@ -2041,8 +2051,8 @@ static id JSCocoaSingleton = NULL;
 -(void) unprotectJSObjectForScriptingContext: (id) sc {
   if (sc) {
     RAREWidgetContext* wc=(RAREWidgetContext*)sc;
-    JSObjectRef o=(JSObjectRef)wc->languageObject_;
-    wc->languageObject_=NULL;
+    JSObjectRef o=(JSObjectRef)[wc getLanguageObject];
+    [wc setJSObject:NULL];
     if(o) {
       JSValueUnprotect(ctx, o);
     }
@@ -3024,7 +3034,7 @@ JSValueRef OSXObject_getProperty(JSContextRef ctx, JSObjectRef object, JSStringR
 	NSString*	propertyName = (NSString*)JSStringCopyCFString(kCFAllocatorDefault, propertyNameJS);
 	[NSMakeCollectable(propertyName) autorelease];
 
-	if ([propertyName isEqualToString:@"__jsc__"])	return	NULL;
+//DD:	if ([propertyName isEqualToString:@"__jsc__"])	return	NULL;
 	
 //	NSLog(@"Asking for global property %@", propertyName);
 	JSCocoaController* jsc = [JSCocoaController controllerFromContext:ctx];

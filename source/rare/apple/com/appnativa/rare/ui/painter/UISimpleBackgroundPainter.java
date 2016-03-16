@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.painter;
@@ -24,12 +24,13 @@ import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Displayed;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.iPlatformGraphics;
+import com.appnativa.rare.ui.iPlatformPaint;
 
 /**
  *
  * @author Don DeCoteau
  */
-public class UISimpleBackgroundPainter extends aUIPlatformPainter implements iBackgroundPainter {
+public class UISimpleBackgroundPainter extends aUIPlatformPainter implements iBackgroundPainter, iPlatformPaint {
   public static final UISimpleBackgroundPainter NULL_BGPAINTER = new UISimpleBackgroundPainter(UIColor.TRANSPARENT);
 
   /** the background color */
@@ -58,6 +59,11 @@ public class UISimpleBackgroundPainter extends aUIPlatformPainter implements iBa
     g.fillRect(x, y, width, height);
   }
 
+  @Override
+  public void fill(iPlatformGraphics g, float x, float y, float width, float height, int orientation) {
+    //Never called because isPainter returns false
+  }
+
   /**
    * Sets the background color for the painter
    *
@@ -84,5 +90,20 @@ public class UISimpleBackgroundPainter extends aUIPlatformPainter implements iBa
   @Override
   public boolean isSingleColorPainter() {
     return true;
+  }
+
+  @Override
+  public UIColor getPlatformPaintColor() {
+    return backgroundColor;
+  }
+
+  @Override
+  public boolean isPainter() {
+    return false;
+  }
+
+  @Override
+  public iPlatformPaint getPaint(float width, float height) {
+    return this;
   }
 }

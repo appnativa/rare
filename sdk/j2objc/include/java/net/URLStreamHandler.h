@@ -9,6 +9,7 @@
 #define _JavaNetURLStreamHandler_H_
 
 @class JavaNetURL;
+@class JavaNetURLConnection;
 
 #import "JreEmulation.h"
 
@@ -48,6 +49,8 @@
 - (BOOL)sameFileWithJavaNetURL:(JavaNetURL *)url1
                 withJavaNetURL:(JavaNetURL *)url2;
 - (id)init;
+- (JavaNetURLConnection *)openConnectionWithJavaNetURL:(JavaNetURL *)u;
+
 @end
 
 #endif // _JavaNetURLStreamHandler_H_

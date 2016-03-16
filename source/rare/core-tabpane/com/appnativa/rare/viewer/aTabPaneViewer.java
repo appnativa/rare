@@ -1021,7 +1021,6 @@ public abstract class aTabPaneViewer extends aContainer implements iTabPaneViewe
       if (!tab.enabled.booleanValue()) {
         tabPane.setEnabledAt(pos, false);
       }
-
       doc.setReloadOnActivation(tab.reloadOnActivation.booleanValue());
 
       if (!tab.loadOnActivation.booleanValue()) {

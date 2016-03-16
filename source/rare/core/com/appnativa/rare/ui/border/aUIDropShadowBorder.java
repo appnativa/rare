@@ -83,7 +83,7 @@ public abstract class aUIDropShadowBorder extends aUIPlatformBorder implements i
 
     try {
       ninePatch = getNinePatch();
-      loaded    = ninePatch.isLoaded(this);
+      loaded    = ninePatch.isImageLoaded(this);
     } catch(IOException e) {
       throw new ApplicationException(e);
     }

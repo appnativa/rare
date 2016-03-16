@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -34,15 +34,9 @@ import com.appnativa.rare.ui.painter.iBackgroundPainter;
  * @author Don DeCoteau
  */
 public class UIColorShade extends UIColor implements Cloneable {
-  private int                alpha = 255;
-  private iBackgroundPainter backgroundPainter;
-  public static long         colorChangeTime;
-
-  /** cached value of the converted color */
-  private int cachedShadeColor;
-
-  /** cached value of the source color */
-  private int                  cachedsourceColor;
+  public static long           colorUpdateTime;
+  private int                  alpha = 255;
+  private iBackgroundPainter   backgroundPainter;
   private String               colorKey;
   private SimpleColorStateList colorStateList;
   private int                  lumAdjustment;
@@ -50,6 +44,10 @@ public class UIColorShade extends UIColor implements Cloneable {
   private Shade                shade;
   private UIColor              sourceColor;
   public long                  myColorUpdateTime;
+  private int                  cachedColor;
+  private int                  cachedRGB;
+  private boolean              colorCached;
+  private long                 updateTime;
 
   public UIColorShade(iBackgroundPainter painter) {
     super((painter.getBackgroundColor() == null)
@@ -117,20 +115,12 @@ public class UIColorShade extends UIColor implements Cloneable {
     this.lumAdjustment     = cs.lumAdjustment;
     this.alpha             = cs.alpha;
     this.colorStateList    = cs.colorStateList;
+    clearCache();
   }
 
   @Override
   public Object clone() {
     return super.clone();
-  }
-
-  @Override
-  public Object getAPColor() {
-    if (myColorUpdateTime < colorChangeTime) {
-      proxy = null;
-    }
-
-    return super.getAPColor();
   }
 
   @Override
@@ -150,6 +140,7 @@ public class UIColorShade extends UIColor implements Cloneable {
 
   public void setAlpha(int alpha) {
     this.alpha = alpha;
+    proxy      = null;
   }
 
   public void setPaintBucket(PaintBucket pb) {
@@ -166,6 +157,7 @@ public class UIColorShade extends UIColor implements Cloneable {
     this.backgroundPainter = null;
     this.lumAdjustment     = 0;
     this.alpha             = 255;
+    clearCache();
   }
 
   public iBackgroundPainter getBackgroundPainter() {
@@ -200,6 +192,13 @@ public class UIColorShade extends UIColor implements Cloneable {
         c           = cc.getColor();
       }
 
+      if (!colorCached || (c != cachedColor)) {
+        proxy = null;
+      }
+
+      colorCached = true;
+      cachedColor = c;
+
       return c;
     }
 
@@ -209,12 +208,13 @@ public class UIColorShade extends UIColor implements Cloneable {
 
     c = sourceColor.getColor();
 
-    if (c == cachedsourceColor) {
-      return cachedShadeColor;
+    if (colorCached && (c == cachedColor)) {
+      return cachedRGB;
     }
 
-    cachedsourceColor = c;
-    proxy             = null;
+    colorCached = true;
+    cachedColor = c;
+    proxy       = null;
 
     switch(shade) {
       case DARKER :
@@ -260,7 +260,7 @@ public class UIColorShade extends UIColor implements Cloneable {
         break;
     }
 
-    cachedShadeColor = c;
+    cachedRGB = c;
 
     return c;
   }
@@ -272,14 +272,15 @@ public class UIColorShade extends UIColor implements Cloneable {
   public SimpleColorStateList getColorStateList() {
     return colorStateList;
   }
-  
+
   public UIColor getColor(ButtonState state) {
-    if(colorStateList!=null) {
+    if (colorStateList != null) {
       return colorStateList.getColor(state);
     }
+
     return super.getColor(state);
   }
-  
+
   @Override
   public UIColor getDisabledColor() {
     if (colorStateList != null) {
@@ -299,7 +300,21 @@ public class UIColorShade extends UIColor implements Cloneable {
 
   @Override
   public boolean isDynamic() {
-    return (colorKey != null) || ((sourceColor != null) && sourceColor.isDynamic());
+    return ((shade != Shade.UIMANAGER) || ColorUtils.KEEP_COLOR_KEYS)
+           || ((sourceColor != null) && sourceColor.isDynamic());
+  }
+
+  @Override
+  public Object getAPColor() {
+    if (colorUpdateTime != updateTime) {
+      updateTime = colorUpdateTime;
+
+      if (isDynamic()) {
+        proxy = null;
+      }
+    }
+
+    return super.getAPColor();
   }
 
   @Override
@@ -369,5 +384,11 @@ public class UIColorShade extends UIColor implements Cloneable {
 
   public void setShade(Shade shade) {
     this.shade = shade;
+    clearCache();
+  }
+
+  protected void clearCache() {
+    proxy       = null;
+    colorCached = false;
   }
 }

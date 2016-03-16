@@ -179,7 +179,30 @@ public abstract class aPlatformListHandler extends aListHandler {
 
     return false;
   }
-
+  
+  @Override
+  public int[] getSelectedIndexes() {
+    if (listView instanceof aTableBasedView) {
+      return ((aTableBasedView) listView).getSelectedIndexes();
+    }
+    return null;
+  }
+  
+  @Override
+  public int[] getCheckedIndexes() {
+    if (listView instanceof ListView) {
+      return ((ListView) listView).getCheckedIndexes();
+    }
+    return null;
+  }
+  
+  @Override
+  public int getSelectedIndexCount() {
+    if (listView instanceof aTableBasedView) {
+      return ((aTableBasedView) listView).getSelectedIndexCount();
+    }
+    return 0;
+  }
   @Override
   protected void setRowHeightEx(int height) {
     final View v = getView();

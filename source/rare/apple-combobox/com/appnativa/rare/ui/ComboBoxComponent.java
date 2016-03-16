@@ -23,15 +23,14 @@ package com.appnativa.rare.ui;
 import com.appnativa.rare.platform.apple.ui.PopupListBoxHandler;
 import com.appnativa.rare.platform.apple.ui.iAppleLayoutManager;
 import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
-import com.appnativa.rare.platform.apple.ui.view.ListView;
 import com.appnativa.rare.platform.apple.ui.view.ParentView;
 import com.appnativa.rare.platform.apple.ui.view.TextFieldView;
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.text.iPlatformTextEditor;
-import com.appnativa.rare.widget.aComboBoxWidget;
 import com.appnativa.rare.widget.aWidget;
 import com.appnativa.rare.widget.iWidget;
 
@@ -51,16 +50,6 @@ public class ComboBoxComponent extends aComboBoxComponent {
     super.configurationCompleted(w, cfg);
     w.getDataComponent().getView().stateChanged();    // force painter states
     // update
-
-    if (w instanceof aComboBoxWidget) {
-      aComboBoxWidget cw = (aComboBoxWidget) w;
-
-      if (listHandler instanceof ComboBoxListHandler) {
-        ListView list = (ListView) ((ComboBoxListHandler) this.listHandler).getView();
-
-        list.getItemRenderer().setItemDescription(cw.getItemDescription());
-      }
-    }
   }
 
   @Override
@@ -75,6 +64,7 @@ public class ComboBoxComponent extends aComboBoxComponent {
   @Override
   public void setVisibleCharacters(int count) {
     TextFieldView e = (TextFieldView) editor.getComponent().getView();
+
     e.setPrefColumnCount(count);
     visibleCharacters = count;
   }
@@ -82,6 +72,7 @@ public class ComboBoxComponent extends aComboBoxComponent {
   @Override
   protected iPlatformTextEditor createEditor() {
     TextFieldView e = new TextFieldView();
+
     e.setSuggestionsEnabled(false);
     e.addActionListener((ComboBoxView) view);
     e.makeTransparent();
@@ -101,7 +92,10 @@ public class ComboBoxComponent extends aComboBoxComponent {
       }
     }
   }
-
+  protected void updateForColorChange() {
+    UIComponentPainter.updatePainterHolderModCount(boxPainterHolder);
+    UIComponentPainter.updatePainterHolderModCount(buttonPainterHolder);
+  }
   public static class ComboBoxListHandler extends PopupListBoxHandler {
     aComboBoxComponent cb;
 
@@ -148,6 +142,9 @@ public class ComboBoxComponent extends aComboBoxComponent {
     public void layout(ParentView view, float width, float height) {
       ((aComboBoxComponent) view.getComponent()).layout(width, height);
     }
+
+    @Override
+    public void updateChildrenForColorChange() {}
 
     @Override
     public void paintBackground(AppleGraphics g, View v, UIRectangle rect) {

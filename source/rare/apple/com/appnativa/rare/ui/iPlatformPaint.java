@@ -25,5 +25,5 @@ public interface iPlatformPaint extends iPaint {
 
   boolean isPainter();
 
-  void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation);
+  void fill(iPlatformGraphics g, float x, float y, float width, float height, int orientation);
 }

@@ -42,10 +42,10 @@ import com.appnativa.rare.ui.iFormsPanel;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.viewer.aGroupBoxViewer.ComponentCC;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.RowSpec;
-import com.jgoodies.forms.layout.Sizes;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.ColumnSpec;
+import com.appnativa.jgoodies.forms.layout.RowSpec;
+import com.appnativa.jgoodies.forms.layout.Sizes;
 
 /**
  * A viewer utilizing a table layout. Each cell in the grid is a region

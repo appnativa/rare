@@ -31,4 +31,5 @@ public interface iPlatformImage extends iImage {
   Bitmap getBitmap();
 
   Drawable getDrawable();
+  Drawable createDrawable();
 }

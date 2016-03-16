@@ -275,4 +275,9 @@ public class NullDrawable extends ColorDrawable implements iPlatformIcon, iPlatf
   public boolean isEnabledStateAware() {
     return false;
   }
+
+  @Override
+  public Drawable createDrawable(View view) {
+    return new NullDrawable(stateful);
+  }
 }

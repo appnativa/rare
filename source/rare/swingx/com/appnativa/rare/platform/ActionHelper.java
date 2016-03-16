@@ -15,17 +15,32 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform;
+
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.ui.FocusedAction;
+import com.appnativa.rare.ui.UIAction;
+import com.appnativa.rare.ui.aFocusedAction;
+import com.appnativa.rare.ui.dnd.iTransferSupport;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.viewer.aListViewer;
+import com.appnativa.rare.widget.aListWidget;
+import com.appnativa.rare.widget.aWidget;
+import com.appnativa.rare.widget.iWidget;
 
 import java.awt.Component;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.FlavorEvent;
 import java.awt.datatransfer.FlavorListener;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -43,21 +58,6 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.ui.FocusedAction;
-import com.appnativa.rare.ui.UIAction;
-import com.appnativa.rare.ui.aFocusedAction;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.dnd.iTransferSupport;
-import com.appnativa.rare.viewer.aListViewer;
-import com.appnativa.rare.widget.aListWidget;
-import com.appnativa.rare.widget.aWidget;
-import com.appnativa.rare.widget.iWidget;
-
 /**
  * Portions of the code are from the PasswordStore tutorial which have the following copyright:
  * Copyright (C) 2006 Sun Microsystems, Inc. All rights reserved. Use is
@@ -74,25 +74,26 @@ import com.appnativa.rare.widget.iWidget;
  * @author DOn DeCoteau
  */
 public final class ActionHelper {
-  private static final String            CUT_CLIENT_PROPERTY        = iConstants.CUT_ACTION_NAME;
-  private static final String            COPY_CLIENT_PROPERTY       = iConstants.COPY_ACTION_NAME;
-  private static final String            DELETE_CLIENT_PROPERTY     = iConstants.DELETE_ACTION_NAME;
-  private static final String            PASTE_CLIENT_PROPERTY      = iConstants.PASTE_ACTION_NAME;
-  private static final String            SELECT_ALL_CLIENT_PROPERTY = iConstants.SELECTALL_ACTION_NAME;
-  private static final String            REPLACE_CLIENT_PROPERTY    = iConstants.REPLACE_ACTION_NAME;
-  private static final String            FIND_CLIENT_PROPERTY       = iConstants.FIND_ACTION_NAME;
-  public static final String             SEARCH_SUPPORT             = ActionHelper.class.getName() + ".searchSupport";
-  private static final Clipboard         CLIPBOARD;
-  private static final FocusedAction     COPY_INSTANCE;
-  private static final FocusedAction     CUT_INSTANCE;
-  private static final FocusedAction     DELETE_INSTANCE;
-  private static final UIAction          DO_CLICK_INSTANCE;
-  private static final UIAction          NEXT_COMPONENT;
-  private static final FocusedAction     PASTE_INSTANCE;
-  private static final UIAction          PREVIOUS_COMPONENT;
-  private static final FocusedAction     REDO_INSTANCE;
-  private static final FocusedAction     SELECT_ALL_INSTANCE;
-  private static final FocusedAction     UNDO_INSTANCE;
+  private static final String        CUT_CLIENT_PROPERTY        = iConstants.CUT_ACTION_NAME;
+  private static final String        COPY_CLIENT_PROPERTY       = iConstants.COPY_ACTION_NAME;
+  private static final String        DELETE_CLIENT_PROPERTY     = iConstants.DELETE_ACTION_NAME;
+  private static final String        PASTE_CLIENT_PROPERTY      = iConstants.PASTE_ACTION_NAME;
+  private static final String        SELECT_ALL_CLIENT_PROPERTY = iConstants.SELECTALL_ACTION_NAME;
+  private static final String        REPLACE_CLIENT_PROPERTY    = iConstants.REPLACE_ACTION_NAME;
+  private static final String        FIND_CLIENT_PROPERTY       = iConstants.FIND_ACTION_NAME;
+  public static final String         SEARCH_SUPPORT             = ActionHelper.class.getName() + ".searchSupport";
+  private static final Clipboard     CLIPBOARD;
+  private static final FocusedAction COPY_INSTANCE;
+  private static final FocusedAction CUT_INSTANCE;
+  private static final FocusedAction DELETE_INSTANCE;
+  private static final UIAction      DO_CLICK_INSTANCE;
+  private static final UIAction      NEXT_COMPONENT;
+  private static final FocusedAction PASTE_INSTANCE;
+  private static final UIAction      PREVIOUS_COMPONENT;
+  private static final FocusedAction REDO_INSTANCE;
+  private static final FocusedAction SELECT_ALL_INSTANCE;
+  private static final FocusedAction UNDO_INSTANCE;
+  private static boolean             disableBindings;
 
   static {
     Clipboard clipboard;
@@ -210,35 +211,37 @@ public final class ActionHelper {
    * @param registerDelete {@inheritDoc}
    */
   public static void registerCutCopyPasteBindings(iPlatformComponent c, boolean registerDelete) {
-    JComponent component = c.getView();
-    InputMap   inputMap  = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    int        mask      = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    if (!disableBindings) {
+      JComponent component = c.getView();
+      InputMap   inputMap  = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+      int        mask      = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, mask), COPY_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, mask), CUT_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke("COPY"), COPY_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke("CUT"), CUT_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, mask), COPY_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke("shift DELETE"), CUT_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, mask), PASTE_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, mask), SELECT_ALL_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke("PASTE"), PASTE_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke("shift INSERT"), PASTE_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, mask), COPY_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, mask), CUT_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke("COPY"), COPY_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke("CUT"), CUT_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, mask), COPY_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke("shift DELETE"), CUT_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, mask), PASTE_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, mask), SELECT_ALL_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke("PASTE"), PASTE_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke("shift INSERT"), PASTE_INSTANCE);
 
-    if (registerDelete) {
-      inputMap.put(KeyStroke.getKeyStroke("DELETE"), DELETE_INSTANCE);
-    }
+      if (registerDelete) {
+        inputMap.put(KeyStroke.getKeyStroke("DELETE"), DELETE_INSTANCE);
+      }
 
-    ActionMap actionMap = component.getActionMap();
+      ActionMap actionMap = component.getActionMap();
 
-    actionMap.put(CUT_INSTANCE, CUT_INSTANCE);
-    actionMap.put(COPY_INSTANCE, COPY_INSTANCE);
-    actionMap.put(PASTE_INSTANCE, PASTE_INSTANCE);
-    actionMap.put(CUT_INSTANCE, CUT_INSTANCE);
-    actionMap.put(SELECT_ALL_INSTANCE, SELECT_ALL_INSTANCE);
+      actionMap.put(CUT_INSTANCE, CUT_INSTANCE);
+      actionMap.put(COPY_INSTANCE, COPY_INSTANCE);
+      actionMap.put(PASTE_INSTANCE, PASTE_INSTANCE);
+      actionMap.put(CUT_INSTANCE, CUT_INSTANCE);
+      actionMap.put(SELECT_ALL_INSTANCE, SELECT_ALL_INSTANCE);
 
-    if (registerDelete) {
-      actionMap.put(DELETE_INSTANCE, DELETE_INSTANCE);
+      if (registerDelete) {
+        actionMap.put(DELETE_INSTANCE, DELETE_INSTANCE);
+      }
     }
   }
 
@@ -253,59 +256,61 @@ public final class ActionHelper {
    *             a predefined action
    */
   public static boolean registerKeystroke(iWidget w, JComponent component, String name, Object code, int mapType) {
-    KeyStroke ks;
-    Action    a = null;
+    if (!disableBindings) {
+      KeyStroke ks;
+      Action    a = null;
 
-    ks = SwingHelper.getKeyStroke(name);
+      ks = SwingHelper.getKeyStroke(name);
 
-    if (w == null) {
-      w = Platform.getContextRootViewer();
-    }
-
-    iPlatformAppContext app = w.getAppContext();
-
-    if (ks == null) {
-      return false;
-    }
-
-    String s = (code instanceof String)
-               ? (String) code
-               : null;
-
-    if ((s != null) && s.startsWith("action:")) {
-      s = s.substring(7);
-      a = app.getAction(s);
-
-      if (a == null) {
-        a = component.getActionMap().get(code);
+      if (w == null) {
+        w = Platform.getContextRootViewer();
       }
 
-      if (a == null) {
-        s = Platform.getResourceAsString("Rare.runtime.text.undefinedAction");
-        Platform.ignoreException("registerKeyStroke", new ApplicationException(s, code));
+      iPlatformAppContext app = w.getAppContext();
 
+      if (ks == null) {
         return false;
       }
-    } else {
-      UIAction ua = new UIAction("Rare.Keystroke." + name);
 
-      ua.setActionScript(code);
-      ua.setContext(w);
-      a = ua;
+      String s = (code instanceof String)
+                 ? (String) code
+                 : null;
 
-      Object oa = component.getInputMap().get(ks);
+      if ((s != null) && s.startsWith("action:")) {
+        s = s.substring(7);
+        a = app.getAction(s);
 
-      if (oa != null) {
-        a.putValue("Rare.originalAction", component.getActionMap().get(oa));
+        if (a == null) {
+          a = component.getActionMap().get(code);
+        }
+
+        if (a == null) {
+          s = Platform.getResourceAsString("Rare.runtime.text.undefinedAction");
+          Platform.ignoreException("registerKeyStroke", new ApplicationException(s, code));
+
+          return false;
+        }
+      } else {
+        UIAction ua = new UIAction("Rare.Keystroke." + name);
+
+        ua.setActionScript(code);
+        ua.setContext(w);
+        a = ua;
+
+        Object oa = component.getInputMap().get(ks);
+
+        if (oa != null) {
+          a.putValue("Rare.originalAction", component.getActionMap().get(oa));
+        }
       }
-    }
 
-    if (mapType == -1) {
-      mapType = JComponent.WHEN_FOCUSED;
-    }
+      if (mapType == -1) {
+        mapType = JComponent.WHEN_FOCUSED;
+      }
 
-    component.getInputMap(mapType).put(ks, a);
-    component.getActionMap().put(a, a);
+      component.getInputMap(mapType).put(ks, a);
+      component.getActionMap().put(a, a);
+    }
 
     return true;
   }
@@ -317,21 +322,23 @@ public final class ActionHelper {
    * @param manager {@inheritDoc}
    */
   public static void registerUndoManager(iPlatformComponent c, UndoManager manager) {
-    JComponent component = c.getView();
+    if (!disableBindings) {
+      JComponent component = c.getView();
 
-    component.putClientProperty(iConstants.UNDO_MANAGER_NAME, manager);
+      component.putClientProperty(iConstants.UNDO_MANAGER_NAME, manager);
 
-    InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+      InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-                 UNDO_INSTANCE);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-                 REDO_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+                   UNDO_INSTANCE);
+      inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+                   REDO_INSTANCE);
 
-    ActionMap actionMap = component.getActionMap();
+      ActionMap actionMap = component.getActionMap();
 
-    actionMap.put(UNDO_INSTANCE, UNDO_INSTANCE);
-    actionMap.put(REDO_INSTANCE, REDO_INSTANCE);
+      actionMap.put(UNDO_INSTANCE, UNDO_INSTANCE);
+      actionMap.put(REDO_INSTANCE, REDO_INSTANCE);
+    }
   }
 
   /**
@@ -529,7 +536,7 @@ public final class ActionHelper {
     return SELECT_ALL_INSTANCE;
   }
 
-   /**
+  /**
    * Returns an action to perform a undo operation.
    *
    * @return the undo action
@@ -585,6 +592,10 @@ public final class ActionHelper {
     return (value == null)
            ? false
            : value;
+  }
+
+  public static void setDisableBindings(boolean disableBindings) {
+    ActionHelper.disableBindings = disableBindings;
   }
 
   private static final class CutCopyAction extends FocusedAction {
@@ -986,10 +997,11 @@ public final class ActionHelper {
     }
   }
 
+
   /** action to select the next row */
   public static Action selectNextRow = new AbstractAction("selectNextRow") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(java.awt.event.ActionEvent e) {
       Object  o = (e == null)
                   ? null
                   : e.getSource();
@@ -1008,7 +1020,7 @@ public final class ActionHelper {
   /** action to select the previous row */
   public static Action selectPreviousRow = new AbstractAction("selectPreviousRow") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(java.awt.event.ActionEvent e) {
       Object  o = (e == null)
                   ? null
                   : e.getSource();

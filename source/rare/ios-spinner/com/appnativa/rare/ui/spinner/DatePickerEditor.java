@@ -61,11 +61,30 @@ public class DatePickerEditor extends aSpinnerEditor implements iUpdateListener,
   }
 
   @Override
-  public void setValue(Object value) {}
+  public void setValue(Object value) {
+    Date d=null;
+    if(value instanceof Calendar) {
+      d=((Calendar)value).getTime();
+    }
+    else if(value instanceof Date) {
+      d=(Date) value;
+    }
+    if(d==null) {
+      if(min!=null) {
+        d=min;
+      }
+      else {
+        d=new Date();
+      }
+    }
+    date.setTime(d);
+    ((DatePickerView)editorView).setDate(date);
+    spinnerModel.setValue(date);
+  }
 
   @Override
   public Object getValue() {
-    return null;
+    return date.getTime();
   }
 
   @Override

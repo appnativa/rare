@@ -32,6 +32,7 @@ import com.appnativa.rare.ui.iPlatformBorder;
 import com.appnativa.rare.ui.iScrollerSupport;
 import com.appnativa.rare.ui.painter.UIScrollingEdgePainter;
 import com.appnativa.util.IdentityArrayList;
+import com.google.j2objc.annotations.Weak;
 
 /*-[
  #import "RAREAPScrollView.h"
@@ -47,12 +48,19 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
   protected int                                 offsetY;
   protected IdentityArrayList<iScrollerSupport> hScrollSynchronizer;
   protected IdentityArrayList<iScrollerSupport> vScrollSynchronizer;
-  private boolean                               inOnScrollChanged;
-
+  protected boolean                               inOnScrollChanged;
+  protected boolean tieVisibilityToContent;
+  @Weak
+  protected View contentView;
+  
   public ScrollView() {
     super(createProxy());
   }
 
+  public ScrollView(boolean tieVisibilityToContent) {
+    super(createProxy());
+    this.tieVisibilityToContent=tieVisibilityToContent;
+  }
   protected ScrollView(Object uiview) {
     super(uiview);
   }
@@ -134,6 +142,14 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
       }
 
       hScrollSynchronizer.addIfNotPresent(ss);
+    }
+  }
+  public boolean isVisible() {
+    if(tieVisibilityToContent) {
+      return contentView==null ? false : contentView.isVisible();
+    }
+    else {
+      return super.isVisible();
     }
   }
 
@@ -293,6 +309,7 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
 
   public native void setContentView(View view)
   /*-[
+    contentView_=view;
     [((UIScrollView*)proxy_) addSubview: (UIView*)view->proxy_];
   ]-*/
   ;
@@ -562,5 +579,13 @@ public class ScrollView extends ParentView implements iApplePainterSupport, iApp
         ((aPlatformTableBasedView) ss).setShowsVerticalScrollIndicator(false);
       }
     }
+  }
+
+  public boolean isTieVisibilityToContent() {
+    return tieVisibilityToContent;
+  }
+
+  public void setTieVisibilityToContent(boolean tieVisibilityToContent) {
+    this.tieVisibilityToContent = tieVisibilityToContent;
   }
 }

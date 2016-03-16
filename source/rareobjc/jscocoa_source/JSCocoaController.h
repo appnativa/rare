@@ -79,7 +79,6 @@ typedef struct	JSValueRefAndContextRef JSValueRefAndContextRef;
 //RARE: Don DeCoteau - add the arrays to use during method lookup and engine pointer
   NSMutableArray* arrayA;
   NSMutableArray* arrayB;
-  __weak	RAREJSEngine* engine;
   NSString* lastMethod;
 }
 
@@ -325,8 +324,7 @@ typedef struct	JSValueRefAndContextRef JSValueRefAndContextRef;
 //
 @interface BoxedJSObject : NSObject {
 	JSObjectRef	jsObject;
-  @public
-  __weak id object;
+  
 }
 - (void)setJSObject:(JSObjectRef)o;
 - (JSObjectRef)jsObject;

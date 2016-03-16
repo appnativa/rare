@@ -23,6 +23,7 @@ package com.appnativa.rare.viewer;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.swing.ui.DragHandler;
+import com.appnativa.rare.platform.swing.ui.util.ImageHelper;
 import com.appnativa.rare.scripting.iScriptHandler;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.Frame;
@@ -39,6 +40,11 @@ import com.appnativa.rare.ui.painter.iImagePainter.ScalingType;
 import com.appnativa.rare.widget.BeanWidget;
 import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.iWidget;
+
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 
 import java.io.IOException;
 
@@ -75,6 +81,28 @@ public class WindowViewer extends aWindowViewer implements iWindow {
     }
 
     dragHandler.addAsWindowDragger(c);
+  }
+
+  @Override
+  public void copyToClipboard(String value) {
+    StringSelection stringSelection = new StringSelection(value);
+    Clipboard       clipboard       = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+    clipboard.setContents(stringSelection, null);
+  }
+
+  @Override
+  public String getClipboardContents() {
+    try {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      Object    o         = clipboard.getData(DataFlavor.stringFlavor);
+
+      return (o == null)
+             ? null
+             : o.toString();
+    } catch(Exception e) {
+      return null;
+    }
   }
 
   @Override
@@ -218,6 +246,11 @@ public class WindowViewer extends aWindowViewer implements iWindow {
    */
   @Override
   public UIImage getDelayedImage(URL url, int size, int constraints, ScalingType st, UIColor bg) throws IOException {
-    return null;    // UIImageHelper.createImage(url, true, false, size, constraints, st, bg, 0);
+    return ImageHelper.createImage(url, true, size, constraints, st, bg, 0);
+  }
+
+  @Override
+  public void setCancelable(boolean cancelable) {
+    ((Frame) theWindow).setCancelable(cancelable);
   }
 }

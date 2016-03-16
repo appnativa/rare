@@ -20,29 +20,30 @@
 
 package com.appnativa.rare.platform.android.ui.util;
 
-import android.annotation.SuppressLint;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.res.Resources;
-
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
@@ -85,11 +86,6 @@ import com.appnativa.rare.widget.PushButtonWidget;
 import com.appnativa.rare.widget.aPlatformWidget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.spot.SPOTEnumerated;
-
-import java.lang.reflect.Constructor;
-
-import java.util.List;
-import java.util.Locale;
 
 /**
  *
@@ -660,10 +656,47 @@ public class AndroidHelper {
     return (View) con.newInstance(Platform.getAppContext().getActivity());
   }
 
+  public static boolean traverse(ViewGroup group,iViewWalker walker,boolean hierarchical)  {
+    List<ViewGroup>  list=null;
+    int len=group.getChildCount();
+    for(int i=0;i<len;i++) {
+      View v=group.getChildAt(i);
+      if(!walker.viewEncountered(v)) {
+        break;
+      }
+      if(v instanceof ViewGroup) {
+        ViewGroup vg=(ViewGroup) v;
+        if(walker.viewGroupEncountered(vg)) {
+          if(hierarchical) {
+            if(!traverse(vg, walker, hierarchical)) {
+              break;
+            }
+          }
+          else {
+          if(list==null) {
+            list=new ArrayList<ViewGroup>();
+          }
+          list.add(vg);
+          }
+        }
+      }
+    }
+    if(list!=null) {
+      for(ViewGroup vg:list) {
+        if(!traverse(vg, walker, hierarchical)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
   public static boolean isFocusPainted(iPlatformComponent list) {
     return false;
   }
-
+ public static interface iViewWalker {
+   boolean viewEncountered(View v);
+   boolean viewGroupEncountered(ViewGroup v);
+ }
   public static class DragHandler implements OnTouchListener {
     protected int        startX = 0;
     protected int        startY = 0;
@@ -820,9 +853,10 @@ public class AndroidHelper {
           }
           break;
       }
+    }
+    else {
       bp.add(w.getContainerComponent(), loc);
     }
-
   }
 
   static class ScrollBarAdjustable extends aAdjustable {}

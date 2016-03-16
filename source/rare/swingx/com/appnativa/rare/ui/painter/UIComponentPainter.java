@@ -51,7 +51,11 @@ public class UIComponentPainter extends aUIComponentPainter {
   public void setComposite(iComposite composite) {
     paintComposite = composite;
   }
-
+  
+  public iComposite getComposite() {
+    return paintComposite;
+  }
+  
   @Override
   public void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation, boolean end) {
     if (paintComposite != null) {

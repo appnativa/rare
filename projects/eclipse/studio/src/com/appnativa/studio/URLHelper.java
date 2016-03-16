@@ -371,6 +371,6 @@ public class URLHelper {
   }
 
   private static iURLConnection open(URL url) throws IOException {
-    return Platform.openConnection(null, url, null);
+    return Platform.openConnection(url, null);
   }
 }

@@ -23,13 +23,17 @@ package com.appnativa.rare.viewer;
 import java.io.IOException;
 import java.net.URL;
 
+import com.appnativa.rare.Platform;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.platform.apple.ui.DragHandler;
+import com.appnativa.rare.platform.apple.ui.util.ImageHelper;
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.scripting.iScriptHandler;
+import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.UIColor;
+import com.appnativa.rare.ui.UIColorShade;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.iPlatformComponent;
@@ -49,6 +53,7 @@ import com.appnativa.rare.widget.iWidget;
  */
 public class WindowViewer extends aWindowViewer implements iWindow {
   protected DragHandler dragHandler;
+  private boolean exiting;
 
   public WindowViewer(iPlatformAppContext ctx, String name, iFrame win, WindowViewer parent, iScriptHandler sh) {
     super(ctx, name, win, parent, sh);
@@ -76,6 +81,21 @@ public class WindowViewer extends aWindowViewer implements iWindow {
   public void addWindowDragger(iWidget widget) {
     addWindowDragger(widget.getContainerComponent());
   }
+
+  @Override
+  public native void copyToClipboard(String value) 
+  /*-[
+    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+    pasteboard.string = value  ;
+  ]-*/;
+  
+
+  @Override
+  public native String getClipboardContents() 
+  /*-[
+    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+    return pasteboard.string;  
+  ]-*/;
 
   /**
    * Creates an image painter for the specified image
@@ -132,6 +152,18 @@ public class WindowViewer extends aWindowViewer implements iWindow {
   }
 
   @Override
+  public void close() {
+    if (!exiting && (Platform.getWindowViewer() == this) && !Platform.isShuttingDown()) {
+      exiting = true;
+      Platform.getAppContext().exit();
+      return;
+    }
+
+    super.close();
+  }
+
+
+  @Override
   public void dispose() {
     if (dragHandler != null) {
       dragHandler.dispose();
@@ -179,6 +211,20 @@ public class WindowViewer extends aWindowViewer implements iWindow {
    */
   @Override
   public UIImage getDelayedImage(URL url, int size, int constraints, ScalingType st, UIColor bg) throws IOException {
-    return null;    // UIImageHelper.createImage(url, true, false, size, constraints, st, bg, 0);
+    return  ImageHelper.createImage(url, true, size, constraints, st, bg, 0);
   }
+  
+  @Override
+  protected void updateEx() {
+    super.updateEx();
+    if(ColorUtils.KEEP_COLOR_KEYS) {
+      UIColorShade.colorUpdateTime=System.currentTimeMillis();
+     getContainerView().updateForColorChange();
+    }
+  }
+
+    @Override
+    public void setCancelable(boolean cancelable) {
+      ((Frame) theWindow).setCancelable(cancelable);
+    }  
 }

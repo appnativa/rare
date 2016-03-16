@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.spinner;
@@ -30,11 +30,6 @@ import com.appnativa.rare.ui.aSpinnerComponent;
 import com.appnativa.rare.ui.event.iChangeListener;
 import com.appnativa.rare.ui.renderer.UILabelRenderer;
 import com.appnativa.rare.ui.spinner.PickerView.iPickerHelper;
-import com.appnativa.rare.ui.spinner.SpinnerDateModel;
-import com.appnativa.rare.ui.spinner.SpinnerListModel;
-import com.appnativa.rare.ui.spinner.SpinnerNumberModel;
-import com.appnativa.rare.ui.spinner.aSpinnerEditor;
-import com.appnativa.rare.ui.spinner.iSpinnerModel;
 import com.appnativa.util.SNumber;
 
 import java.util.Date;
@@ -143,6 +138,15 @@ public class PickerEditor extends aSpinnerEditor implements iChangeListener, iPi
       SpinnerNumberModel nm = (SpinnerNumberModel) spinnerModel;
 
       nm.setValue(value);
+
+      SNumber num = (SNumber) nm.getValue();
+      int     n   = (num == null)
+                    ? -1
+                    : indexForNumber(num);
+
+      if (n != -1 && n< getRowCount()) {
+        ((PickerView) editorView).setSelectedIndex(n);
+      }
     }
   }
 
@@ -289,6 +293,15 @@ public class PickerEditor extends aSpinnerEditor implements iChangeListener, iPi
     return null;
   }
 
+  protected int indexForNumber(SNumber num) {
+    SpinnerNumberModel nm = (SpinnerNumberModel) spinnerModel;
+
+    num.subtract(nm.getMinimum());
+    num.divideInteger(nm.getStepSize());
+
+    return num.intValue();
+  }
+
   @Override
   public boolean isTextField() {
     return false;
@@ -300,6 +313,5 @@ public class PickerEditor extends aSpinnerEditor implements iChangeListener, iPi
   }
 
   @Override
-  public void selectField() {
-  }
+  public void selectField() {}
 }

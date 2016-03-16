@@ -14,9 +14,9 @@
   RAREView* sparView;
   BOOL useFlipTransform;
   UIView *overlayView;
+  BOOL syncWithDisplayRefresh;
 }
 @property (nonatomic) BOOL wantsFirstInteraction;
-@property (nonatomic) BOOL syncWithDisplayRefresh;
 @property (nonatomic, retain) id<RAREiAppleLayoutManager> layoutManager;
 -(void) setUseFlipTransform: (BOOL) flip;
 -(void) removeAllSubViews;
@@ -25,6 +25,7 @@
 -(void) removeOverlayView;
 -(void) startDisplayLink;
 -(void) stopDisplayLink;
+-(void) setSyncWithDisplayRefresh:(BOOL) enable;
 
 
 @end

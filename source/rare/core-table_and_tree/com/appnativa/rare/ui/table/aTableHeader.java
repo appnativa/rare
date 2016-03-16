@@ -1524,7 +1524,6 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
           if (menu != null) {
             p = e.getLocationOnScreen();
             menu.show(aTableHeader.this, (int) p.x, (int) p.y);
-            e.consume();
           }
         } else if (c.isSelectable()
                    && (isSortingAllowed() || (c.getHeaderActionListener() != null) || (c.getPopupMenu(w) != null))) {
@@ -1535,7 +1534,6 @@ public abstract class aTableHeader extends XPContainer implements iImageObserver
         }
       }
 
-      e.consume();
     }
 
     @Override

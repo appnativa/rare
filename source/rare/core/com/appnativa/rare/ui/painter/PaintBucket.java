@@ -300,6 +300,10 @@ public class PaintBucket implements Cloneable {
     return border;
   }
 
+  public iPlatformComponentPainter getCachedComponentPainterEx() {
+    return cachedComponentPainter;
+  }
+  
   public iPlatformComponentPainter getCachedComponentPainter() {
     if ((cachedComponentPainter != null) && cachedComponentPainter.isDisposed()) {
       cachedComponentPainter = null;
@@ -325,7 +329,7 @@ public class PaintBucket implements Cloneable {
    * Gets a component that can paint from this paint buck
    *
    * @param always to always return a component painter object
-   * @return a component that can paint from this paint buck
+   * @return a component that can paint from this paint bucket
    */
   public iPlatformComponentPainter getComponentPainter(boolean always) {
     return getComponentPainter(null, always);

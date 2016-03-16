@@ -79,7 +79,7 @@ public class UIResizerPanel extends ImagePanel {
     }
 
     @Override
-    public boolean isLoaded(iImageObserver is) {
+    public boolean isImageLoaded(iImageObserver is) {
       return true;
     }
 

@@ -20,6 +20,13 @@
 
 package com.appnativa.rare.ui;
 
+import java.io.InputStream;
+import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
@@ -28,23 +35,12 @@ import android.graphics.Paint;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
 import android.graphics.drawable.Drawable;
-
 import android.view.View;
 
 import com.appnativa.rare.Platform;
-import com.appnativa.rare.platform.android.ui.DrawableIcon;
 import com.appnativa.rare.platform.android.ui.util.AndroidPaint;
 import com.appnativa.rare.platform.android.ui.util.ImageHelper;
 import com.appnativa.rare.platform.android.ui.util.ImageHelper.DelayedImage;
-
-import java.io.InputStream;
-
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import java.nio.channels.ClosedByInterruptException;
-import java.nio.channels.ClosedChannelException;
 
 /**
  * A class representing and image icon
@@ -82,6 +78,7 @@ public class UIImageIcon extends aUIImageIcon {
     super(location, description, delayedIcon, bg);
   }
 
+  @Override
   public void cancel(boolean canInterrupt) {
     if (this.location != null) {
       canceled      = true;
@@ -120,6 +117,7 @@ public class UIImageIcon extends aUIImageIcon {
     return location == null;
   }
 
+  @Override
   public void paint(View c, Canvas g, float x, float y, float width, float height, int orientation) {
     if ((image != null) && loaded) {
       iPlatformComponent pc = com.appnativa.rare.ui.Component.fromView(c);
@@ -149,6 +147,7 @@ public class UIImageIcon extends aUIImageIcon {
     }
   }
 
+  @Override
   public void run() {
     spawned = true;
 
@@ -258,6 +257,7 @@ public class UIImageIcon extends aUIImageIcon {
    *
    * @return a copy of the icon
    */
+  @Override
   public aUIImageIcon getCopy(String description) {
     if (description == null) {
       description = getDescription();
@@ -271,14 +271,23 @@ public class UIImageIcon extends aUIImageIcon {
     return ic;
   }
 
+  @Override
   public Drawable getDrawable(View view) {
-    if (drawable == null) {
-      drawable = new DrawableIcon(this);
+    if(image==null) {
+      return super.getDrawable(view);
     }
-
-    return drawable;
+    return image.getDrawable();
   }
 
+  @Override
+  public Drawable createDrawable(View view) {
+    if(image==null) {
+      return super.createDrawable(view);
+    }
+    return image.createDrawable();
+  }
+
+  @Override
   public iPlatformPaint getPaint(float width, float height) {
     if (loaded && (platformPaint == null)) {
       Bitmap       bm     = getImage().getBitmap();
@@ -290,6 +299,7 @@ public class UIImageIcon extends aUIImageIcon {
     return platformPaint;
   }
 
+  @Override
   public Shader getShader(float width, float height) {
     if (getPaint(width, height) != null) {
       return platformPaint.getShader();
@@ -304,6 +314,7 @@ public class UIImageIcon extends aUIImageIcon {
    * @param is if and image observer has been specified, the observer will be notified when the image is loaded
    * @return true is the images has been loaded; false otherwise
    */
+  @Override
   public boolean isImageLoaded(iImageObserver is) {
     if (location != null) {
       if (is != null) {
@@ -314,7 +325,7 @@ public class UIImageIcon extends aUIImageIcon {
     }
 
     if (image instanceof DelayedImage) {
-      boolean loaded = image.isLoaded(is);
+      boolean loaded = image.isImageLoaded(is);
 
       if (loaded) {
         imageWasLoaded();
@@ -332,6 +343,7 @@ public class UIImageIcon extends aUIImageIcon {
     return true;
   }
 
+  @Override
   protected void imageWasLoaded() {
     if (!loaded) {
       if (image instanceof DelayedImage) {

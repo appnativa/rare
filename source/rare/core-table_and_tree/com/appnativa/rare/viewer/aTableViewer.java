@@ -373,7 +373,31 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
                         : title, null, type, null, icon);
   }
 
+
   /**
+   * Converts from a model based index to a view based index.
+   * The view index in based on the order the columns is displayed in.
+   * The model index is based on the order the columns are stored in the model
+   * 
+   * @param index the view index to convert
+   * @return the model index or -1 if an error
+   */
+  public int convertColumnModelIndexToView(int index) {
+    return tableHandler.convertModelIndexToView(index);
+  }
+
+  /**
+   * Converts from a view based index to a model based index.
+   * The view index in based on the order the columns is displayed in.
+   * The model index is based on the order the columns are stored in the model
+   * 
+   * @param index the view index to convert
+   * @return the model index or -1 if an error
+   */
+  public int convertColumnViewIndexToModel(int index) {
+    return tableHandler.convertViewIndexToModel(index);
+  }
+/**
    * Creates a new column
    *
    * @param title
@@ -1602,7 +1626,7 @@ public abstract class aTableViewer extends aListViewer implements iTreeHandler {
    *          the point
    * @return the column index or -1
    */
-  public int getCoilumnIndexAt(UIPoint p) {
+  public int getColumnIndexAt(UIPoint p) {
     return (p == null)
            ? -1
            : getColumnIndexAt(p.x, p.y);

@@ -31,7 +31,7 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.google.j2objc.annotations.Weak;
-import com.jgoodies.forms.layout.FormLayout;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 
 /**
  * A renderer that uses the JGoodies forms layout panel to render information

@@ -57,7 +57,7 @@ import com.appnativa.spot.SPOTSet;
 import com.appnativa.util.IntList;
 import com.appnativa.util.SNumber;
 import com.appnativa.util.json.JSONWriter;
-import com.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 
 /**
  * A widget that provides a visual grouping of other widgets.

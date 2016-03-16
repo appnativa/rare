@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
@@ -83,21 +83,10 @@ public abstract class aJavaScriptManager extends aScriptManager {
   protected void initializeEngine(ScriptEngine engine, ScriptContext context) {
     checkForRhino(engine);
 
-    if ((context != null)
-        &&!"false".equalsIgnoreCase(Platform.getProperty("rare.scriptingRunInit",
-          Platform.getProperty("jnlp.rare.scriptingRunInit", null)))) {
-      String fileName = (String) context.getAttribute(ScriptEngine.FILENAME, ScriptContext.ENGINE_SCOPE);
-
+    if (context != null) {
       try {
-        String source = engine.getFactory().getLanguageName().toLowerCase() + ".init";
-        String code   = getResourceStreamAsString(source);
-
-        if (code != null) {
-          context.setAttribute(ScriptEngine.FILENAME, source, ScriptContext.ENGINE_SCOPE);
-          engine.eval(code, context);
-        }
-      } catch(Throwable e) {
-        context.setAttribute(ScriptEngine.FILENAME, fileName, ScriptContext.ENGINE_SCOPE);
+        engine.eval("importClass(com.appnativa.rare.ui.canvas.Image)", context);
+      } catch(Exception e) {
         Platform.debugLog(e.toString());
       }
     }
@@ -257,5 +246,12 @@ public abstract class aJavaScriptManager extends aScriptManager {
   @Override
   protected boolean isNativeScriptFunctionObject(Object function) {
     return RhinoContextFactory.isFunctionObject(function);
+  }
+
+  @Override
+  public boolean releaseEngineEx(ScriptEngine e) {
+    e.getBindings(ScriptContext.ENGINE_SCOPE).clear();
+
+    return true;
   }
 }

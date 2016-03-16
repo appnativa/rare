@@ -93,6 +93,13 @@ public class aFormViewer extends GroupBoxViewer {
 
     actAsFormViewer = fc.actAsFormViewer.booleanValue();
     configureEx(fc);
+
+    Link link = fc.getActionLink();
+
+    if (link != null) {
+      setActionListener(createActionLink(link));
+    }
+
     retainInitialFieldValues = fc.retainInitialFieldValues.booleanValue();
     isSubmittable            = true;
 
@@ -186,11 +193,11 @@ public class aFormViewer extends GroupBoxViewer {
   public void writeHTTPContent(boolean first, Writer writer, String boundary, Map<String, Object> attributes) {
     try {
       if (attributes != null) {
-        FormHelper.writeHTTPContent(first, this, writer, boundary, attributes, true);
+        FormHelper.writeHTTPContent(first, writer, boundary, attributes);
       }
 
       if (submitAttributes != null) {
-        FormHelper.writeHTTPContent(first, this, writer, boundary, submitAttributes, true);
+        FormHelper.writeHTTPContent(first, writer, boundary, submitAttributes);
       }
 
       int     len = widgetList.size();
@@ -230,11 +237,11 @@ public class aFormViewer extends GroupBoxViewer {
    */
   public boolean writeHTTPValue(boolean first, Writer writer, Map<String, Object> attributes) {
     try {
-      if ((attributes != null) && FormHelper.writeHTTPValues(first, this, writer, attributes, first)) {
+      if ((attributes != null) && FormHelper.writeHTTPValues(first, writer, attributes, true)) {
         first = false;
       }
 
-      if ((submitAttributes != null) && FormHelper.writeHTTPValues(first, this, writer, submitAttributes, first)) {
+      if ((submitAttributes != null) && FormHelper.writeHTTPValues(first, writer, submitAttributes, true)) {
         first = false;
       }
 
@@ -289,11 +296,11 @@ public class aFormViewer extends GroupBoxViewer {
       }
 
       if (attributes != null) {
-        FormHelper.writeJSONValues(this, writer, attributes, true);
+        FormHelper.writeJSONValues(writer, attributes);
       }
 
       if (submitAttributes != null) {
-        FormHelper.writeJSONValues(this, writer, submitAttributes, true);
+        FormHelper.writeJSONValues(writer, submitAttributes);
       }
 
       len = widgetList.size();

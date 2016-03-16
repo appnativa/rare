@@ -54,6 +54,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -76,23 +77,23 @@ import javax.swing.text.html.HTML;
  * @author     Don DeCoteau
  */
 public class LabelView extends JLabel implements iPainterSupport, MouseListener, MouseMotionListener, iView {
-  iHyperlinkListener listener;
-  Point              mousePressedPoint;
-  long               mousePressedTime;
-  int                rgba;
-  AffineTransform    transform;
-
-  /**  */
+  iHyperlinkListener                  listener;
+  Point                               mousePressedPoint;
+  long                                mousePressedTime;
+  int                                 rgba;
+  AffineTransform                     transform;
   protected iPlatformComponentPainter componentPainter;
   protected SwingGraphics             graphics;
-  private Orientation                 _orientation = Orientation.HORIZONTAL;
-  private boolean                     iconOnly     = true;
-  private boolean                     blockRevalidateAndRepaint;
-  private boolean                     iconRightJustified;
-  private String                      lastHref;
-  private boolean                     shapedBorder;
-  private int                         verticalAlignment;
-  private boolean                     wordWrap;
+  protected Orientation                 _orientation = Orientation.HORIZONTAL;
+  protected boolean                     iconOnly     = true;
+  protected boolean                     blockRevalidateAndRepaint;
+  protected boolean                     iconRightJustified;
+  protected String                      lastHref;
+  protected boolean                     shapedBorder;
+  protected int                         verticalAlignment;
+  protected boolean                     wordWrap;
+  protected boolean                   _enabled = true;
+  protected boolean                   _painting;
 
   public LabelView() {
     super();
@@ -130,6 +131,19 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
   @Override
   public JToolTip createToolTip() {
     return JToolTipEx.createNewToolTip(this);
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    _enabled = enabled;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return _painting
+           ? true
+           : _enabled;
   }
 
   @Override
@@ -197,7 +211,7 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
       return;
     }
 
-    mousePressedPoint = e.getPoint();
+    mousePressedPoint = e.getLocationOnScreen();
     mousePressedTime  = e.getWhen();
   }
 
@@ -320,7 +334,11 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
     componentPainter = cp;
   }
 
-  public void setHyperlinkeListener(iHyperlinkListener listener) {
+  public iHyperlinkListener getHyperlinkListener() {
+    return listener;
+  }
+
+  public void setHyperlinkListener(iHyperlinkListener listener) {
     this.listener = listener;
     this.removeMouseListener(this);
     this.removeMouseMotionListener(this);
@@ -512,10 +530,12 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
 
   @Override
   public Color getForeground() {
-    Color c=super.getForeground();
-    if(c instanceof UIColor && !isEnabled()) {
-      c=((UIColor)c).getDisabledColor();
+    Color c = super.getForeground();
+
+    if ((c instanceof UIColor) &&!_enabled) {
+      c = ((UIColor) c).getDisabledColor();
     }
+
     return c;
   }
 
@@ -851,7 +871,9 @@ public class LabelView extends JLabel implements iPainterSupport, MouseListener,
       return;
     }
 
+    _painting = true;
     super.paintComponent(g);
+    _painting = false;
   }
 
   protected Rectangle getTextRectangle(boolean updateView) {

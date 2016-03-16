@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -107,8 +107,13 @@ public class UIImage extends aUIImage implements Cloneable {
   }
 
   @Override
-  public UIImage createReflectionImage(int y, int height, float opacity, int gap) {
-    return new UIImage(ImageUtils.createReflection(proxy, y, height, opacity, gap));
+  public UIImage createCopyWithReflection(int height, float opacity, int gap) {
+    return new UIImage(ImageUtils.createCopyWithReflection(proxy, height, opacity, gap));
+  }
+
+  @Override
+  public UIImage createReflection(int height, float opacity, int gap) {
+    return new UIImage(ImageUtils.createReflection(proxy, height, opacity, gap));
   }
 
   @Override
@@ -232,6 +237,9 @@ public class UIImage extends aUIImage implements Cloneable {
     return (proxy != null) && super.isNinePatchEx();
   }
 
+  @Override
+  public void load() throws Exception {
+  }
   @Override
   protected boolean isLoadedEx(boolean hasObserver) {
     return proxy != null;

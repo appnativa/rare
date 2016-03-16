@@ -100,11 +100,11 @@ MainWindow ::= Extends Viewer {
     menuItem MenuItem
   } Reference [ onConfigure ], // Design: popup menu to display when the user right-clicks on a command bar
   statusBar StatusBar Reference [ os ], // Appearance: the status bar for the main window
-  decorated Boolean Default true [ os ], // Design: whether the main window is decorated
+  decorated Boolean Default true [ os, color ], // Design: whether the main window is decorated
   titlePane Any DefinedBy Widget Optional [ url, os ], // Hidden: a widget to use as the title pane for an undecorated window
   viewer Any DefinedBy Widget Optional [ url ], // Hidden: a viewer for the window's workspace
   windowListenerClass PrintableString Range(0..255) Optional  // Design: the name of a class to instantiate and add as a window listener
-} [ onOpened, onWillClose, onResize, onHasCollapsed, onHasExpanded, onError, style ]
+} [ onOpened, onWillClose, onResize, onHasCollapsed, onHasExpanded, onError, style, opaque ]
 
 /**
  * This class represents the configuration for a window's menu bar. The menu items are defined in the popupMenu property.
@@ -151,6 +151,7 @@ StatusBar ::= Extends Viewer {
  * This class represents the configuration information for a form viewer.
  */
 Form ::= Extends GroupBox {
+  actionLink Link Reference, // Behavior: link to activate for when sibmit is called on the form
   actAsFormViewer Boolean Default true, // Behavior: whether the pane should act as a form viewer (if false widgets will be registered with the next higher up form viewer)
   submitAttributes PrintableString Optional [ mimeType ], // a list of name/value pairs that are to be submitted along with widget values. The default format is a set of name/value pairs separated by a semi-colon
   retainInitialFieldValues Boolean Default true, // Behavior: whether initial widget values should be retained so that the form can be reset to it's initial state
@@ -456,7 +457,7 @@ Table ::= Extends Viewer {
   headerBgColor PrintableString Range(0..64) Optional [ type="linear", direction="vertical_top", magnitude, distribution, radius ], // Appearance~gradient~background: the background color header
   headerSeparatorColor PrintableString Range(0..64) Optional, // Appearance~color~headerSeparatorColor: the color for the header column separator
   headerBottomSeparatorColor PrintableString Range(0..64) Optional, // Appearance~color~headerBottomSeparatorColor: the color for the separator between the header and the table (defaults to the column separator)
-  headerCell GridCell Reference [ marginColor ], // Appearance~~reload: a cell description for header cells (for painting purposes)
+  headerCell GridCell Reference, // Appearance~~reload: a cell description for header cells (for painting purposes)
   headerRolloverCell GridCell Reference, // Appearance~~reload: a roll over cell description for header cells (for painting purposes)
   headerSelectionCell GridCell Reference, // Appearance~~reload: a selected cell description for header cells (for painting purposes)
   headerRightFillerCell GridCell Reference, // Appearance~~reload: a cell description for any filler space on the right (for painting purposes)
@@ -923,8 +924,6 @@ Widget ::= Sequence {
   deletingAllowed Boolean Default false, // Behavior: whether the widget allows deleting
   defaultContextMenu Boolean Default true, // Behavior: whether the widget's should show a default context menu
   tooltip PrintableString Optional, // Appearance~~runtime: the tool tip for the widget
-  actionLink Link Reference, // Behavior: link to activate for an action event
-  standardHandlers PrintableString Optional, // Behavior: a comma separated list of events to invoke standard handlers for. When a specified event occurs the function with the name in the form of <event>_<widgetName> will be invoked
   propertyChangeHandlers PrintableString Optional, // Behavior: a comma separated list of property names/events to invoke when the named property changes
   keystrokeMappings PrintableString Optional, // Behavior: a set of keystroke names and code fragments (predefined actions can be used by prefacing the action name with 'action:') to execute for the keystroke
   dataURL PrintableString Optional [ mimeType, deferred, columnSeparator="|", inline, ldSeparator, riSeparator, unescape="false", aggregate, parser ], // Design~url~reload: a URL to use to retrieve data for the widget
@@ -1044,7 +1043,7 @@ ComboBox ::= Extends Widget {
   popupResizable Boolean Default false, // Behavior: whether the popup is resizable
   showPopupAsDialog Boolean Default false, // Behavior: whether the popup should be shown as a dialog box
   showPopupButton Boolean Default true [ icon, pressedIcon, disabledIcon, border, scaleIcons, fgColor, disabledFgColor, bgColor, pressedBgColor, rolloverBgColor, disabledBgColor ], // Appearance~~reload: whether the popup buton should be shown
-  popupPainter GridCell Reference, // Design: a painter for the popup background
+  popupPainter GridCell Reference [ showDivider, dividerLineColor ], // Design: a painter for the popup background
   selectionPainter GridCell Reference [ foreground ], // Appearance: painter for when an item in the list is selected
   useSameBorderForPopup Boolean Default false, // Behavior: whether the popup should use the same border as the combobox
   rowHeight PrintableString Range(0..32) Optional, // Appearance: the height to use for each row in the combobox
@@ -1075,7 +1074,7 @@ TextField ::= Extends Widget {
   maxCharacters Integer Range(0..) Optional, // Behavior: the maximum characters to allow (use zero for no maximum)
   undoLimit Integer Range(-1..) Default 100, // Behavior: the maximum number of undos to support
   speechInputSupported Boolean Default true, // Behavior: whether the speech input is supported
-  allowDefaultSuggestions Boolean Default true, // Behavior: whether default suggestions are allowed
+  allowDefaultSuggestions Boolean Default false, // Behavior: whether default suggestions are allowed
   keyboardType Enumerated {
     default_type             (0),
     text_type                (1),

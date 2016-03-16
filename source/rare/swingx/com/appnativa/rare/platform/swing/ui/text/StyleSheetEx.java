@@ -20,9 +20,6 @@
 
 package com.appnativa.rare.platform.swing.ui.text;
 
-import com.appnativa.rare.ui.ColorUtils;
-import com.appnativa.rare.ui.UIColorShade;
-
 import java.awt.Color;
 import java.awt.Font;
 
@@ -33,6 +30,10 @@ import javax.swing.text.html.CSS;
 import javax.swing.text.html.CSS.Attribute;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.StyleSheet;
+
+import com.appnativa.rare.converters.Conversions;
+import com.appnativa.rare.ui.ColorUtils;
+import com.appnativa.rare.ui.UIColor;
 
 /**
  *
@@ -73,51 +74,25 @@ public class StyleSheetEx extends StyleSheet {
     if (font != null) {
       rule.append(" font-family: ");
       rule.append(font.getFamily());
-      rule.append(" ; ");
+      rule.append(";");
       rule.append(" font-size: ");
       rule.append(font.getSize());
-      rule.append("pt ;");
+      rule.append("pt;");
 
       if (font.isBold()) {
-        rule.append(" font-weight: 700 ; ");
+        rule.append(" font-weight: 700;");
       }
 
       if (font.isItalic()) {
-        rule.append(" font-style: italic ; ");
+        rule.append(" font-style: italic;");
       }
     }
-
-    if (fg != null) {
-      if (fg instanceof UIColorShade) {
-        rule.append(" color: ");
-        rule.append(fg.toString());
-      } else {
-        rule.append(" color: #");
-
-        if (fg.getRed() < 16) {
-          rule.append('0');
-        }
-
-        rule.append(Integer.toHexString(fg.getRed()));
-
-        if (fg.getGreen() < 16) {
-          rule.append('0');
-        }
-
-        rule.append(Integer.toHexString(fg.getGreen()));
-
-        if (fg.getBlue() < 16) {
-          rule.append('0');
-        }
-
-        rule.append(Integer.toHexString(fg.getBlue()));
-      }
-
-      rule.append(" ; ");
+    if(fg instanceof UIColor) {
+      rule.append(" ");
+      rule.append(Conversions.colorToCSSString((UIColor)fg));
     }
 
     rule.append(" }");
-
     return rule.toString();
   }
 

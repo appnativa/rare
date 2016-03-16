@@ -32,8 +32,11 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iAppContext;
+import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
+import com.appnativa.rare.platform.android.ui.util.AndroidHelper.iViewWalker;
 import com.appnativa.rare.platform.android.ui.view.DialogEx;
 import com.appnativa.rare.platform.android.ui.view.FormsView;
 import com.appnativa.rare.ui.aWindowManager.WindowType;
@@ -42,13 +45,13 @@ import com.appnativa.rare.ui.event.ActionEvent;
 import com.appnativa.rare.ui.event.WindowEvent;
 import com.appnativa.rare.ui.event.iActionListener;
 import com.appnativa.rare.ui.event.iWindowListener;
+import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.viewer.iContainer;
 import com.appnativa.rare.viewer.iTarget;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.SNumber;
-import com.jgoodies.forms.layout.FormLayout;
 
 /**
  *
@@ -154,7 +157,7 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
         }
 
         if (target != null) {
-          target.dispose(false);
+          target.dispose(true);
         }
 
         Utils.fireWindowEvent(listenerList, this, WindowEvent.Type.Closed);
@@ -178,24 +181,30 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
 
   public void finishWindowSetup(Map options) {
     if (!undecorated && (dialogWindow != null) && dialogWindow.isUndecorated()) {
-      boolean show=Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
-      String s=options!=null ? (String)options.get("showCloseButton") : null;
-      if(s!=null) {
-        show=SNumber.booleanValue(s);
+      boolean show = Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
+      String  s    = (options != null)
+                     ? (String) options.get("showCloseButton")
+                     : null;
+
+      if (s != null) {
+        show = SNumber.booleanValue(s);
       }
-      iActionListener l=null;
-      if(show) {
-        l= new iActionListener() {
+
+      iActionListener l = null;
+
+      if (show) {
+        l = new iActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
             windowViewer.close();
           }
         };
       }
-      rootPane.createDialogTitleBar(windowViewer,l);
+
+      rootPane.createDialogTitleBar(windowViewer, l);
       rootPane.setTitlePaneAsWindowDragger(windowViewer);
       rootPane.setCombineMenuBarAndTitle(true);
-      runtimeDecorations=true;
+      runtimeDecorations = true;
     }
 
     Utils.setupWindowOptions(this, options);
@@ -444,12 +453,16 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
 
       win.setContentView(v);
     }
-    
   }
 
   @Override
   public void setBackground(UIColor bg) {
     rootPane.setBackground(bg);
+  }
+
+  @Override
+  public boolean setAlpha(float alpha) {
+    return false;
   }
 
   @Override
@@ -463,7 +476,7 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
   @Override
   public void setComponentPainter(iPlatformComponentPainter cp) {
     rootPane.setComponentPainter(cp);
-    
+
     UIInsets in = rootPane.getInsetsEx();
 
     if (in != null) {
@@ -474,6 +487,7 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
   @Override
   public void setLocation(float x, float y) {
     android.view.WindowManager.LayoutParams params = window.getAttributes();
+
     params.x = Math.round(x);
     params.y = Math.round(y);
     window.setAttributes(params);
@@ -486,7 +500,6 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
     if ((mb != null) &&!mb.isNativeActionBar()) {
       rootPane.setMenuBar(mb);
     }
-
   }
 
   public void setMovable(boolean movable) {}
@@ -658,9 +671,9 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
       if (mainWindow) {
-        
         int w = MeasureSpec.getSize(widthMeasureSpec);
         int h = MeasureSpec.getSize(heightMeasureSpec);
+
         if ((w > 0) && (h > 0)) {
           setMeasuredDimension(w, h);
 
@@ -675,5 +688,36 @@ public class Frame extends Container implements iFrame, View.OnSystemUiVisibilit
 
   public void setWindowViewer(WindowViewer windowViewer) {
     this.windowViewer = windowViewer;
+  }
+
+  public void updateColors() {
+    if (ColorUtils.KEEP_COLOR_KEYS) {
+      iViewWalker walker = new iViewWalker() {
+        @Override
+        public boolean viewGroupEncountered(ViewGroup v) {
+          return true;
+        }
+        @Override
+        public boolean viewEncountered(View v) {
+          if (v instanceof iPainterSupport) {
+            v.refreshDrawableState();
+            v.invalidate();
+          }
+
+          return true;
+        }
+      };
+      ViewGroup vg = (ViewGroup) rootPane.getView();
+
+      vg.refreshDrawableState();
+      vg.invalidate();
+      AndroidHelper.traverse(vg, walker, false);
+    }
+  }
+
+  public void setCancelable(boolean cancelable) {
+    if (dialogWindow != null) {
+      dialogWindow.setCancelable(cancelable);
+    }
   }
 }

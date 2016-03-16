@@ -57,11 +57,9 @@ import com.appnativa.rare.FunctionCallbackWaiter;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iFunctionHandler;
-import com.appnativa.rare.converters.Conversions;
 import com.appnativa.rare.converters.DateConverter;
 import com.appnativa.rare.converters.DateTimeConverter;
 import com.appnativa.rare.net.JavaURLConnection;
-import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.platform.PlatformHelper;
 import com.appnativa.rare.spot.Widget;
 import com.appnativa.rare.ui.ColorUtils;
@@ -113,6 +111,8 @@ import com.appnativa.util.SimpleDateFormatEx;
 import com.appnativa.util.Streams;
 import com.appnativa.util.StringCache;
 import com.appnativa.util.URLEncoder;
+import com.appnativa.util.UTF8Helper;
+import com.appnativa.util.XMLUtils;
 import com.appnativa.util.iCancelable;
 import com.appnativa.util.iFilter;
 import com.appnativa.util.iFilterableList;
@@ -120,7 +120,6 @@ import com.appnativa.util.iPreferences;
 import com.appnativa.util.json.JSONArray;
 import com.appnativa.util.json.JSONException;
 import com.appnativa.util.json.JSONObject;
-import com.appnativa.util.xml.XMLUtils;
 
 /**
  * Class implementing support for functions exposed via the "rare" object within
@@ -145,7 +144,7 @@ public class Functions implements iFunctionHandler {
   protected static final int FUNC_DATE_TIME     = 26;
   protected static final int FUNC_DOCBASE       = 37;
   protected static final int FUNC_END_TAG       = 24;
-  protected static final int FUNC_ESCAPE        = 27;
+  protected static final int FUNC_ENCODE        = 27;
   protected static final int FUNC_HMAC_MD5      = 12;
   protected static final int FUNC_HMAC_SHA      = 13;
   protected static final int FUNC_HTML          = 40;
@@ -277,17 +276,6 @@ public class Functions implements iFunctionHandler {
   }
 
   /**
-   * Returns a string representing the application's main URL
-   *
-   * @param context
-   *          the widget context
-   * @return a string representing the application's main URL
-   */
-  public static String applicationURL(iWidget context) {
-    return context.getAppContext().getApplicationURL().toString();
-  }
-
-  /**
    * Returns the specified object as a list. If the object is already it is
    * simply returned If it is an array a new is created that is backed by the
    * array other a list with the specified item as it's only value is returned
@@ -321,7 +309,7 @@ public class Functions implements iFunctionHandler {
       return "";
     }
 
-    return Base64.encode(ISO88591Helper.getInstance().getBytes(val));
+    return Base64.encode(UTF8Helper.getInstance().getBytes(val));
   }
 
   /**
@@ -337,7 +325,7 @@ public class Functions implements iFunctionHandler {
       return "";
     }
 
-    return Base64.encodeBytes(ISO88591Helper.getInstance().getBytes(val), Base64.DONT_BREAK_LINES);
+    return Base64.encodeBytes(UTF8Helper.getInstance().getBytes(val), Base64.DONT_BREAK_LINES);
   }
 
   /**
@@ -479,47 +467,14 @@ public class Functions implements iFunctionHandler {
    *         launched via webstart
    */
   public static String codeBase() {
-    return codeBase(Platform.getContextRootViewer());
-  }
-
-  /**
-   * Returns a string representing the codebase for an application launched via
-   * webstart
-   *
-   * @param context
-   *          the widget context
-   * @return a string representing the codebase or null if the app was not
-   *         launched via webstart
-   */
-  public static String codeBase(iWidget context) {
-    Object u = context.getAppContext().getCodeBase();
+    Object u = Platform.getAppContext().getCodeBase();
 
     return (u == null)
            ? null
            : u.toString();
   }
 
-  /**
-   * Converts a color to its hex string representation
-   *
-   * @param c
-   *          the color
-   * @return the hex string representation
-   */
-  public static String colorToHexString(UIColor c) {
-    return Conversions.colorToHEXString(c);
-  }
 
-  /**
-   * Converts a color to its RGB string representation
-   *
-   * @param c
-   *          the color
-   * @return the RGB string representation
-   */
-  public static String colorToRGBString(UIColor c) {
-    return Conversions.colorToRGBString(c);
-  }
 
   /**
    * Concatenates the specified objects into a single string
@@ -535,27 +490,22 @@ public class Functions implements iFunctionHandler {
   }
 
   /**
-   * Converts a date string in the default item format to the default display
+   * Converts an object representing a date to a string for display purposes
    * format
    *
-   * @param context
-   *          the context
    * @param date
    *          the date string or date /calendar object in the default item
    *          format
    * @return the date string in the default display format
    *
    */
-  public static String convertDate(iWidget context, Object date) {
-    return convertDate(context, date, true);
+  public static String convertDate(Object date) {
+    return convertDate(date, true);
   }
 
   /**
-   * Converts a date string in the default item format to the default display
-   * format
+   * Converts an object representing a date to a string
    *
-   * @param context
-   *          the context
    * @param date
    *          the date string or date /calendar object in the default item
    *          format
@@ -565,7 +515,7 @@ public class Functions implements iFunctionHandler {
    * @return the date string in the default display format
    *
    */
-  public static String convertDate(iWidget context, Object date, boolean display) {
+  public static String convertDate(Object date, boolean display) {
     if (date == null) {
       return "";
     }
@@ -579,21 +529,15 @@ public class Functions implements iFunctionHandler {
     } else {
       DateConverter cvt = new DateConverter();
 
-      d = (Date) cvt.fromString(date.toString(), context.getAppContext().getDefaultDateContext());
+      d = (Date) cvt.fromString(date.toString(), Platform.getAppContext().getDefaultDateContext());
     }
 
-    DateFormat df = display
-                    ? context.getAppContext().getDefaultDateContext().getDisplayFormat()
-                    : context.getAppContext().getDefaultDateContext().getItemFormat();
-
-    return df.format(d);
+    return (String) Platform.getAppContext().getDefaultDateContext().dateToString(d);
   }
 
   /**
    * Converts a date string in the default item format to the specified format
    *
-   * @param context
-   *          the context
    * @param date
    *          the date string or date /calendar object in the default item
    *          format
@@ -602,7 +546,7 @@ public class Functions implements iFunctionHandler {
    * @return the date string in the output format
    *
    */
-  public static String convertDate(iWidget context, Object date, String outputFormat) {
+  public static String convertDate(Object date, String outputFormat) {
     if (date == null) {
       return "";
     }
@@ -622,7 +566,7 @@ public class Functions implements iFunctionHandler {
 
       DateConverter cvt = new DateConverter();
 
-      d = (Date) cvt.fromString(s, context.getAppContext().getDefaultDateContext());
+      d = (Date) cvt.fromString(s, Platform.getAppContext().getDefaultDateContext());
     }
 
     SimpleDateFormatEx df = new SimpleDateFormatEx(outputFormat);
@@ -633,8 +577,6 @@ public class Functions implements iFunctionHandler {
   /**
    * Converts a date string from one format to another
    *
-   * @param context
-   *          the context
    * @param date
    *          the date string or date /calendar object in the default item
    *          format
@@ -645,7 +587,7 @@ public class Functions implements iFunctionHandler {
    * @return the date string in the output format
    *
    */
-  public static String convertDate(iWidget context, Object date, String inputFormat, String outputFormat){
+  public static String convertDate(Object date, String inputFormat, String outputFormat) {
     if (date == null) {
       return "";
     }
@@ -665,7 +607,7 @@ public class Functions implements iFunctionHandler {
 
       DateConverter cvt = new DateConverter();
 
-      d = (Date) cvt.fromString(s, context.getAppContext().getDefaultDateContext());
+      d = (Date) cvt.fromString(s, Platform.getAppContext().getDefaultDateContext());
     }
 
     SimpleDateFormatEx df = new SimpleDateFormatEx(outputFormat);
@@ -677,24 +619,20 @@ public class Functions implements iFunctionHandler {
    * Converts a date/time string in the default item format to the default
    * display format
    *
-   * @param context
-   *          the context
    * @param date
    *          the date string or date /calendar object in the default item
    *          format
    * @return the date/time string in the default display format
    *
    */
-  public static String convertDateTime(iWidget context, Object date)  {
-    return convertDateTime(context, date, true);
+  public static String convertDateTime(Object date) {
+    return convertDateTime(date, true);
   }
 
   /**
    * Converts a date/time string in the default item format to the default
    * display format
    *
-   * @param context
-   *          the context
    * @param date
    *          the date string or date /calendar object in the default item
    *          format
@@ -704,7 +642,7 @@ public class Functions implements iFunctionHandler {
    * @return the date/time string in the default display format
    *
    */
-  public static String convertDateTime(iWidget context, Object date, boolean display) {
+  public static String convertDateTime(Object date, boolean display) {
     if (date == null) {
       return "";
     }
@@ -724,14 +662,10 @@ public class Functions implements iFunctionHandler {
 
       DateTimeConverter cvt = new DateTimeConverter();
 
-      d = (Date) cvt.fromString(s, context.getAppContext().getDefaultDateTimeContext());
+      d = (Date) cvt.fromString(s, Platform.getAppContext().getDefaultDateTimeContext());
     }
 
-    DateFormat df = display
-                    ? context.getAppContext().getDefaultDateTimeContext().getDisplayFormat()
-                    : context.getAppContext().getDefaultDateTimeContext().getItemFormat();
-
-    return df.format(d);
+    return Platform.getAppContext().getDefaultDateTimeContext().dateToString(d);
   }
 
   /**
@@ -1383,28 +1317,13 @@ public class Functions implements iFunctionHandler {
    * @return a string object representing the current time
    */
   public static String currentTime(String format) {
-    return currentTime(null, format);
-  }
+    Date date = new Date();
 
-  /**
-   * Returns the current time as a string
-   *
-   * @param context
-   *          the widget context
-   * @param format
-   *          a format specified for the time output
-   *
-   * @return a string object representing the current time
-   */
-  public static String currentTime(iWidget context, String format) {
-    if (context == null) {
-      context = Platform.getContextRootViewer();
+    if (format == null) {
+      return Platform.getAppContext().getDefaultTimeContext().dateToString(date);
     }
 
-    Date       date = new Date();
-    DateFormat df   = (format == null)
-                      ? context.getAppContext().getDefaultTimeContext().getDisplayFormat()
-                      : new SimpleDateFormatEx(format);
+    DateFormat df = new SimpleDateFormatEx(format);
 
     return df.format(date);
   }
@@ -1434,24 +1353,7 @@ public class Functions implements iFunctionHandler {
    * @return a string object representing the date/time specification
    */
   public static String date(String spec) {
-    return date(Platform.getContextRootViewer(), spec);
-  }
-
-  /**
-   * Convenience method for creating a date string from a relative time
-   * specification
-   *
-   * @param context
-   *          the widget context
-   * @param spec
-   *          the date specification
-   *
-   * @return a string object representing the time specification
-   */
-  public static String date(iWidget context, String spec) {
-    Date date = Helper.createDate(spec);
-
-    return context.getAppContext().getDefaultDateContext().getDisplayFormat().format(date);
+    return date(spec, null);
   }
 
   /**
@@ -1466,7 +1368,15 @@ public class Functions implements iFunctionHandler {
    * @return a string object representing the date/time specification
    */
   public static String date(String spec, String format) {
-    return date(Platform.getContextRootViewer(), spec);
+    Date date = Helper.createDate(spec);
+
+    if (format == null) {
+      return Platform.getAppContext().getDefaultDateContext().getDisplayFormat().format(date);
+    }
+
+    SimpleDateFormatEx df = new SimpleDateFormatEx(format);
+
+    return df.format(date);
   }
 
   /**
@@ -1479,25 +1389,7 @@ public class Functions implements iFunctionHandler {
    * @return a string object representing the date/time specification
    */
   public static String dateTime(String spec) {
-    return dateTime(Platform.getContextRootViewer(), spec);
-  }
-
-  /**
-   * Convenience method for creating a date string from a relative time
-   * specification
-   *
-   * @param context
-   *          the widget context
-   * @param spec
-   *          the date/time specification
-   *
-   * @return a string object representing the date/time specification
-   */
-  public static String dateTime(iWidget context, String spec) {
-    Date       date = Helper.createDate(spec);
-    DateFormat df   = context.getAppContext().getDefaultDateTimeContext().getDisplayFormat();
-
-    return df.format(date);
+    return dateTime(spec, null);
   }
 
   /**
@@ -1512,27 +1404,13 @@ public class Functions implements iFunctionHandler {
    * @return a string object representing the date/time specification
    */
   public static String dateTime(String spec, String format) {
-    return dateTime(Platform.getContextRootViewer(), spec, format);
-  }
+    Date date = Helper.createDate(spec);
 
-  /**
-   * Convenience method for creating a date string from a relative time
-   * specification
-   *
-   * @param context
-   *          the widget context
-   * @param spec
-   *          the date/time specification
-   * @param format
-   *          a format specified for the data output
-   *
-   * @return a string object representing the date/time specification
-   */
-  public static String dateTime(iWidget context, String spec, String format) {
-    Date       date = Helper.createDate(spec);
-    DateFormat df   = (format == null)
-                      ? context.getAppContext().getDefaultDateContext().getDisplayFormat()
-                      : new SimpleDateFormatEx(format);
+    if (format == null) {
+      return Platform.getAppContext().getDefaultDateTimeContext().dateToString(date);
+    }
+
+    DateFormat df = new SimpleDateFormatEx(format);
 
     return df.format(date);
   }
@@ -1610,19 +1488,7 @@ public class Functions implements iFunctionHandler {
    * @return a string representing the document base or codebase or null
    */
   public static String documentBase() {
-    return documentBase(Platform.getContextRootViewer());
-  }
-
-  /**
-   * Returns a string representing the documentbase for an applet or the
-   * codebase for an application launched via webstart
-   *
-   * @param context
-   *          the widget context
-   * @return a string representing the document base or codebase or null
-   */
-  public static String documentBase(iWidget context) {
-    URL u = context.getAppContext().getDocumentBase();
+    URL u = Platform.getAppContext().getDocumentBase();
 
     return (u == null)
            ? null
@@ -1644,8 +1510,10 @@ public class Functions implements iFunctionHandler {
   }
 
   /**
-   * Encodes the specified string for use as part of a url
-   *
+   * Encodes a string into its URL safe form using the default string
+   * character set. Characters deemed unsafe for use
+   * with 'application/x-www-form-urlencoded' mime type are escaped.
+   * 
    * @param str
    *          the string to encode
    * @see #decode
@@ -1653,12 +1521,12 @@ public class Functions implements iFunctionHandler {
    * @return the encoded url string
    */
   public static String encode(String str) {
-    return URLEncoder.encode(str);
+    return URLEncoder.encodeComponent(str);
   }
 
   /**
-   * Encodes the specified string for use as part of a url The only non
-   * alpha-numeric characters that are not escaped are '.' and '_'
+   * Encodes the specified string for use as url.
+   * The only non alpha-numeric characters that are not escaped are '.' and '_'
    *
    * @param str
    *          the string to encode
@@ -1666,8 +1534,8 @@ public class Functions implements iFunctionHandler {
    *
    * @return the encoded url string
    */
-  public static String encodeFull(String str) {
-    return URLEncoder.encodeEx(str);
+  public static String encodeUrl(String str) {
+    return URLEncoder.encodeUrl(str);
   }
 
   /**
@@ -1874,10 +1742,10 @@ public class Functions implements iFunctionHandler {
                      : parameters.length;
 
     switch(in.intValue()) {
-      case FUNC_ESCAPE :
+      case FUNC_ENCODE :
         checkParmLength(context, plen, 1);
 
-        return URLEncoder.encode(parameters[0]);
+        return URLEncoder.encodeComponent(parameters[0]);
 
       case FUNC_UPPER_CASE :
         checkParmLength(context, plen, 1);
@@ -1994,7 +1862,7 @@ public class Functions implements iFunctionHandler {
       case FUNC_COLOR :
         checkParmLength(context, plen, 1);
 
-        String color = colorToHexString(ColorUtils.getColor(parameters[0]));
+        String color = ColorUtils.getColor(parameters[0]).toHexString();
 
         if (plen > 1) {
           return "<font color=\"" + color + "\">" + parameters[1] + "</font>";
@@ -2025,12 +1893,12 @@ public class Functions implements iFunctionHandler {
       case FUNC_DATE :
         checkParmLength(context, plen, 1);
 
-        return date(context, parameters[0]);
+        return date(parameters[0]);
 
       case FUNC_CURRENT_TIME :
         checkParmLength(context, plen, 1);
 
-        return currentTime(context, parameters[0]);
+        return currentTime(parameters[0]);
 
       case FUNC_DATE_TIME :
         checkParmLength(context, plen, 1);
@@ -2038,7 +1906,7 @@ public class Functions implements iFunctionHandler {
             ? null
             : parameters[1];
 
-        return dateTime(context, parameters[0], s);
+        return dateTime(parameters[0], s);
 
       case FUNC_CURRENTTIME :
         return String.valueOf(currentTime());
@@ -2052,28 +1920,28 @@ public class Functions implements iFunctionHandler {
         return resolve(context, parameters[0]);
 
       case FUNC_CODEBASE :
-        return codeBase(context);
+        return codeBase();
 
       case FUNC_RFORMAT :
         checkParmLength(context, plen, 2);
 
         if (plen == 2) {
-          return rformat(context, parameters[0], parameters[1]);
+          return rformat(parameters[0], parameters[1]);
         }
 
         a = new String[plen - 1];
         System.arraycopy(parameters, 1, a, 0, plen - 1);
 
-        return rformat(context, parameters[0], (Object[]) a);
+        return rformat(parameters[0], (Object[]) a);
 
       case FUNC_SERVERBASE :
-        return serverBase(context);
+        return serverBase();
 
       case FUNC_DOCBASE :
-        return documentBase(context);
+        return documentBase();
 
       case FUNC_APPURL :
-        return applicationURL(context);
+        return applicationURL();
 
       case FUNC_CURRENTDATE :
         return currentDate(context, (plen > 0)
@@ -2246,7 +2114,7 @@ public class Functions implements iFunctionHandler {
       }
 
       if ((obj instanceof Date) || (obj instanceof Calendar)) {
-          return convertDate(Platform.getContextRootViewer(), obj, pattern);
+        return convertDate(obj, pattern);
       }
     }
 
@@ -2779,25 +2647,6 @@ public class Functions implements iFunctionHandler {
   }
 
   /**
-   * Converts a date string from one format to another
-   *
-   * @param context
-   *          the context
-   * @param date
-   *          the date string
-   * @param inputFormat
-   *          the input format
-   * @return the date string in the output format
-   *
-   * @throws java.text.ParseException
-   */
-  public static Date parseDateString(iWidget context, String date, String inputFormat) throws ParseException {
-    SimpleDateFormatEx df = new SimpleDateFormatEx(inputFormat);
-
-    return df.parse(date);
-  }
-
-  /**
    * Parses a JSON objects that contains rows of data items. The object contains
    * an array field "_rows" that is the array of rows and optionally an array
    * field called "_columns" if the data is tabular
@@ -2817,27 +2666,6 @@ public class Functions implements iFunctionHandler {
     p.parse(context, json, ph);
 
     return ph.getListEx();
-  }
-
-  /**
-   * Converts a date/time string in the default item format to a date object
-   *
-   * @param context
-   *          the context
-   * @param date
-   *          the date string or object in the default item format
-   * @return the date string in the default display format
-   *
-   * @throws java.text.ParseException
-   */
-  public static Date parseDateTimeString(iWidget context, String date) throws ParseException {
-    if ((date == null) || (date.length() == 0)) {
-      return null;
-    }
-
-    DateConverter cvt = new DateConverter();
-
-    return (Date) cvt.fromString(date, context.getAppContext().getDefaultDateTimeContext());
   }
 
   /**
@@ -3072,50 +2900,6 @@ public class Functions implements iFunctionHandler {
   }
 
   /**
-   * Reads the data for the specified entity
-   *
-   * @param context
-   *          the widget context
-   *
-   * @param entity
-   *          the URL, File, or string representing a URL from which to read
-   *
-   * @return the contents of the specified entity
-   * @throws IOException
-   */
-  public static String read(iWidget context, Object entity) throws IOException {
-    URL u = null;
-
-    if (context == null) {
-      context = Platform.getContextRootViewer();
-    }
-
-    if (entity instanceof URL) {
-      u = (URL) entity;
-    }
-
-    if (entity instanceof File) {
-      u = PlatformHelper.fileToURL(((File) entity));
-    } else if (entity != null) {
-      u = context.getURL(entity.toString());
-    }
-
-    if (u == null) {
-      return null;
-    }
-
-    iURLConnection c = context.getAppContext().openConnection(u);
-
-    try {
-      return c.getContentAsString();
-    } finally {
-      if (c != null) {
-        c.close();
-      }
-    }
-  }
-
-  /**
    * Removes all of the shared elements between the main and remove map from the
    * main map
    *
@@ -3254,8 +3038,6 @@ public class Functions implements iFunctionHandler {
   /**
    * Formats a string using the specified pattern and arguments
    *
-   * @param context
-   *          the context
    * @param resource_string
    *          the resource string representing a the printf-style pattern
    * @param args
@@ -3263,8 +3045,8 @@ public class Functions implements iFunctionHandler {
    *
    * @return the formatted string
    */
-  public static String rformat(iWidget context, String resource_string, Object... args) {
-    resource_string = context.getAppContext().getResourceAsString(resource_string);
+  public static String rformat(String resource_string, Object... args) {
+    resource_string = Platform.getAppContext().getResourceAsString(resource_string);
 
     if ((args != null) &&!(args instanceof Object[])) {
       args = new Object[] { args };
@@ -3348,22 +3130,10 @@ public class Functions implements iFunctionHandler {
    * @return a string representing the base server URL
    */
   public static String serverBase() {
-    return serverBase(Platform.getContextRootViewer());
-  }
-
-  /**
-   * Returns a string representing the server's base for an application. This is
-   * the url to the server (http://server:port/)
-   *
-   * @param context
-   *          the widget context
-   * @return a string representing the base server URL
-   */
-  public static String serverBase(iWidget context) {
-    URL u = context.getAppContext().getCodeBase();
+    URL u = Platform.getAppContext().getCodeBase();
 
     if (u == null) {
-      u = context.getAppContext().getApplicationURL();
+      u = Platform.getAppContext().getApplicationURL();
     }
 
     return JavaURLConnection.baseToExternalForm(u);
@@ -3506,7 +3276,7 @@ public class Functions implements iFunctionHandler {
     }
 
     if ((obj instanceof Date) || (obj instanceof Calendar)) {
-      return convertDateTime(Platform.getContextRootViewer(), obj, true);
+      return convertDateTime(obj, true);
     }
 
     if (obj instanceof URL) {
@@ -3777,7 +3547,7 @@ public class Functions implements iFunctionHandler {
    *          the new value
    */
   public static void updateUIColor(String name, Object value) {
-    UIColorHelper.updateColor(name, value);
+    ColorUtils.updateColor(name, value);
   }
 
   /**
@@ -4145,17 +3915,17 @@ public class Functions implements iFunctionHandler {
   public static boolean isOptimizationEnabled() {
     return PlatformHelper.isOptimizationEnabled();
   }
-  
+
   /**
-   * Tests the specified objects of identity equality 
+   * Tests the specified objects of identity equality
    * @param o1 the first object to test
    * @param o2 the first object to test
    * @return true if they are the same object; false otherwise
    */
   public static boolean isEqual(Object o1, Object o2) {
-    return o1==o2;
+    return o1 == o2;
   }
-  
+
   /**
    * Printable character.
    *
@@ -4299,7 +4069,7 @@ public class Functions implements iFunctionHandler {
     functionMap.put("etag", in);
     functionMap.put("date", in = Integer.valueOf(FUNC_DATE));
     functionMap.put("datetime", in = Integer.valueOf(FUNC_DATE_TIME));
-    functionMap.put("escape", in = Integer.valueOf(FUNC_ESCAPE));
+    functionMap.put("encode", in = Integer.valueOf(FUNC_ENCODE));
     functionMap.put("currenttime", in = Integer.valueOf(FUNC_CURRENTTIME));
     functionMap.put("nanotime", in = Integer.valueOf(FUNC_NANOTIME));
     functionMap.put("property", in = Integer.valueOf(FUNC_PROPERTY));

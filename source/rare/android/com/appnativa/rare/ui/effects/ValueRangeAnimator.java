@@ -20,39 +20,33 @@
 
 package com.appnativa.rare.ui.effects;
 
-import android.animation.ValueAnimator;
-import android.animation.ValueAnimator.AnimatorUpdateListener;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
 
-public class ValueRangeAnimator extends aPlatformAnimator implements AnimatorUpdateListener {
-  private boolean intValue;
+public class ValueRangeAnimator extends aPlatformAnimator {
+  float   delta;
+  float   endValue;
+  boolean intValue;
+  float   startValue;
+  Timer   timer;
 
   public ValueRangeAnimator(float start, float end) {
-    this(ValueAnimator.ofFloat(start, end), false);
+    super();
+    startValue = start;
+    endValue   = end;
+    delta      = end - start;
   }
 
   public ValueRangeAnimator(int start, int end) {
-    this(ValueAnimator.ofInt(start, end), true);
+    super();
+    startValue = start;
+    endValue   = end;
+    delta      = end - start;
+    intValue   = true;
   }
 
-  protected ValueRangeAnimator(ValueAnimator a, boolean intValues) {
-    super(a);
-    a.addUpdateListener(this);
-    this.intValue = intValues;
-  }
-
-  public static ValueRangeAnimator ofFloat(float start, float end) {
-    return new ValueRangeAnimator(ValueAnimator.ofFloat(start, end), false);
-  }
-
-  public static ValueRangeAnimator ofInt(int start, int end) {
-    return new ValueRangeAnimator(ValueAnimator.ofInt(start, end), true);
-  }
-
+  @Override
   public void addValueListener(iAnimatorValueListener l) {
     super.addValueListener(l);
   }
@@ -63,51 +57,80 @@ public class ValueRangeAnimator extends aPlatformAnimator implements AnimatorUpd
   }
 
   @Override
-  public void onAnimationUpdate(ValueAnimator animation) {
-    if (intValue) {
-      Integer i = (Integer) animation.getAnimatedValue();
-
-      notifyValueListeners(this, i.floatValue());
-    } else {
-      Float i = (Float) animation.getAnimatedValue();
-
-      notifyValueListeners(this, i.floatValue());
+  public void cancel() {
+    if (timer != null) {
+      timer.cancel();
+      timer = null;
     }
+  }
+
+  public static ValueRangeAnimator ofFloat(float start, float end) {
+    return new ValueRangeAnimator(start, end);
+  }
+
+  public static ValueRangeAnimator ofInt(int start, int end) {
+    return new ValueRangeAnimator(start, end);
   }
 
   public void start() {
-    ValueAnimator a = (ValueAnimator) animator;
+    Timer       t  = timer;
+    final Timer tt = new Timer("ValueRangeTimer");
 
-    a.setRepeatMode(autoReverse
-                    ? Animation.REVERSE
-                    : Animation.RESTART);
-    a.setDuration((duration < 0)
-                  ? Long.MAX_VALUE - 1
-                  : duration);
-    a.setRepeatCount(repeatCount);
+    timer = tt;
 
-    if ((acceleration != 0) && (deceleration != 0)) {
-      a.setInterpolator(new AccelerateDecelerateInterpolator());
-    } else {
-      if (acceleration != 0) {
-        a.setInterpolator(new AccelerateInterpolator(acceleration));
-      } else if (deceleration != 0) {
-        a.setInterpolator(new DecelerateInterpolator(deceleration));
-      } else {
-        a.setInterpolator(null);
-      }
+    if (t != null) {
+      t.cancel();
     }
 
-    animator.start();
+    final long startTime = System.currentTimeMillis();
+    TimerTask r=new TimerTask() {
+      @Override
+      public void run() {
+        long  elapsed  = System.currentTimeMillis() - startTime;
+        float fraction = Math.min((float) elapsed / (float) duration, 1);
+        timingEvent(tt, fraction);
+
+        if (fraction >= 1) {
+          stop();
+        }
+      }
+    };
+
+    timer.schedule(r, 0, 30);
+    notifyListeners(this, false);
+  }
+
+  @Override
+  public void stop() {
+    if (timer != null) {
+      timer.cancel();
+      timer = null;
+      notifyListeners(this, true);
+    }
   }
 
   public void setRange(float start, float end) {
-    animator = ValueAnimator.ofFloat(start, end);
-    intValue = false;
+    startValue = start;
+    endValue   = end;
+    delta      = end - start;
   }
 
   public void setRange(int start, int end) {
-    animator = ValueAnimator.ofInt(start, end);
-    intValue = true;
+    startValue = start;
+    endValue   = end;
+    delta      = end - start;
+    intValue   = true;
+  }
+
+  protected void timingEvent(Timer timer, float fraction) {
+    if (this.timer == timer) {
+      float value = startValue + (delta * fraction);
+
+      if (intValue) {
+        value = (float) Math.floor(value);
+      }
+
+      notifyValueListeners(this, value);
+    }
   }
 }

@@ -25,7 +25,7 @@ import javax.swing.ActionMap;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.ActionHelper;
 import com.appnativa.rare.platform.swing.ui.DataItemListModel;
-import com.appnativa.rare.platform.swing.ui.ListBoxListHandler;
+import com.appnativa.rare.platform.swing.ui.EditableListBoxListHandler;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
 import com.appnativa.rare.platform.swing.ui.view.ListView;
 import com.appnativa.rare.spot.ListBox;
@@ -33,7 +33,6 @@ import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.Column;
 import com.appnativa.rare.ui.RenderableDataItem;
 import com.appnativa.rare.ui.ScrollPanePanel;
-import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.iListView.EditingMode;
 import com.appnativa.rare.ui.iToolBar;
 import com.appnativa.rare.ui.event.iExpansionListener;
@@ -140,20 +139,6 @@ public class ListBoxViewer extends aListViewer {
   }
 
   @Override
-  public void startEditing(boolean animate, UIAction... actions) {
-    ListView v = (ListView) getDataView();
-
-    v.startEditing(actions, animate, draggingAllowed);
-  }
-
-  @Override
-  public void stopEditing(boolean animate) {
-    ListView v = (ListView) getDataView();
-
-    v.stopEditing(animate);
-  }
-
-  @Override
   public void setAutoSizeRowsToFit(boolean autoSize) {
     ListView v = (ListView) getDataView();
 
@@ -210,23 +195,6 @@ public class ListBoxViewer extends aListViewer {
   }
 
   @Override
-  public int getEditingRow() {
-    return ((ListView) getDataView()).getEditingRow();
-  }
-
-  @Override
-  public int getLastEditedRow() {
-    return ((ListView) getDataView()).getLastEditedRow();
-  }
-
-  @Override
-  public boolean isEditing() {
-    ListView v = (ListView) getDataView();
-
-    return v.isEditing();
-  }
-
-  @Override
   protected void createModelAndComponents(Viewer vcfg) {
     ListBox cfg = (ListBox) vcfg;
 
@@ -242,13 +210,13 @@ public class ListBoxViewer extends aListViewer {
     formComponent = dataComponent = new ScrollPanePanel(list);
     formComponent=SwingHelper.configureScrollPane(this,formComponent, list, cfg.getScrollPane());
     list.setItemRenderer(new ListItemRenderer(list, true));
-    listComponent = new ListBoxListHandler(list, listModel);
+    listComponent = new EditableListBoxListHandler(list, listModel);
     list.setListModel(listModel);
 
     iToolBar tb = createEditingToolbarIfNecessary(cfg);
 
     if (tb != null) {
-      list.setEditingToolbar(tb);
+      list.setEditModeToolBar(tb);
     }
 
     registerWithWidget(list.getListComponent());

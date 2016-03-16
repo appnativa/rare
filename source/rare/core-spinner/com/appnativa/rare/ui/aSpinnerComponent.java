@@ -812,4 +812,8 @@ public abstract class aSpinnerComponent extends XPContainer implements iChangeLi
         return !stackedButtons;
     }
   }
+
+  public PainterHolder getButtonPainterHolder() {
+    return buttonPainterHolder;
+  }
 }

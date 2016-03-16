@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui;
@@ -44,20 +44,26 @@ public class UIImage extends aUIImage implements Cloneable {
   public UIImage(int width, int height) {
     this(ImageUtils.createCompatibleImage(width, height));
   }
-  
+
   @Override
   public Object clone() {
-    UIImage img = (UIImage) super.clone();
-    BufferedImage bi=getBufferedImage();
-    img.awtImage=ImageUtils.copyImage(bi);
-    return  img;
+    UIImage       img = (UIImage) super.clone();
+    BufferedImage bi  = getBufferedImage();
+
+    img.awtImage = ImageUtils.copyImage(bi);
+
+    return img;
   }
-  
+
   protected UIImage() {}
 
   @Override
   public void addReflectionImage(int y, int height, float opacity, int gap) {
-    awtImage = ImageUtils.addReflection(getBufferedImage(), y, height, opacity, gap);
+    if (getHeight() < y + gap + height) {
+      throw new IllegalArgumentException(
+          "Image not tall enough to support adding a reflection with the specified dimensions.\nMight want to use createReflection");
+    }
+    ImageUtils.addReflection(getBufferedImage(), y, height, opacity, gap);
   }
 
   @Override
@@ -78,8 +84,19 @@ public class UIImage extends aUIImage implements Cloneable {
   }
 
   @Override
-  public UIImage createReflectionImage(int y, int height, float opacity, int gap) {
-    return new UIImage(ImageUtils.createReflection(getBufferedImage(), y, height, opacity, gap));
+  public aUIImage createCopyWithReflection(int height, float opacity, int gap) {
+    return new UIImage(ImageUtils.createCopyWithReflection(getBufferedImage(), height, opacity, gap));
+  }
+
+  @Override
+  public UIImage createReflection(int height, float opacity, int gap) {
+    if (height == -1) {
+      return new UIImage(ImageUtils.createReflection(getBufferedImage(), opacity, gap));
+    } else {
+      BufferedImage bi = getBufferedImage();
+
+      return new UIImage(ImageUtils.createSubReflection(bi, bi.getHeight() - height, height, opacity, gap,true));
+    }
   }
 
   @Override
@@ -156,6 +173,10 @@ public class UIImage extends aUIImage implements Cloneable {
   }
 
   @Override
+  public void load() throws Exception {
+  }
+
+  @Override
   public String getLocation() {
     return location;
   }
@@ -192,6 +213,13 @@ public class UIImage extends aUIImage implements Cloneable {
   @Override
   public UIImage getSubimage(int x, int y, int w, int h) {
     if (awtImage == null) {
+      return null;
+    }
+
+    int iw = getWidth();
+    int ih = getHeight();
+
+    if ((x + w > iw) || (y + h > ih)) {
       return null;
     }
 

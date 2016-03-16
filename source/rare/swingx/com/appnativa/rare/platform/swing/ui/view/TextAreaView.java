@@ -76,6 +76,14 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
       ((AbstractDocument) getDocument()).setDocumentFilter(changeListener);
     }
   }
+  @Override
+  public void setForeground(Color fg) {
+    super.setForeground(fg);
+    if(fg!=null) {
+      setCaretColor(fg);
+    }
+  }
+  
 
   @Override
   public void caretUpdate(CaretEvent e) {
@@ -166,7 +174,7 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
     size.width  = d.width;
     size.height = d.height;
   }
-
+ 
   @Override
   public Dimension getPreferredSize() {
     Dimension d = super.getPreferredSize();
@@ -189,6 +197,9 @@ public class TextAreaView extends JTextArea implements iPainterSupport, iView, C
 
   @Override
   public void getPreferredSize(UIDimension size, int maxWidth) {
+    if(maxWidth>0 ) {
+      setSize(maxWidth,Short.MAX_VALUE);
+    }
     Dimension d = getPreferredSize();
 
     size.width  = d.width;

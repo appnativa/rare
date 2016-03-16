@@ -20,26 +20,10 @@
 
 package com.appnativa.rare.widget;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.TemplateHandler;
+import com.appnativa.rare.converters.iDataConverter;
+import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.iCancelableFuture;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.iDataItemParserCallback;
@@ -47,8 +31,6 @@ import com.appnativa.rare.iFunctionCallback;
 import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.iWidgetCustomizer;
 import com.appnativa.rare.iWorkerTask;
-import com.appnativa.rare.converters.iDataConverter;
-import com.appnativa.rare.exception.ApplicationException;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.CollectionURLConnection;
 import com.appnativa.rare.net.FormHelper;
@@ -87,19 +69,6 @@ import com.appnativa.rare.ui.UIScreen;
 import com.appnativa.rare.ui.Utils;
 import com.appnativa.rare.ui.WidgetListener;
 import com.appnativa.rare.ui.aWidgetListener;
-import com.appnativa.rare.ui.iActionComponent;
-import com.appnativa.rare.ui.iActionable;
-import com.appnativa.rare.ui.iChangeable;
-import com.appnativa.rare.ui.iImageObserver;
-import com.appnativa.rare.ui.iListHandler;
-import com.appnativa.rare.ui.iParentComponent;
-import com.appnativa.rare.ui.iPlatformBorder;
-import com.appnativa.rare.ui.iPlatformComponent;
-import com.appnativa.rare.ui.iPlatformIcon;
-import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.appnativa.rare.ui.iPopup;
-import com.appnativa.rare.ui.iTabDocument;
-import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.dnd.DragEvent;
 import com.appnativa.rare.ui.dnd.DropInformation;
 import com.appnativa.rare.ui.dnd.TransferFlavor;
@@ -115,6 +84,19 @@ import com.appnativa.rare.ui.event.KeyEvent;
 import com.appnativa.rare.ui.event.MouseEvent;
 import com.appnativa.rare.ui.event.ScriptActionListener;
 import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.iActionComponent;
+import com.appnativa.rare.ui.iActionable;
+import com.appnativa.rare.ui.iChangeable;
+import com.appnativa.rare.ui.iImageObserver;
+import com.appnativa.rare.ui.iListHandler;
+import com.appnativa.rare.ui.iParentComponent;
+import com.appnativa.rare.ui.iPlatformBorder;
+import com.appnativa.rare.ui.iPlatformComponent;
+import com.appnativa.rare.ui.iPlatformIcon;
+import com.appnativa.rare.ui.iPlatformRenderingComponent;
+import com.appnativa.rare.ui.iPopup;
+import com.appnativa.rare.ui.iTabDocument;
+import com.appnativa.rare.ui.iTreeHandler;
 import com.appnativa.rare.ui.painter.PaintBucket;
 import com.appnativa.rare.ui.painter.UIComponentPainter;
 import com.appnativa.rare.ui.painter.UIImagePainter;
@@ -143,7 +125,27 @@ import com.appnativa.util.iCancelable;
 import com.appnativa.util.iURLResolver;
 import com.appnativa.util.json.JSONException;
 import com.appnativa.util.json.JSONWriter;
+
 import com.google.j2objc.annotations.Weak;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import java.text.ParseException;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Base class for all widgets
@@ -151,8 +153,7 @@ import com.google.j2objc.annotations.Weak;
  * @author Don DeCoteau
  */
 @SuppressWarnings("unchecked")
-public abstract class aWidget extends RenderableDataItem
-        implements iWidget, iActionListener, iDataItemParserCallback, iURLResolver, iImageObserver {
+public abstract class aWidget extends RenderableDataItem implements iWidget, iDataItemParserCallback, iImageObserver {
   // Per-thread scanner
   protected static ThreadLocal<CharScanner> perThreadScanner = new ThreadLocal<CharScanner>() {
     @Override
@@ -223,12 +224,9 @@ public abstract class aWidget extends RenderableDataItem
   protected iContainer     parentContainer;
 
   /** whether pasting is allowed */
-  protected boolean     pastingAllowed;
-  protected iPopup      popupContainer;
-  protected UIPopupMenu popupMenu;
-
-  /** the size of the widget's prompt label */
-  protected int           promptWidth;
+  protected boolean       pastingAllowed;
+  protected iPopup        popupContainer;
+  protected UIPopupMenu   popupMenu;
   protected boolean       required;
   protected WidgetContext scriptingContex;
 
@@ -284,24 +282,6 @@ public abstract class aWidget extends RenderableDataItem
   protected aWidget(iContainer parent) {
     parentContainer = parent;
     setParentOnAdd  = false;
-  }
-
-  /**
-   * Invoked automatically when the links underlying action is triggered. This
-   * will cause the link to be activated.
-   *
-   * @param e
-   *          the event that triggered the action
-   */
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (actionListener != null) {
-      actionListener.actionPerformed(e);
-    }
-
-    if ((getWidgetListener() != null) && getWidgetListener().isActionEventEnabled()) {
-      getWidgetListener().actionPerformed(e);
-    }
   }
 
   @Override
@@ -903,10 +883,13 @@ public abstract class aWidget extends RenderableDataItem
         }
       }
     }
-    Margin in=id.getContentPadding();
-    if(in!=null) {
+
+    Margin in = id.getContentPadding();
+
+    if (in != null) {
       di.setMargin(in.getInsets());
     }
+
     GridCell cell = id.getHeaderCell();
 
     s = id.headerColor.getValue();
@@ -1238,7 +1221,6 @@ public abstract class aWidget extends RenderableDataItem
       return;
     }
 
-    // System.out.println("Disposing "+getName());
     super.dispose();
     disposed = true;
 
@@ -1404,7 +1386,7 @@ public abstract class aWidget extends RenderableDataItem
 
       if (n == -1) {
         if (encode) {
-          URLEncoder.encode(value, "iso-8859-1", writer);
+          URLEncoder.encodeComponent(value, "iso-8859-1", writer);
         } else {
           writer.write(value);
         }
@@ -2311,7 +2293,8 @@ public abstract class aWidget extends RenderableDataItem
 
     if (menu != null) {
       if (menu.getActionScript() != null) {
-        aWidgetListener.evaluate(this, this.getScriptHandler(), menu.getActionScript(), new ExpansionEvent(menu,ExpansionEvent.Type.WILL_EXPAND));
+        aWidgetListener.evaluate(this, this.getScriptHandler(), menu.getActionScript(),
+                                 new ExpansionEvent(menu, ExpansionEvent.Type.WILL_EXPAND));
       }
 
       menu.show(this, Platform.isTouchDevice());
@@ -2365,7 +2348,8 @@ public abstract class aWidget extends RenderableDataItem
    */
   public String toJSON() {
     StringWriter sw = new StringWriter();
-    JSONWriter jw=new JSONWriter(sw);
+    JSONWriter   jw = new JSONWriter(sw);
+
     jw.object();
     writeJSONValue(jw);
     jw.endObject();
@@ -2395,9 +2379,13 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public void triggerActionEvent(String cmd) {
-    ActionEvent ae = new ActionEvent(getDataComponent());
+    if (actionListener != null) {
+      actionListener.actionPerformed(new ActionEvent(getDataComponent()));
+    }
 
-    actionPerformed(ae);
+    if ((getWidgetListener() != null) && getWidgetListener().isActionEventEnabled()) {
+      getWidgetListener().actionPerformed(new ActionEvent(getDataComponent()));
+    }
   }
 
   /**
@@ -2474,15 +2462,15 @@ public abstract class aWidget extends RenderableDataItem
           writer.write('&');
         }
 
-        URLEncoder.encode(name, "iso-8859-1", writer);
+        URLEncoder.encodeComponent(name, "iso-8859-1", writer);
         writer.write('=');
-        URLEncoder.encode((String) value, "iso-8859-1", writer);
+        URLEncoder.encodeComponent((String) value, "iso-8859-1", writer);
 
         return true;
       } else if (value instanceof int[]) {
         return FormHelper.writeHTTPValue(first, writer, name, (int[]) value);
       } else {
-        return FormHelper.writeHTTPValue(first, writer, name, (String[]) value);
+        return FormHelper.writeHTTPValue(first, writer, name, (String[]) value, true);
       }
     } catch(IOException e) {
       throw ApplicationException.runtimeException(e);
@@ -2503,6 +2491,33 @@ public abstract class aWidget extends RenderableDataItem
       writer.value(value);
     } catch(JSONException e) {
       throw ApplicationException.runtimeException(e);
+    }
+  }
+
+  /**
+   * Sets the alpha value for the widget
+   * @param alpha the alpha value (0-1)
+   *
+   * @return true if the value was able to be set; false otherwise
+   */
+  public boolean setAlpha(float alpha) {
+    return getContainerComponent().setAlpha(alpha);
+  }
+
+  /**
+   * Gets the alpha value for the widget
+   * @return the alpha value for the widget
+   */
+  public float getAplha() {
+    return getContainerComponent().getAlpha();
+  }
+
+  @Override
+  public void setActionListener(iActionListener al) {
+    super.setActionListener(al);
+
+    if (this instanceof iActionable) {
+      ((iActionable) this).addActionListener(al);
     }
   }
 
@@ -2847,21 +2862,22 @@ public abstract class aWidget extends RenderableDataItem
    *          the new name for the widget
    */
   public void setName(String name) {
-    iContainer p=getParent();
-    if(p!=null) {
+    iContainer p = getParent();
+
+    if (p != null) {
       iWidget w = getFormViewer().getWidget(widgetName);
-  
+
       if ((w != null) && (w != this)) {
         throw new ApplicationException(getAppContext().getResourceAsString("Rare.runtime.text.widgetExists"), name);
       } else if (w != null) {
         p.unregisterNamedItem(widgetName);
         getFormViewer().unregisterFormWidget(this);
       }
+
       widgetName = name;
       p.registerNamedItem(name, this);
       getFormViewer().registerFormWidget(this);
-    }
-    else {
+    } else {
       widgetName = name;
     }
   }
@@ -3098,11 +3114,10 @@ public abstract class aWidget extends RenderableDataItem
    *          the widget listener
    */
   public void setWidgetListener(aWidgetListener listener) {
-    if(this.widgetListener!=null) {
-      uninitializeListeners(widgetListener);
-    }
+    uninitializeListeners(widgetListener);
     this.widgetListener = listener;
-    if(listener!=null) {
+
+    if (listener != null) {
       initializeListeners(listener);
     }
   }
@@ -3114,11 +3129,6 @@ public abstract class aWidget extends RenderableDataItem
     return (v == null)
            ? Platform.getAppContext()
            : v.getAppContext();
-  }
-
-  @Override
-  public Object getApplicationContext() {
-    return getAppContext();
   }
 
   /**
@@ -3177,8 +3187,10 @@ public abstract class aWidget extends RenderableDataItem
 
     if ((c == 'u') && key.startsWith(iConstants.UIPROPERTY_PREFIX)) {
       key = key.substring(iConstants.UIPROPERTY_PREFIX.length());
+
       return getAppContext().getUIDefaults().get(key);
     }
+
     if ((c == 'r') && key.startsWith(iConstants.RESOURCE_PREFIX)) {
       key = key.substring(iConstants.RESOURCE_PREFIX.length());
       o   = getAppContext().getUIDefaults().get(key);
@@ -3239,7 +3251,13 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public URL getBaseURL() {
-    return getViewer().getBaseURL();
+    iViewer v = getViewer();
+
+    if ((v == null) || (v == this)) {
+      return null;
+    }
+
+    return v.getBaseURL();
   }
 
   @Override
@@ -3305,11 +3323,6 @@ public abstract class aWidget extends RenderableDataItem
     }
 
     return cp;
-  }
-
-  @Override
-  public URLConnection getConnection(String file) throws IOException {
-    return (URLConnection) getAppContext().openConnection(getURL(file)).getConnectionObject();
   }
 
   @Override
@@ -3452,7 +3465,7 @@ public abstract class aWidget extends RenderableDataItem
            ? null
            : c.getFormViewer();
   }
-  
+
   protected iFormViewer getFormViewerEx() {
     iContainer c = getParent();
 
@@ -3460,7 +3473,7 @@ public abstract class aWidget extends RenderableDataItem
            ? null
            : c.getFormViewer();
   }
-  
+
   /**
    * Gets the HTTP form name for the widget
    *
@@ -3619,12 +3632,12 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public UIImage getImage(String image) {
-    return getImage(image, true, null, null, PlatformHelper.getUnscaledImageDensity());
+    return getImage(image, Platform.isUIThread(), null, null, PlatformHelper.getUnscaledImageDensity());
   }
 
   @Override
   public UIImage getImage(URL url) {
-    return getImage(url, true, null, null, PlatformHelper.getUnscaledImageDensity());
+    return getImage(url, Platform.isUIThread(), null, null, PlatformHelper.getUnscaledImageDensity());
   }
 
   /**
@@ -3826,34 +3839,38 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public iContainer getParent() {
-     return parentContainer;
+    return parentContainer;
   }
-  
+
   /**
    * Finds the parent of a widget by searching the
    * component tree if necessary
-   * 
+   *
    * @return the parent
    */
   public iContainer findParent() {
-    if(parentContainer!=null) {
+    if (parentContainer != null) {
       return parentContainer;
     }
-    if(formComponent!=null) {
-      iParentComponent pc=formComponent.getParent();
-      iWidget w=pc==null ? null : Platform.findWidgetForComponent(pc);
-      if(w!=this) {
-        if(w instanceof iContainer) {
+
+    if (formComponent != null) {
+      iParentComponent pc = formComponent.getParent();
+      iWidget          w  = (pc == null)
+                            ? null
+                            : Platform.findWidgetForComponent(pc);
+
+      if (w != this) {
+        if (w instanceof iContainer) {
           return (iContainer) w;
-        }
-        else if(w!=null) {
+        } else if (w != null) {
           return w.getParent();
         }
       }
     }
+
     return null;
   }
-  
+
   /**
    * Returns the widget's parent (HTML compatibility).
    *
@@ -3949,10 +3966,6 @@ public abstract class aWidget extends RenderableDataItem
     return size;
   }
 
-  public int getPromptWidth() {
-    return promptWidth;
-  }
-
   @Override
   public Reader getReader(String file) throws IOException {
     URL url = getURL(file);
@@ -4015,6 +4028,10 @@ public abstract class aWidget extends RenderableDataItem
     return scriptingContex;
   }
 
+  public WidgetContext getScriptingContextEx() {
+    return scriptingContex;
+  }
+
   @Override
   public abstract Object getSelection();
 
@@ -4062,11 +4079,6 @@ public abstract class aWidget extends RenderableDataItem
    */
   public UIDimension getSize() {
     return getContainerComponent().getSize();
-  }
-
-  @Override
-  public InputStream getStream(String file) throws IOException {
-    return getAppContext().openConnection(getURL(file)).getInputStream();
   }
 
   @Override
@@ -4346,9 +4358,11 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public boolean isAttached() {
-    return isDisposed() ? false : getContainerComponent().isDisplayable();
+    return isDisposed()
+           ? false
+           : getContainerComponent().isDisplayable();
   }
-  
+
   @Override
   public WindowViewer getWindow() {
     // check with parent first in case the parent window is set but the
@@ -4472,7 +4486,7 @@ public abstract class aWidget extends RenderableDataItem
 
   @Override
   public boolean isSubmittable() {
-    return isSubmittable && !isDisposed();
+    return isSubmittable &&!isDisposed();
   }
 
   @Override
@@ -4626,7 +4640,7 @@ public abstract class aWidget extends RenderableDataItem
                          : aWidgetListener.createEventMap(cfg, widgetName, sh);
 
     if (map != null) {
-      setWidgetListener(createWidgetListener(this, map, getScriptHandler()));
+      widgetListener = createWidgetListener(this, map, getScriptHandler());
     }
 
     if (cfg.copyingAllowed.spot_valueWasSet()) {
@@ -4788,12 +4802,6 @@ public abstract class aWidget extends RenderableDataItem
 
     if (!cfg.visible.booleanValue()) {
       setVisible(false);
-    }
-
-    Link link = cfg.getActionLink();
-
-    if (link != null) {
-      setActionListener(createActionLink(link));
     }
 
     if (cfg.focusPainted.spot_valueWasSet()) {
@@ -5084,7 +5092,7 @@ public abstract class aWidget extends RenderableDataItem
   protected void expandStringEx(String value, boolean encode, Writer writer, int n) throws IOException {
     if (n == -1) {
       if (encode) {
-        URLEncoder.encode(value, "ISO-8859-1", writer);
+        URLEncoder.encodeComponent(value, "ISO-8859-1", writer);
       } else {
         writer.write(value);
       }
@@ -5125,7 +5133,7 @@ public abstract class aWidget extends RenderableDataItem
 
         if (encode) {
           try {
-            URLEncoder.encode(s, "ISO-8859-1", writer);
+            URLEncoder.encodeComponent(s, "ISO-8859-1", writer);
           } catch(IOException e) {
             Platform.ignoreException(null, e);
           }

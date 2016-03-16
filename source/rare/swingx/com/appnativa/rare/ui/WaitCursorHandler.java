@@ -40,10 +40,13 @@ import com.appnativa.util.iCancelable;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 
@@ -89,86 +92,62 @@ public class WaitCursorHandler {
 
   public static void showProgressPopup(final iPlatformComponent component, final CharSequence message,
           final iCancelable cancelable, final int delay) {
-    synchronized(cursorCount) {
-      int cnt = cursorCount.getAndIncrement();
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        int cnt = cursorCount.getAndIncrement();
 
-      if (cnt > 0) {
-        return;
-      }
+        if (cnt > 0) {
+          return;
+        }
 
-      Runnable r = new Runnable() {
-        @Override
-        public void run() {
-          lockRootpane(component.getView());
+        lockRootpane(component.getView());
 
-          if (componentPainter == null) {
-            componentPainter = PainterUtils.createProgressPopupPainter();
-          }
+        if (componentPainter == null) {
+          componentPainter = PainterUtils.createProgressPopupPainter();
+        }
 
-          UIColor fg = componentPainter.getForegroundColor();
+        UIColor fg = componentPainter.getForegroundColor();
 
-          if (fg == null) {
-            fg = ColorUtils.getForeground();
-          }
+        if (fg == null) {
+          fg = ColorUtils.getForeground();
+        }
 
-          Window      win = (Window) Platform.getAppContext().getWindowManager().getUIWindow();
-          PopupWindow d   = new PopupWindow(win, null);
-          LabelView   l   = new LabelView((message == null)
-                                          ? ""
-                                          : message.toString());
+        Window      win = (Window) Platform.getAppContext().getWindowManager().getUIWindow();
+        PopupWindow d   = new PopupWindow(win, null);
+        LabelView   l   = new LabelView((message == null)
+                                        ? ""
+                                        : message.toString());
 
-          l.setBorder(new UIEmptyBorder(4, 4, 4, 4));
-          l.setForeground(fg);
-          l.setWordWrap(true);
+        l.setBorder(new UIEmptyBorder(4, 4, 4, 4));
+        l.setForeground(fg);
+        l.setWordWrap(true);
 
-          UtilityPanel p = new UtilityPanel(l);
+        UtilityPanel p = new UtilityPanel(l);
 
-          if (Platform.isInitialized()) {
-            ActionComponent pb = new ActionComponent(new LabelView());
+        if (Platform.isInitialized()) {
+          ActionComponent pb = new ActionComponent(new LabelView());
 
-            pb.setIcon(UISpriteIcon.getDefaultSpinner());
-            p.add(pb.getJComponent(), java.awt.BorderLayout.WEST);
-          } else {
-            ProgressBarView pb = new ProgressBarView();
+          pb.setIcon(UISpriteIcon.getDefaultSpinner());
+          p.add(pb.getJComponent(), java.awt.BorderLayout.WEST);
+        } else {
+          ProgressBarView pb = new ProgressBarView();
 
-            pb.setPreferredSize(new Dimension(32, 32));
-            pb.setIndeterminate(true);
-            p.add(pb, java.awt.BorderLayout.WEST);
-          }
+          pb.setPreferredSize(new Dimension(32, 32));
+          pb.setIndeterminate(true);
+          p.add(pb, java.awt.BorderLayout.WEST);
+        }
 
-          Container pc = new Container(p);
+        Container pc = new Container(p);
 
-          if (cancelable != null) {
-            iActionComponent b = PlatformHelper.createNakedButton(pc, false, 0);
+        if (cancelable != null) {
+          iActionComponent b = PlatformHelper.createNakedButton(pc, false, 0);
 
-            b.setIcon(Platform.getResourceAsIcon("Rare.icon.cancel"));
-            b.setForeground(fg);
-            b.addActionListener(new iActionListener() {
-              @Override
-              public void actionPerformed(com.appnativa.rare.ui.event.ActionEvent e) {
-                if (progressDialog != null) {
-                  if (cancelable != null) {
-                    cancelable.cancel(true);
-                  }
-
-                  progressDialog.setVisible(false);
-                }
-              }
-            });
-            p.add(b.getView(), java.awt.BorderLayout.EAST);
-          }
-
-          BeanViewer bv = new BeanViewer(Platform.getWindowViewer(), pc);
-
-          bv.setComponentPainter(componentPainter);
-          d.setViewer(bv);
-          d.pack();
-
-          KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-
-          d.getRootPane().registerKeyboardAction(new ActionListener() {
+          b.setIcon(Platform.getResourceAsIcon("Rare.icon.cancel"));
+          b.setForeground(fg);
+          b.addActionListener(new iActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(com.appnativa.rare.ui.event.ActionEvent e) {
               if (progressDialog != null) {
                 if (cancelable != null) {
                   cancelable.cancel(true);
@@ -177,40 +156,66 @@ public class WaitCursorHandler {
                 progressDialog.setVisible(false);
               }
             }
-          }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
-          progressDialog      = d;
-          progressDialogLabel = l;
-          SwingHelper.center(win, d);
-
-          JRootPane root = null;
-
-          if (win instanceof RootPaneContainer) {
-            root = ((RootPaneContainer) win).getRootPane();
-          }
-
-          if (root != null) {
-            root.getGlassPane().addMouseListener(mouseAdapter);
-            root.getGlassPane().setVisible(true);
-            lockedPanes.addIfNotPresent(root);
-          }
-
-          if (delay > 0) {
-            Platform.invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                if (progressDialog != null) {
-                  try {
-                    progressDialog.setVisible(true);
-                  } catch(Exception ignore) {}
-                }
-              }
-            }, delay);
-          } else {
-            d.setVisible(true);
-          }
+          });
+          p.add(b.getView(), java.awt.BorderLayout.EAST);
         }
-      };
 
+        BeanViewer bv = new BeanViewer(Platform.getWindowViewer(), pc);
+
+        bv.setComponentPainter(componentPainter);
+        d.setViewer(bv);
+        d.pack();
+
+        KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+
+        d.getRootPane().registerKeyboardAction(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            if (progressDialog != null) {
+              if (cancelable != null) {
+                cancelable.cancel(true);
+              }
+
+              progressDialog.setVisible(false);
+            }
+          }
+        }, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        progressDialog      = d;
+        progressDialogLabel = l;
+        SwingHelper.center(win, d);
+
+        JRootPane root = null;
+
+        if (win instanceof RootPaneContainer) {
+          root = ((RootPaneContainer) win).getRootPane();
+        }
+
+        if (root != null) {
+          root.getGlassPane().addMouseListener(mouseAdapter);
+          root.getGlassPane().setVisible(true);
+          lockedPanes.addIfNotPresent(root);
+        }
+
+        if (delay > 0) {
+          Platform.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              if (progressDialog != null) {
+                try {
+                  progressDialog.setVisible(true);
+                } catch(Exception ignore) {}
+              }
+            }
+          }, delay);
+        } else {
+          d.setVisible(true);
+        }
+      }
+    };
+
+    if (Platform.isUIThread()) {
+      r.run();
+    } else {
       SwingUtilities.invokeLater(r);
     }
   }
@@ -342,6 +347,10 @@ public class WaitCursorHandler {
   }
 
   private static JRootPane getRootPane(Component comp) {
+    if (comp instanceof JRootPane) {
+      return (JRootPane) comp;
+    }
+
     JRootPane root = null;
 
     if (comp != null) {
@@ -363,35 +372,23 @@ public class WaitCursorHandler {
 
   private static void startWaitCursorEx(final Component comp, final iCancelable cancelable, int dealy) {
     if (comp != null) {
-      synchronized(cursorCount) {
-        int cnt = cursorCount.getAndIncrement();
+      int cnt = cursorCount.getAndIncrement();
 
-        if (cnt == 0) {
-          JRootPane root = getRootPane(comp);
+      if (cnt == 0) {
+        JRootPane root = getRootPane(comp);
 
-          if (root != null) {
-            root.getGlassPane().setCursor(WAIT_CURSOR);
-            root.getGlassPane().addMouseListener(mouseAdapter);
-            root.getGlassPane().setVisible(true);
-            lockedPanes.addIfNotPresent(root);
+        if (root != null) {
+          root.getGlassPane().setCursor(WAIT_CURSOR);
+          root.getGlassPane().addMouseListener(mouseAdapter);
 
-            if (cancelable != null) {
-              root.getGlassPane().addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyReleased(KeyEvent e) {
-                  if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    try {
-                      cancelable.cancel(true);
-                    } catch(Exception ignore) {}
+          if (cancelable != null) {
+            EscakeyHandler h = new EscakeyHandler(cancelable, root);
 
-                    stopWaitCursor((comp == null)
-                                   ? null
-                                   : Platform.findPlatformComponent(comp));
-                  }
-                }
-              });
-            }
+            root.getGlassPane().addComponentListener(h);
           }
+
+          lockedPanes.addIfNotPresent(root);
+          root.getGlassPane().setVisible(true);
         }
       }
     }
@@ -409,51 +406,101 @@ public class WaitCursorHandler {
   }
 
   private static void stopWaitCursorEx(Component comp, boolean force) {
-    synchronized(cursorCount) {
-      if (force) {
-        cursorCount.set(0);
+    if (force) {
+      cursorCount.set(0);
+    }
+
+    int cnt = cursorCount.decrementAndGet();
+
+    if (cnt < 1) {
+      cursorCount.set(0);
+
+      if (progressDialog != null) {
+        try {
+          progressDialog.setVisible(false);
+        } catch(Exception ignore) {}
+
+        progressDialog      = null;
+        progressDialogLabel = null;
       }
 
-      int cnt = cursorCount.decrementAndGet();
+      if (!Platform.isShuttingDown()) {
+        JRootPane root = getRootPane(comp);
 
-      if (cnt < 1) {
-        cursorCount.set(0);
-
-        if (progressDialog != null) {
-          try {
-            progressDialog.setVisible(false);
-          } catch(Exception ignore) {}
-
-          progressDialog      = null;
-          progressDialogLabel = null;
+        if (root != null) {
+          root.getGlassPane().setCursor(DEFAULT_CURSOR);
+          root.getGlassPane().removeMouseListener(mouseAdapter);
+          root.getGlassPane().setVisible(false);
         }
 
-        if (!Platform.isShuttingDown()) {
-          JRootPane root = getRootPane(comp);
+        try {
+          for (JRootPane p : lockedPanes) {
+            Component g = p.getGlassPane();
 
-          if (root != null) {
-            root.getGlassPane().setCursor(DEFAULT_CURSOR);
-            root.getGlassPane().removeMouseListener(mouseAdapter);
-            root.getGlassPane().setVisible(false);
-          }
-
-          try {
-            for (JRootPane p : lockedPanes) {
-              Component g = p.getGlassPane();
-
-              if (g != null) {
-                g.setCursor(DEFAULT_CURSOR);
-                g.removeMouseListener(mouseAdapter);
-                g.setVisible(false);
-              }
+            if (g != null) {
+              g.setCursor(DEFAULT_CURSOR);
+              g.removeMouseListener(mouseAdapter);
+              g.setVisible(false);
             }
-          } catch(Exception e) {
-            Platform.ignoreException(null, e);
           }
-
-          lockedPanes.clear();
+        } catch(Exception e) {
+          Platform.ignoreException(null, e);
         }
+
+        lockedPanes.clear();
       }
+    }
+  }
+
+  static class EscakeyHandler implements KeyEventDispatcher, ComponentListener {
+    iCancelable cancelable;
+    JRootPane   comp;
+
+    public EscakeyHandler(iCancelable cancelable, JRootPane comp) {
+      super();
+      this.cancelable = cancelable;
+      this.comp       = comp;
+
+      if (comp != null) {
+        comp.addComponentListener(this);
+        comp.putClientProperty(EscakeyHandler.class.getName(), this);
+      }
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent e) {
+      if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+        try {
+          cancelable.cancel(true);
+        } catch(Exception ignore) {}
+
+        stopWaitCursor((comp == null)
+                       ? null
+                       : Platform.findPlatformComponent(comp));
+
+        return true;
+      }
+
+      return false;
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {}
+
+    @Override
+    public void componentMoved(ComponentEvent e) {}
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+      e.getComponent().removeComponentListener(this);
+      cancelable = null;
+      comp       = null;
     }
   }
 }

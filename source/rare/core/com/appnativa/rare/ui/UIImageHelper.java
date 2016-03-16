@@ -91,15 +91,6 @@ public class UIImageHelper {
   public static UIImage createImage(iPlatformIcon icon) {
     UIImage           img = new UIImage(icon.getIconWidth(), icon.getIconHeight());
     iPlatformGraphics g   = img.createGraphics();
-
-    if (Platform.isIOS() || (Platform.isMac() &&!Platform.isJava())) {
-      Transform t = new Transform();
-
-      t.scale(1, -1);
-      t.translate(0, -img.getHeight());
-      g.setTransform(t);
-    }
-
     g.clearRect(null, 0, 0, icon.getIconWidth(), icon.getIconHeight());
     icon.paint(g, 0, 0, icon.getIconWidth(), icon.getIconHeight());
     g.dispose();

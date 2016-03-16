@@ -458,7 +458,7 @@ public abstract class aUIImagePainter extends aUIPlatformPainter
     _toString = null;
 
     if (image != null) {
-      image.isLoaded(this);
+      image.isImageLoaded(this);
       isNinePatch    = image.isNinePatch();
       checkAlternate = image.getResourceName() != null;
 

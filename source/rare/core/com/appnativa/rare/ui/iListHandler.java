@@ -449,6 +449,13 @@ public interface iListHandler extends iFilterableList<RenderableDataItem> {
    * @return an array of all of the selected rows, or null if there are no selections
    */
   int[] getSelectedIndexes();
+  
+  /**
+   * Returns an array of all of the checked rows, in increasing order.
+   *
+   * @return an array of all of the checked rows, or null if there are no checked rows of the list is not checkable
+   */
+  int[] getCheckedIndexes();
 
   /**
    * Returns the value for the selected row
@@ -580,12 +587,7 @@ public interface iListHandler extends iFilterableList<RenderableDataItem> {
    */
   int getFirstVisibleIndex();
 
-  /**
-   * Gets whether the list is currently being edited
-   * @return true if it is; false otherwise
-   */
-  boolean isEditing();
-
+ 
   /**
    *  Scrolls the component such that the specified row is at the top
    *

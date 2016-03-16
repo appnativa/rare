@@ -20,6 +20,12 @@
 
 package com.appnativa.rare.platform.apple.ui.view;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.apple.ui.util.AppleGraphics;
 import com.appnativa.rare.ui.ActionComponent;
@@ -33,11 +39,7 @@ import com.appnativa.rare.ui.UIDimension;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.UIRectangle;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.ExpansionEvent;
-import com.appnativa.rare.ui.event.MouseEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iExpansionListener;
+import com.appnativa.rare.ui.iEditableListHandler;
 import com.appnativa.rare.ui.iGestureListener;
 import com.appnativa.rare.ui.iListHandler.SelectionType;
 import com.appnativa.rare.ui.iPlatformBorder;
@@ -46,6 +48,11 @@ import com.appnativa.rare.ui.iPlatformIcon;
 import com.appnativa.rare.ui.iPlatformListDataModel;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.iToolBar;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.MouseEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.ui.renderer.UIComponentRenderer;
 import com.appnativa.rare.ui.table.TableHelper;
@@ -56,23 +63,19 @@ import com.appnativa.util.CharacterIndex;
 import com.appnativa.util.IntList;
 import com.appnativa.util.ObjectHolder;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 /*-[
  #import "RAREAPListView.h"
  #import "APView+Component.h"
  #import "com/appnativa/rare/ui/UIInsets.h"
  ]-*/
-public class ListView extends aPlatformTableBasedView {
+public class ListView extends aPlatformTableBasedView implements iEditableListHandler {
   protected UIInsets              rinsets           = new UIInsets();
   protected int                   checkboxLeftXSlop = INDICATOR_SLOP;
   protected UIInsets              borderInsets;
   protected CheckListManager      checkListManager;
   protected boolean               columnSizesInitialized;
+  protected int                    editingRow                   = -1;
+  protected int                    lastEditedRow                = -1;
   protected UIAction[]            editActions;
   protected iExpansionListener    editModeListener;
   private iExpansionListener      rowEditModeListener;
@@ -154,9 +157,11 @@ public class ListView extends aPlatformTableBasedView {
 
   public void hideRowEditingComponent(boolean animate) {
     int row = editingRow;
-    if(row>-1 && rowEditModeListener!=null) {
-      rowEditModeListener.itemWillCollapse(new ExpansionEvent(editingComponent,ExpansionEvent.Type.WILL_COLLAPSE));
+
+    if ((row > -1) && (rowEditModeListener != null)) {
+      rowEditModeListener.itemWillCollapse(new ExpansionEvent(editingComponent, ExpansionEvent.Type.WILL_COLLAPSE));
     }
+
     editingRow = -1;
 
     if (row > -1) {
@@ -167,8 +172,6 @@ public class ListView extends aPlatformTableBasedView {
       }
     }
   }
-
- 
 
   @Override
   public void paintRow(RowView view, AppleGraphics g, RenderableDataItem item, UIRectangle rect, iTreeItem ti) {
@@ -278,7 +281,7 @@ public class ListView extends aPlatformTableBasedView {
     super.rowsInserted(firstRow, lastRow);
   }
 
-  public void startEditing(UIAction[] actions, final boolean animate) {
+  public void startEditing(boolean animate, UIAction... actions) {
     this.editing = true;
     listModel.setEditing(true);
 
@@ -309,21 +312,30 @@ public class ListView extends aPlatformTableBasedView {
 
       for (UIAction a : actions) {
         if ("Rare.action.delete".equalsIgnoreCase(a.getActionName())) {
-          a.setActionListener(new iActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              editModeDeleteMarkedItems();
-            }
-          });
+          if (a.getActionListener() == null) {
+            a.setActionListener(new iActionListener() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                editModeDeleteMarkedItems();
+              }
+            });
+          }
+          if(a.getActionText()==null) {
+            a.setActionText(Platform.getResourceAsString("Rare.action.delete"));
+          }
+
           a.setEnabledOnSelectionOnly(true);
           isDelete = true;
         } else if ("Rare.action.markAll".equalsIgnoreCase(a.getActionName())) {
-          a.setActionListener(new iActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              editModeChangeAllMarks(listModel.editModeGetMarkCount() < listModel.size());
-            }
-          });
+          if (a.getActionListener() == null) {
+            a.setActionListener(new iActionListener() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                editModeChangeAllMarks(listModel.editModeGetMarkCount() < listModel.size());
+              }
+            });
+          }
+
           markAll = a;
         }
 
@@ -337,6 +349,7 @@ public class ListView extends aPlatformTableBasedView {
         isDelete = false;
       }
 
+      updateActions();
       tb.getComponent().setVisible(true);
     }
 
@@ -344,13 +357,13 @@ public class ListView extends aPlatformTableBasedView {
     setEditing(true, animate);
 
     if (editModeListener != null) {
-      editModeListener.itemWillExpand(new ExpansionEvent(this,ExpansionEvent.Type.WILL_EXPAND));
+      editModeListener.itemWillExpand(new ExpansionEvent(this, ExpansionEvent.Type.WILL_EXPAND));
     }
   }
 
   public void stopEditing(boolean animate) {
     if (editModeListener != null) {
-      editModeListener.itemWillCollapse(new ExpansionEvent(this,ExpansionEvent.Type.WILL_COLLAPSE));
+      editModeListener.itemWillCollapse(new ExpansionEvent(this, ExpansionEvent.Type.WILL_COLLAPSE));
     }
 
     this.editing = false;
@@ -395,7 +408,10 @@ public class ListView extends aPlatformTableBasedView {
     this.editModeListener = l;
   }
 
-  public void setEditingToolbar(iToolBar tb) {
+  public iToolBar getEditModeToolBar() {
+    return editToolbar;
+  }
+  public void setEditModeToolBar(iToolBar tb) {
     editToolbar = tb;
 
     if (tb != null) {
@@ -539,7 +555,7 @@ public class ListView extends aPlatformTableBasedView {
   public void setSelectedIndex(int index) {
     super.setSelectedIndex(index);
 
-    if (linkedSelection && (checkListManager != null)) {
+    if (index>-1 && linkedSelection && (checkListManager != null)) {
       if (!checkListManager.isRowChecked(index)) {
         toggleCheckedState(index);
       }
@@ -564,6 +580,24 @@ public class ListView extends aPlatformTableBasedView {
     return checkboxLeftXSlop;
   }
 
+  public int[] getCheckedIndexes() {
+    if (checkListManager != null) {
+      return checkListManager.getCheckedIndexes(listModel);
+    }
+
+    return null;
+  }
+
+  @Override
+  public int getLastEditedRow() {
+    return lastEditedRow;
+  }
+
+  @Override
+  public int getEditingRow() {
+    return editingRow;
+  }
+
   public iExpansionListener getEditModeListener() {
     return editModeListener;
   }
@@ -577,8 +611,8 @@ public class ListView extends aPlatformTableBasedView {
   public void getPreferredSize(UIDimension size, float maxWidth) {
     TableHelper.calculateListSize(listModel, component, itemRenderer, null, size, -1, (int) maxWidth, rowHeight);
 
-    int h = TableHelper.getPreferredListHeight(component, Math.max(minVisibleRows, visibleRows),
-              rowHeight, getRowCount());
+    int h = TableHelper.getPreferredListHeight(component, Math.max(minVisibleRows, visibleRows), rowHeight,
+              getRowCount());
 
     size.height = Math.max(h, size.height);
   }
@@ -604,7 +638,16 @@ public class ListView extends aPlatformTableBasedView {
   public boolean isSingleClickAction() {
     return singleClickAction;
   }
-
+  @Override
+  protected void someDataChanged() {
+    super.someDataChanged();
+    editingRow=-1;
+    lastEditedRow=-1;
+    clearEditModeMarks();
+    if(editing) {
+      updateActions();
+    }
+  }
   protected void calculateOffset() {
     int left  = 0;
     int right = 0;
@@ -661,9 +704,10 @@ public class ListView extends aPlatformTableBasedView {
 
   @Override
   protected void disposeEx() {
-    itemRenderer = null;
-    editingComponent=null;
-    flingGestureListener=null;
+    itemRenderer         = null;
+    editingComponent     = null;
+    flingGestureListener = null;
+
     if (listModel != null) {
       listModel.removeDataModelListener(this);
     }
@@ -822,6 +866,61 @@ public class ListView extends aPlatformTableBasedView {
     this.rowEditModeListener = rowEditModeListener;
   }
 
+  @Override
+  public int getEditModeMarkCount() {
+    return listModel.editModeGetMarkCount();
+  }
+
+  @Override
+  public boolean isEditModeItemMarked(int index) {
+    return listModel.editModeIsItemMarked(index);
+  }
+
+  @Override
+  public RenderableDataItem[] getEditModeMarkedItems() {
+    return listModel.editModeGetMarkedItems();
+  }
+
+  public void setEditModeAllItemMarks(boolean mark) {
+    listModel.editModeChangeAllMarks(mark);
+
+    if (editing) {
+      updateActions();
+      repaint();
+    }
+  }
+
+  public void clearEditModeMarks() {
+    listModel.editModeClearMarks();
+
+    if (editing) {
+      updateActions();
+      repaint();
+    }
+  }
+
+  @Override
+  public void setEditModeItemMark(int index, boolean mark) {
+    if (listModel.editModeIsItemMarked(index) != mark) {
+      listModel.editModeChangeMark(index, mark);
+
+      if (editing) {
+        updateActions();
+        repaint();
+      }
+    }
+  }
+
+  @Override
+  public void toggleEditModeItemMark(int index) {
+    setEditModeItemMark(index, !listModel.editModeIsItemMarked(index));
+  }
+
+  @Override
+  public int[] getEditModeMarkedIndices() {
+    return listModel.editModeGetMarkedIndices();
+  }
+
   /**
    * This interface allows for customizing the rendering of UITableVIew cells
    */
@@ -863,9 +962,11 @@ public class ListView extends aPlatformTableBasedView {
           editingRow    = row;
           lastEditedRow = row;
           clearSelections();
-          if(rowEditModeListener!=null) {
-            rowEditModeListener.itemWillExpand(new ExpansionEvent(editingComponent,ExpansionEvent.Type.WILL_EXPAND));
+
+          if (rowEditModeListener != null) {
+            rowEditModeListener.itemWillExpand(new ExpansionEvent(editingComponent, ExpansionEvent.Type.WILL_EXPAND));
           }
+
           v.showRowEditingComponent(editingComponent, true);
         }
       } else {
@@ -920,4 +1021,6 @@ public class ListView extends aPlatformTableBasedView {
     ]-*/
     ;
   }
+
+
 }

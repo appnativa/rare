@@ -284,6 +284,13 @@ static NSLineBreakMode defaultLinebreakMode=NSLineBreakByWordWrapping;
 - (CGSize)adjustSize:(CGSize)size {
   size.width += insets_.left + insets_.right;
   size.height += insets_.top + insets_.bottom;
+  if(selectionView && selectionView.image) {
+    CGRect frame=selectionView.frame;
+    size.width+=frame.size.width;
+    if(frame.size.height>size.height) {
+      size.height=frame.size.height;
+    }
+  }
   if (icon_) {
     BOOL rtl = [AppleHelper isLTRText];
     RARERenderableDataItem_IconPosition ip = iconPosition;
@@ -432,6 +439,16 @@ static NSLineBreakMode defaultLinebreakMode=NSLineBreakByWordWrapping;
   
 }
 - (void)layoutSubviews:(CGRect)contentRect {
+  if(selectionView && selectionView.image) {
+    CGRect frame=contentRect;
+    CGRect sframe=selectionView.frame;
+    sframe.origin.x=frame.origin.x;
+    sframe.origin.y=(frame.size.height-sframe.size.height)/2+frame.origin.y;
+    frame.origin.x+=sframe.size.width+4;
+    frame.size.width-=sframe.size.width+4;
+    selectionView.frame=sframe;
+    contentRect=frame;
+  }
   if (!icon_) {
     CGSize tsize = [self.textLabel sizeThatFits:contentRect.size];
     if (tsize.height < contentRect.size.height) {

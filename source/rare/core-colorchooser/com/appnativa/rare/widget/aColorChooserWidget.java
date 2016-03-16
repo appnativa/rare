@@ -109,7 +109,9 @@ public class aColorChooserWidget extends aPlatformWidget implements iActionable 
     configure(cfg, true, false, true, true);
 
     if (!Platform.isTouchDevice()) {
-      setFocusPainted(true);
+      if(!cfg.focusPainted.spot_valueWasSet() || cfg.focusPainted.booleanValue()) {
+        setFocusPainted(true);
+      }
     }
 
     if (comp instanceof aComboBoxComponent) {

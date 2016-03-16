@@ -50,10 +50,7 @@ import java.util.Map.Entry;
 public class ColorUtils {
 
   /** whether colors keys should be kept (Default is false) */
-  public static Boolean KEEP_COLOR_KEYS;
-
-  /** the UI Defaults key for whether colors keys should be kept */
-  public static final String KEEP_COLOR_KEYS_KEY = "Rare.keepColorKeys";
+  public static boolean KEEP_COLOR_KEYS = false;
 
   /** completely transparent color */
   public static final UIColor TRANSPARENT_COLOR = UIColor.TRANSPARENT;
@@ -243,9 +240,9 @@ public class ColorUtils {
   }
 
   public static void clearCache() {
-    foreground           = null;
-    background           = null;
-    backgroundBucket     = null;
+    foreground       = null;
+    background       = null;
+    backgroundBucket = null;
     Utils.clearCache();
     PainterUtils.clearCache();
   }
@@ -689,6 +686,10 @@ public class ColorUtils {
             }
           }
 
+          if ((sc != null) && KEEP_COLOR_KEYS &&!(sc instanceof UIColorShade)) {
+            sc = new UIColorShade(sc, color);
+          }
+
           if (alwaysUsePainter) {
             if (UIColor.WHITE.equals(sc)) {
               pb.setBackgroundPainter(whitePainter);
@@ -964,24 +965,34 @@ public class ColorUtils {
 
   public static void updateColor(String name, Object value) {
     UIColor c  = colorMap.get(name);
+    boolean cm = c != null;
+
+    if (!cm) {
+      c = Platform.getUIDefaults().getColor(name);
+    }
+
     UIColor nc = (value instanceof UIColor)
                  ? (UIColor) value
                  : getColor((String) value);
 
-    Platform.getUIDefaults().put(name, nc);
-
-    if (!(c instanceof UIColorShade)) {
-      colorMap.put(name, nc);
-
-      return;
-    }
-
-    UIColorShade cs = (UIColorShade) c;
-
-    if (nc instanceof UIColorShade) {
-      cs.copyShade(((UIColorShade) nc));
+    if (c == null) {
+      Platform.getUIDefaults().put(name, nc);
     } else {
-      cs.setToColor(nc);
+      if (!(c instanceof UIColorShade)) {
+        if (cm) {
+          colorMap.put(name, nc);
+        } else {
+          Platform.getUIDefaults().put(name, nc);
+        }
+      } else {
+        UIColorShade cs = (UIColorShade) c;
+
+        if (nc instanceof UIColorShade) {
+          cs.copyShade(((UIColorShade) nc));
+        } else {
+          cs.setToColor(nc);
+        }
+      }
     }
   }
 
@@ -1147,6 +1158,19 @@ public class ColorUtils {
     return null;
   }
 
+  /**
+   * Returns a painter represented by the specified grid cell
+   *
+   * @param gc
+   *          the grid cell
+   *
+   * @return a painter or null
+   */
+  public static iPlatformPainter getPainter(iWidget context, GridCell gc) {
+    PaintBucket        pb = configure(context, gc, null);
+    return pb==null ? null : pb.getPainter();
+  }
+
   public static iBackgroundPainter getBackgroundPainter(String color) {
     if (color == null) {
       return null;
@@ -1170,7 +1194,7 @@ public class ColorUtils {
    * @return a color object represented by the specified color string
    */
   public static UIColor getColor(String color) {
-    if (color == null) {
+    if (color == null || color.length()==0) {
       return null;
     }
 
@@ -1189,7 +1213,9 @@ public class ColorUtils {
     }
 
     if (color.indexOf(',') != -1) {
-      return getBackgroundColor(color, false);
+      if (!color.startsWith("rgb")) {
+        return getBackgroundColor(color, false);
+      }
     }
 
     char[] a = color.toCharArray();
@@ -1328,10 +1354,22 @@ public class ColorUtils {
         }
       }
 
-      c = c.light(inc);
+      if (KEEP_COLOR_KEYS) {
+        c = new UIColorShade(c, inc);
+      } else {
+        c = c.light(inc);
+      }
     } else if ((c != null) && (alpha > 0)) {
       alpha = (255 * alpha) / 100;
-      c     = c.alpha(alpha);
+
+      if (KEEP_COLOR_KEYS) {
+        UIColorShade cs = new UIColorShade(c, Shade.ALPHA);
+
+        cs.setAlpha(alpha);
+        c = cs;
+      } else {
+        c = c.alpha(alpha);
+      }
     } else if ((c != null) && (shade != null)) {
       c = new UIColorShade(c, shade);
     }
@@ -1482,7 +1520,7 @@ public class ColorUtils {
     }
 
     PaintBucket pb = paintBucket;
-
+    pb.empty();
     configureBackgroundPainter(pb, color);
 
     if (pb.isEmpty()) {
@@ -1653,8 +1691,6 @@ public class ColorUtils {
            ? UIColor.WHITE
            : fg;
   }
-
-
 
   public static UIColor getTextAreaForeground() {
     UIColor fg = Platform.getUIDefaults().getColor("Rare.TextArea.foreground");

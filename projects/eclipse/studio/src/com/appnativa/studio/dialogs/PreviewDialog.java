@@ -273,8 +273,7 @@ public class PreviewDialog extends Dialog implements iApplicationListener, iExce
             previewSage.startApplication(null);
 
           } catch (Exception e) {
-            Studio.showError(e);
-            e.printStackTrace();
+            Studio.showError(e,false);
           }
         }
       });

@@ -22,6 +22,7 @@ package com.appnativa.rare.platform.android.ui.view;
 
 import android.content.Context;
 
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
 import com.appnativa.rare.ui.Component;
 import com.appnativa.rare.ui.Location;
 import com.appnativa.rare.ui.UIInsets;
@@ -29,7 +30,6 @@ import com.appnativa.rare.ui.aBorderPanel;
 import com.appnativa.rare.ui.iParentComponent;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.layout.BorderLayout;
-import com.jgoodies.forms.layout.CellConstraints;
 
 public class BorderLayoutView extends FormsView {
   protected static String[] specs             = { "f:d,f:d:g,f:d", "f:d,f:d:g,f:d" };

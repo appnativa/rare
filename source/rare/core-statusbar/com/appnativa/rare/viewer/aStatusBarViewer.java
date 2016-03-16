@@ -291,7 +291,6 @@ public abstract class aStatusBarViewer extends aContainer implements iStatusBar 
     }
 
     progressBar = statusBar.getProgressStatusBarItem();
-    progressBar.getCancelButton().addActionListener(this);
 
     SPOTSet actions = cfg.actions;
     String  s;

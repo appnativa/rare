@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.scripting;
@@ -121,6 +121,23 @@ public class JavaScriptEngine implements ScriptEngine {
   ]-*/
   ;
 
+  public void dispose() {
+    if (proxy != null) {
+      try {
+        disposeEx();
+      } catch(Exception e) {
+        Platform.ignoreException(e);
+      }
+
+      factory.disposing(this);
+      factory          = null;
+      proxy            = null;
+      executionContext = null;
+      tmpContext       = null;
+      context          = null;
+    }
+  }
+
   @Override
   public Object eval(Reader reader) throws ScriptException {
     try {
@@ -192,7 +209,7 @@ public class JavaScriptEngine implements ScriptEngine {
     context.setBindings(bindings, scope);
   }
 
-  public native void setConstantValue(String name, Object value) 
+  public native void setConstantValue(String name, Object value)
   /*-[
     RAREJSEngine* e=(RAREJSEngine*)proxy_;
     [e setConstantValue: value withName: name];
@@ -407,6 +424,13 @@ public class JavaScriptEngine implements ScriptEngine {
     executionContext_=context;
     RAREJSEngine* e=(RAREJSEngine*)proxy_;
     return [e eval: script asName: filename];
+  ]-*/
+  ;
+
+  private native void disposeEx()
+  /*-[
+    RAREJSEngine* e=(RAREJSEngine*)proxy_;
+    return [e dispose];
   ]-*/
   ;
 

@@ -57,9 +57,9 @@ import javax.swing.text.html.StyleSheet;
 
 import com.appnativa.rare.platform.swing.AppContext;
 import com.appnativa.rare.platform.swing.ui.text.HTMLEditorKitEx.HTMLDocumentEx;
-import com.appnativa.rare.scripting.Functions;
 import com.appnativa.rare.ui.UIFont;
 import com.appnativa.util.CharArray;
+import com.appnativa.util.Helper;
 
 /**
  * Support for providing html views for the swing components. This translates a
@@ -116,11 +116,14 @@ public class BasicHTMLEx {
    * Creates the Views that visually represent the model.
    */
   private static ViewFactory basicHTMLViewFactory;
+  private static CharArray tempCa=new CharArray();
+  private static CharArray tempCaHTML=new CharArray();
+  private static char[] lfChars="\n".toCharArray();
+  private static char[] brChars="<br/>".toCharArray();
 
   /**
    * Create an html renderer for the given component and string of html.
    */
-  @SuppressWarnings("resource")
   public static View createHTMLView(JComponent c, String html) {
     BasicEditorKit kit  = getFactory();
     Document       doc  = kit.createDefaultDocument(c.getFont(), c.getForeground());
@@ -190,22 +193,18 @@ public class BasicHTMLEx {
           default:
             break;
       }
-      if (html.indexOf('\n') != -1) {
-        r = new StringReader(Functions.tokenToHTMLBreak(html, "\n", true, prefix, suffix, -1));
-      } else {
-        CharArray ca = new CharArray(html.length() + 25);
-
-        ca.append("<html><body>");
-        if (prefix!=null) {
-          ca.append(prefix);
-        }
-        ca.append(html);
-        if(suffix!=null) {
-          ca.append(suffix);
-        }
-
-        ca.append("</body></html>");
-        r = ca;
+      CharArray ca=tempCa;
+      CharArray hca=tempCaHTML;
+      hca.set(html);
+      ca.clear(); //call clear instead of just resetting the length because we are using this as a reader also and clear resets read position
+      r = Helper.tokenReplacement(hca, lfChars, brChars, true, prefix, suffix, -1, ca);
+      if(ca._length>1024) {
+        ca._length=256;
+        ca.trimToSize();
+      }
+      if(hca._length>1024) {
+        hca._length=256;
+        hca.trimToSize();
       }
     }
 
@@ -236,8 +235,7 @@ public class BasicHTMLEx {
     View    value        = null;
     View    oldValue     = (View) c.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey);
     Boolean htmlDisabled = (Boolean) c.getClientProperty(htmlDisable);
-
-    if (forceHtml || ((htmlDisabled != Boolean.TRUE) && BasicHTMLEx.isHTMLString(text))) {
+    if ((text!=null && text.length()>0) && (forceHtml || ((htmlDisabled != Boolean.TRUE) && BasicHTMLEx.isHTMLString(text)))) {
       value = BasicHTMLEx.createHTMLView(c, text);
     } else {
       c.putClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey, null);

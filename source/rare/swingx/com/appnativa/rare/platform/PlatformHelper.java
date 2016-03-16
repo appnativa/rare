@@ -127,18 +127,14 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.lang.reflect.Method;
-
 import java.net.CookieHandler;
 import java.net.URL;
 import java.net.URLConnection;
-
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -148,7 +144,6 @@ import java.util.Map;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
-
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -171,7 +166,20 @@ public class PlatformHelper extends aPlatformHelper {
     return text;
   }
 
-  public static void clearSessionCookies() {}
+  public static void clearSessionCookies() {
+    try {
+      CookieHandler handler = CookieHandler.getDefault();
+
+      if (handler instanceof com.appnativa.rare.net.CookieManager) {
+        ((com.appnativa.rare.net.CookieManager) handler).clear();
+      }
+
+      CookieManager cm = CookieManager.getInstance();
+      cm.clear();
+    } catch(Exception e) {
+      Platform.ignoreException(e);
+    }
+  }
 
   public static PopupListBoxHandler createPopupListBoxHandler(iWidget w, iPlatformListDataModel model,
           boolean forMenu) {

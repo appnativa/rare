@@ -20,6 +20,7 @@
 
 package com.appnativa.rare.platform.swing.ui.view;
 
+import com.appnativa.rare.Platform;
 import com.appnativa.rare.platform.swing.ui.util.SwingGraphics;
 import com.appnativa.rare.ui.ColorUtils;
 import com.appnativa.rare.ui.UIColor;
@@ -39,9 +40,13 @@ public class GlassPanel extends JComponent {
   private iPlatformPainter lockedPainter;
   boolean                  overlayContainer;
   MouseAdapter             listener;
-
+  
   public GlassPanel(boolean overlay) {
     super();
+    lockedColor=Platform.getUIDefaults().getColor("Rare.disabledTransparentColor");
+    if(lockedColor==null) {
+      lockedColor=ColorUtils.DISABLED_TRANSPARENT_COLOR;
+    }
     setOpaque(false);
     setFocusable(false);
     overlayContainer = overlay;
@@ -67,7 +72,6 @@ public class GlassPanel extends JComponent {
 
       return;
     }
-
     if (((lockedColor != null) && (lockedColor != ColorUtils.TRANSPARENT_COLOR)) || (lockedPainter != null)) {
       graphics = SwingGraphics.fromGraphics(g, this, graphics);
 

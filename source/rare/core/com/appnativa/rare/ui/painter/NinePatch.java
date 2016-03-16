@@ -81,7 +81,7 @@ public class NinePatch implements iImageObserver {
   public NinePatch(aUIImage image, UIColor newColor, UIColor oldColor) {
     mImage = image;
 
-    if (image.isLoaded(this)) {
+    if (image.isImageLoaded(this)) {
       if (newColor != null) {
         changeNinePatchColor(newColor, oldColor);
       }
@@ -98,7 +98,7 @@ public class NinePatch implements iImageObserver {
       return;
     }
 
-    if ((mImage == null) ||!mImage.isLoaded(this)) {
+    if ((mImage == null) ||!mImage.isImageLoaded(this)) {
       this.newColor = newColor;
       this.oldColor = oldColor;
 
@@ -248,8 +248,8 @@ public class NinePatch implements iImageObserver {
     findPatches();
   }
 
-  public boolean isLoaded(iImageObserver is) {
-    return mImage.isLoaded(is);
+  public boolean isImageLoaded(iImageObserver is) {
+    return mImage.isImageLoaded(is);
   }
 
   public static NinePatch load(URL url) throws IOException {

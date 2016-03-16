@@ -67,6 +67,11 @@ public abstract class aMultipleListHandler extends aListHandler implements iScro
   }
 
   @Override
+  public int[] getCheckedIndexes() {
+    return null;
+  }
+
+  @Override
   public void addSelectionChangeListener(iItemChangeListener l) {
     for (int i = 0; i < listHandlers.length; i++) {
       listHandlers[i].addSelectionChangeListener(l);
@@ -266,11 +271,6 @@ public abstract class aMultipleListHandler extends aListHandler implements iScro
   @Override
   public boolean hasSelection() {
     return mainHandler.hasSelection();
-  }
-
-  @Override
-  public boolean isEditing() {
-    return mainHandler.isEditing();
   }
 
   @Override

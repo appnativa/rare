@@ -242,9 +242,6 @@ public class UIColorShade extends UIColor implements Cloneable {
     return Conversions.colorToHEXString(this);
   }
 
-  public String toRGBString() {
-    return Conversions.colorToRGBString(this);
-  }
 
   @Override
   public String toString() {
@@ -418,15 +415,15 @@ public class UIColorShade extends UIColor implements Cloneable {
 
       return c;
     }
-
+    int srgb=sourceColor.getRGB();
     if (cachedColor != null) {
-      if (sourceColor.getRGB() != cachedRGB) {
+      if (srgb != cachedRGB) {
         cachedColor = null;
       }
     }
 
     if (cachedColor == null) {
-      cachedRGB = sourceColor.getRGB();
+      cachedRGB = srgb;
 
       switch(getShade()) {
         case DARKER :

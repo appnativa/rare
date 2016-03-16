@@ -35,6 +35,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   CGFloat keyboardHeight;
   BOOL keyboardVisible;
   BOOL firstFieldCheck;
+  BOOL paused;
   NSMutableArray* windowStack;
 }
 
@@ -146,7 +147,7 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
 }
 +(void) hideKeyboard: (UIView *) view {
   UIView* fv=nil;
-  if([view isFirstResponder]) {
+  if(view && [view isFirstResponder]) {
     fv=view;
   }
   else {
@@ -203,11 +204,11 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
                                                object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appResumed:)
-                                                 name:UIApplicationWillEnterForegroundNotification
+                                                 name:UIApplicationDidBecomeActiveNotification
                                                object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(appPaused:)
-                                                 name:UIApplicationDidEnterBackgroundNotification
+                                                 name:UIApplicationWillResignActiveNotification
                                                object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
@@ -289,12 +290,18 @@ static const CGFloat LANDSCAPE_KEYBOARD_HEIGHT = 162;
   
 }
 - (void)appPaused:(NSNotification *)notification {
+  paused=YES;
   RAREAppContext* a=(RAREAppContext*)[RAREPlatform getAppContext];
   [a->RARE_ fireApplicationPaused];
 }
 - (void)appResumed:(NSNotification *)notification {
-  RAREAppContext* a=(RAREAppContext*)[RAREPlatform getAppContext];
-  [a->RARE_ fireApplicationResumed];
+  if(paused) {
+    RAREAppContext* a=(RAREAppContext*)[RAREPlatform getAppContext];
+    if(a && a->RARE_) {
+      [a->RARE_ fireApplicationResumed];
+    }
+    paused=NO;
+  }
 }
 
 -(UIWindow*) getMainWindow {

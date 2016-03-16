@@ -25,12 +25,29 @@
 #import <com/appnativa/rare/ui/ColorUtils.h>
 #import <com/appnativa/rare/ui/UIColor.h>
 
+@interface OverlayRootViewController : UIViewController
+@end
+
+@implementation OverlayRootViewController
+
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
+{
+  return UIInterfaceOrientationMaskAll;
+}
+
+- (BOOL)shouldAutorotate
+{
+  return YES;
+}
+@end
+
 
 @implementation RAREAPWindow {
   id<RAREiPlatformPainter> painter_;
   UIColor* bgColor_;
   RAREUIInsets* borderInsets_;
   UIWindow* overlayWindow;
+  BOOL blockSetFrame_;
 
 }
 
@@ -81,6 +98,30 @@
 }
 -(BOOL) isModal {
   return modal_;
+}
+
+-(BOOL) isFullScreen {
+  CGRect frame=self.frame;
+  if((int)frame.origin.x!=0 || (int)frame.origin.y!=0) {
+    return NO;
+  }
+  CGSize size=self.screen.bounds.size;
+  int min=(int)MIN(size.height,size.width);
+  int max=(int)MAX(size.height,size.width);
+  
+  if(min!=(int)MIN(frame.size.width,frame.size.height)) {
+    return NO;
+  }
+  if(max!=(int)MAX(frame.size.width,frame.size.height)) {
+    return NO;
+  }
+  return YES;
+}
+
+-(void) setRotating: (BOOL) rotating {
+  if(![self isFullScreen]) {
+    blockSetFrame_=rotating;
+  }
 }
 
 -(void) setModal: (BOOL) modal {
@@ -276,24 +317,28 @@
   [self setNeedsDisplay];
 }
 -(void)setFrame:(CGRect)frame {
-  if(fixedSize.height!=0) {
-    frame.size.width=fixedSize.width;
-    frame.size.height=fixedSize.height;
+  if(!blockSetFrame_) {
+    if(fixedSize.height!=0) {
+      frame.size.width=fixedSize.width;
+      frame.size.height=fixedSize.height;
+    }
+    [super setFrame:frame];
   }
-  [super setFrame:frame];
 }
 
 -(void) setVisible: (BOOL) visible {
   if(self.hidden==visible) {
+    [RAREAPApplication hideKeyboard:nil];
     if( modal_ && visible) {
       if(visible) {
-        CGRect frame=[UIScreen mainScreen].orientedBounds;
-        if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
+        CGRect frame=[UIScreen mainScreen].bounds;
+        if ([UIScreen osVersionAsFloat]<8 && UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
           CGFloat w=frame.size.width;
           frame.size.width=frame.size.height;
           frame.size.height=w;
         }
         overlayWindow= [[UIWindow alloc] initWithFrame:frame];
+        overlayWindow.rootViewController=[OverlayRootViewController new];
         overlayWindow.backgroundColor=(UIColor*)[RAREColorUtils DISABLED_TRANSPARENT_COLOR].getAPColor;
         overlayWindow.alpha=0;
         overlayWindow.windowLevel=self.windowLevel;

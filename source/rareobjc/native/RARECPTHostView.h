@@ -50,6 +50,7 @@
 -(void) setAxisLabelsLabels:(RAREChartHandler_LabelsManager*) lm forAxis: (CPTXYAxis*) axis domain: (BOOL) domain;
 -(void) setShowPlotValues: (BOOL) show;
 -(void) addMarker: (RAREChartDataItem*) item defaultBackground: (RAREUIColor*) bg defaultForeground: (RAREUIColor*) fg range: (BOOL) rangeMarker;
+-(void) removeMarkers: (BOOL) range;
 -(CGPoint) rowAndColumnAtX: (float) x andY: (float)y;
 +(void) setTextStyle: (CPTMutableTextStyle*) style withFont:  (RAREUIFont*) font andColor: (RAREUIColor*) color;
 @end

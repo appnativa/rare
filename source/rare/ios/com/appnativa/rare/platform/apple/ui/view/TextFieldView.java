@@ -254,6 +254,7 @@ public class TextFieldView extends aTextEditorView {
   /*-[
     if(fg) {
       ((RAREAPTextField*)proxy_).textColor=[fg getAPColor];
+      ((RAREAPTextField*)proxy_).tintColor=[fg getAPColor];
     }
   ]-*/
   ;

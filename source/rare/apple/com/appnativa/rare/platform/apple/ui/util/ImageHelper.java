@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.apple.ui.util;
@@ -26,7 +26,6 @@ import com.appnativa.rare.iPlatformAppContext;
 import com.appnativa.rare.net.ActionLink;
 import com.appnativa.rare.net.JavaURLConnection;
 import com.appnativa.rare.net.NSURLConnectionHelper;
-import com.appnativa.rare.net.iURLConnection;
 import com.appnativa.rare.ui.ScreenUtils;
 import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
@@ -348,7 +347,9 @@ public class ImageHelper {
       return null;
     }
 
-    if (url.getProtocol().equals("file")) {
+    String protocol = url.getProtocol();
+
+    if (protocol.equals("file") || protocol.equals("data")) {
       defer = false;
     }
 
@@ -362,25 +363,20 @@ public class ImageHelper {
       return new DelayedImage(app, url, size, constraints, st, bg, density);
     }
 
-    iURLConnection conn = app.openConnection(url);
+    Integer to    = (Integer) app.getUIDefaults().get("Rare.net.imageLoadTimeout");
+    int     tm    = (to == null)
+                    ? 100 * 60 * 10
+                    : to.intValue();
+    Object  proxy = ImageUtils.createImageProxy(url, tm, density);
+    UIImage img   = (proxy == null)
+                    ? null
+                    : new UIImage(proxy, JavaURLConnection.toExternalForm(url));
 
-    try {
-      Integer to    = (Integer) app.getUIDefaults().get("Rare.net.imageLoadTimeout");
-      int     tm    = (to == null)
-                      ? 100 * 60 * 10
-                      : to.intValue();
-      Object  proxy = ImageUtils.createImageProxy(url, tm, density);
-      UIImage img   = new UIImage(proxy, JavaURLConnection.toExternalForm(url));
-
-      if ((constraints > 0) && (size > 0)) {
-        img = constrain(img, size, size, constraints, bg, st);
-      }
-
-      return img;
-    } finally {
-      conn.dispose();
-      conn = null;
+    if ((img != null) && (constraints > 0) && (size > 0)) {
+      img = constrain(img, size, size, constraints, bg, st);
     }
+
+    return img==null ? UIImageIcon.getBrokenImage() : img;
   }
 
   public static UIImage createImage(URL url, Object proxy, boolean densityScale, int size, int constraints,
@@ -578,6 +574,10 @@ public class ImageHelper {
      */
     public void setWidth(int width) {
       this.width = width;
+    }
+
+    public void load() throws Exception {
+      call();
     }
 
     @Override

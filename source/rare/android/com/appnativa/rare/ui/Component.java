@@ -393,7 +393,7 @@ public class Component extends aComponent
       }
     }
 
-    return e.isConsumed();
+    return !e.isConsumed();
   }
 
   @Override
@@ -595,6 +595,7 @@ public class Component extends aComponent
         if (gestureDetector == null) {
           gestureDetector = new GestureDetector(view.getContext(), this);
           gestureDetector.setOnDoubleTapListener(this);
+          gestureDetector.setIsLongpressEnabled(false);
         }
 
         if ((gestureDetector != null)) {
@@ -807,6 +808,11 @@ public class Component extends aComponent
   }
 
   @Override
+  public float getAlpha() {
+    return view.getAlpha();
+  }
+
+  @Override
   public void setBackground(UIColor bg) {
     if (view instanceof iPainterSupport) {
       if ((bg == null) || (bg.getAlpha() == 0)) {
@@ -916,7 +922,7 @@ public class Component extends aComponent
     if (enabled != view.isEnabled()) {
       view.setEnabled(enabled);
 
-      boolean                   setDisabled = true;
+      boolean setDisabled = true;
 
       if (!(view instanceof TextView)) {
         setDisabled = false;
@@ -926,7 +932,8 @@ public class Component extends aComponent
         view.refreshDrawableState();
         view.requestLayout();
       }
-      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled,enabled);
+
+      firePropertyChange(iConstants.PROPERTY_ENABLED, !enabled, enabled);
     }
   }
 

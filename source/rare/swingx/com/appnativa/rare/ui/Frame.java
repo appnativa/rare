@@ -20,6 +20,29 @@
 
 package com.appnativa.rare.ui;
 
+import com.appnativa.rare.Platform;
+import com.appnativa.rare.exception.ApplicationException;
+import com.appnativa.rare.iConstants;
+import com.appnativa.rare.iPlatformAppContext;
+import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
+import com.appnativa.rare.platform.swing.ui.view.JDialogEx;
+import com.appnativa.rare.platform.swing.ui.view.JRootPaneEx;
+import com.appnativa.rare.ui.aWindowManager.WindowType;
+import com.appnativa.rare.ui.event.ActionEvent;
+import com.appnativa.rare.ui.event.ExpansionEvent;
+import com.appnativa.rare.ui.event.FocusEvent;
+import com.appnativa.rare.ui.event.WindowEvent;
+import com.appnativa.rare.ui.event.iActionListener;
+import com.appnativa.rare.ui.event.iWindowListener;
+import com.appnativa.rare.ui.iWindowManager.iFrame;
+import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
+import com.appnativa.rare.viewer.WindowViewer;
+import com.appnativa.rare.viewer.iContainer;
+import com.appnativa.rare.viewer.iTarget;
+import com.appnativa.rare.widget.PushButtonWidget;
+import com.appnativa.rare.widget.iWidget;
+import com.appnativa.util.SNumber;
+
 import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.event.WindowListener;
@@ -32,28 +55,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.RootPaneContainer;
-
-import com.appnativa.rare.Platform;
-import com.appnativa.rare.iConstants;
-import com.appnativa.rare.iPlatformAppContext;
-import com.appnativa.rare.exception.ApplicationException;
-import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
-import com.appnativa.rare.platform.swing.ui.view.JRootPaneEx;
-import com.appnativa.rare.ui.aWindowManager.WindowType;
-import com.appnativa.rare.ui.iWindowManager.iFrame;
-import com.appnativa.rare.ui.event.ActionEvent;
-import com.appnativa.rare.ui.event.ExpansionEvent;
-import com.appnativa.rare.ui.event.FocusEvent;
-import com.appnativa.rare.ui.event.WindowEvent;
-import com.appnativa.rare.ui.event.iActionListener;
-import com.appnativa.rare.ui.event.iWindowListener;
-import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
-import com.appnativa.rare.viewer.WindowViewer;
-import com.appnativa.rare.viewer.iContainer;
-import com.appnativa.rare.viewer.iTarget;
-import com.appnativa.rare.widget.PushButtonWidget;
-import com.appnativa.rare.widget.iWidget;
-import com.appnativa.util.SNumber;
 
 /**
  *
@@ -203,24 +204,30 @@ public class Frame extends Container implements iFrame, WindowListener {
         JRootPane rp = rootPaneContainer.getRootPane();
 
         if (rp instanceof JRootPaneEx) {
-          boolean show=Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
-          String s=options!=null ? (String)options.get("showCloseButton") : null;
-          if(s!=null) {
-            show=SNumber.booleanValue(s);
+          boolean show = Platform.getUIDefaults().getBoolean("Rare.Dialog.showCloseButton", true);
+          String  s    = (options != null)
+                         ? (String) options.get("showCloseButton")
+                         : null;
+
+          if (s != null) {
+            show = SNumber.booleanValue(s);
           }
-          iActionListener l=null;
-          if(show) {
-            l= new iActionListener() {
+
+          iActionListener l = null;
+
+          if (show) {
+            l = new iActionListener() {
               @Override
               public void actionPerformed(ActionEvent e) {
                 windowViewer.close();
               }
             };
           }
+
           titlePane = TitlePane.createDialogTitle(windowViewer, l);
           windowViewer.addWindowDragger(titlePane);
           ((JRootPaneEx) rp).setTitlePane(titlePane.getJComponent());
-          runtimeDecorations=true;
+          runtimeDecorations = true;
         }
       }
     }
@@ -459,6 +466,24 @@ public class Frame extends Container implements iFrame, WindowListener {
     }
   }
 
+  @Override
+  public boolean setAlpha(float alpha) {
+    try {
+      window.setOpacity(alpha);
+
+      return true;
+    } catch(Exception e) {
+      Platform.ignoreException(e);
+
+      return false;
+    }
+  }
+
+  @Override
+  public float getAlpha() {
+    return window.getOpacity();
+  }
+
   public void setAutoDispose(boolean autoDispose) {
     this.autoDispose = autoDispose;
   }
@@ -490,7 +515,7 @@ public class Frame extends Container implements iFrame, WindowListener {
     JRootPane rp = rootPaneContainer.getRootPane();
 
     if (rp instanceof JRootPaneEx) {
-      ((JRootPaneEx)rp).setComponentPainter(cp);
+      ((JRootPaneEx) rp).setComponentPainter(cp);
     }
   }
 
@@ -501,6 +526,12 @@ public class Frame extends Container implements iFrame, WindowListener {
       rootPaneContainer.getRootPane().setDefaultButton((JButton) b);
     }
   }
+  public void setCancelable(boolean cancelable) {
+    if(window instanceof JDialogEx) {
+      ((JDialogEx)window).setCancelable(cancelable);
+    }
+   
+ }
 
   public void setIcon(iPlatformIcon icon) {
     if (titlePane != null) {
@@ -549,7 +580,6 @@ public class Frame extends Container implements iFrame, WindowListener {
     }
 
     menuBar = mb;
-
   }
 
   public void setMovable(boolean movable) {}
@@ -636,7 +666,6 @@ public class Frame extends Container implements iFrame, WindowListener {
     }
 
     toolbarHolder = tbh;
-
   }
 
   @Override
@@ -757,14 +786,16 @@ public class Frame extends Container implements iFrame, WindowListener {
   @Override
   public void windowDeiconified(java.awt.event.WindowEvent e) {
     if ((getWidgetListener() != null) && getWidgetListener().isEnabled(iConstants.EVENT_HAS_EXPANDED)) {
-      getWidgetListener().execute(iConstants.EVENT_HAS_EXPANDED, new ExpansionEvent(windowViewer,ExpansionEvent.Type.HAS_EXPANDED));
+      getWidgetListener().execute(iConstants.EVENT_HAS_EXPANDED,
+                                  new ExpansionEvent(windowViewer, ExpansionEvent.Type.HAS_EXPANDED));
     }
   }
 
   @Override
   public void windowIconified(java.awt.event.WindowEvent e) {
     if ((getWidgetListener() != null) && getWidgetListener().isEnabled(iConstants.EVENT_HAS_COLLAPSED)) {
-      getWidgetListener().execute(iConstants.EVENT_HAS_COLLAPSED, new ExpansionEvent(windowViewer,ExpansionEvent.Type.HAS_COLLAPSED));
+      getWidgetListener().execute(iConstants.EVENT_HAS_COLLAPSED,
+                                  new ExpansionEvent(windowViewer, ExpansionEvent.Type.HAS_COLLAPSED));
     }
   }
 

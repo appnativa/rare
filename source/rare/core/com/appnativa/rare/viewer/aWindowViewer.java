@@ -348,7 +348,9 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
   public void alert(String title, Object message, iFunctionCallback cb) {
 
     AlertPanel d = AlertPanel.ok(this, title, message, null);
-
+    if(!Platform.isTouchDevice()) {
+      d.setRightAlignButtons(true);
+    }
     d.showDialog(cb);
   }
 
@@ -563,9 +565,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
    * @param value
    *          the value to copy to the clipboard
    */
-  public void copyToClipboard(String value) {
-    throw new UnsupportedOperationException();
-  }
+  public abstract void copyToClipboard(String value);
 
   /**
    * Convenience method for creating an Action link for a URL
@@ -1772,6 +1772,9 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     }
 
     AlertPanel d = AlertPanel.okCancel(this, title, message, null);
+    if(!Platform.isTouchDevice()) {
+      d.setRightAlignButtons(true);
+    }
 
     d.showDialog(cb);
   }
@@ -2068,6 +2071,9 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     }
 
     AlertPanel d = AlertPanel.prompt(this, title, prompt, value, null);
+    if(!Platform.isTouchDevice()) {
+      d.setRightAlignButtons(true);
+    }
 
     d.showDialog(cb);
   }
@@ -2449,6 +2455,9 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     }
 
     AlertPanel d = AlertPanel.yesNoCancel(this, title, message, null, yes, no, cancel);
+    if(!Platform.isTouchDevice()) {
+      d.setRightAlignButtons(true);
+    }
 
     d.showDialog(cb);
   }
@@ -2471,6 +2480,15 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     canClose = can;
   }
 
+  /**
+   * Sets whether a dialog window can canceled by the default cancel
+   * sequence (escape key, back button etc.)
+   *
+   * @param cancelable
+   *          true if the window can be canceled; false otherwise.
+   */
+  public abstract void setCancelable(boolean cancelable);
+  
   /**
    * Set a cookie-2 value for the given URL
    *
@@ -2795,9 +2813,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
    *
    * @return the contents of the system clipboard or null
    */
-  public String getClipboardContents() {
-    return null;
-  }
+  public abstract String getClipboardContents();
 
   /**
    * Returns the URL for the codebase for an application launched via webstart
@@ -3242,7 +3258,7 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
            ? getViewer(name)
            : o;
   }
-
+  
   /**
    * Get the last native window event
    *
@@ -3866,15 +3882,8 @@ public abstract class aWindowViewer extends aContainer implements iWindow {
     try {
       String name = this.getScriptHandler().getScriptingName();
 
-      if (!url.startsWith("/") && (name != null)
-          && (name.startsWith("http") || name.startsWith("file:") || name.startsWith("jar:"))) {
-        if (url.indexOf(':') == -1) {
-          u = getURL(name);
-
-          if (u != null) {
-            u = new URL(u, url);
-          }
-        }
+      if (!url.startsWith("/") && (name != null)){
+        u=new URL(getURL(name),url);
       }
     } catch(Exception e) {
       u = null;

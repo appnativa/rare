@@ -255,8 +255,8 @@ public abstract class aUIMenuItem extends RenderableDataItem implements Property
    * @return the disabled icon for the item
    */
   public iPlatformIcon getDisabledIcon() {
-    if ((disabledIcon != null) && (displayIcon != null)) {
-      return disabledIcon.getDisabledVersion();
+    if ((disabledIcon == null) && (displayIcon != null)) {
+      return displayIcon.getDisabledVersion();
     }
 
     return disabledIcon;
@@ -411,22 +411,17 @@ public abstract class aUIMenuItem extends RenderableDataItem implements Property
     enabledOnSelection = a.isEnabledOnSelectionOnly();
     theName            = a.getActionName();
 
+    setIcon(a.getIcon());
     if (a.getDisabledIconEx() != null) {
       setDisabledIcon(a.getDisabledIconEx());
     }
 
-    if (a.isEnabled()) {
-      setIcon(a.getIcon());
-      setEnabled(true);
-    } else {
-      setEnabled(false);
-      setIcon(a.getDisabledIcon());
-    }
 
     this.setLinkedData(a.getLinkedData());
     action = a;
     action.addPropertyChangeListener(this);
     setActionListener(action);
+    setEnabled(a.isEnabled());
   }
 
   public void setActionScript(Object action) {
@@ -462,7 +457,7 @@ public abstract class aUIMenuItem extends RenderableDataItem implements Property
   @Override
   public void setEnabled(boolean enabled) {
     super.setEnabled(enabled);
-    updateNativeItemIconForState(enabled);
+    updateNativeItemForState(enabled);
   }
 
   public void setEnabledOnSelection(boolean booleanValue) {}
@@ -470,7 +465,7 @@ public abstract class aUIMenuItem extends RenderableDataItem implements Property
   @Override
   public void setIcon(iPlatformIcon icon) {
     super.setIcon(icon);
-    updateNativeItemIconForState(isEnabled());
+    updateNativeItemForState(isEnabled());
   }
 
   /**
@@ -547,7 +542,7 @@ public abstract class aUIMenuItem extends RenderableDataItem implements Property
 
   protected abstract void setNativeItemIcon(iPlatformIcon icon);
 
-  protected void updateNativeItemIconForState(boolean enabled) {
+  protected void updateNativeItemForState(boolean enabled) {
     iPlatformIcon icon = isEnabled()
                          ? getIcon()
                          : getDisabledIcon();

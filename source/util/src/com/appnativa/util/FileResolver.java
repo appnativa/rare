@@ -17,25 +17,26 @@
 package com.appnativa.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * A simple File resolver class
  *
  * @author Don DeCoteau
  */
-public class FileResolver implements iFileResolver {
+public class FileResolver implements iURLResolver {
 
   /** the base File */
   protected File baseFile;
+  URL            baseURL;
 
   /** Creates a new instance of SimpleFileResolver */
   public FileResolver() {
-    baseFile = new File(".");
+    this(new File("."));
   }
 
   /**
@@ -44,11 +45,17 @@ public class FileResolver implements iFileResolver {
    * @param base the base File
    */
   public FileResolver(File base) {
-    baseFile = base;
+    setBaseFileL(base);
   }
 
   public void setBaseFileL(File baseFile) {
     this.baseFile = baseFile;
+
+    try {
+      baseURL = new URL(baseFile.toURI().toString());
+    } catch(MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public Object getApplicationContext() {
@@ -65,13 +72,18 @@ public class FileResolver implements iFileResolver {
     return new FileReader(f);
   }
 
-  public InputStream getStream(String file) throws IOException {
-    File f = new File(baseFile, file);
-
-    return new FileInputStream(f);
-  }
-
   public File getFile(String file) {
     return new File(baseFile, file);
+  }
+
+  @Override
+  public URL getBaseURL() {
+    return baseURL;
+  }
+
+  @Override
+  public URL getURL(String file) throws MalformedURLException {
+    File f = new File(baseFile, file);
+    return new URL(f.toURI().toString());
   }
 }

@@ -38,7 +38,7 @@ import com.appnativa.rare.ui.painter.iPainter;
 import com.appnativa.rare.ui.painter.iPainterSupport;
 import com.appnativa.rare.ui.painter.iPlatformComponentPainter;
 import com.appnativa.util.CharArray;
-import com.appnativa.util.xml.XMLUtils;
+import com.appnativa.util.XMLUtils;
 
 public class ToggleButtonView extends JToggleButton implements iPainterSupport, iView {
   private String  originalText;

@@ -278,6 +278,11 @@ public class ListBoxListHandler extends aAdapterListHandler implements iScroller
   }
 
   @Override
+  public int[] getCheckedIndexes() {
+    return getListView().getCheckedIndexes();
+  }
+
+  @Override
   public RenderableDataItem getSelectedItem() {
     int n = getSelectedIndex();
 

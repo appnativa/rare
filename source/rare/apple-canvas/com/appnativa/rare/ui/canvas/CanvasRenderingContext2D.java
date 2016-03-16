@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.ui.canvas;
@@ -73,6 +73,9 @@ public class CanvasRenderingContext2D extends aCanvasRenderingContext2D {
 
     return currentPath.isPointInPath(p.x, p.y);
   }
+
+  @Override
+  public void updateModCount() {}
 
   @Override
   protected aCompositingGraphics createCompositingGraphics(iPlatformGraphics g, UIImage image) {
@@ -140,6 +143,11 @@ public class CanvasRenderingContext2D extends aCanvasRenderingContext2D {
     }
 
     @Override
+    public iPlatformPaint getPaint() {
+      return this;
+    }
+
+    @Override
     public void paint(iPlatformGraphics g, float x, float y, float width, float height, int orientation) {
       if (start.equals(end) && (r0 == r1)) {
         return;
@@ -171,11 +179,6 @@ public class CanvasRenderingContext2D extends aCanvasRenderingContext2D {
           drawGradient(proxy, g.getContextRef(), start, end);
         }
       }
-    }
-
-    @Override
-    public iPlatformPaint getPaint() {
-      return this;
     }
   }
 

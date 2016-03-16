@@ -22,6 +22,7 @@ package com.appnativa.rare.ui.renderer;
 
 import java.util.Iterator;
 
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 import com.appnativa.rare.platform.apple.ui.view.FormsView;
 import com.appnativa.rare.platform.apple.ui.view.View;
 import com.appnativa.rare.ui.RenderableDataItem.HorizontalAlign;
@@ -31,7 +32,6 @@ import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
 import com.appnativa.rare.ui.border.UICompoundBorder;
 import com.appnativa.rare.ui.border.UIEmptyBorder;
-import com.jgoodies.forms.layout.FormLayout;
 
 /**
  * A renderer that uses the JGoodies forms layout panel to render information

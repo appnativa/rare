@@ -20,6 +20,10 @@
 
 package com.appnativa.rare.platform.apple;
 
+import java.net.URL;
+import java.util.HashMap;
+import java.util.logging.Logger;
+
 import com.appnativa.rare.ErrorInformation;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iFunctionHandler;
@@ -32,18 +36,13 @@ import com.appnativa.rare.platform.apple.ui.view.PopupWindow;
 import com.appnativa.rare.ui.Frame;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIProperties;
-import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformComponentFactory;
+import com.appnativa.rare.ui.effects.iPlatformAnimator;
 import com.appnativa.rare.viewer.WindowViewer;
 import com.appnativa.rare.widget.iWidget;
 import com.appnativa.util.CharArray;
 import com.appnativa.util.IdentityArrayList;
-
-import java.net.URL;
-
-import java.util.HashMap;
-import java.util.logging.Logger;
 
 /*-[
  #import "java/lang/reflect/Field.h"
@@ -88,12 +87,10 @@ public abstract class aAppContextImpl extends aAppContext {
     registerInterfaceProxy("com.appnativa.rare.ui.effects.iAnimatorValueListener",
                            "com.appnativa.rare.GenericInterfaceProxy");
     registerInterfaceProxy("com.appnativa.rare.ui.event.iExpansionListener",
-        "com.appnativa.rare.GenericInterfaceProxy");
+                           "com.appnativa.rare.GenericInterfaceProxy");
     registerInterfaceProxy("com.appnativa.rare.ui.event.iPopupMenuListener",
-        "com.appnativa.rare.GenericInterfaceProxy");
-    registerInterfaceProxy("com.appnativa.rare.ui.event.iExpandedListener",
-        "com.appnativa.rare.GenericInterfaceProxy");
-    
+                           "com.appnativa.rare.GenericInterfaceProxy");
+    registerInterfaceProxy("com.appnativa.rare.ui.event.iExpandedListener", "com.appnativa.rare.GenericInterfaceProxy");
   }
 
   @Override
@@ -119,15 +116,13 @@ public abstract class aAppContextImpl extends aAppContext {
         Frame        f      = (Frame) dialog.getComponent();
 
         f.getWindowViewer().onConfigurationWillChange(newConfig);
-        f.pack();
         f.center();
-      }
-      else if(o instanceof PopupWindow) {
-        ((PopupWindow)o).cancelPopup(false);
+      } else if (o instanceof PopupWindow) {
+        ((PopupWindow) o).cancelPopup(false);
       }
     }
   }
-
+  
   @Override
   public void handleConfigurationChanged(Object changes) {
     super.handleConfigurationChanged(changes);
@@ -138,6 +133,7 @@ public abstract class aAppContextImpl extends aAppContext {
         Frame        f      = (Frame) dialog.getComponent();
 
         f.getWindowViewer().onConfigurationChanged(resetOnConfigurationChange);
+        f.repackAndCenter();
       }
     }
   }
@@ -187,12 +183,6 @@ public abstract class aAppContextImpl extends aAppContext {
     if (aRare.isDebugEnabled()) {
       System.err.println(msg);
     }
-  }
-
-  @Override
-  public void dispose() {
-    super.dispose();
-    System.exit(0);
   }
 
   /**
@@ -508,4 +498,5 @@ public abstract class aAppContextImpl extends aAppContext {
      return [[NSBundle mainBundle] pathForResource:path ofType:nil] ? YES : NO;
   ]-*/
   ;
+   
 }

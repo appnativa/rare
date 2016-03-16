@@ -234,7 +234,7 @@ public class UIImageIcon extends aUIImageIcon {
     }
 
     if (image instanceof DelayedImage) {
-      boolean loaded = ((DelayedImage) image).isLoaded(is);
+      boolean loaded = ((DelayedImage) image).isImageLoaded(is);
 
       if (loaded) {
         imageWasLoaded();
@@ -270,5 +270,9 @@ public class UIImageIcon extends aUIImageIcon {
   @Override
   protected boolean isDelayedImage() {
     return image instanceof DelayedImage;
+  }
+
+  @Override
+  public void updateModCount() {
   }
 }

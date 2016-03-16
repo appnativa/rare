@@ -22,6 +22,7 @@ package com.appnativa.rare.ui.renderer;
 
 import android.content.Context;
 
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 import com.appnativa.rare.platform.android.ui.NullDrawable;
 import com.appnativa.rare.platform.android.ui.view.FormsView;
 import com.appnativa.rare.platform.android.ui.view.ViewGroupEx;
@@ -29,7 +30,6 @@ import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIInsets;
 import com.appnativa.rare.ui.iPlatformComponent;
 import com.appnativa.rare.ui.iPlatformRenderingComponent;
-import com.jgoodies.forms.layout.FormLayout;
 
 /**
  * A renderer that uses the JGoodies forms layout panel to render information

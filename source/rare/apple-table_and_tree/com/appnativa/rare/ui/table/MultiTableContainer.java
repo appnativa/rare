@@ -82,19 +82,19 @@ public class MultiTableContainer extends Container implements iDataModelListener
       tc.setForeground(fg);
     }
   }
-
-  @Override
-  public void setBackground(UIColor bg) {
-    backgroundColor = bg;
-
-    int len = getComponentCount();
-
-    for (int i = 0; i < len; i++) {
-      TableComponent tc = (TableComponent) getComponentAt(i);
-
-      tc.setBackground(bg);
-    }
-  }
+//
+//  @Override
+//  public void setBackground(UIColor bg) {
+//    backgroundColor = bg;
+//
+//    int len = getComponentCount();
+//
+//    for (int i = 0; i < len; i++) {
+//      TableComponent tc = (TableComponent) getComponentAt(i);
+//
+//      tc.setBackground(bg);
+//    }
+//  }
 
   @Override
   public void setFont(UIFont f) {

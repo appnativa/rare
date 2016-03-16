@@ -24,6 +24,8 @@ import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.undo.UndoableEdit;
 
+import com.appnativa.jgoodies.forms.layout.CellConstraints;
+import com.appnativa.jgoodies.forms.layout.FormLayout;
 import com.appnativa.rare.Platform;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.swing.ui.util.SwingHelper;
@@ -70,8 +72,6 @@ import com.appnativa.util.Helper;
 import com.appnativa.util.IdentityArrayList;
 import com.appnativa.util.SNumber;
 import com.appnativa.util.StringCache;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 
 /**
  *
@@ -594,10 +594,6 @@ public class FormsUtils {
                 ? null
                 : w.getViewer();
 
-//    if ((v == null) || !Platform.isDescendingFrom(v.getContainerComponent(), parent.getContainerComponent())) {
-//      v = parent;
-//    }
-//
     if (v == parent) {
       switch(parent.getWidgetType()) {
         case TabPane :

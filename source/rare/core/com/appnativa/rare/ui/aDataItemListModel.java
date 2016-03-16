@@ -282,7 +282,7 @@ public abstract class aDataItemListModel extends FilterableList<RenderableDataIt
     if ((editingMarks == null) || (editingMarks._length == 0)) {
       return null;
     }
-
+    editingMarks.sort();
     return editingMarks.toArray();
   }
 

@@ -43,8 +43,8 @@ import com.appnativa.util.SNumber;
 import com.appnativa.util.Streams;
 import com.appnativa.util.UnescapingReader;
 import com.appnativa.util.iCancelable;
+import com.appnativa.util.iURLResolver;
 import com.appnativa.util.json.JSONWriter;
-
 import com.google.j2objc.annotations.Weak;
 
 import java.io.File;
@@ -59,14 +59,11 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-
 import java.nio.channels.ClosedChannelException;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -124,7 +121,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
 
   /** the widget context */
   @Weak
-  protected iWidget contextWidget;
+  protected iURLResolver urlResolver;
 
   /** the MIME type that will be returned (if it is not null) */
   protected String mimeType;
@@ -190,8 +187,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param context
    *          the widget context for the link
    */
-  public ActionLink(iWidget context) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context) {
+    urlResolver = context;
   }
 
   /**
@@ -202,8 +199,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param connection
    *          the connection for the link
    */
-  public ActionLink(iWidget context, iURLConnection connection) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context, iURLConnection connection) {
+    urlResolver = context;
     theURL        = connection.getURL();
     urlConnection = connection;
     inlineURL     = connection instanceof InlineURLConnection;
@@ -217,9 +214,9 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param link
    *          the link configuration object
    */
-  public ActionLink(iWidget context, Link link) {
+  public ActionLink(iURLResolver context, Link link) {
     this(context, link.url);
-    contextWidget     = context;
+    urlResolver     = context;
     linkAttributes    = DataParser.parseNameValuePairs(link.attributes);
     requestHeaders    = DataParser.parseNameValuePairs(link.headers);
     targetName        = Utils.getTarget(link);
@@ -238,8 +235,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param url
    *          the URL for the link
    */
-  public ActionLink(iWidget context, SPOTPrintableString url) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context, SPOTPrintableString url) {
+    urlResolver = context;
 
     if (url.spot_getLinkedData() instanceof Viewer) {
       setViewerConfiguration((Viewer) url.spot_getLinkedData());
@@ -372,7 +369,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
       }
     } else if ((stringURL != null) && stringURL.startsWith("script:")) {
       try {
-        theURL = ScriptURLConnection.createURL(context, stringURL.substring(7), mimeType);
+        theURL = ScriptURLConnection.createURL(getContext(), stringURL.substring(7), mimeType);
       } catch(MalformedURLException e) {
         throw new ApplicationException(e);
       }
@@ -389,8 +386,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param url
    *          the URL
    */
-  public ActionLink(iWidget context, String url) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context, String url) {
+    urlResolver = context;
     stringURL     = url;
   }
 
@@ -404,8 +401,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param type
    *          the MIME type (can be null)
    */
-  public ActionLink(iWidget context, String url, String type) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context, String url, String type) {
+    urlResolver = context;
     stringURL     = url;
     mimeType      = type;
   }
@@ -418,8 +415,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param url
    *          the URL for the link
    */
-  public ActionLink(iWidget context, URL url) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context, URL url) {
+    urlResolver = context;
     theURL        = url;
   }
 
@@ -433,8 +430,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param type
    *          the MIME type (can be null)
    */
-  public ActionLink(iWidget context, URL url, String type) {
-    contextWidget = context;
+  public ActionLink(iURLResolver context, URL url, String type) {
+    urlResolver = context;
     theURL        = url;
     mimeType      = type;
   }
@@ -447,8 +444,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param cfg
    *          the viewer configuration for the link
    */
-  public ActionLink(iWidget context, Viewer cfg) {
-    contextWidget       = context;
+  public ActionLink(iURLResolver context, Viewer cfg) {
+    urlResolver       = context;
     viewerConfiguration = cfg;
   }
 
@@ -572,7 +569,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
     targetName          = null;
     multiPartForm       = false;
     statusMessage       = null;
-    contextWidget       = null;
+    urlResolver       = null;
   }
 
   /**
@@ -691,7 +688,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @throws Exception
    */
   public Collection<RenderableDataItem> getCollection() throws IOException {
-    iWidget w = contextWidget;
+    iWidget w = getContext();
 
     if (w == null) {
       w = Platform.getContextRootViewer();
@@ -839,7 +836,10 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @return the widget context associated with this link
    */
   public iWidget getContext() {
-    return contextWidget;
+    if(urlResolver instanceof iWidget) {
+      return (iWidget) urlResolver;
+    }
+    return null;
   }
 
   /**
@@ -858,15 +858,13 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
   /**
    * Get a link representing the next part of a multi-part MIME document
    *
-   * @param context
-   *          the context
    * @return the link for the part or null if there are no more parts
    *
    * @throws IOException
    */
-  public iMultipartMimeHandler.iMultipart getFirstPart(iWidget context) throws IOException {
+  public iMultipartMimeHandler.iMultipart getFirstPart() throws IOException {
     if (multiPart == null) {
-      iMultipartMimeHandler mh = context.getAppContext().getMultipartMimeHandler();
+      iMultipartMimeHandler mh = Platform.getMultipartMimeHandler();
 
       multiPart = mh.getFirstPart(getInputStream(), getContentType());
     }
@@ -1140,7 +1138,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    *
    * @throws java.net.MalformedURLException
    */
-  public String getStringURL(iWidget context) throws MalformedURLException {
+  public String getStringURL(iURLResolver context) throws MalformedURLException {
     if (stringURL != null) {
       return stringURL;
     }
@@ -1190,7 +1188,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    *
    * @throws MalformedURLException
    */
-  public URL getURL(iWidget context) throws MalformedURLException {
+  public URL getURL(iURLResolver context) throws MalformedURLException {
     if (theURL == null) {
       if (urlConnection != null) {
         theURL = urlConnection.getURL();
@@ -1198,19 +1196,28 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
     }
 
     if ((theURL == null) && (stringURL != null)) {
-      if (contextWidget != null) {
-        context = contextWidget;
+      if (urlResolver != null) {
+        context = urlResolver;
       }
 
       if (context == null) {
         context = Platform.getContextRootViewer();
       }
+      if(context==null) {
+        theURL=new URL(stringURL);
+      }
+      else {
 
-      URL curl = (contextURL == null)
-                 ? context.getViewer().getBaseURL()
-                 : contextURL;
-
-      theURL = context.getAppContext().createURL(curl, context.expandString(stringURL, false));
+        URL curl = (contextURL == null)
+                   ? context.getBaseURL()
+                   : contextURL;
+        if(context instanceof iWidget) {
+          theURL = Platform.createURL(curl, ((iWidget)context).expandString(stringURL, false));
+        }
+        else {
+          theURL = Platform.createURL(curl, stringURL);
+        }
+      }
     }
 
     return theURL;
@@ -1232,7 +1239,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    *
    * @throws MalformedURLException
    */
-  public URL getURL(iWidget context, String queryString) throws MalformedURLException {
+  public URL getURL(iURLResolver context, String queryString) throws MalformedURLException {
     if ((queryString == null) || (queryString.length() == 0)) {
       return getURL(context);
     }
@@ -1264,10 +1271,13 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @return a map of window options configured for the link or null
    */
   public Map<String, String> getWindowOptions() {
-    iWidget widget = (contextWidget == null)
-                     ? Platform.getContextRootViewer()
-                     : contextWidget;
-
+    final iWidget widget;
+    if(urlResolver instanceof iWidget) {
+      widget=(iWidget) urlResolver;
+    }
+    else {
+      widget=Platform.getContextRootViewer();
+    }
     if (widget != null) {
       this.resolveOptions(widget);
     }
@@ -1364,13 +1374,13 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @return true if the preferred method for loading this link is to deferrer
    *         it; false otherwise
    */
-  public boolean isDeferred(iWidget context) {
-    if ((viewerConfiguration != null) || ((context != null) && context.isDesignMode())) {
+  public boolean isDeferred(iURLResolver context) {
+    if (viewerConfiguration != null || (context instanceof iWidget && ((iWidget)context).isDesignMode())) {
       return false;
     }
 
     if (context == null) {
-      context = this.contextWidget;
+      context = this.urlResolver;
     }
 
     if (isInlineURL()) {
@@ -1497,7 +1507,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
       }
     };
 
-    widget.getAppContext().executeBackgroundTask(r);
+    Platform.getAppContext().executeBackgroundTask(r);
   }
 
   /**
@@ -1628,10 +1638,13 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
   public void run() {
     canceled = false;
 
-    final iWidget widget = (contextWidget == null)
-                           ? Platform.getContextRootViewer()
-                           : contextWidget;
-
+    final iWidget widget;
+    if(urlResolver instanceof iWidget) {
+      widget=(iWidget) urlResolver;
+    }
+    else {
+      widget=Platform.getContextRootViewer();
+    }
     if (widget == null) {    // we don't have a context
       return;
     }
@@ -1681,7 +1694,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @return the data returned from the server
    * @throws java.io.IOException
    */
-  public String sendFormData(iWidget context, Object... keysAndValues) throws IOException {
+  public String sendFormData(iURLResolver context, Object... keysAndValues) throws IOException {
     int len = keysAndValues.length;
 
     if ((len % 2 != 0) || (len == 0)) {
@@ -1708,12 +1721,13 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @return the data returned from the server
    * @throws java.io.IOException
    */
-  public String sendFormData(iWidget context, Map data) throws IOException {
+  public String sendFormData(iURLResolver context, Map data) throws IOException {
     return sendFormData(context, data, false, true);
   }
 
   /**
-   * Sends the specified data as form data
+   * Sends the specified data as form data.
+   * The values in the map will be encoded before they are sent
    *
    * @param context
    *          the context
@@ -1728,8 +1742,30 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    *         automatically closed)
    * @throws java.io.IOException
    */
-  public String sendFormData(iWidget context, Map data, boolean multipart, boolean return_content) throws IOException {
-    sendFormDataEx(context, data, multipart);
+  public String sendFormData(iURLResolver context, Map data, boolean multipart, boolean return_content) throws IOException {
+    return sendFormData(context, data, multipart, return_content, true);
+  }
+  
+  /**
+   * Sends the specified data as form data
+   *
+   * @param context
+   *          the context
+   * @param data
+   *          the data
+   * @param multipart
+   *          true to send the data as multi-part content
+   * @param return_content
+   *          true to return the content from the server
+   *
+   *@param encodeValues true to encoded the values in the map before they are sent; false otherwise
+   * @return null or the data returned from the server (the link is
+   *         automatically closed)
+   * @throws java.io.IOException
+   */
+  public String sendFormData(iURLResolver context, Map data, boolean multipart, boolean return_content,boolean encodeValues) throws IOException {
+
+    sendFormDataEx(context, data, multipart,encodeValues);
 
     try {
       if (return_content) {
@@ -1756,7 +1792,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    *          true to send the data as multi-part content
    * @throws java.io.IOException
    */
-  public void sendFormDataEx(iWidget context, Map data, boolean multipart) throws IOException {
+  public void sendFormDataEx(iURLResolver context, Map data, boolean multipart,boolean encodeValues) throws IOException {
     this.setRequestMethod(RequestMethod.POST);
 
     Writer writer = null;
@@ -1764,10 +1800,10 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
     if (multipart) {
       this.setMultiPartForm(true);
       writer = this.openForOutput();
-      FormHelper.writeHTTPContent(true, context, writer, getPartBoundary(), data, false);
+      FormHelper.writeHTTPContent(true, writer, getPartBoundary(), data);
 
       if (linkAttributes != null) {
-        FormHelper.writeHTTPContent(true, context, writer, getPartBoundary(), linkAttributes, false);
+        FormHelper.writeHTTPContent(true, writer, getPartBoundary(), linkAttributes);
       }
 
       FormHelper.writeBoundaryEnd(writer, getPartBoundary());
@@ -1780,16 +1816,16 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
         w.object();
 
         if (linkAttributes != null) {
-          FormHelper.writeJSONValues(context, w, linkAttributes, true);
+          FormHelper.writeJSONValues(w, linkAttributes);
         }
 
-        FormHelper.writeJSONValues(context, w, data, true);
+        FormHelper.writeJSONValues(w, data);
         w.endObject();
       } else {
-        boolean first = FormHelper.writeHTTPValues(true, context, writer, data, false);
+        boolean first = FormHelper.writeHTTPValues(true,  writer, data, encodeValues);
 
         if (linkAttributes != null) {
-          FormHelper.writeHTTPValues(first, context, writer, linkAttributes, false);
+          FormHelper.writeHTTPValues(first, writer, linkAttributes, true);
         }
       }
     }
@@ -1859,8 +1895,8 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @param context
    *          the widget context
    */
-  public void setContext(iWidget context) {
-    this.contextWidget = context;
+  public void setContext(iURLResolver context) {
+    this.urlResolver = context;
   }
 
   /**
@@ -2305,7 +2341,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
       sw.append('?');
 
       try {
-        FormHelper.writeHTTPValues(true, contextWidget, sw, getAttributes(), false);
+        FormHelper.writeHTTPValues(true, sw, getAttributes(), true);
       } catch(IOException e) {
         Platform.ignoreException(null, e);
       }
@@ -2394,7 +2430,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
     FormHelper.writeFile(true, writer, getPartBoundary(), name, mimeType, fileName, r, false);
 
     if (linkAttributes != null) {
-      FormHelper.writeHTTPContent(false, null, writer, getPartBoundary(), linkAttributes, false);
+      FormHelper.writeHTTPContent(false, writer, getPartBoundary(), linkAttributes);
     }
 
     FormHelper.writeBoundaryEnd(writer, getPartBoundary());
@@ -2510,10 +2546,10 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
 
     URL           url;
     RequestMethod method = getRequestMethod();
-    iWidget       widget = (contextWidget == null)
-                           ? Platform.getContextRootViewer()
-                           : contextWidget;
-
+    iURLResolver       widget = (urlResolver == null)
+                           ? Platform.getDefaultURLResolver()
+                           : urlResolver;
+                          
     switch(method) {
       case HEAD :
       case GET :
@@ -2521,7 +2557,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
         if (getAttributes() != null) {
           StringWriter sw = new StringWriter();
 
-          if (FormHelper.writeHTTPValues(true, contextWidget, sw, getAttributes(), false)) {
+          if (FormHelper.writeHTTPValues(true, sw, getAttributes(), true)) {
             url = getURL(widget, sw.toString());
           } else {
             url = getURL(widget);
@@ -2529,8 +2565,12 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
         } else {
           url = getURL(widget);
         }
-
-        urlConnection = Platform.openConnection(widget, url, mimeType);
+        if(widget==null) {
+         urlConnection=new JavaURLConnection(url.openConnection()); 
+        }
+        else {
+          urlConnection = Platform.openConnection(url, mimeType);
+        }
 
         if (urlConnection.getConnectionObject() instanceof HttpURLConnection) {
           HttpURLConnection connection = (HttpURLConnection) urlConnection.getConnectionObject();
@@ -2558,7 +2598,12 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
       case POST :
       case OPTIONS : {
         url           = getURL(widget);
-        urlConnection = Platform.openConnection(widget, url, mimeType);
+        if(widget==null) {
+          urlConnection=new JavaURLConnection(url.openConnection()); 
+         }
+         else {
+           urlConnection = Platform.openConnection(url, mimeType);
+         }
         urlConnection.setReadTimeout(readTimeout);
 
         HttpURLConnection connection = (HttpURLConnection) urlConnection.getConnectionObject();
@@ -2588,13 +2633,13 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
           if (getRequestEncoding() == RequestEncoding.JSON) {
             JSONWriter jw=new JSONWriter(w);
             jw.object();
-            FormHelper.writeJSONValues(contextWidget, jw, getAttributes(),  false);
+            FormHelper.writeJSONValues(jw, getAttributes());
             jw.endObject();
           } else if (this.isMultiPartForm()) {
-            FormHelper.writeHTTPContent(true, contextWidget, w, getPartBoundary(), getAttributes(), false);
+            FormHelper.writeHTTPContent(true, w, getPartBoundary(), getAttributes());
             FormHelper.writeBoundaryEnd(w, getPartBoundary());
           } else {
-            FormHelper.writeHTTPValues(true, contextWidget, w, getAttributes(), false);
+            FormHelper.writeHTTPValues(true, w, getAttributes(), true);
           }
 
           w.flush();
@@ -2706,7 +2751,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
    * @return true if the string points to an inline URL; false otherwise
    * @throws IOException
    */
-  public static ActionLink createInlineLinkIfNecessary(iWidget context, SPOTPrintableString url) throws IOException {
+  public static ActionLink createInlineLinkIfNecessary(iURLResolver context, SPOTPrintableString url) throws IOException {
     if (url.getValue() == null) {
       return null;
     }
@@ -2725,7 +2770,7 @@ public class ActionLink implements Runnable, iActionListener, Cloneable, iCancel
     return l;
   }
 
-  public static ActionLink getActionLink(iWidget context, SPOTPrintableString url, int index) {
+  public static ActionLink getActionLink(iURLResolver context, SPOTPrintableString url, int index) {
     if (url.getValue() == null) {
       return null;
     }

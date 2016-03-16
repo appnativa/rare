@@ -8,8 +8,8 @@ Rare.icon.checkbox
 Rare.icon.checkbox_light
 Rare.icon.checkboxChecked
 Rare.icon.checkboxChecked_light
-Rare.icon.checkboxIndeterminate
-Rare.icon.checkboxIndeterminate_light
+Rare.icon.checkbox.indeterminate
+Rare.icon.checkbox.indeterminate_light
 Rare.icon.checkered
 Rare.icon.checkmark
 Rare.icon.checkmark_light

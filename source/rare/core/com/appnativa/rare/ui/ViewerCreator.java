@@ -46,8 +46,8 @@ public class ViewerCreator implements Runnable, iCancelable {
   protected ActionLink       link;
   protected String           target;
   private Runnable           cancelRunnable;
+  private boolean handleCursor=true;;
   private boolean            done;
-  private boolean            notifiedOfStatus;
 
   public ViewerCreator(iWidget context, ActionLink link, iCallback callback, boolean createViewer)
           throws MalformedURLException {
@@ -121,7 +121,9 @@ public class ViewerCreator implements Runnable, iCancelable {
     ViewerCreator vc = new ViewerCreator(context, link, callback, false);
 
     context.getAppContext().executeBackgroundTask(vc);
-    vc.notifyOfStartIfNecessary();
+    if(vc.handleCursor) {
+      Platform.getWindowViewer().showWaitCursor();
+    }
 
     return vc;
   }
@@ -130,8 +132,10 @@ public class ViewerCreator implements Runnable, iCancelable {
           throws MalformedURLException {
     ViewerCreator vc = new ViewerCreator(context, link, callback, false);
 
-    vc.notifyOfStartIfNecessary();
     context.getAppContext().executeBackgroundTask(vc);
+    if(vc.handleCursor) {
+      Platform.getWindowViewer().showWaitCursor();
+    }
 
     return vc;
   }
@@ -140,8 +144,10 @@ public class ViewerCreator implements Runnable, iCancelable {
           throws MalformedURLException {
     ViewerCreator vc = new ViewerCreator(context, link, callback, true);
 
-    vc.notifyOfStartIfNecessary();
     context.getAppContext().executeBackgroundTask(vc);
+    if(vc.handleCursor) {
+      Platform.getWindowViewer().showWaitCursor();
+    }
 
     return vc;
   }
@@ -150,8 +156,10 @@ public class ViewerCreator implements Runnable, iCancelable {
           throws MalformedURLException {
     ViewerCreator vc = new ViewerCreator(context, link, callback, true);
 
-    vc.notifyOfStartIfNecessary();
     context.getAppContext().executeBackgroundTask(vc);
+    if(vc.handleCursor) {
+      Platform.getWindowViewer().showWaitCursor();
+    }
 
     return vc;
   }
@@ -160,18 +168,13 @@ public class ViewerCreator implements Runnable, iCancelable {
           throws MalformedURLException {
     ViewerCreator vc = new ViewerCreator(context, link, target, true);
 
-    vc.notifyOfStartIfNecessary();
     context.getAppContext().executeBackgroundTask(vc);
-
+    if(vc.handleCursor) {
+      Platform.getWindowViewer().showWaitCursor();
+    }
     return vc;
   }
 
-  private void notifyOfStartIfNecessary() {
-    if (callback == null) {
-      contextWidget.getAppContext().getAsyncLoadStatusHandler().loadStarted(contextWidget, link, null);
-      notifiedOfStatus = true;
-    }
-  }
 
   protected void clear() {
     cancelRunnableQueued = false;
@@ -207,6 +210,15 @@ public class ViewerCreator implements Runnable, iCancelable {
         error(e);
       }
     } finally {
+      if(handleCursor) {
+        Platform.invokeLater(new Runnable() {
+          
+          @Override
+          public void run() {
+            Platform.getWindowViewer().hideWaitCursor(false);
+          }
+        });
+      }
       if ((callback == null) &&!createViewer) {
         dispose();
       }
@@ -347,12 +359,7 @@ public class ViewerCreator implements Runnable, iCancelable {
   private boolean noGood() {
     boolean nope = ((callback == null) && (target == null)) || canceled || (contextWidget == null)
                    || contextWidget.isDisposed();
-
-    if (nope && notifiedOfStatus) {
-      notifiedOfStatus = false;
-      contextWidget.getAppContext().getAsyncLoadStatusHandler().loadCompleted(contextWidget, link);
-    }
-
+    
     return nope;
   }
 
@@ -362,6 +369,14 @@ public class ViewerCreator implements Runnable, iCancelable {
 
   public void setContext(iWidget context) {
     this.contextWidget = context;
+  }
+
+  public boolean isHandleCursor() {
+    return handleCursor;
+  }
+
+  public void setHandleCursor(boolean handleCursor) {
+    this.handleCursor = handleCursor;
   }
 
   public interface iCallback {

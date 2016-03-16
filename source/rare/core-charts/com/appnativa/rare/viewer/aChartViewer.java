@@ -948,13 +948,13 @@ public abstract class aChartViewer extends aPlatformViewer {
    *
    * @param angle the angle (in degrees) for domain labels
    */
-  public void setDomainLabelAngel(int angle) {
+  public void setDomainLabelsAngle(int angle) {
     if ((chartDefinition != null) && (chartDefinition.getDomainAxis().getAngle() != angle)) {
       chartDefinition.getDomainAxis().setAngle(angle);
     }
 
     if (chartComponent != null) {
-      chartHandler.setDomainLabelAngel(chartComponent, chartDefinition);
+      chartHandler.setDomainLabelsAngle(chartComponent, chartDefinition);
     }
   }
 

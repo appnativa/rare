@@ -1,5 +1,5 @@
 /**************************************************************************
- * ColorChooser.java - Wed Nov 18 17:50:58 PST 2015
+ * ColorChooser.java - Wed Feb 17 10:42:11 PST 2016
  *
  * Copyright (c) appNativa
  *
@@ -151,6 +151,8 @@ public class ColorChooser extends Widget {
     if ( popupPainter == null ) {
       popupPainter = new GridCell(true);
       super.spot_setReference( "popupPainter" , popupPainter);
+      popupPainter.spot_defineAttribute("showDivider",null);
+      popupPainter.spot_defineAttribute("dividerLineColor",null);
     }
     return popupPainter;
   }

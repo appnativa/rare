@@ -587,11 +587,6 @@ public abstract class aComboBoxWidget extends aListWidget {
     return getComboBox().isEditable();
   }
 
-  @Override
-  public boolean isEditing() {
-    return false;
-  }
-
   /**
    * Gets whether the popup is hidden (if it is visible) when the widget is
    * reset. The default is true

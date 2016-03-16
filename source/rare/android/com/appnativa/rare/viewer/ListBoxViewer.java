@@ -30,7 +30,7 @@ import android.widget.ListView;
 import com.appnativa.rare.iConstants;
 import com.appnativa.rare.platform.android.ui.BaseAdapterListModel;
 import com.appnativa.rare.platform.android.ui.DataItemListModel;
-import com.appnativa.rare.platform.android.ui.ListBoxListHandler;
+import com.appnativa.rare.platform.android.ui.EditableListBoxListHandler;
 import com.appnativa.rare.platform.android.ui.aAdapterListHandler;
 import com.appnativa.rare.platform.android.ui.util.AndroidHelper;
 import com.appnativa.rare.platform.android.ui.view.ListViewEx;
@@ -38,13 +38,10 @@ import com.appnativa.rare.spot.ListBox;
 import com.appnativa.rare.spot.Viewer;
 import com.appnativa.rare.ui.ListComponent;
 import com.appnativa.rare.ui.RenderableDataItem;
-import com.appnativa.rare.ui.UIAction;
 import com.appnativa.rare.ui.iListView.EditingMode;
 import com.appnativa.rare.ui.iToolBar;
-import com.appnativa.rare.ui.event.iExpansionListener;
 import com.appnativa.rare.ui.renderer.ListItemRenderer;
 import com.appnativa.rare.util.SubItemComparator;
-import com.appnativa.rare.widget.iWidget;
 
 /**
  * A widget that allows a user to select one or more choices from a
@@ -70,18 +67,6 @@ public class ListBoxViewer extends aListViewer {
     super(parent);
     widgetType             = WidgetType.ListBox;
     initiallySelectedIndex = -1;
-  }
-
-  @Override
-  public void setEditModeListener(iExpansionListener l) {
-    ListViewEx v = (ListViewEx) getDataView();
-    v.setEditModeListener(l);
-  }
-  
-  @Override
-  public void setRowEditModeListener(iExpansionListener l) {
-    ListViewEx v = (ListViewEx) getDataView();
-    v.setRowEditModeListener(l);
   }
 
   @Override
@@ -119,26 +104,8 @@ public class ListBoxViewer extends aListViewer {
   }
 
   @Override
-  public void startEditing(boolean animate, UIAction... actions) {
-    ((ListViewEx) getDataView()).startEditing(actions, animate);
-  }
-
-  @Override
-  public void stopEditing(boolean animate) {
-    ((ListViewEx) getDataView()).stopEditing(animate);
-  }
-
-  @Override
   public void setAutoSizeRowsToFit(boolean autoSize) {
     listModel.setAutoSizeRows(autoSize);
-  }
-
-  @Override
-  public void setRowEditingWidget(iWidget widget, boolean centerVertically) {
-    super.setRowEditingWidget(widget, centerVertically);
-    if (getDataView() instanceof ListViewEx) {
-      ((ListViewEx) getDataView()).setRowEditingComponent(widget.getContainerComponent(), centerVertically);
-    }
   }
 
   @Override
@@ -200,7 +167,7 @@ public class ListBoxViewer extends aListViewer {
    * @return  the list for use by the viewer
    */
   protected aAdapterListHandler createListComponent(AbsListView view, ListBox cfg) {
-    return new ListBoxListHandler((ListViewEx) view, listModel);
+    return new EditableListBoxListHandler((ListViewEx) view, listModel);
   }
 
   /**
@@ -247,7 +214,7 @@ public class ListBoxViewer extends aListViewer {
       iToolBar tb = createEditingToolbarIfNecessary(cfg);
 
       if (tb != null) {
-        ((ListViewEx) list).setEditingToolbar(tb);
+        ((ListViewEx) list).setEditModeToolBar(tb);
       }
     }
   }
@@ -275,20 +242,6 @@ public class ListBoxViewer extends aListViewer {
     if (getDataView() instanceof ListViewEx) {
       ((ListViewEx) getDataView()).setSelectFlinged(select);
     }
-  }
-
-  @Override
-  public int getEditingRow() {
-    if (getDataView() instanceof ListViewEx) {
-      return ((ListViewEx) getDataView()).getEditingRow();
-    }
-
-    return -1;
-  }
-
-  @Override
-  public int getLastEditedRow() {
-    return ((ListViewEx) getDataView()).getLastEditedRow();
   }
 
   @Override

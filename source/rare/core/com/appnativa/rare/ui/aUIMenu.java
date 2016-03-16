@@ -726,6 +726,9 @@ public abstract class aUIMenu extends UIMenuItem {
         if (a instanceof aFocusedAction) {
           ((aFocusedAction) a).update();
         }
+        if(a!=null) {
+          mi.setEnabled(a.isEnabled());
+        }
       }
     }
   }

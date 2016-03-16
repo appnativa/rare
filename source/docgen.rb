@@ -23,6 +23,11 @@ get_packages("spot/**/",hash)
 get_packages("rare/**/",hash)
 hash.delete("com.appnativa.util.html")
 hash.delete("com.appnativa.util.xml")
+hash.delete("com.appnativa.jgoodies")
+hash.delete("com.appnativa.jgoodies.forms")
+hash.delete("com.appnativa.jgoodies.forms.factories")
+hash.delete("com.appnativa.jgoodies.forms.layout")
+hash.delete("com.appnativa.jgoodies.forms.util")
 f=File.new('packages.txt',"w")
 $stdout=f
 hash.each_key {|k| puts k}  

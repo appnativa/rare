@@ -1101,15 +1101,6 @@ public abstract class aAdapterListHandler extends AbstractList<RenderableDataIte
     return deselectEventsDisabled;
   }
 
-  @Override
-  public boolean isEditing() {
-    if (adapterView instanceof ListViewEx) {
-      return ((ListViewEx) adapterView).isEditing();
-    }
-
-    return false;
-  }
-
   public boolean isFiltered() {
     return listModel.isFiltered();
   }

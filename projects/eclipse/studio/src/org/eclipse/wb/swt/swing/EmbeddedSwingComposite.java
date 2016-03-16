@@ -11,13 +11,6 @@
 
 package org.eclipse.wb.swt.swing;
 
-import java.awt.EventQueue;
-import java.awt.Frame;
-
-import javax.swing.JApplet;
-import javax.swing.JComponent;
-import javax.swing.RootPaneContainer;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -28,6 +21,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Widget;
+
+import java.awt.EventQueue;
+import java.awt.Frame;
+
+import javax.swing.JApplet;
+import javax.swing.JComponent;
+import javax.swing.RootPaneContainer;
 
 /**
  * A SWT composite widget for embedding Swing components in a SWT composite within an RCP or standalone-SWT application. The Eclipse platform
@@ -153,13 +153,14 @@ public abstract class EmbeddedSwingComposite extends Composite {
     if (!isDisposed()) {
       getDisplay().removeListener(SWT.Settings, settingsListener);
       getDisplay().removeFilter(SWT.Show, menuListener);
-      if(awtContext!=null) {
+
+      if (awtContext != null) {
         awtContext.dispose(awtHandler);
       }
-      
-      awtHandler=null;
-      awtContext=null;
-      applet=null;
+
+      awtHandler = null;
+      awtContext = null;
+      applet     = null;
       super.dispose();
     }
   }
@@ -358,16 +359,20 @@ public abstract class EmbeddedSwingComposite extends Composite {
   }
 
   private void handleSettingsChange() {
-    Font newFont = getDisplay().getSystemFont();
+    try {
+      if (!isDisposed()) {
+        Font newFont = getDisplay().getSystemFont();
 
-    if (!newFont.equals(currentSystemFont)) {
-      currentSystemFont = newFont;
-      EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          setComponentFont();
+        if (!newFont.equals(currentSystemFont)) {
+          currentSystemFont = newFont;
+          EventQueue.invokeLater(new Runnable() {
+            public void run() {
+              setComponentFont();
+            }
+          });
         }
-      });
-    }
+      }
+    } catch(Exception ignore) {}
   }
 
   private void scheduleComponentCreation() {
@@ -427,7 +432,6 @@ public abstract class EmbeddedSwingComposite extends Composite {
   private void setComponentFont() {
     assert currentSystemFont != null;
     assert EventQueue.isDispatchThread();    // On AWT event thread
-
 //    JComponent swingComponent = (awtContext != null)
 //                                ? awtContext.getSwingComponent()
 //                                : null;
@@ -473,33 +477,34 @@ public abstract class EmbeddedSwingComposite extends Composite {
       assert frame != null;
       this.frame = frame;
     }
+
     public void dispose(final AwtFocusHandler awtHandler) {
       EventQueue.invokeLater(new Runnable() {
         public void run() {
           try {
-            if(swingComponent!=null) {
+            if (swingComponent != null) {
               swingComponent.removeAll();
-              swingComponent=null;
+              swingComponent = null;
             }
-          }
-          catch(Exception ignore) {
-          }
-          if(awtHandler!=null) {
+          } catch(Exception ignore) {}
+
+          if (awtHandler != null) {
             awtHandler.dispose();
           }
+
           try {
-            if(frame!=null) {
+            if (frame != null) {
               frame.dispose();
             }
-          }
-          catch(Exception e) {
+          } catch(Exception e) {
             e.printStackTrace();
           }
-          frame=null;
+
+          frame = null;
         }
       });
-      
     }
+
     void setSwingComponent(JComponent swingComponent) {
       this.swingComponent = swingComponent;
     }

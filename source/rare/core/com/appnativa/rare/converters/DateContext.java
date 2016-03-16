@@ -15,24 +15,22 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.converters;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
-import java.util.regex.Pattern;
+import java.util.Date;
 
 /**
  *
  * @author Don DeCoteau
  */
 public class DateContext extends ConverterContext {
-  private volatile static Pattern monthOnlyPattern;
-  protected DateFormat            displayFormat;
-  protected DateFormat            itemFormats[];
+  protected DateFormat displayFormat;
+  protected DateFormat itemFormats[];
 
   /** Creates a new instance of DateContext */
   public DateContext() {
@@ -42,8 +40,8 @@ public class DateContext extends ConverterContext {
   /**
    * Constructs a new instance
    *
-   * @param iformat {@inheritDoc}
-   * @param dformat {@inheritDoc}
+   * @param iformat the internal format
+   * @param dformat the display format
    */
   public DateContext(DateFormat iformat, DateFormat dformat) {
     super("DateContext");
@@ -57,6 +55,14 @@ public class DateContext extends ConverterContext {
     super("DateContext");
     itemFormats   = iformat;
     displayFormat = dformat;
+  }
+
+  public DateContext create(DateFormat iformat, DateFormat dformat) {
+    return new DateContext(iformat, dformat);
+  }
+
+  public DateContext create(DateFormat[] iformat, DateFormat dformat) {
+    return new DateContext(iformat, dformat);
   }
 
   public DateFormat[] getItemFormats() {
@@ -81,24 +87,33 @@ public class DateContext extends ConverterContext {
            : a[0];
   }
 
+  public boolean isCustomConverter() {
+    return false;
+  }
+
   /**
-   * Returns whether the format is for displaying month only
-   *
-   * @return true if it is; false otherwise
+   * Creates an object from its string representation.
+   * <p>
+   * This method will only get called by a converter if the
+   * {@link #isCustomConverter()} method is overridden to return true
+   * </p>
+   * @param value the string representation of the object
+   * @return the date represented by the specified string
+   * @see #isCustomConverter()
    */
-  public boolean isMonthOnly() {
-    DateFormat f = (itemFormats == null)
-                   ? displayFormat
-                   : itemFormats[0];
+  public Date dateFromString(String value) {
+    throw new UnsupportedOperationException();
+  }
 
-    if ((f == null) ||!(f instanceof SimpleDateFormat)) {
-      return false;
-    }
-
-    if (monthOnlyPattern == null) {
-      monthOnlyPattern = Pattern.compile("[^SsdKkEeWwZzmHhaF]+");
-    }
-
-    return monthOnlyPattern.matcher(((SimpleDateFormat) f).toPattern()).matches();
+  /**
+   * Converts an object to a string
+   *
+   * @param date the date to convert
+   *
+   * @return a string representation of the object
+   * @see #isCustomConverter()
+   */
+  public String dateToString(Date date) {
+    return displayFormat.format(date);
   }
 }

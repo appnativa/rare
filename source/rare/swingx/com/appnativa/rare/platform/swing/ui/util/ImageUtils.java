@@ -15,11 +15,12 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 package com.appnativa.rare.platform.swing.ui.util;
 
+import com.appnativa.rare.ui.UIColor;
 import com.appnativa.rare.ui.UIImage;
 import com.appnativa.rare.ui.UIImageIcon;
 import com.appnativa.rare.ui.iPlatformIcon;
@@ -49,30 +50,85 @@ public class ImageUtils {
   private static final GraphicsConfiguration configuration =
     GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
 
+
   /**
-   * Creates the reflection for the image. The reflection will be copied to y+height
-   * of the specified image and as such the specified image should be at least y+(height*2)
-   * in height.
+   * Creates a new image that is this image with a reflection added
    *
-   * @param image the image to create the reflection for.
-   * @param y the point at which to get the data for the reflection
-   * @param height the height of the reflection
-   *
+   * @param height the height of the reflection (use -1 to use the full height of the image)
    * @param opacity  the reflection opacity
+   * @param gap the gap between the image an its reflection
+   * 
    * @return the passed in image with the reflection added to the bottom
    */
-  public static BufferedImage addReflection(BufferedImage image, int y, int height, float opacity, int gap) {
-    BufferedImage bi = createCompatibleImage(image, image.getWidth(), image.getHeight() + height + gap);
-    Graphics2D    g2 = bi.createGraphics();
+  public static BufferedImage createCopyWithReflection(BufferedImage image, int height,float opacity, int gap) {
+    int iwidth=image.getWidth();
+    int iheight=image.getHeight();
+    if(height==-1) {
+      height=iheight;
+    }
+    BufferedImage buffer = configuration.createCompatibleImage(iwidth, iheight+height+gap, Transparency.TRANSLUCENT);
+    Graphics2D    g2     = buffer.createGraphics();
+    g2.drawImage(image, 0, 0, iwidth, iheight, null);
+    image=createSubReflection(image, iheight-height, height, opacity, gap,true);
+    g2.drawImage(image, 0, iheight, null);
+    g2.dispose();
+    return buffer;
+  }
+  
+  /**
+   * Creates a reflection for the image
+   *
+   * @param image the image to create the reflection for.
+   * @param opacity  the reflection opacity
+   * @param gap ga
+   * @return the passed in image with the reflection added to the bottom
+   */
+  public static BufferedImage createReflection(BufferedImage image, float opacity, int gap) {
+    int iwidth=image.getWidth();
+    int iheight=image.getHeight();
+    BufferedImage buffer = configuration.createCompatibleImage(iwidth, iheight+gap, Transparency.TRANSLUCENT);
+    Graphics2D    g2     = buffer.createGraphics();
 
+    g2.translate(0, iheight);
+    g2.scale(1.0, -1.0);
     g2.drawImage(image, 0, 0, null);
-    g2.setColor(Color.black);
-    g2.fillRect(0, image.getHeight(), image.getWidth(), gap);
+    g2.scale(1.0, -1.0);
+    g2.translate(0, iheight);
+    g2.setComposite(AlphaComposite.DstIn);
+    if(gap>0) {
+      g2.setColor(UIColor.black);
+      g2.fillRect(0, iheight, iwidth, gap);
+    }
+    g2.setPaint(new GradientPaint(0.0f, 0.0f, new Color(0.0f, 0.0f, 0.0f, opacity), 0.0f, buffer.getHeight(),
+                                  new Color(0.0f, 0.0f, 0.0f, 0.0f), true));
+    g2.fillRect(0,gap, iwidth, iheight);
     g2.dispose();
 
-    return createReflection(image, y, height, opacity, gap);
+    return buffer;
   }
 
+  public static BufferedImage createSubReflection(BufferedImage image, int y, int height,float opacity, int gap,boolean paintGap) {
+    int iwidth=image.getWidth();
+    BufferedImage buffer = configuration.createCompatibleImage(iwidth, height+gap, Transparency.TRANSLUCENT);
+    Graphics2D    g2     = buffer.createGraphics();
+
+    g2.translate(0, height);
+    g2.scale(1.0, -1.0);
+    g2.drawImage(image, 0,y,iwidth, height,0,0,iwidth,height,null);
+    g2.scale(1.0, -1.0);
+    g2.translate(0, -height);
+    if(gap>0 && paintGap) {
+      g2.setColor(UIColor.black);
+      g2.fillRect(0, 0, iwidth, gap);
+    }
+    g2.setComposite(AlphaComposite.DstIn);
+    g2.setPaint(new GradientPaint(0.0f, 0.0f, new Color(0.0f, 0.0f, 0.0f, opacity), 0.0f, height,
+                                  new Color(0.0f, 0.0f, 0.0f, 0.0f), true));
+    g2.fillRect(0,gap, iwidth, height);
+    g2.dispose();
+
+    return buffer;
+  }
   public static BufferedImage blurImage(BufferedImage img, BufferedImage dest) {
     Kernel     kernel = new Kernel(3, 3, new float[] {
       1f / 9f, 1f / 9f, 1f / 9f, 1f / 9f, 1f / 9f, 1f / 9f, 1f / 9f, 1f / 9f, 1f / 9f
@@ -163,39 +219,21 @@ public class ImageUtils {
 
   /**
    * Creates the reflection for the image. The reflection will be copied to y+height
-   * of the specified image and as such the specified image should be at least y+(height*2)
+   * of the specified image and as such the specified image should be at least y+(height*2)+gap
    * in height.
    *
    * @param image the image to create the reflection for.
    * @param y the point at which to get the data for the reflection
    * @param height the height of the reflection
-   *
    * @param opacity  the reflection opacity
+   * @param gap the gap between the image and the reflection
    * @return the passed in image with the reflection added to the bottom
    */
-  public static BufferedImage createReflection(BufferedImage image, int y, int height, float opacity, int gap) {
-    int           width  = image.getWidth();
-    BufferedImage buffer = image.getSubimage(0, y + height + gap, width, height);
-    Graphics2D    g2     = buffer.createGraphics();
-    BufferedImage b      = image.getSubimage(0, y, width, height);
-
-    g2.translate(0, height);
-    g2.scale(1.0, -1.0);
-    g2.setComposite(AlphaComposite.SrcOver);
-    g2.drawImage(b, 0, 0, null);
-    g2.scale(1.0, -1.0);
-    g2.translate(0, -height);
-    g2.setComposite(AlphaComposite.DstIn);
-
-    GradientPaint p;
-
-    p = new GradientPaint(0.0f, 0.0f, new Color(0.0f, 0.0f, 0.0f, opacity), 0.0f, buffer.getHeight(),
-                          new Color(0.0f, 0.0f, 0.0f, 0.0f), true);
-    g2.setPaint(p);
-    g2.fillRect(0, 0, buffer.getWidth(), buffer.getHeight());
+  public static void addReflection(BufferedImage image, int y, int height, float opacity, int gap) {
+    Graphics2D    g2      = image.createGraphics();
+    BufferedImage b=createSubReflection(image, y,height, opacity, gap,false);
+    g2.drawImage(b, 0, y+height, null);
     g2.dispose();
-
-    return image;
   }
 
   public static BufferedImage createThumbnail(BufferedImage image, int requestedThumbSize) {

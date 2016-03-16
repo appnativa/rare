@@ -30,6 +30,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 
@@ -87,7 +88,8 @@ public class ActionComponent extends Component
       }      
     } else if (view instanceof JTextField) {
       ((JTextField) view).addActionListener(this);
-    } else {
+      scrollview = true;
+    } else  if (view instanceof JTextArea){
       scrollview = true;
     }
   }
@@ -323,8 +325,8 @@ public class ActionComponent extends Component
 
   @Override
   public void setDisabledIcon(iPlatformIcon icon) {
-    if (icon instanceof UIImageIcon) {
-      ((UIImageIcon) icon).isImageLoaded(this);
+    if (icon instanceof iObservableImage) {
+      ((iObservableImage) icon).isImageLoaded(this);
     }
 
     disabledIcon = icon;
@@ -352,8 +354,8 @@ public class ActionComponent extends Component
 
       this.icon = icon;
 
-      if (icon instanceof UIImageIcon) {
-        ((UIImageIcon) icon).isImageLoaded(this);
+      if (icon instanceof iObservableImage) {
+        ((iObservableImage) icon).isImageLoaded(this);
       } else if (icon instanceof UISpriteIcon) {
         ((UISpriteIcon) icon).setOwner(this);
       }
@@ -711,7 +713,9 @@ public class ActionComponent extends Component
   @Override
   protected void getPreferredSizeEx(UIDimension size, float maxWidth) {
     super.getPreferredSizeEx(size, maxWidth);
-
+    if (scrollview) {
+      size.width       = Math.min(FontUtils.getCharacterWidth(getFont()) * 3,size.width);
+    }
     if (adjustSize) {
       Utils.adjustButtonSize(size);
     }
@@ -723,7 +727,7 @@ public class ActionComponent extends Component
 
     if (scrollview) {
       super.getMinimumSizeEx(size, maxWidth);
-      size.width       = FontUtils.getCharacterWidth(getFont()) * 3;
+      size.width       = Math.min(FontUtils.getCharacterWidth(getFont()) * 3,size.width);
       addBackIconWidth = true;
     } else {
       super.getMinimumSizeEx(size, maxWidth);

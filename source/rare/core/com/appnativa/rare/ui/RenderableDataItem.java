@@ -860,6 +860,8 @@ public class RenderableDataItem
   @Override
   public void clear() {
     theValue     = null;
+    displayIcon  = null;
+    disabledIcon = null;
     linkedData   = null;
     _toString    = null;
     stateFlags   = 0;

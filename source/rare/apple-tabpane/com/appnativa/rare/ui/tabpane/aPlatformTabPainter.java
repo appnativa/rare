@@ -21,10 +21,26 @@
 package com.appnativa.rare.ui.tabpane;
 
 import com.appnativa.rare.ui.UIAction;
+import com.appnativa.rare.ui.painter.UIComponentPainter;
 
 public abstract class aPlatformTabPainter extends aTabPainter {
   @Override
   protected iTabLabel createNewRenderer(UIAction a) {
     return new TabLabel(a);
+  }
+  
+  public void updatePaintersModCount() {
+    if(normalComponentPainter!=null) {
+      normalComponentPainter.updateModCount();
+    }
+    else if(tabPainter!=null) {
+      UIComponentPainter.updateBucketModCount(tabPainter);
+    }
+    if(selectedComponentPainter!=null) {
+      selectedComponentPainter.updateModCount();
+    }
+    else if(selectedPainter!=null) {
+      UIComponentPainter.updateBucketModCount(selectedPainter);
+    }
   }
 }

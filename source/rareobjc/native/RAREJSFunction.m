@@ -10,11 +10,14 @@
 #import "RAREJSEngine.h"
 
 
-@implementation RAREJSFunction
+@implementation RAREJSFunction {
+  JSContextRef ctx_;
+}
 -(id)initWithContext: (JSContextRef) ctx andValue: (JSValueRef) value {
     self=[super init];
     if(self) {
       function=value;
+      ctx_=ctx;
       JSValueProtect(ctx, value);
       [JSCocoaController upJSValueProtectCount];
     }
@@ -24,6 +27,7 @@
 -(void) dealloc {
   if(function!=NULL) {
     if([NSOperationQueue currentQueue]==[NSOperationQueue mainQueue] || ![RAREJSEngine jsUnprotectOnMainThreadOnly]) {
+      
       JSCocoaController* jsc=(JSCocoaController*)[RAREJSEngine getControllerInstance];
       if(jsc) {
         JSValueUnprotect([jsc ctx], function);
